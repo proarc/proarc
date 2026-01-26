@@ -130,22 +130,42 @@ import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.urnnbn.ResolverUtils;
-import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.AnnotatedMetaModel;
 import cz.cas.lib.proarc.webapp.server.rest.LocalDateParam;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.ErrorBuilder;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse.ErrorBuilder;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -169,35 +189,12 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.transform.stream.StreamSource;
 import org.apache.commons.io.FileUtils;
-import org.codehaus.jettison.json.JSONException;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.json.JSONException;
 
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExportWithError;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
@@ -208,8 +205,19 @@ import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_IN_GETTING_CHI
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_IS_LOCKED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_UNLOCKING_OBJECT_FAILED;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.FIELD_MODELOBJECT;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_CHANGE_MODEL;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_CZIDLO;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_DELETE_ACTION;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_IMPORT_TO_CATALOG;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_LOCK_OBJECT;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UNLOCK_OBJECT;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UPDATE_ALL_OBJECTS;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UPDATE_MODEL;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.STATUS_DONT_BE_IGNORED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.STATUS_LOCKED;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
 
 /**
@@ -229,7 +237,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermissio
  * @author Jan Pokorsky
  */
 @Deprecated
-@Path(RestConfig.URL_API_VERSION_1 + "/" + DigitalObjectResourceApi.PATH)
+@Path(URL_API_VERSION_1 + "/" + DigitalObjectResourceApi.PATH)
 public class DigitalObjectResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(DigitalObjectResourceV1.class.getName());
@@ -287,7 +295,7 @@ public class DigitalObjectResourceV1 {
      */
     @POST
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> newObject(
+    public ProArcResponse<SearchViewItem> newObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
@@ -312,7 +320,7 @@ public class DigitalObjectResourceV1 {
                 .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
 
         if (isLocked(parentPid)) {
-            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
+            throw RestException.plainText(Response.Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
 
         if (modelId == null || !models.contains(modelId)) {
@@ -331,7 +339,7 @@ public class DigitalObjectResourceV1 {
                 invalid = true;
             }
             if (invalid) {
-                return SmartGwtResponse.<SearchViewItem>asError().error(
+                return ProArcResponse.<SearchViewItem>asError().error(
                         DigitalObjectResourceApi.DIGITALOBJECT_PID, "Invalid PID!").build();
             }
         } else {
@@ -393,11 +401,11 @@ public class DigitalObjectResourceV1 {
                 }
             }
 
-            return new SmartGwtResponse<>(items);
+            return new ProArcResponse<>(items);
         } catch (DigitalObjectExistException ex) {
-            return SmartGwtResponse.<SearchViewItem>asError().error("pid", ex.getMessage()).build();
+            return ProArcResponse.<SearchViewItem>asError().error("pid", ex.getMessage()).build();
         } catch (WorkflowException ex) {
-            return SmartGwtResponse.asError(ex);
+            return ProArcResponse.asError(ex);
         } catch (DigitalObjectValidationException ex) {
             return toValidationError(ex, session.getLocale(httpHeaders));
         }
@@ -409,7 +417,7 @@ public class DigitalObjectResourceV1 {
     @DELETE
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> deleteObject(
+    public ProArcResponse<InternalExternalProcessResult> deleteObject(
             @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
             @DefaultValue("true") boolean hierarchy,
@@ -421,11 +429,11 @@ public class DigitalObjectResourceV1 {
     ) throws IOException {
 
         if (isLocked(pids)) {
-            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
+            throw RestException.plainText(Response.Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
         }
 
         if (purge || restore) {
-            checkPermission(user, UserRole.PERMISSION_FUNCTION_DELETE_ACTION);
+            checkPermission(user, PERMISSION_FUNCTION_DELETE_ACTION);
         }
 
         AkubraStorage storage = null;
@@ -453,13 +461,13 @@ public class DigitalObjectResourceV1 {
         InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
         InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
         InternalExternalProcessResult result = new InternalExternalProcessResult(batch.getId(), "Proces naplánován.");
-        return new SmartGwtResponse<>(result);
+        return new ProArcResponse<>(result);
     }
 
     @DELETE
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> deleteObject(
+    public ProArcResponse<InternalExternalProcessResult> deleteObject(
             ProArcRequest.DeleteObjectRequest deleteObjectRequest,
             @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
@@ -480,13 +488,13 @@ public class DigitalObjectResourceV1 {
     @DELETE
     @Path(DigitalObjectResourceApi.PURGE_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> purgeObjects(
+    public ProArcResponse<InternalExternalProcessResult> purgeObjects(
             @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM)
             @DefaultValue("deleted") SearchType type,
             @QueryParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws DigitalObjectException, IOException, FedoraClientException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_DELETE_ACTION);
+        checkPermission(user, PERMISSION_FUNCTION_DELETE_ACTION);
 
         BatchParams params = new BatchParams();
         params.setType(type.name());
@@ -498,10 +506,10 @@ public class DigitalObjectResourceV1 {
         InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
         InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
         InternalExternalProcessResult result = new InternalExternalProcessResult(batch.getId(), "Proces naplánován.");
-        return new SmartGwtResponse<>(result);
+        return new ProArcResponse<>(result);
     }
 
-    public SmartGwtResponse<SearchViewItem> search(String pid) throws IOException, FedoraClientException {
+    public ProArcResponse<SearchViewItem> search(String pid) throws IOException, FedoraClientException {
         return search(null, SearchType.PIDS, Collections.singletonList(pid), null, null, null, null, null, null, null, null, null, 0, null, null);
     }
 
@@ -521,7 +529,7 @@ public class DigitalObjectResourceV1 {
     @GET
     @Path(DigitalObjectResourceApi.SEARCH_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> search(
+    public ProArcResponse<SearchViewItem> search(
             @QueryParam(DigitalObjectResourceApi.SEARCH_OWNER_PARAM) String owner,
             @DefaultValue(SearchType.DEFAULT)
             @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM) SearchType type,
@@ -628,7 +636,7 @@ public class DigitalObjectResourceV1 {
         int count = items.size();
         int endRow = startRow + count - 1;
         //int total = count == 0 ? startRow : endRow + page;
-        return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, items);
+        return new ProArcResponse<SearchViewItem>(ProArcResponse.STATUS_SUCCESS, startRow, endRow, total, items);
     }
 
     private List<SearchViewItem> sortItems(List<SearchViewItem> items, SearchSort sort) {
@@ -684,7 +692,7 @@ public class DigitalObjectResourceV1 {
             }
         } else {
             if (pids == null || pids.size() != 1) {
-                throw RestException.plainText(Status.BAD_REQUEST, "parent search requires single pid parameter");
+                throw RestException.plainText(Response.Status.BAD_REQUEST, "parent search requires single pid parameter");
             }
             return search.findReferrers(pids.get(0));
         }
@@ -701,7 +709,7 @@ public class DigitalObjectResourceV1 {
     @GET
     @Path(DigitalObjectResourceApi.MEMBERS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> findMembers(
+    public ProArcResponse<SearchViewItem> findMembers(
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parent,
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ROOT_PARAM) String root
     ) throws FedoraClientException, IOException, DigitalObjectException {
@@ -726,7 +734,7 @@ public class DigitalObjectResourceV1 {
         for (SearchViewItem item : items) {
             item.setParentPid(parentPid);
         }
-        return new SmartGwtResponse<SearchViewItem>(items);
+        return new ProArcResponse<SearchViewItem>(items);
     }
 
 
@@ -739,7 +747,7 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.MEMBERS_PATH)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> setMembers(
+    public ProArcResponse<SearchViewItem> setMembers(
             ProArcRequest.SetMemberRequest request
     ) throws IOException, FedoraClientException, DigitalObjectException {
 
@@ -759,7 +767,7 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.MEMBERS_PATH)
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> setMembers(
+    public ProArcResponse<SearchViewItem> setMembers(
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toSetPids
@@ -828,7 +836,7 @@ public class DigitalObjectResourceV1 {
         editor.setMembers(members);
         editor.write(editor.getLastModified(), session.asFedoraLog());
         doHandler.commit();
-        return new SmartGwtResponse<SearchViewItem>(added);
+        return new ProArcResponse<SearchViewItem>(added);
     }
 
     /**
@@ -900,7 +908,7 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.MEMBERS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> addMembers(
+    public ProArcResponse<SearchViewItem> addMembers(
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toAddPids,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
@@ -931,7 +939,7 @@ public class DigitalObjectResourceV1 {
 
         List<SearchViewItem> added = addMembers(handler, toAddPids, memberSearchMap);
         handler.commit();
-        return new SmartGwtResponse<SearchViewItem>(added);
+        return new ProArcResponse<SearchViewItem>(added);
     }
 
     private void checkModelRelations(
@@ -1010,7 +1018,7 @@ public class DigitalObjectResourceV1 {
     @DELETE
     @Path(DigitalObjectResourceApi.MEMBERS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> deleteMembers(
+    public ProArcResponse<SearchViewItem> deleteMembers(
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toRemovePids,
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
@@ -1032,7 +1040,7 @@ public class DigitalObjectResourceV1 {
 
         HashSet<String> toRemovePidSet = new HashSet<String>(toRemovePids);
         if (toRemovePidSet.isEmpty()) {
-            return new SmartGwtResponse<SearchViewItem>(Collections.<SearchViewItem>emptyList());
+            return new ProArcResponse<SearchViewItem>(Collections.<SearchViewItem>emptyList());
         }
 
         DigitalObjectHandler parent = findHandler(parentPid, batchId, false);
@@ -1046,7 +1054,7 @@ public class DigitalObjectResourceV1 {
             removed.add(item);
         }
 
-        return new SmartGwtResponse<SearchViewItem>(removed);
+        return new ProArcResponse<SearchViewItem>(removed);
     }
 
     /**
@@ -1088,7 +1096,7 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.MEMBERS_PATH + '/' + DigitalObjectResourceApi.MEMBERS_MOVE_PATH)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> moveMembers(
+    public ProArcResponse<SearchViewItem> moveMembers(
             ProArcRequest.MoveMembersRequest request
     ) throws IOException, DigitalObjectException, FedoraClientException {
 
@@ -1108,7 +1116,7 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.MEMBERS_PATH + '/' + DigitalObjectResourceApi.MEMBERS_MOVE_PATH)
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> moveMembers(
+    public ProArcResponse<SearchViewItem> moveMembers(
             @FormParam(DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID) String srcParentPid,
             @FormParam(DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID) String dstParentPid,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId,
@@ -1134,7 +1142,7 @@ public class DigitalObjectResourceV1 {
 
         HashSet<String> movePidSet = new HashSet<String>(movePids);
         if (movePidSet.isEmpty()) {
-            return new SmartGwtResponse<SearchViewItem>(Collections.<SearchViewItem>emptyList());
+            return new ProArcResponse<SearchViewItem>(Collections.<SearchViewItem>emptyList());
         } else if (movePidSet.size() != movePids.size()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Duplicate children in the request!");
         }
@@ -1164,7 +1172,7 @@ public class DigitalObjectResourceV1 {
             LOG.severe("Nepodarilo se ukoncit ukol \"task.metadataDescriptionInProArc\" pro " + dstParentPid + " - " + e.getMessage());
         }
 
-        SmartGwtResponse<SearchViewItem> result = new SmartGwtResponse<SearchViewItem>(added);
+        ProArcResponse<SearchViewItem> result = new ProArcResponse<SearchViewItem>(added);
         return result;
     }
 
@@ -1244,7 +1252,7 @@ public class DigitalObjectResourceV1 {
     @GET
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> getDescriptionMetadata(
+    public ProArcResponse<DescriptionMetadata<Object>> getDescriptionMetadata(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
@@ -1257,13 +1265,13 @@ public class DigitalObjectResourceV1 {
         DigitalObjectHandler doHandler = findHandler(pid, batchId);
         DescriptionMetadata<Object> metadata = doHandler.metadata().getMetadataAsJsonObject(editorId);
         metadata.setBatchId(batchId);
-        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+        return new ProArcResponse<DescriptionMetadata<Object>>(metadata);
     }
 
     @PUT
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadata(
+    public ProArcResponse<DescriptionMetadata<Object>> updateDescriptionMetadata(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId,
@@ -1271,7 +1279,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String jsonData,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA) String xmlData,
             @FormParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
-            @FormParam(MetaModelDataSource.FIELD_MODELOBJECT) String model,
+            @FormParam(FIELD_MODELOBJECT) String model,
             @DefaultValue("false")
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_STANDARD) String standard
@@ -1348,13 +1356,13 @@ public class DigitalObjectResourceV1 {
                 batch = batchManager.update(batch);
             }
         }
-        return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
+        return new ProArcResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
     }
 
     @PUT
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_OBJECTS)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> updateDescriptionMetadataObjects(
+    public ProArcResponse<SearchViewItem> updateDescriptionMetadataObjects(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PARTNUMBER) String partNumber,
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGNATURA) String signatura,
@@ -1364,7 +1372,7 @@ public class DigitalObjectResourceV1 {
         LOG.fine(String.format("pids: %s", pids.toArray()));
 
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
 
         if (isLocked(pids)) {
@@ -1381,7 +1389,7 @@ public class DigitalObjectResourceV1 {
         } catch (DigitalObjectValidationException ex) {
             return toValidationError(ex, session.getLocale(httpHeaders));
         } catch (DigitalObjectException ex) {
-            return SmartGwtResponse.asError(ex);
+            return ProArcResponse.asError(ex);
         }
 
     }
@@ -1389,7 +1397,7 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_VALIDATE_OBJECT_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> validateObject(
+    public ProArcResponse<DescriptionMetadata<Object>> validateObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
     ) throws DigitalObjectException {
@@ -1437,10 +1445,10 @@ public class DigitalObjectResourceV1 {
         } catch (DigitalObjectValidationException ex) {
             return toValidationError(ex, session.getLocale(httpHeaders));
         } catch (DigitalObjectException ex) {
-            return SmartGwtResponse.asError(ex);
+            return ProArcResponse.asError(ex);
         }
 //        DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
-        return new SmartGwtResponse<DescriptionMetadata<Object>>();
+        return new ProArcResponse<DescriptionMetadata<Object>>();
     }
 
     private ProArcObject find(String pid, Integer batchId) throws DigitalObjectNotFoundException {
@@ -1456,7 +1464,7 @@ public class DigitalObjectResourceV1 {
     @PUT
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_ADD_AUTHORITY)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> addAuthority(
+    public ProArcResponse<DescriptionMetadata<Object>> addAuthority(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
@@ -1491,13 +1499,13 @@ public class DigitalObjectResourceV1 {
         }
 
         doHandler.commit();
-        return new SmartGwtResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
+        return new ProArcResponse<DescriptionMetadata<Object>>(mHandler.getMetadataAsJsonObject(editorId));
     }
 
     @PUT
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadataPages(
+    public ProArcResponse<DescriptionMetadata<Object>> updateDescriptionMetadataPages(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_APPLY_TO) String applyTo,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_APPLY_TO_FIRST_PAGE) String applyToFirstPage,
@@ -1527,7 +1535,7 @@ public class DigitalObjectResourceV1 {
             updatePages.createIndex(startIndex);
             updatePages.createListOfPids(pids);
             updatePages.updatePagesLocal(objects, sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePosition, isReprePage);
-            return new SmartGwtResponse<>();
+            return new ProArcResponse<>();
         } else {
             List<String> pids = UpdatePages.createListFromArray(pidsArray);
             if (isLocked(pids)) {
@@ -1539,7 +1547,7 @@ public class DigitalObjectResourceV1 {
             updatePages.createListOfPids(pids);
             updatePages.createIndex(startIndex);
             updatePages.updatePages(sequenceType, startNumber, incrementNumber, prefix, suffix, pageType, useBrackets, pagePosition, isReprePage);
-            return new SmartGwtResponse<>();
+            return new ProArcResponse<>();
         }
     }
 
@@ -1547,7 +1555,7 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES_COPY_METADATA)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> copyDescriptionMetadataToPages(
+    public ProArcResponse<DescriptionMetadata<Object>> copyDescriptionMetadataToPages(
             ProArcRequest.CopyPagesMetadataRequest request
     ) throws IOException, DigitalObjectException {
         return copyDescriptionMetadataToPages(request.sourcePidsArray, request.destinationPidsArray, request.copyPageNumber, request.copyPageType, request.copyPageIndex, request.copyPagePosition, request.copyPageRepre, request.batchId);
@@ -1557,7 +1565,7 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES_COPY_METADATA)
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> copyDescriptionMetadataToPages(
+    public ProArcResponse<DescriptionMetadata<Object>> copyDescriptionMetadataToPages(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SOURCE_PIDS) List<String> sourcePids,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_DESTINATION_PIDS) List<String> destinationPids,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_NUMBER) Boolean copyPageNumber,
@@ -1574,7 +1582,7 @@ public class DigitalObjectResourceV1 {
 
             UpdatePagesMetadata updatePagesMetadata = new UpdatePagesMetadata(sourcePids, destinationPids, copyPageIndex, copyPageNumber, copyPageType, copyPagePosition, copyPageRepre);
             updatePagesMetadata.updatePagesLocal(objects);
-            return new SmartGwtResponse(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, null);
+            return new ProArcResponse(ProArcResponse.STATUS_SUCCESS, 0, 0, -1, null);
         } else {
             if (isLocked(destinationPids)) {
                 DigitalObjectValidationException validationException = new DigitalObjectValidationException(destinationPids.get(0), null, null, "Locked", null);
@@ -1583,14 +1591,14 @@ public class DigitalObjectResourceV1 {
             }
             UpdatePagesMetadata updatePagesMetadata = new UpdatePagesMetadata(sourcePids, destinationPids, copyPageIndex, copyPageNumber, copyPageType, copyPagePosition, copyPageRepre);
             updatePagesMetadata.updatePages();
-            return new SmartGwtResponse(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, null);
+            return new ProArcResponse(ProArcResponse.STATUS_SUCCESS, 0, 0, -1, null);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_ADD_BRACKETS)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> updatePagesAddBrackets(
+    public ProArcResponse<SearchViewItem> updatePagesAddBrackets(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) throws DigitalObjectException {
@@ -1623,7 +1631,7 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_REMOVE_BRACKETS)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> updatePagesRemoveBrackets(
+    public ProArcResponse<SearchViewItem> updatePagesRemoveBrackets(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) throws DigitalObjectException {
@@ -1656,7 +1664,7 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_ADD_REFERENCE)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> addReferencesToMods(
+    public ProArcResponse<SearchViewItem> addReferencesToMods(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_ADD_REFERENCE_STRUCTURED) Boolean structured,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_ADD_REFERENCE_VALUE) String reference
@@ -1686,15 +1694,15 @@ public class DigitalObjectResourceV1 {
         return returnFunctionSuccess();
     }
 
-    public static <T> SmartGwtResponse<T> toValidationError(DigitalObjectValidationException ex, Locale locale) {
+    public static <T> ProArcResponse<T> toValidationError(DigitalObjectValidationException ex, Locale locale) {
         return toValidationError(ex, null, locale);
     }
 
-    private static <T> SmartGwtResponse<T> toValidationError(DigitalObjectValidationException ex, String type, Locale locale) {
+    private static <T> ProArcResponse<T> toValidationError(DigitalObjectValidationException ex, String type, Locale locale) {
         if (ex.getValidations().isEmpty()) {
-            return SmartGwtResponse.asError(ex);
+            return ProArcResponse.asError(ex);
         }
-        ErrorBuilder<T> error = SmartGwtResponse.asError();
+        ErrorBuilder<T> error = ProArcResponse.asError();
         ServerMessages msgs = ServerMessages.get(locale);
         boolean canBeIgnored = true;
         for (ValidationResult validation : ex.getValidations()) {
@@ -1716,7 +1724,7 @@ public class DigitalObjectResourceV1 {
     @GET
     @Path(DigitalObjectResourceApi.METAMODEL_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<AnnotatedMetaModel> listModels() {
+    public ProArcResponse<AnnotatedMetaModel> listModels() {
         Locale locale = session.getLocale(httpHeaders);
 
         Collection<MetaModel> models = metamodels.find();
@@ -1724,7 +1732,7 @@ public class DigitalObjectResourceV1 {
         for (MetaModel model : models) {
             result.add(new AnnotatedMetaModel(model, locale));
         }
-        return new SmartGwtResponse<AnnotatedMetaModel>(result);
+        return new ProArcResponse<AnnotatedMetaModel>(result);
     }
 
     /**
@@ -1738,7 +1746,7 @@ public class DigitalObjectResourceV1 {
     @GET
     @Path(DigitalObjectResourceApi.STREAMPROFILE_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DatastreamResult> getStreamProfile(
+    public ProArcResponse<DatastreamResult> getStreamProfile(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.STREAMPROFILE_ID) String dsId
@@ -1756,7 +1764,7 @@ public class DigitalObjectResourceV1 {
                 result.add(DatastreamResult.from(profile));
             }
         }
-        return new SmartGwtResponse<DatastreamResult>(result);
+        return new ProArcResponse<DatastreamResult>(result);
     }
 
     private void setWorkflow(String type, IMetsElement root) throws DigitalObjectException, WorkflowException {
@@ -1956,7 +1964,7 @@ public class DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.DISSEMINATION_PATH)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> updateDissemination(
+    public ProArcResponse<InternalExternalProcessResult> updateDissemination(
             @FormDataParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormDataParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId,
@@ -1971,7 +1979,7 @@ public class DigitalObjectResourceV1 {
             return updateDisseminationImpl(pid, batchId, dsId, file, fileInfo, fileBodyPart, mimeType);
         } catch (Throwable ex) {
             if (jsonErrors) {
-                return SmartGwtResponse.asError(ex);
+                return ProArcResponse.asError(ex);
             } else {
                 if (!(ex instanceof WebApplicationException)) {
                     ex = new WebApplicationException(ex);
@@ -1981,7 +1989,7 @@ public class DigitalObjectResourceV1 {
         }
     }
 
-    private SmartGwtResponse<InternalExternalProcessResult> updateDisseminationImpl(
+    private ProArcResponse<InternalExternalProcessResult> updateDisseminationImpl(
             @FormDataParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormDataParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId,
@@ -1992,10 +2000,10 @@ public class DigitalObjectResourceV1 {
     ) throws IOException, DigitalObjectException {
 
         if (pid == null) {
-            return SmartGwtResponse.asError(DigitalObjectResourceApi.DIGITALOBJECT_PID, "Missing PID!");
+            return ProArcResponse.asError(DigitalObjectResourceApi.DIGITALOBJECT_PID, "Missing PID!");
         }
         if (fileContent == null) {
-            return SmartGwtResponse.asError(DigitalObjectResourceApi.DISSEMINATION_FILE, "Missing file!");
+            return ProArcResponse.asError(DigitalObjectResourceApi.DISSEMINATION_FILE, "Missing file!");
         }
 
         if (dsId != null && !dsId.equals(BinaryEditor.RAW_ID)) {
@@ -2013,7 +2021,7 @@ public class DigitalObjectResourceV1 {
             try {
                 mime = mimeType != null ? MediaType.valueOf(mimeType) : fileBodyPart.getMediaType();
             } catch (IllegalArgumentException ex) {
-                return SmartGwtResponse.asError(
+                return ProArcResponse.asError(
                         DigitalObjectResourceApi.DISSEMINATION_MIME, "Invalid MIME type! " + mimeType);
             }
             LOG.log(Level.FINE, "filename: {0}, user mime: {1}, resolved mime: {2}, {3}/{4}", new Object[]{filename, mimeType, mime, pid, dsId});
@@ -2040,7 +2048,7 @@ public class DigitalObjectResourceV1 {
     @DELETE
     @Path(DigitalObjectResourceApi.DISSEMINATION_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse deleteDissemination(
+    public ProArcResponse deleteDissemination(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId
@@ -2053,7 +2061,7 @@ public class DigitalObjectResourceV1 {
 
         disseminationHandler.deleteDissemination(message);
 
-        return new SmartGwtResponse<String>(message);
+        return new ProArcResponse<String>(message);
     }
 
     @GET
@@ -2070,13 +2078,13 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.THUMB_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> generateThumbnail(
+    public ProArcResponse<InternalExternalProcessResult> generateThumbnail(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
 
     ) throws IOException {
         if (pids == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         BatchParams params = new BatchParams(pids);
         List<Integer> batches = new ArrayList<>();
@@ -2089,10 +2097,10 @@ public class DigitalObjectResourceV1 {
         }
         if (batches.isEmpty()) {
             InternalExternalProcessResult result = new InternalExternalProcessResult(null, "Proces není naplánován.");
-            return new SmartGwtResponse<>(result);
+            return new ProArcResponse<>(result);
         } else {
             InternalExternalProcessResult result = new InternalExternalProcessResult(batches.get(0), batches.size() == 1 ? "Proces naplánován." : "Celkem naplánovány " + batches.size() + " procesy.");
-            return new SmartGwtResponse(result);
+            return new ProArcResponse(result);
         }
     }
 
@@ -2167,7 +2175,7 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> generateAlto(
+    public ProArcResponse<InternalExternalProcessResult> generateAlto(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws IOException {
@@ -2180,13 +2188,13 @@ public class DigitalObjectResourceV1 {
         InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
         InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
         InternalExternalProcessResult result = new InternalExternalProcessResult(batch.getId(), "Proces naplánován.");
-        return new SmartGwtResponse<InternalExternalProcessResult>(result);
+        return new ProArcResponse<InternalExternalProcessResult>(result);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.GENERATE_PDFA)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> generatePdfA(
+    public ProArcResponse<InternalExternalProcessResult> generatePdfA(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws IOException {
@@ -2199,13 +2207,13 @@ public class DigitalObjectResourceV1 {
         InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
         InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
         InternalExternalProcessResult result = new InternalExternalProcessResult(batch.getId(), "Proces naplánován.");
-        return new SmartGwtResponse<InternalExternalProcessResult>(result);
+        return new ProArcResponse<InternalExternalProcessResult>(result);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.VALIDATE_OBJECT_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<InternalExternalProcessResult> validate(
+    public ProArcResponse<InternalExternalProcessResult> validate(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws IOException, MetsExportException {
         if (pids == null || pids.isEmpty()) {
@@ -2253,7 +2261,7 @@ public class DigitalObjectResourceV1 {
             InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
         }
         InternalExternalProcessResult result = new InternalExternalProcessResult(batchId, "Proces(y) naplánován(y).");
-        return new SmartGwtResponse<InternalExternalProcessResult>(result);
+        return new ProArcResponse<InternalExternalProcessResult>(result);
     }
 
     @GET
@@ -2299,7 +2307,7 @@ public class DigitalObjectResourceV1 {
     @PUT
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_AES_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateTechnicalMetadataAes(
+    public ProArcResponse<DescriptionMetadata<Object>> updateTechnicalMetadataAes(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
@@ -2330,13 +2338,13 @@ public class DigitalObjectResourceV1 {
             mapper.updateMetadataAsXml(fobject, data, timestamp, session.asFedoraLog(), TechnicalMetadataMapper.AES);
         }
         DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile(), TechnicalMetadataMapper.AES);
-        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+        return new ProArcResponse<DescriptionMetadata<Object>>(metadata);
     }
 
     @GET
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_AES_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> getTechnicalMetadataAes(
+    public ProArcResponse<DescriptionMetadata<Object>> getTechnicalMetadataAes(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
@@ -2353,7 +2361,7 @@ public class DigitalObjectResourceV1 {
         }
         TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(editor.getModel(), batchId, pid, appConfig, akubraConfiguration);
         DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, editor.getImportFile(), TechnicalMetadataMapper.AES);
-        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+        return new ProArcResponse<DescriptionMetadata<Object>>(metadata);
     }
 
     @GET
@@ -2389,7 +2397,7 @@ public class DigitalObjectResourceV1 {
     @PUT
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_PREMIS_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateTechnicalMetadataPremis(
+    public ProArcResponse<DescriptionMetadata<Object>> updateTechnicalMetadataPremis(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
@@ -2420,13 +2428,13 @@ public class DigitalObjectResourceV1 {
             mapper.updateMetadataAsXml(fobject, data, timestamp, session.asFedoraLog(), TechnicalMetadataMapper.PREMIS);
         }
         DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile(), TechnicalMetadataMapper.PREMIS);
-        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+        return new ProArcResponse<DescriptionMetadata<Object>>(metadata);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_PREMIS_GENERATE_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> generateTechnicalMetadataPremis(
+    public ProArcResponse<SearchViewItem> generateTechnicalMetadataPremis(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
     ) throws IOException, DigitalObjectException {
@@ -2482,7 +2490,7 @@ public class DigitalObjectResourceV1 {
     @PUT
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_CODING_HISTORY_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateCodingHistory(
+    public ProArcResponse<DescriptionMetadata<Object>> updateCodingHistory(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
@@ -2513,13 +2521,13 @@ public class DigitalObjectResourceV1 {
             mapper.updateMetadataAsXml(fobject, data, timestamp, session.asFedoraLog(), TechnicalMetadataMapper.CODING_HISTORY);
         }
         DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile(), TechnicalMetadataMapper.CODING_HISTORY);
-        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+        return new ProArcResponse<DescriptionMetadata<Object>>(metadata);
     }
 
     @GET
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_CODING_HISTORY_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> getCodingHistoryMetadata(
+    public ProArcResponse<DescriptionMetadata<Object>> getCodingHistoryMetadata(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
@@ -2536,7 +2544,7 @@ public class DigitalObjectResourceV1 {
         }
         TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(editor.getModel(), batchId, pid, appConfig, akubraConfiguration);
         DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, editor.getImportFile(), TechnicalMetadataMapper.CODING_HISTORY);
-        return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+        return new ProArcResponse<DescriptionMetadata<Object>>(metadata);
     }
 
     @GET
@@ -2591,13 +2599,13 @@ public class DigitalObjectResourceV1 {
     @GET
     @Path(DigitalObjectResourceApi.ATM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<AtmItem> getAtm(
+    public ProArcResponse<AtmItem> getAtm(
             @QueryParam(DigitalObjectResourceApi.ATM_ITEM_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.ATM_ITEM_BATCHID) Integer batchId
     ) throws IOException, DigitalObjectException, FedoraClientException {
 
         if (pid == null) {
-            return new SmartGwtResponse<AtmItem>();
+            return new ProArcResponse<AtmItem>();
         }
         ProArcObject fobject = findFedoraObject(pid, batchId);
         Locale locale = session.getLocale(httpHeaders);
@@ -2606,22 +2614,22 @@ public class DigitalObjectResourceV1 {
             AtmEditor editor = new AtmEditor(fobject, storage.getSearch(locale));
             AtmItem atm = editor.read();
             atm.setBatchId(batchId);
-            return new SmartGwtResponse<AtmItem>(atm);
+            return new ProArcResponse<AtmItem>(atm);
         } else if (fobject instanceof AkubraObject) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
             AtmEditor editor = new AtmEditor(fobject, akubraStorage.getSearch(locale));
             AtmItem atm = editor.read();
             atm.setBatchId(batchId);
-            return new SmartGwtResponse<AtmItem>(atm);
+            return new ProArcResponse<AtmItem>(atm);
         } else {
-            return new SmartGwtResponse<>();
+            return new ProArcResponse<>();
         }
     }
 
     @PUT
     @Path(DigitalObjectResourceApi.ATM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<AtmItem> updateAtm(
+    public ProArcResponse<AtmItem> updateAtm(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) Set<String> pids,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_OWNER) String owner,
@@ -2671,13 +2679,13 @@ public class DigitalObjectResourceV1 {
             atm.setBatchId(batchId);
             result.add(atm);
         }
-        return new SmartGwtResponse<AtmItem>(result);
+        return new ProArcResponse<AtmItem>(result);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.URNNBN_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<UrnNbnResult> registerUrnNbn(
+    public ProArcResponse<UrnNbnResult> registerUrnNbn(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
@@ -2720,18 +2728,18 @@ public class DigitalObjectResourceV1 {
                 }
             }
         }
-        return new SmartGwtResponse<UrnNbnResult>(result);
+        return new ProArcResponse<UrnNbnResult>(result);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_INVALIDATE_LOCAL_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<UrnNbnResult> invalidateLocalUrnNbn(
+    public ProArcResponse<UrnNbnResult> invalidateLocalUrnNbn(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
+        checkPermission(user, PERMISSION_FUNCTION_CZIDLO);
 
         if (isLocked(pids)) {
             throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
@@ -2754,19 +2762,19 @@ public class DigitalObjectResourceV1 {
                 }
             }
         }
-        return new SmartGwtResponse<UrnNbnResult>(result);
+        return new ProArcResponse<UrnNbnResult>(result);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_CREATE_SUCCESSOR_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<UrnNbnResult> createSuccessorUrnNbn(
+    public ProArcResponse<UrnNbnResult> createSuccessorUrnNbn(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
+        checkPermission(user, PERMISSION_FUNCTION_CZIDLO);
 
 
         if (isLocked(pids)) {
@@ -2806,18 +2814,18 @@ public class DigitalObjectResourceV1 {
                 }
             }
         }
-        return new SmartGwtResponse<UrnNbnResult>(result);
+        return new ProArcResponse<UrnNbnResult>(result);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_INVALIDATE_REMOTE_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<UrnNbnResult> invalidateRemoteUrnNbn(
+    public ProArcResponse<UrnNbnResult> invalidateRemoteUrnNbn(
             @FormParam(DigitalObjectResourceApi.URNNBN_VALUE_TO_DEACTIVATE) String urnNbnValue,
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
+        checkPermission(user, PERMISSION_FUNCTION_CZIDLO);
 
         List<UrnNbnResult> result = new LinkedList<UrnNbnResult>();
         if (urnNbnValue != null && !urnNbnValue.isEmpty()) {
@@ -2853,18 +2861,18 @@ public class DigitalObjectResourceV1 {
                 }
             }
         }
-        return new SmartGwtResponse<UrnNbnResult>(result);
+        return new ProArcResponse<UrnNbnResult>(result);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_REGISTER_AGAIN_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<UrnNbnResult> registerAgainUrnNbn(
+    public ProArcResponse<UrnNbnResult> registerAgainUrnNbn(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
+        checkPermission(user, PERMISSION_FUNCTION_CZIDLO);
 
         if (isLocked(pids)) {
             throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
@@ -2903,29 +2911,29 @@ public class DigitalObjectResourceV1 {
                 }
             }
         }
-        return new SmartGwtResponse<UrnNbnResult>(result);
+        return new ProArcResponse<UrnNbnResult>(result);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_UPDATE_IDENTIFIER_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<UrnNbnResult> updateIdentifierUrnNbn(
+    public ProArcResponse<UrnNbnResult> updateIdentifierUrnNbn(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.URNNBN_IDENTIFIER) String identifier,
             @FormParam(DigitalObjectResourceApi.URNNBN_OPERATION) String operation,
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO);
+        checkPermission(user, PERMISSION_FUNCTION_CZIDLO);
 
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         if (operation == null || operation.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.URNNBN_OPERATION));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.URNNBN_OPERATION));
         }
         if (identifier == null || identifier.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.URNNBN_IDENTIFIER));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.URNNBN_IDENTIFIER));
         }
 
         List<UrnNbnResult> result = new LinkedList<UrnNbnResult>();
@@ -2969,17 +2977,17 @@ public class DigitalObjectResourceV1 {
                 }
             }
         }
-        return new SmartGwtResponse<UrnNbnResult>(result);
+        return new ProArcResponse<UrnNbnResult>(result);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.LOCK_OBJECT_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> lockObject(
+    public ProArcResponse<SearchViewItem> lockObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_LOCK_OBJECT);
+        checkPermission(user, PERMISSION_FUNCTION_LOCK_OBJECT);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3001,11 +3009,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.UNLOCK_OBJECT_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> unlockObject(
+    public ProArcResponse<SearchViewItem> unlockObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_UNLOCK_OBJECT);
+        checkPermission(user, PERMISSION_FUNCTION_UNLOCK_OBJECT);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3027,7 +3035,7 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.COPYOBJECT_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> copyObject(
+    public ProArcResponse<SearchViewItem> copyObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pidOld,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
@@ -3054,7 +3062,7 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.GENERATE_JP2_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> generateJp2(
+    public ProArcResponse<SearchViewItem> generateJp2(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.GENERATE_TYPE) String type,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
@@ -3067,11 +3075,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_NDK_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changePageToNdkPage(
+    public ProArcResponse<SearchViewItem> changePageToNdkPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3102,11 +3110,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkPageToPage(
+    public ProArcResponse<SearchViewItem> changeNdkPageToPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3134,11 +3142,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_STT_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changePageToSttPage(
+    public ProArcResponse<SearchViewItem> changePageToSttPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3166,11 +3174,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeSttPageToPage(
+    public ProArcResponse<SearchViewItem> changeSttPageToPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3198,11 +3206,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_NDK_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeSttPageToNdkPage(
+    public ProArcResponse<SearchViewItem> changeSttPageToNdkPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3230,11 +3238,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_STT_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkPageToSttPage(
+    public ProArcResponse<SearchViewItem> changeNdkPageToSttPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3262,11 +3270,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeClippingsVolumeToNdkMonographVolume(
+    public ProArcResponse<SearchViewItem> changeClippingsVolumeToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3295,11 +3303,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToClippingsVolume(
+    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToClippingsVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3328,11 +3336,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographTitleToClippingsTitle(
+    public ProArcResponse<SearchViewItem> changeNdkMonographTitleToClippingsTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3361,11 +3369,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeClippingsTitleToNdkMonographTitle(
+    public ProArcResponse<SearchViewItem> changeClippingsTitleToNdkMonographTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3393,11 +3401,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_TO_NDK_PERIODICAL)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeK4PeriodicalToNdkPeriodical(
+    public ProArcResponse<SearchViewItem> changeK4PeriodicalToNdkPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3425,11 +3433,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeK4PeriodicalVolumeToNdkPeriodicalVolume(
+    public ProArcResponse<SearchViewItem> changeK4PeriodicalVolumeToNdkPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3458,11 +3466,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeK4PeriodicalIssueToNdkPeriodicalIssue(
+    public ProArcResponse<SearchViewItem> changeK4PeriodicalIssueToNdkPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3491,11 +3499,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeK4MonographToNdkMonographVolume(
+    public ProArcResponse<SearchViewItem> changeK4MonographToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3524,11 +3532,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_VOLUME)
      @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeK4MonographUnitToNdkMonographVolume(
+    public ProArcResponse<SearchViewItem> changeK4MonographUnitToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3557,11 +3565,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeK4MonographUnitToNdkMonographUnit(
+    public ProArcResponse<SearchViewItem> changeK4MonographUnitToNdkMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3590,11 +3598,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TITLE_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographTitleToNdkMonographVolume(
+    public ProArcResponse<SearchViewItem> changeNdkMonographTitleToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3623,11 +3631,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographUnitToNdkMonographVolume(
+    public ProArcResponse<SearchViewItem> changeNdkMonographUnitToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3656,11 +3664,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_TITLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographTitle(
+    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3689,11 +3697,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographUnit(
+    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3722,11 +3730,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EMONOGRAPH_VOLUME_TO_NDK_EMONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEMonographVolumeToNdkEMonographUnit(
+    public ProArcResponse<SearchViewItem> changeNdkEMonographVolumeToNdkEMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3755,11 +3763,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EMONOGRAPH_UNIT_TO_NDK_EMONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEMonographUnitToNdkEMonographVolume(
+    public ProArcResponse<SearchViewItem> changeNdkEMonographUnitToNdkEMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3788,11 +3796,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMusicsheetToOldprintMusicsheet(
+    public ProArcResponse<SearchViewItem> changeNdkMusicsheetToOldprintMusicsheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3821,11 +3829,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeSttMusicsheetToNdkMusicsheet(
+    public ProArcResponse<SearchViewItem> changeSttMusicsheetToNdkMusicsheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3855,11 +3863,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_CHAPTER_TO_STT_CHAPTER)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkChapterToOldprintChapter(
+    public ProArcResponse<SearchViewItem> changeNdkChapterToOldprintChapter(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3888,11 +3896,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_CHAPTER_TO_NDK_CHAPTER)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldprintChapterToNdkChapter(
+    public ProArcResponse<SearchViewItem> changeOldprintChapterToNdkChapter(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3921,11 +3929,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PICTURE_TO_STT_GRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkPictureToOldprintGraphic(
+    public ProArcResponse<SearchViewItem> changeNdkPictureToOldprintGraphic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3954,11 +3962,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_GRAPHIC_TO_NDK_PICTURE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldprintGraphicToNdkPicture(
+    public ProArcResponse<SearchViewItem> changeOldprintGraphicToNdkPicture(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -3987,11 +3995,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_CARTOGRAPHIC_TO_STT_CARTOGRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkCartographicToOldprintCartographic(
+    public ProArcResponse<SearchViewItem> changeNdkCartographicToOldprintCartographic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4020,11 +4028,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_CARTOGRAPHIC_TO_NDK_CARTOGRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldprintCartographicToNdkCartographic(
+    public ProArcResponse<SearchViewItem> changeOldprintCartographicToNdkCartographic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4053,11 +4061,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TO_STT_MONOGRAPH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToOldprintMonographVolume(
+    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToOldprintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4086,11 +4094,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_VOLUME_TO_STT_MONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldprintMonographVolumeToOldprintMonographUnit(
+    public ProArcResponse<SearchViewItem> changeOldprintMonographVolumeToOldprintMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4119,11 +4127,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_UNIT_TO_STT_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldprintMonographUnitToOldprintMonographVolume(
+    public ProArcResponse<SearchViewItem> changeOldprintMonographUnitToOldprintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4152,11 +4160,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_NDK_MONOGRAPH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToNdkMonographVolume(
+    public ProArcResponse<SearchViewItem> changeOldPrintMonographVolumeToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4185,11 +4193,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_SUPPLEMENT_TO_STT_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographSupplementToOldPrintSupplement(
+    public ProArcResponse<SearchViewItem> changeNdkMonographSupplementToOldPrintSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4218,11 +4226,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_SUPPLEMENT_TO_NDK_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldPrintSupplementToNdkMonographSupplement(
+    public ProArcResponse<SearchViewItem> changeOldPrintSupplementToNdkMonographSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4251,11 +4259,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_STT_GRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintGraphic(
+    public ProArcResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintGraphic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4284,11 +4292,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_GRAPHIC_TO_STT_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldPrintGraphicToOldPrintMonographVolume(
+    public ProArcResponse<SearchViewItem> changeOldPrintGraphicToOldPrintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4317,11 +4325,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_STT_MUSICSHEET)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintMusicSheet(
+    public ProArcResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintMusicSheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4350,11 +4358,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_TO_NDK_EPERIODICAL)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkPeriodicalToNdkEPeriodical(
+    public ProArcResponse<SearchViewItem> changeNdkPeriodicalToNdkEPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4383,11 +4391,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_VOLUME_TO_NDK_EPERIODICAL_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkPeriodicalVolumeToNdkEPeriodicalVolume(
+    public ProArcResponse<SearchViewItem> changeNdkPeriodicalVolumeToNdkEPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4416,11 +4424,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_ISSUE_TO_NDK_EPERIODICAL_ISSUE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkPeriodicalIssueToNdkEPeriodicalIssue(
+    public ProArcResponse<SearchViewItem> changeNdkPeriodicalIssueToNdkEPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4449,11 +4457,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_SUPPLEMENT_TO_NDK_EPERIODICAL_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkPeriodicalSupplementToNdkEPeriodicalSupplement(
+    public ProArcResponse<SearchViewItem> changeNdkPeriodicalSupplementToNdkEPeriodicalSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4482,11 +4490,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_ARTICLE_TO_NDK_EARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkArticleToNdkEArticle(
+    public ProArcResponse<SearchViewItem> changeNdkArticleToNdkEArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4515,11 +4523,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_BDM_ARTICLE_TO_NDK_EARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeBdmArticleToNdkEArticle(
+    public ProArcResponse<SearchViewItem> changeBdmArticleToNdkEArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4548,11 +4556,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_TO_NDK_PERIODICAL)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEPeriodicalToNdkPeriodical(
+    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalToNdkPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4581,11 +4589,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEPeriodicalVolumeToNdkPeriodicalVolume(
+    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalVolumeToNdkPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4614,11 +4622,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEPeriodicalIssueToNdkPeriodicalIssue(
+    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalIssueToNdkPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4647,11 +4655,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_SUPPLEMENT_TO_NDK_PERIODICAL_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEPeriodicalSupplementToNdkPeriodicalSupplement(
+    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalSupplementToNdkPeriodicalSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4680,11 +4688,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EARTICLE_TO_NDK_ARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEArticleToNdkArticle(
+    public ProArcResponse<SearchViewItem> changeNdkEArticleToNdkArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4713,11 +4721,11 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EARTICLE_TO_BDM_ARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEArticleToBdmArticle(
+    public ProArcResponse<SearchViewItem> changeNdkEArticleToBdmArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
             return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
@@ -4747,7 +4755,7 @@ public class DigitalObjectResourceV1 {
     @PUT
     @Path(DigitalObjectResourceApi.REINDEX_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> reindex(
+    public ProArcResponse<SearchViewItem> reindex(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PARENT_PID) String parentPid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
@@ -4803,12 +4811,12 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.UPDATE_ALL_OBJECTS_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> updateAllObjects(
+    public ProArcResponse<SearchViewItem> updateAllObjects(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException, IOException, FedoraClientException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_ALL_OBJECTS);
+        checkPermission(user, PERMISSION_FUNCTION_UPDATE_ALL_OBJECTS);
 
 
         Locale locale = session.getLocale(httpHeaders);
@@ -4823,12 +4831,12 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.UPDATE_NDK_ARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> updateNdkArticeObjects(
+    public ProArcResponse<SearchViewItem> updateNdkArticeObjects(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_UPDATE_MODEL);
 
         Locale locale = session.getLocale(httpHeaders);
         UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
@@ -4845,12 +4853,12 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.UPDATE_NDK_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> updateNdkPageObjects(
+    public ProArcResponse<SearchViewItem> updateNdkPageObjects(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_UPDATE_MODEL);
 
         Locale locale = session.getLocale(httpHeaders);
         UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
@@ -4867,13 +4875,13 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.UPDATE_NDK_PAGE + "/" + "pageType")
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> updateNdkPageObjectsWithSpecificPageType(
+    public ProArcResponse<SearchViewItem> updateNdkPageObjectsWithSpecificPageType(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
     ) throws DigitalObjectException, IOException, FedoraClientException {
 
         String pageType = "flyleaf";
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_UPDATE_MODEL);
 
         Locale locale = session.getLocale(httpHeaders);
         UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
@@ -4898,12 +4906,12 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.UPDATE_OLDPRINT_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> updateOldprintPageObjects(
+    public ProArcResponse<SearchViewItem> updateOldprintPageObjects(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) throws DigitalObjectException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL);
+        checkPermission(user, PERMISSION_FUNCTION_UPDATE_MODEL);
 
         Locale locale = session.getLocale(httpHeaders);
         UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
@@ -4920,12 +4928,12 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.UPDATE_CATALOG_RECORD)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> updateCatalogRecord(
+    public ProArcResponse<SearchViewItem> updateCatalogRecord(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId,
             @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws DigitalObjectException, JSONException, IOException {
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_IMPORT_TO_CATALOG);
+        checkPermission(user, PERMISSION_FUNCTION_IMPORT_TO_CATALOG);
 
         CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
 
@@ -4966,13 +4974,13 @@ public class DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_OWNER_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeObjectOwner (
+    public ProArcResponse<SearchViewItem> changeObjectOwner (
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_OLD) String oldOwner,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_NEW) String newOwner,
             @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws IOException, FedoraClientException, DigitalObjectException, WorkflowException {
         Locale locale = session.getLocale(httpHeaders);
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER);
+        checkPermission(user, PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER);
 
         UserProfile oldUser = null;
         UserProfile newUser = null;
@@ -4982,7 +4990,7 @@ public class DigitalObjectResourceV1 {
         } else {
             oldUser = UserUtil.getDefaultManger().find(oldOwner);
             if (oldUser == null) {
-                return SmartGwtResponse.<SearchViewItem>asError()
+                return ProArcResponse.<SearchViewItem>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_NotFound", oldOwner))
                         .build();
             }
@@ -4993,13 +5001,13 @@ public class DigitalObjectResourceV1 {
         } else {
             newUser = UserUtil.getDefaultManger().find(newOwner);
             if (newUser == null) {
-                return SmartGwtResponse.<SearchViewItem>asError()
+                return ProArcResponse.<SearchViewItem>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_NotFound", newOwner))
                         .build();
             }
         }
         if (newOwner.equals(oldOwner)) {
-            return SmartGwtResponse.<SearchViewItem>asError()
+            return ProArcResponse.<SearchViewItem>asError()
                     .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResource_Both_username_are_same", newOwner))
                     .build();
         }
@@ -5305,26 +5313,26 @@ public class DigitalObjectResourceV1 {
         }
     }
 
-    private SmartGwtResponse<SearchViewItem> returnValidationError(String key) {
+    private ProArcResponse<SearchViewItem> returnValidationError(String key) {
         SearchViewItem item = new SearchViewItem();
         item.setValidation(returnLocalizedMessage(key));
-        return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, Collections.singletonList(item));
+        return new ProArcResponse<SearchViewItem>(ProArcResponse.STATUS_SUCCESS, 0, 0, -1, Collections.singletonList(item));
     }
 
-    private SmartGwtResponse<SearchViewItem> returnFunctionError(String key, DigitalObjectException ex) {
+    private ProArcResponse<SearchViewItem> returnFunctionError(String key, DigitalObjectException ex) {
         return returnFunctionError(key, ex.getMessage());
     }
 
-    private SmartGwtResponse<SearchViewItem> returnFunctionError(String key, String message) {
+    private ProArcResponse<SearchViewItem> returnFunctionError(String key, String message) {
         SearchViewItem item = new SearchViewItem();
         item.setValidation(returnLocalizedMessage(key, message));
-        return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, -1, Collections.singletonList(item));
+        return new ProArcResponse<SearchViewItem>(ProArcResponse.STATUS_SUCCESS, 0, 0, -1, Collections.singletonList(item));
     }
 
-    public static SmartGwtResponse<SearchViewItem> returnFunctionSuccess() {
+    public static ProArcResponse<SearchViewItem> returnFunctionSuccess() {
         SearchViewItem item = new SearchViewItem();
         item.setStatus("OK");
-        return new SmartGwtResponse<SearchViewItem>(SmartGwtResponse.STATUS_SUCCESS, 0, 0, 1, Collections.singletonList(item));
+        return new ProArcResponse<SearchViewItem>(ProArcResponse.STATUS_SUCCESS, 0, 0, 1, Collections.singletonList(item));
     }
 
     public String returnLocalizedMessage(String key, Object... arguments) {

@@ -24,10 +24,21 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogQueryField;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.AuthorityCatalogResourceApi;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.ArrayList;
@@ -37,19 +48,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.transform.TransformerException;
+
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 
 /**
  * The resource to list available authorities catalogs like Aleph
@@ -58,7 +59,7 @@ import javax.xml.transform.TransformerException;
  * @author Lukáš Sýkora
  */
 @Deprecated
-@Path(RestConfig.URL_API_VERSION_1 + "/" + AuthorityCatalogResourceApi.PATH)
+@Path(URL_API_VERSION_1 + "/" + AuthorityCatalogResourceApi.PATH)
 public class AuthorityCatalogResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(AuthorityCatalogResourceV1.class.getName());
@@ -79,7 +80,7 @@ public class AuthorityCatalogResourceV1 {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<CatalogDescriptor> findAuthorityCatalog(
+    public ProArcResponse<CatalogDescriptor> findAuthorityCatalog(
             @QueryParam(AuthorityCatalogResourceApi.CATALOG_ID) String id) {
 
         List<CatalogConfiguration> catalogs;
@@ -93,7 +94,7 @@ public class AuthorityCatalogResourceV1 {
         for (CatalogConfiguration cp : catalogs) {
             result.add(CatalogDescriptor.create(cp));
         }
-        return new SmartGwtResponse<CatalogDescriptor>(result);
+        return new ProArcResponse<CatalogDescriptor>(result);
     }
 
     /**
@@ -150,7 +151,7 @@ public class AuthorityCatalogResourceV1 {
                 result = bCatalog.find(catalog, fieldName, value, locale);
             } catch (ConnectException ex) {
                 LOG.log(Level.FINE, catalog, ex);
-                throw RestException.plainText(Status.SERVICE_UNAVAILABLE, ex.getLocalizedMessage());
+                throw RestException.plainText(Response.Status.SERVICE_UNAVAILABLE, ex.getLocalizedMessage());
             }
         } else {
             throw RestException.plainNotFound(AuthorityCatalogResourceApi.FIND_CATALOG_PARAM, catalog);

@@ -18,31 +18,32 @@ package cz.cas.lib.proarc.webapp.server.rest.v2;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.info.ApplicationInfo;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.ApplicationResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.ApplicationResourceApi;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
+
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_2;
 
 /**
  * Resource to manage application version.
  *
  * @author Lukáš Sýkora
  */
-@Path(RestConfig.URL_API_VERSION_2 + "/" + ApplicationResourceApi.PATH)
+@Path(URL_API_VERSION_2 + "/" + ApplicationResourceApi.PATH)
 public class ApplicationResource extends ApplicationResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(ApplicationResource.class.getName());
@@ -59,28 +60,28 @@ public class ApplicationResource extends ApplicationResourceV1 {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ApplicationInfo> getVersion(
+    public ProArcResponse<ApplicationInfo> getVersion(
             @QueryParam(ApplicationResourceApi.QUERY_FULL_LOAD) Boolean fullLoad
     ) {
         try {
             return super.getVersion(fullLoad);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(ApplicationResourceApi.FILE_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ApplicationInfo> getFile(
+    public ProArcResponse<ApplicationInfo> getFile(
             @QueryParam(ApplicationResourceApi.QUERY_FILE_TYPE) String fileType
     ) {
         try {
             return super.getFile(fileType);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 }

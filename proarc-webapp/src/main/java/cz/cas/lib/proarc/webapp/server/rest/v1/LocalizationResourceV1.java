@@ -17,10 +17,20 @@
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import cz.cas.lib.proarc.common.i18n.BundleName;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.LocalizationResourceApi;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,24 +44,15 @@ import java.util.ResourceBundle.Control;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
+
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 
 /**
  *
  * @author Jan Pokorsky
  */
 @Deprecated
-@Path(RestConfig.URL_API_VERSION_1 + "/" + LocalizationResourceApi.PATH)
+@Path(URL_API_VERSION_1 + "/" + LocalizationResourceApi.PATH)
 public class LocalizationResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(LocalizationResourceV1.class.getName());
@@ -75,7 +76,7 @@ public class LocalizationResourceV1 {
      */
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Item> getBundle(
+    public ProArcResponse<Item> getBundle(
             @QueryParam(LocalizationResourceApi.ITEM_BUNDLENAME) Set<BundleName> bundleNames,
             @DefaultValue("")
             @QueryParam(LocalizationResourceApi.GETBUNDLE_LOCALE_PARAM) String locale,
@@ -108,7 +109,7 @@ public class LocalizationResourceV1 {
                         bundleName.toString());
             }
         }
-        return new SmartGwtResponse<Item>(result);
+        return new ProArcResponse<Item>(result);
     }
 
     private ArrayList<Item> readBundle(BundleName bundleName, Locale localeObj, Control control, boolean sorted) {

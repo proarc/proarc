@@ -16,11 +16,11 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import jakarta.ws.rs.core.Response;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.Response.Status;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -42,7 +42,7 @@ public final class DateTimeParam {
             dateTime = FMT.parseDateTime(txt);
         } catch (Exception e) {
             LOG.log(Level.SEVERE, txt, e);
-            throw RestException.plainText(Status.BAD_REQUEST, e.getMessage());
+            throw RestException.plainText(Response.Status.BAD_REQUEST, e.getMessage());
         }
     }
 

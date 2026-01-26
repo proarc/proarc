@@ -1,19 +1,20 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.webapp.server.rest.v2.DigitalObjectResource;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.ws.rs.DefaultValue;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 
 public class ProArcRequest {
 
     /**
-     * {@link cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1.DeleteObjectRequest} request body.
+     * {@link DigitalObjectResource DeleteObjectRequest} request body.
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class DeleteObjectRequest {
@@ -46,7 +47,7 @@ public class ProArcRequest {
     }
 
     /**
-     * {@link DigitalObjectResourceV1.SetMember} request body.
+     * {@link DigitalObjectResource SetMember} request body.
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class SetMemberRequest {
@@ -62,7 +63,7 @@ public class ProArcRequest {
     }
 
     /**
-     * The helper for {@link cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1.MoveMembers} request body.
+     * The helper for {@link DigitalObjectResource MoveMembers} request body.
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class MoveMembersRequest {
@@ -81,7 +82,7 @@ public class ProArcRequest {
     }
 
     /**
-     * {@link DigitalObjectResource.copyDescriptionMetadataToPages} request body.
+     * {@link DigitalObjectResource copyDescriptionMetadataToPages} request body.
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class CopyPagesMetadataRequest {

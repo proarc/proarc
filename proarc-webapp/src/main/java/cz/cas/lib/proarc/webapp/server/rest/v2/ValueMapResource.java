@@ -18,27 +18,27 @@ package cz.cas.lib.proarc.webapp.server.rest.v2;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.object.ValueMap;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.ValueMapResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_2;
 
 /**
  * Provides value maps used by form pick lists.
  *
  * @author Lukas Sykora
  */
-@Path(RestConfig.URL_API_VERSION_2 + "/" + ValueMapResourceApi.PATH)
+@Path(URL_API_VERSION_2 + "/" + ValueMapResourceApi.PATH)
 public class ValueMapResource extends ValueMapResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(ValueMapResource.class.getName());
@@ -52,24 +52,24 @@ public class ValueMapResource extends ValueMapResourceV1 {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ValueMap> getValueMaps() {
+    public ProArcResponse<ValueMap> getValueMaps() {
         try {
             return super.getValueMaps();
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(ValueMapResourceApi.PERO_OCR_ENGINE)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ValueMap> getPeroOcrEngines() {
+    public ProArcResponse<ValueMap> getPeroOcrEngines() {
         try {
             return super.getPeroOcrEngines();
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 

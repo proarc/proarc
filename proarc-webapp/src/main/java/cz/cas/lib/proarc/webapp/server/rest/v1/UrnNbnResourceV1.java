@@ -20,31 +20,32 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.UrnNbnResourceApi;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
+
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 
 /**
  *
  * @author Lukas Sykora
  */
 @Deprecated
-@Path(RestConfig.URL_API_VERSION_1 + "/" + UrnNbnResourceApi.PATH)
+@Path(URL_API_VERSION_1 + "/" + UrnNbnResourceApi.PATH)
 public class UrnNbnResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(UrnNbnResourceV1.class.getName());
@@ -60,7 +61,7 @@ public class UrnNbnResourceV1 {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<ResolverDescriptor> findCatalog(
+    public ProArcResponse<ResolverDescriptor> findCatalog(
             @QueryParam(UrnNbnResourceApi.RESOLVER_ID) String id) {
 
         List<UrnNbnConfiguration.ResolverConfiguration> resolvers;
@@ -75,7 +76,7 @@ public class UrnNbnResourceV1 {
         for (UrnNbnConfiguration.ResolverConfiguration rc : resolvers) {
             result.add(UrnNbnResourceV1.ResolverDescriptor.create(rc));
         }
-        return new SmartGwtResponse<UrnNbnResourceV1.ResolverDescriptor>(result);
+        return new ProArcResponse<ResolverDescriptor>(result);
     }
 
     private UrnNbnConfiguration.ResolverConfiguration findResolver(List<UrnNbnConfiguration.ResolverConfiguration> listOfResolvers) {

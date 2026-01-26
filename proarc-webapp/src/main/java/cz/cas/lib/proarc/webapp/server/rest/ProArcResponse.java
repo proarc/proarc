@@ -17,6 +17,12 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.webapp.server.rest.JacksonProvider.DefaultAdapter;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlTransient;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -26,12 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
@@ -47,9 +47,9 @@ import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.STATUS_LOCKED;
  */
 @XmlRootElement(name="response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class SmartGwtResponse<T>{
+public class ProArcResponse<T>{
 
-    private static final Logger LOG = Logger.getLogger(SmartGwtResponse.class.getName());
+    private static final Logger LOG = Logger.getLogger(ProArcResponse.class.getName());
 
     public static final int STATUS_SERVER_TIMEOUT = -100;
     public static final int STATUS_TRANSPORT_ERROR = -90;
@@ -85,20 +85,20 @@ public class SmartGwtResponse<T>{
     @XmlJavaTypeAdapter(ErrorAdapter.class)
     private Map<String, List<ErrorMessage>> errors;
 
-    public SmartGwtResponse() {
+    public ProArcResponse() {
     }
 
-    public SmartGwtResponse(T singletonDataItem) {
+    public ProArcResponse(T singletonDataItem) {
         this(STATUS_SUCCESS, 0, 0, 1, singletonDataItem != null
                 ? Collections.singletonList(singletonDataItem)
                 : Collections.<T>emptyList());
     }
 
-    public SmartGwtResponse(List<T> data) {
+    public ProArcResponse(List<T> data) {
         this(STATUS_SUCCESS, 0, Math.max(0, data.size() - 1), data.size(), data);
     }
 
-    public SmartGwtResponse(int status, Integer startRow, Integer endRow, Integer totalRows, List<T> data) {
+    public ProArcResponse(int status, Integer startRow, Integer endRow, Integer totalRows, List<T> data) {
         this.status = status;
         this.startRow = startRow;
         this.endRow = endRow;
@@ -112,8 +112,8 @@ public class SmartGwtResponse<T>{
      * @param msg error message send as data
      * @return the response
      */
-    public static <T> SmartGwtResponse<T> asError(String msg) {
-        SmartGwtResponse<T> result = new SmartGwtResponse<T>();
+    public static <T> ProArcResponse<T> asError(String msg) {
+        ProArcResponse<T> result = new ProArcResponse<T>();
         result.setErrorData(msg);
         result.setErrorMessage(msg);
         return result;
@@ -126,7 +126,7 @@ public class SmartGwtResponse<T>{
      * @param session session context
      * @return the response
      */
-    public static <T> SmartGwtResponse<T> asError(String msg, SessionContext session) {
+    public static <T> ProArcResponse<T> asError(String msg, SessionContext session) {
         LOG.severe(session.getIp() + "{" + session.getUser().getUserName() + "} : " + msg);
         return asError(msg);
     }
@@ -134,14 +134,14 @@ public class SmartGwtResponse<T>{
     /**
      * @see #asError(java.lang.String)
      */
-    public static <T> SmartGwtResponse<T> asError(Throwable t) {
+    public static <T> ProArcResponse<T> asError(Throwable t) {
         return asError(t.getMessage(), t);
     }
 
     /**
      * @see #asError(java.lang.String)
      */
-    public static <T> SmartGwtResponse<T> asError(String msg, Throwable t) {
+    public static <T> ProArcResponse<T> asError(String msg, Throwable t) {
         StringWriter errorDataSW = new StringWriter();
         PrintWriter errorDataPW = new PrintWriter(errorDataSW);
         StringWriter stackTraceSW = new StringWriter();
@@ -160,15 +160,15 @@ public class SmartGwtResponse<T>{
         return asError(errorDataSW.toString(), t.getMessage(), errorDataSW.toString());
     }
 
-    private static <T> SmartGwtResponse<T> asError(String errorData, String message, String stackTrace) {
-        SmartGwtResponse<T> result = new SmartGwtResponse<T>();
+    private static <T> ProArcResponse<T> asError(String errorData, String message, String stackTrace) {
+        ProArcResponse<T> result = new ProArcResponse<T>();
         result.setErrorData(errorData);
         result.setErrorInfo(message, stackTrace);
         return result;
     }
 
-    public static <T> SmartGwtResponse<T> asError(String fieldName, String message) {
-        return SmartGwtResponse.<T>asError().error(fieldName, message).build();
+    public static <T> ProArcResponse<T> asError(String fieldName, String message) {
+        return ProArcResponse.<T>asError().error(fieldName, message).build();
     }
 
     public static <T> ErrorBuilder<T> asError() {
@@ -250,15 +250,15 @@ public class SmartGwtResponse<T>{
             return this;
         }
 
-        public SmartGwtResponse<T> build() {
+        public ProArcResponse<T> build() {
             return build(null);
         }
 
-        public SmartGwtResponse<T> build(String type) {
+        public ProArcResponse<T> build(String type) {
             if (type == null) {
                 type="";
             }
-            SmartGwtResponse<T> result = new SmartGwtResponse<T>();
+            ProArcResponse<T> result = new ProArcResponse<T>();
             result.errors = errors;
             switch (type) {
                 case STATUS_LOCKED:
@@ -358,7 +358,7 @@ public class SmartGwtResponse<T>{
      * JSON JAXB mapping helper class. It removes errors XML adapter as Jackson can
      * serialize rather Map than DOM elements.
      */
-    public static abstract class AnnotatedSmartGwtResponse<T> extends SmartGwtResponse<T> {
+    public static abstract class AnnotatedProArcResponse<T> extends ProArcResponse<T> {
 
         @XmlJavaTypeAdapter(SgwtErrorAdapter.class)
         private Map<String, List<ErrorMessage>> errors;

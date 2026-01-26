@@ -49,8 +49,6 @@ import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.DateTimeParam;
 import cz.cas.lib.proarc.webapp.server.rest.ImportFolder;
@@ -58,8 +56,25 @@ import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
 import cz.cas.lib.proarc.webapp.server.rest.ProfileStates;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -74,28 +89,14 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 
 import static cz.cas.lib.proarc.common.process.imports.ImportFileScanner.IMPORT_STATE_FILENAME;
 import static cz.cas.lib.proarc.common.process.imports.ImportProcess.TMP_DIR_NAME;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_BATCH_CANNOT_BE_STOPED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_PREPARE_BATCH;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_SYS_ADMIN;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
@@ -112,7 +113,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
  * @see <a href="http://127.0.0.1:8888/Editor/rest/application.wadl/xsd0.xsd">XML Scema in dev mode</a>
  */
 @Deprecated
-@Path(RestConfig.URL_API_VERSION_1 + "/" + ImportResourceApi.PATH)
+@Path(URL_API_VERSION_1 + "/" + ImportResourceApi.PATH)
 public class ImportResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(ImportResourceV1.class.getName());
@@ -159,7 +160,7 @@ public class ImportResourceV1 {
     @Path(ImportResourceApi.FOLDER_PATH)
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ImportFolder> listFolder(
+    public ProArcResponse<ImportFolder> listFolder(
             @QueryParam(ImportResourceApi.IMPORT_FOLDER_PARENT_PARAM) @DefaultValue("") String parent,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @QueryParam(ImportResourceApi.IMPORT_START_ROW_PARAM) @DefaultValue("-1") int startRow
@@ -205,7 +206,7 @@ public class ImportResourceV1 {
             total = subfolders.size();
             endRow = startRow + total - 1;
         }
-        return new SmartGwtResponse<ImportFolder>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, result);
+        return new ProArcResponse<ImportFolder>(ProArcResponse.STATUS_SUCCESS, startRow, endRow, total, result);
     }
 
     private List<ImportFolder> setResult(List<ImportFolder> result, List<Folder> subfolders, URI userRoot, String parentPath) {
@@ -238,7 +239,7 @@ public class ImportResourceV1 {
     @POST
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<BatchView> newBatch(
+    public ProArcResponse<BatchView> newBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_SOFTWARE_PARAM) String software,
@@ -272,20 +273,20 @@ public class ImportResourceV1 {
                     listBatches.add(process.getBatch());
                 }
             }
-            return new SmartGwtResponse<BatchView>();
+            return new ProArcResponse<BatchView>();
         } else {
             ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
                     importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
             ImportDispatcher.getDefault().addImport(process);
             Batch batch = process.getBatch();
-            return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
+            return new ProArcResponse<BatchView>(importManager.viewBatch(batch.getId()));
         }
     }
 
     @POST
     @Path(ImportResourceApi.BATCH_GENERATE_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<BatchView> newBatch(
+    public ProArcResponse<BatchView> newBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path
     ) throws URISyntaxException, IOException {
         LOG.log(Level.INFO, "generating for path: {0}", new Object[] {path});
@@ -301,14 +302,14 @@ public class ImportResourceV1 {
                 importManager, null, null, false, null, false, false, null, false, appConfig.getImportConfiguration(profile), appConfig);
         ImportDispatcher.getDefault().addImport(process);
         Batch batch = process.getBatch();
-        return new SmartGwtResponse<BatchView>(importManager.viewBatch(batch.getId()));
+        return new ProArcResponse<BatchView>(importManager.viewBatch(batch.getId()));
     }
 
 
         @POST
     @Path(ImportResourceApi.BATCHES_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<BatchView> newBatches(
+    public ProArcResponse<BatchView> newBatches(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String pathes,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_SOFTWARE_PARAM) String software,
@@ -349,9 +350,9 @@ public class ImportResourceV1 {
             throw listExceptions.get(0);
         }
         if (listBatches.size() > 0) {
-            return new SmartGwtResponse<BatchView>(importManager.viewBatch(listBatches.get(0).getId()));
+            return new ProArcResponse<BatchView>(importManager.viewBatch(listBatches.get(0).getId()));
         } else {
-            return new SmartGwtResponse<BatchView>();
+            return new ProArcResponse<BatchView>();
         }
     }
 
@@ -386,13 +387,13 @@ public class ImportResourceV1 {
     @DELETE
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<BatchView> deleteBatch(
+    public ProArcResponse<BatchView> deleteBatch(
             @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) List<Integer> batchIds,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId
     ) {
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_SYS_ADMIN);
+        checkPermission(user, PERMISSION_FUNCTION_SYS_ADMIN);
 
         if (batchIds == null && batchIds.isEmpty() && (batchState == null || batchState.isEmpty()) && profileId == null && creatorId == null) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing values in parameters.");
@@ -414,7 +415,7 @@ public class ImportResourceV1 {
         int batchSize = batches2Delete.size();
         int endRow = batchSize - 1;
         int total = batches2Delete.size();
-        return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, 0, endRow, total, batches2Delete);
+        return new ProArcResponse<BatchView>(ProArcResponse.STATUS_SUCCESS, 0, endRow, total, batches2Delete);
     }
 
     /**
@@ -435,7 +436,7 @@ public class ImportResourceV1 {
     @GET
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<BatchView> listBatches(
+    public ProArcResponse<BatchView> listBatches(
             @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_CREATE_FROM) DateTimeParam createFrom,
@@ -500,13 +501,13 @@ public class ImportResourceV1 {
         int batchSize = batches.size();
         int endRow = startRow + batchSize - 1;
         int total = allBatches.size();
-        return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, batches);
+        return new ProArcResponse<BatchView>(ProArcResponse.STATUS_SUCCESS, startRow, endRow, total, batches);
     }
 
     @GET
     @Path(ImportResourceApi.BATCHES_IN_PROCESS_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<BatchView> listProcessingBatches(
+    public ProArcResponse<BatchView> listProcessingBatches(
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState
 
     ) throws IOException {
@@ -523,13 +524,13 @@ public class ImportResourceV1 {
 
         int endRow = 0 + loadingBatches.size() - 1;
         int total = loadingBatches.size();
-        return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, 0, endRow, total, loadingBatches);
+        return new ProArcResponse<BatchView>(ProArcResponse.STATUS_SUCCESS, 0, endRow, total, loadingBatches);
     }
 
     @POST
     @Path(ImportResourceApi.BATCH_STOP_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<BatchView> stopBatch(
+    public ProArcResponse<BatchView> stopBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId
     ) {
         Batch batch = importManager.get(batchId);
@@ -538,31 +539,31 @@ public class ImportResourceV1 {
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
         if (Batch.State.LOADING.equals(batch.getState()) || Batch.State.IMPORT_PLANNED.equals(batch.getState())) {
-            if (!(hasPermission(user, UserRole.PERMISSION_FUNCTION_PREPARE_BATCH) || isBatchOwner(batch))) {
+            if (!(hasPermission(user, PERMISSION_FUNCTION_PREPARE_BATCH) || isBatchOwner(batch))) {
                 LOG.info("User " + user + " (id:" + user.getId() + ") - permission prepareBatchFunction.");
-                return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
             ImportProcess.stopLoadingBatch(batch, importManager, appConfig);
             BatchView batchView = importManager.viewBatch(batch.getId());
-            return new SmartGwtResponse<BatchView>(batchView);
+            return new ProArcResponse<BatchView>(batchView);
         } else if (Batch.State.EXPORTING.equals(batch.getState())) {
             if (!(isBatchOwner(batch))) {
                 LOG.info("User " + user + " (id:" + user.getId() + ") - cannot stop batch");
-                return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
             ExportProcess.stopExportingBatch(batch, importManager, appConfig, akubraConfiguration);
             BatchView batchView = importManager.viewBatch(batch.getId());
-            return new SmartGwtResponse<BatchView>(batchView);
+            return new ProArcResponse<BatchView>(batchView);
         } else if (Batch.State.EXPORT_PLANNED.equals(batch.getState())) {
             if (!(isBatchOwner(batch))) {
                 LOG.info("User " + user + " (id:" + user.getId() + ") - cannot stop batch");
-                return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
             ExportProcess.cancelPlannedBatch(batch, importManager, appConfig, akubraConfiguration);
             BatchView batchView = importManager.viewBatch(batch.getId());
-            return new SmartGwtResponse<BatchView>(batchView);
+            return new ProArcResponse<BatchView>(batchView);
         } else {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_BATCH_CANNOT_BE_STOPED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_BATCH_CANNOT_BE_STOPED));
         }
     }
 
@@ -584,7 +585,7 @@ public class ImportResourceV1 {
     @PUT
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<BatchView> updateBatch(
+    public ProArcResponse<BatchView> updateBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
             // empty string stands for remove
             @FormParam(ImportResourceApi.IMPORT_BATCH_PARENTPID) String parentPid,
@@ -625,10 +626,10 @@ public class ImportResourceV1 {
                     UserManager userManager = UserUtil.getDefaultManger();
                     UserProfile userProfile = userManager.find(userId);
                     if (userProfile == null) {
-                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                        return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
                     }
                     if (userProfile != null && !userProfile.hasPrepareBatchFunction()) {
-                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                        return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
                     }
                 }
             }
@@ -659,13 +660,13 @@ public class ImportResourceV1 {
             batch = importManager.update(batch);
         }
         BatchView batchView = importManager.viewBatch(batch.getId());
-        return new SmartGwtResponse<BatchView>(batchView);
+        return new ProArcResponse<BatchView>(batchView);
     }
 
     @GET
     @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.BATCHITEM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<PageView.Item> listBatchItems(
+    public ProArcResponse<Item> listBatchItems(
             @QueryParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
             @QueryParam(ImportResourceApi.BATCHITEM_PID) String pid,
             @QueryParam("_startRow") int startRow
@@ -685,11 +686,11 @@ public class ImportResourceV1 {
             }
             if (!(batch.getState() == Batch.State.LOADED || batch.getState() == Batch.State.LOADING || batch.getState() == Batch.State.IMPORT_PLANNED)) {
                 String message = ServerMessages.get(locale).ImportResource_BatchNotLoaded_Msg();
-                return SmartGwtResponse.asError(message);
+                return ProArcResponse.asError(message);
             }
             if (ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT.equals(batch.getProfileId()) || ConfigurationProfile.DEFAULT_NDK_IMPORT.equals(batch.getProfileId())) {
                 String message =ServerMessages.get(locale).ImportResource_Batch_WrongProfileId_Msg();
-                return SmartGwtResponse.asError(message);
+                return ProArcResponse.asError(message);
             }
 
             Integer userId = batch.getUserId();
@@ -698,10 +699,10 @@ public class ImportResourceV1 {
                     UserManager userManager = UserUtil.getDefaultManger();
                     UserProfile userProfile = userManager.find(userId);
                     if (userProfile == null) {
-                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                        return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
                     }
                     if (userProfile != null && !userProfile.hasPrepareBatchFunction()) {
-                        return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                        return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
                     }
                 }
             }
@@ -718,9 +719,9 @@ public class ImportResourceV1 {
                 if (ex.getMessage() != null && ex.getMessage().contains(messageOld)) {
                     String message = ServerMessages.get(locale).ImportResource_PathNotExisted_Msg();
                     String newMessage = ex.getMessage().replace(messageOld, message);
-                    return SmartGwtResponse.asError(newMessage.substring(0, newMessage.indexOf(" for Batch")));
+                    return ProArcResponse.asError(newMessage.substring(0, newMessage.indexOf(" for Batch")));
                 } else {
-                    return SmartGwtResponse.asError(ex);
+                    return ProArcResponse.asError(ex);
                 }
             }
         }
@@ -739,7 +740,7 @@ public class ImportResourceV1 {
         int totalRows = (batch.getState() == Batch.State.LOADING || batch.getState() == Batch.State.IMPORT_PLANNED) ? batch.getEstimateItemNumber(): totalImports;
 
         if (totalImports == 0 || startRow >= totalImports) {
-            return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, startRow, totalRows, null);
+            return new ProArcResponse<Item>(ProArcResponse.STATUS_SUCCESS, startRow, startRow, totalRows, null);
         }
 
         int endRow = totalImports;
@@ -748,13 +749,13 @@ public class ImportResourceV1 {
             imports = imports.subList(startRow, totalImports);
         }
         List<Item> records = new PageView().list(batchId, imports, session.getLocale(httpHeaders));
-        return new SmartGwtResponse<Item>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, totalRows, records);
+        return new ProArcResponse<Item>(ProArcResponse.STATUS_SUCCESS, startRow, endRow, totalRows, records);
     }
 
     @DELETE
     @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.BATCHITEM_PATH)
     @Consumes({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<PageView.Item> deleteBatchItem(
+    public ProArcResponse<Item> deleteBatchItem(
             ProArcRequest.DeleteObjectRequest deleteObjectRequest) {
         return deleteBatchItem(deleteObjectRequest.batchId, deleteObjectRequest.getPidsAsSet());
     }
@@ -762,7 +763,7 @@ public class ImportResourceV1 {
     @DELETE
     @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.BATCHITEM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<PageView.Item> deleteBatchItem(
+    public ProArcResponse<Item> deleteBatchItem(
             @QueryParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
             @QueryParam(ImportResourceApi.BATCHITEM_PID) Set<String> pids
             ) {
@@ -780,7 +781,7 @@ public class ImportResourceV1 {
             for (String pid : pids) {
                 deletedItems.add(new PageView.Item(batchId, pid));
             }
-            return new SmartGwtResponse<Item>(deletedItems);
+            return new ProArcResponse<Item>(deletedItems);
         } else {
             throw RestException.plainText(Status.NOT_FOUND, "Batch item not found!");
         }
@@ -828,7 +829,7 @@ public class ImportResourceV1 {
     @POST
     @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.IMPORT_FUNCTION_UNLOCK_FOLDER)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<BatchView> unlockFolder(
+    public ProArcResponse<BatchView> unlockFolder(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId
     ) throws URISyntaxException {
@@ -859,13 +860,13 @@ public class ImportResourceV1 {
                 MetsUtils.deleteFolder(file);
             }
         }
-        return new SmartGwtResponse<>(batchView);
+        return new ProArcResponse<>(batchView);
     }
 
     @POST
     @Path(ImportResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DigitalObjectResourceV1.InternalExternalProcessResult> generateAlto(
+    public ProArcResponse<DigitalObjectResourceV1.InternalExternalProcessResult> generateAlto(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws IOException, URISyntaxException {
@@ -886,7 +887,7 @@ public class ImportResourceV1 {
         InternalExternalProcess process = InternalExternalProcess.prepare(appConfig, akubraConfiguration, batch, importManager, user, session.asFedoraLog(), session.getLocale(httpHeaders), folder);
         InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
         DigitalObjectResourceV1.InternalExternalProcessResult result = new DigitalObjectResourceV1.InternalExternalProcessResult(batch.getId(), "Proces naplánován.");
-        return new SmartGwtResponse<DigitalObjectResourceV1.InternalExternalProcessResult>(result);
+        return new ProArcResponse<DigitalObjectResourceV1.InternalExternalProcessResult>(result);
     }
 
 }

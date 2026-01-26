@@ -17,27 +17,28 @@
 package cz.cas.lib.proarc.webapp.server.rest.v2;
 
 import cz.cas.lib.proarc.common.i18n.BundleName;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.LocalizationResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.LocalizationResourceApi;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
+
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_2;
 
 /**
  *
  * @author Lukas Sykora
  */
-@Path(RestConfig.URL_API_VERSION_2 + "/" + LocalizationResourceApi.PATH)
+@Path(URL_API_VERSION_2 + "/" + LocalizationResourceApi.PATH)
 public class LocalizationResource extends LocalizationResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(LocalizationResource.class.getName());
@@ -50,7 +51,7 @@ public class LocalizationResource extends LocalizationResourceV1 {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Item> getBundle(
+    public ProArcResponse<Item> getBundle(
             @QueryParam(LocalizationResourceApi.ITEM_BUNDLENAME) Set<BundleName> bundleNames,
             @DefaultValue("")
             @QueryParam(LocalizationResourceApi.GETBUNDLE_LOCALE_PARAM) String locale,
@@ -61,7 +62,7 @@ public class LocalizationResource extends LocalizationResourceV1 {
             return super.getBundle(bundleNames, locale, sorted);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 }

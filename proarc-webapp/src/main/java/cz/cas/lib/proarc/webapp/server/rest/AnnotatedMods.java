@@ -38,8 +38,8 @@ import cz.cas.lib.proarc.mods.SubjectTitleInfoDefinition;
 import cz.cas.lib.proarc.mods.TableOfContentsDefinition;
 import cz.cas.lib.proarc.mods.Text;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 /**
  * Helper class to annotate {@link cz.cas.lib.proarc.mods} properties.

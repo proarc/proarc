@@ -28,7 +28,6 @@ import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.AcceptedExports;
-import cz.cas.lib.proarc.common.process.export.DesaExport;
 import cz.cas.lib.proarc.common.process.export.ExportDispatcher;
 import cz.cas.lib.proarc.common.process.export.ExportException;
 import cz.cas.lib.proarc.common.process.export.ExportProcess;
@@ -39,15 +38,31 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.user.UserProfile;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
-import java.io.Closeable;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlTransient;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -61,30 +76,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.SecurityContext;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import org.apache.commons.io.FileUtils;
-import org.glassfish.jersey.server.CloseableService;
 
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusInstance;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 
 /**
  * REST resource to export data from the system.
@@ -92,7 +87,7 @@ import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusI
  * @author Jan Pokorsky
  */
 @Deprecated
-@Path(RestConfig.URL_API_VERSION_1 + "/" + ExportResourceApi.PATH)
+@Path(URL_API_VERSION_1 + "/" + ExportResourceApi.PATH)
 public class ExportResourceV1 {
 
     protected final AppConfiguration appConfig;
@@ -140,7 +135,7 @@ public class ExportResourceV1 {
     @GET
     @Path(ExportResourceApi.VALID_EXPORTS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<List<String>> validExports(
+    public ProArcResponse<List<String>> validExports(
             @QueryParam(ExportResourceApi.VALUD_EXPORTS_MODEL_PARAM) String modelId
     ) {
 
@@ -154,7 +149,7 @@ public class ExportResourceV1 {
         AcceptedExports ae = new AcceptedExports(modelId);
         List<String> validExportItems = ae.getList();
 
-        return new SmartGwtResponse<List<String>>(validExportItems);
+        return new ProArcResponse<List<String>>(validExportItems);
     }
 
     public String returnLocalizedMessage(String key, Object... arguments) {
@@ -166,7 +161,7 @@ public class ExportResourceV1 {
     @GET
     @Path(ExportResourceApi.KRAMERIUS4_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<KrameriusDescriptor> krameriusInstances(
+    public ProArcResponse<KrameriusDescriptor> krameriusInstances(
             @QueryParam(ExportResourceApi.KRAMERIUS_INSTANCE_ID) String id) {
 
         List<KrameriusOptions.KrameriusInstance> tmpKrameriusInstances;
@@ -196,13 +191,13 @@ public class ExportResourceV1 {
         for (KrameriusOptions.KrameriusInstance kc : krameriusInstances) {
             result.add(KrameriusDescriptor.create(kc));
         }
-        return new SmartGwtResponse<KrameriusDescriptor>(result);
+        return new ProArcResponse<KrameriusDescriptor>(result);
     }
 
     @GET
     @Path(ExportResourceApi.BATCHES_IN_PROCESS_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<BatchView> listProcessingBatches(
+    public ProArcResponse<BatchView> listProcessingBatches(
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState
 
     ) {
@@ -220,13 +215,13 @@ public class ExportResourceV1 {
 
         int endRow = 0 + plannedBatches.size() - 1;
         int total = plannedBatches.size();
-        return new SmartGwtResponse<BatchView>(SmartGwtResponse.STATUS_SUCCESS, 0, endRow, total, plannedBatches);
+        return new ProArcResponse<BatchView>(ProArcResponse.STATUS_SUCCESS, 0, endRow, total, plannedBatches);
     }
 
     @POST
     @Path(ExportResourceApi.REEXPORT_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ExportResult> reexport(
+    public ProArcResponse<ExportResult> reexport(
             @FormParam(ExportResourceApi.BATCH_ID) Integer batchId
     ) throws Exception {
 
@@ -238,17 +233,17 @@ public class ExportResourceV1 {
         Batch batch = this.batchManager.get(batchId);
         if (batch == null) {
             ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("Resource_Unsupported_Value", batchId)));
-            return new SmartGwtResponse<>(result);
+            return new ProArcResponse<>(result);
         } else {
             if (!(Batch.State.EXPORT_FAILED.equals(batch.getState()) || Batch.State.STOPPED.equals(batch.getState()))) {
                 ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("ExportResouce_ReexportNotSupported_WrongState", batch.getState())));
-                return new SmartGwtResponse<>(result);
+                return new ProArcResponse<>(result);
             } else {
                 String profileId = batch.getProfileId();
                 BatchParams params = batch.getParamsAsObject();
                 if (params == null) {
                     ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("ExportResouce_ReexportNotSupported_MissingParams")));
-                    return new SmartGwtResponse<>(result);
+                    return new ProArcResponse<>(result);
                 }
 
                 batch.setState(Batch.State.EXPORT_PLANNED);
@@ -258,7 +253,7 @@ public class ExportResourceV1 {
                 ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
                 ExportDispatcher.getDefault().addExport(process);
                 ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
-                return new SmartGwtResponse<ExportResult>(result);
+                return new ProArcResponse<ExportResult>(result);
             }
         }
     }
@@ -266,7 +261,7 @@ public class ExportResourceV1 {
     @POST
     @Path(ExportResourceApi.DATASTREAM_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ExportResult> datastream(
+    public ProArcResponse<ExportResult> datastream(
             @FormParam(ExportResourceApi.DATASTREAM_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.DATASTREAM_DSID_PARAM) List<String> dsIds,
             @FormParam(ExportResourceApi.DATASTREAM_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
@@ -290,13 +285,13 @@ public class ExportResourceV1 {
             batchIds.add(batch.getId());
         }
         ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
-        return new SmartGwtResponse<ExportResult>(result);
+        return new ProArcResponse<ExportResult>(result);
     }
 
     @POST
     @Path(ExportResourceApi.KRAMERIUS4_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ExportResult> kramerius4(
+    public ProArcResponse<ExportResult> kramerius4(
             @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
@@ -329,81 +324,7 @@ public class ExportResourceV1 {
             batchIds.add(batch.getId());
         }
         ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
-        return new SmartGwtResponse<ExportResult>(result);
-    }
-
-    /**
-     * Starts a new export to DESA repository.
-     *
-     * @param pids PIDs to export
-     * @param hierarchy export also children hierarchy of requested PIDs. Default is {@code false}.
-     * @param forDownload export to file system for later client download. If {@code true} dryRun is ignored.
-     *              Default is {@code false}.
-     * @param dryRun use to build packages without sending to the repository. Default is {@code false}.
-     * @return the list of results for requested PIDs
-     * @throws IOException unexpected failure
-     * @throws ExportException unexpected failure
-     */
-    @POST
-    @Path(ExportResourceApi.DESA_PATH)
-    @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ExportResult> newDesaExport(
-            @FormParam(ExportResourceApi.DESA_PID_PARAM) List<String> pids,
-            @FormParam(ExportResourceApi.DESA_HIERARCHY_PARAM) @DefaultValue("false") boolean hierarchy,
-            @FormParam(ExportResourceApi.DESA_FORDOWNLOAD_PARAM) @DefaultValue("false") boolean forDownload,
-            @FormParam(ExportResourceApi.DESA_DRYRUN_PARAM) @DefaultValue("false") boolean dryRun,
-            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
-            ) throws IOException, ExportException {
-
-        if (pids.isEmpty()) {
-            throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
-        }
-
-        List<Integer> batchIds = new ArrayList<>();
-        for (String pid : pids) {
-            BatchParams params = new BatchParams(Collections.singletonList(pid), hierarchy, forDownload, dryRun);
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_DESA, isNightOnly, params);
-
-            ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
-            ExportDispatcher.getDefault().addExport(process);
-            batchIds.add(batch.getId());
-        }
-        ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
-        return new SmartGwtResponse<ExportResult>(result);
-    }
-
-    /**
-     * Gets the exported package built by {@link #newDesaExport(List, boolean, boolean, boolean)}  } with {@code forDownload=true}.
-     * The package data are removed after completion of the response.
-     *
-     * @param token token to identify the prepared package
-     * @return the package contents in ZIP format
-     */
-    @GET
-    @Path(ExportResourceApi.DESA_PATH)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getDesaExport(
-            @QueryParam(ExportResourceApi.RESULT_TOKEN) String token,
-            @Context CloseableService finalizer
-            ) {
-
-        URI exportUri = user.getExportFolder();
-        File exportFolder = new File(exportUri);
-        final File file = DesaExport.findExportedPackage(exportFolder, token);
-        if (file == null) {
-            return Response.status(Status.NOT_FOUND).type(MediaType.TEXT_PLAIN_TYPE)
-                    .entity("The contents not found!").build();
-        }
-        finalizer.add(new Closeable() {
-
-            @Override
-            public void close() {
-                FileUtils.deleteQuietly(file.getParentFile());
-            }
-        });
-        return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM)
-                .header("Content-Disposition", "attachment; filename=\"" + file.getName() + '"')
-                .build();
+        return new ProArcResponse<ExportResult>(result);
     }
 
     /**
@@ -416,7 +337,7 @@ public class ExportResourceV1 {
     @POST
     @Path(ExportResourceApi.NDK_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ExportResult> newNdkExport(
+    public ProArcResponse<ExportResult> newNdkExport(
             @FormParam(ExportResourceApi.NDK_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage,
             @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn,
@@ -440,7 +361,7 @@ public class ExportResourceV1 {
         } catch (MetsExportException ex) {
             ExportResult result = new ExportResult(ex.getExceptions());
             result.setIgnoreMissingUrnNbn(true);
-            return new SmartGwtResponse<ExportResult>(result);
+            return new ProArcResponse<ExportResult>(result);
         }
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
@@ -452,7 +373,7 @@ public class ExportResourceV1 {
             batchIds.add(batch.getId());
         }
         ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
-        return new SmartGwtResponse<ExportResult>(result);
+        return new ProArcResponse<ExportResult>(result);
     }
 
     /**
@@ -463,7 +384,7 @@ public class ExportResourceV1 {
     @POST
     @Path(ExportResourceApi.CEJSH_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ExportResult> newCejshExport(
+    public ProArcResponse<ExportResult> newCejshExport(
             @FormParam(ExportResourceApi.CEJSH_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws Exception {
@@ -482,7 +403,7 @@ public class ExportResourceV1 {
             batchIds.add(batch.getId());
         }
         ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
-        return new SmartGwtResponse<ExportResult>(result);
+        return new ProArcResponse<ExportResult>(result);
     }
 
     /**
@@ -493,7 +414,7 @@ public class ExportResourceV1 {
     @POST
     @Path(ExportResourceApi.CROSSREF_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ExportResult> newCrossrefExport(
+    public ProArcResponse<ExportResult> newCrossrefExport(
             @FormParam(ExportResourceApi.CROSSREF_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws Exception {
@@ -512,7 +433,7 @@ public class ExportResourceV1 {
             batchIds.add(batch.getId());
         }
         ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
-        return new SmartGwtResponse<ExportResult>(result);
+        return new ProArcResponse<ExportResult>(result);
     }
 
     /**
@@ -523,7 +444,7 @@ public class ExportResourceV1 {
     @POST
     @Path(ExportResourceApi.ARCHIVE_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ExportResult> newArchive(
+    public ProArcResponse<ExportResult> newArchive(
             @FormParam(ExportResourceApi.ARCHIVE_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.NDK_PACKAGE) @DefaultValue("PSP") String typeOfPackage,
             @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn,
@@ -547,7 +468,7 @@ public class ExportResourceV1 {
         } catch (MetsExportException ex) {
             ExportResult result = new ExportResult(ex.getExceptions());
             result.setIgnoreMissingUrnNbn(true);
-            return new SmartGwtResponse<ExportResult>(result);
+            return new ProArcResponse<ExportResult>(result);
         }
 
         List<Integer> batchIds = new ArrayList<>();
@@ -560,13 +481,13 @@ public class ExportResourceV1 {
             batchIds.add(batch.getId());
         }
         ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
-        return new SmartGwtResponse<ExportResult>(result);
+        return new ProArcResponse<ExportResult>(result);
     }
 
     @POST
     @Path(ExportResourceApi.KWIS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ExportResult> newKwisExport(
+    public ProArcResponse<ExportResult> newKwisExport(
             @FormParam(ExportResourceApi.KWIS_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
@@ -588,7 +509,7 @@ public class ExportResourceV1 {
             batchIds.add(batch.getId());
         }
         ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
-        return new SmartGwtResponse<ExportResult>(result);
+        return new ProArcResponse<ExportResult>(result);
     }
 
     @GET
