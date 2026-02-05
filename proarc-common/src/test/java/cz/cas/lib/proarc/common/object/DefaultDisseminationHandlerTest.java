@@ -17,32 +17,29 @@
 package cz.cas.lib.proarc.common.object;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.common.process.imports.TiffImporterTest;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.storage.FedoraTestSupport;
 import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.process.imports.TiffImporterTest;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import java.util.logging.Logger;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  *
@@ -54,13 +51,10 @@ public class DefaultDisseminationHandlerTest {
     private static RemoteObject robject;
     private static FedoraTestSupport fedora;
 
-    @Rule
-    public TestName test = new TestName();
-
     public DefaultDisseminationHandlerTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         fedora = new FedoraTestSupport();
         fedora.cleanUp();
@@ -72,15 +66,15 @@ public class DefaultDisseminationHandlerTest {
         LOG.info(robject.getPid());
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -104,20 +98,20 @@ public class DefaultDisseminationHandlerTest {
         assumeIcon(mime, dsId);
         final DigitalObjectHandler pageObject = new DigitalObjectHandler(robject, null);
         DefaultDisseminationHandler handler = new DefaultDisseminationHandler(dsId, pageObject);
-        String t = test.getMethodName();
+        String t = "Message";
 //        fedora.getClient().debug(true);
         handler.setIconAsDissemination(dsId, mime, BinaryEditor.PREVIEW_LABEL, Storage.FEDORA, t);
         pageObject.commit();
 
         Response response = handler.getDissemination(null);
-        assertNotNull(robject.getPid(), response);
-        assertEquals(robject.getPid(), Status.OK.getStatusCode(), response.getStatus());
+        assertNotNull(response, () -> robject.getPid());
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), () -> robject.getPid());
     }
 
     @Test
     public void testSetIconAsDissemination_Update() throws Exception {
 //        fedora.getClient().debug(true);
-        String testName = test.getMethodName();
+        String testName = "Message";
         final MediaType mime = new MediaType("application", "pdf");
         final String dsId = BinaryEditor.RAW_ID;
         assumeIcon(mime, dsId);
@@ -133,10 +127,9 @@ public class DefaultDisseminationHandlerTest {
 
         Response response = handler.getDissemination(null);
         System.out.println(response.getMetadata());
-        assertNotNull(robject.getPid(), response);
-        assertEquals(robject.getPid(), Status.OK.getStatusCode(), response.getStatus());
-        assertEquals(response.getMetadata().toString(), BinaryEditor.IMAGE_JPEG,
-                response.getMetadata().getFirst("Content-Type"));
+        assertNotNull(response, () -> robject.getPid());
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), () -> robject.getPid());
+        assertEquals(BinaryEditor.IMAGE_JPEG, response.getMetadata().getFirst("Content-Type"), () -> response.getMetadata().toString());
     }
 
     /**
@@ -151,9 +144,9 @@ public class DefaultDisseminationHandlerTest {
             }
             DatastreamProfile iconDefaultDs = DefaultDisseminationHandler.findProfile(
                     BinaryEditor.THUMB_ID, icon.getDatastreams());
-            Assume.assumeNotNull(iconDefaultDs);
+            assertNotNull(iconDefaultDs);
         } catch (DigitalObjectNotFoundException ex) {
-            Assume.assumeNoException(ex);
+            assumeTrue(false, () -> "Test přeskočen kvůli výjimce: " + ex);
         }
     }
 

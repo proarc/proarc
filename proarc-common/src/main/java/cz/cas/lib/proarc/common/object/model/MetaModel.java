@@ -62,12 +62,12 @@ public class MetaModel {
 
     // creates Metamodel with parent relation limitation
     public MetaModel(String pid, Boolean root, Boolean leaf,
-            Collection<ElementType> displayNames,
-            String metadataFormat,
-            String editorId,
-            DigitalObjectPlugin plugin,
-            EnumSet<DatastreamEditorType> dataStreamEditors,
-            RelationCriteria[] parentModelsCriteria) {
+                     Collection<ElementType> displayNames,
+                     String metadataFormat,
+                     String editorId,
+                     DigitalObjectPlugin plugin,
+                     EnumSet<DatastreamEditorType> dataStreamEditors,
+                     RelationCriteria[] parentModelsCriteria) {
 
         this.pid = pid;
         this.root = root;
@@ -144,6 +144,7 @@ public class MetaModel {
 
         return false;
     }
+
     @Override
     public String toString() {
         return "MetaModel{" +

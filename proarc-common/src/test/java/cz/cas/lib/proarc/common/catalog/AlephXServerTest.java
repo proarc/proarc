@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,16 +26,16 @@ import java.net.SocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.configuration.BaseConfiguration;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -49,7 +49,7 @@ public class AlephXServerTest {
     public AlephXServerTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         defaultProxy = ProxySelector.getDefault();
         // detect external connections
@@ -68,19 +68,19 @@ public class AlephXServerTest {
         });
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
         ProxySelector.setDefault(defaultProxy);
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         externalConnections = new ArrayList<URI>();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
-        assertTrue(externalConnections.toString(), externalConnections.isEmpty());
+        assertTrue(externalConnections.isEmpty(), () -> externalConnections.toString());
     }
 
     @Test
@@ -114,9 +114,9 @@ public class AlephXServerTest {
             assertEquals("Rozpravy Československé akademie věd", detail.getTitle());
             String mods = detail.getMods();
 //            System.out.println(mods);
-            assertTrue("MODS", mods != null && mods.trim().length() > 10);
+            assertTrue(mods != null && mods.trim().length() > 10, "MODS");
             String preview = detail.getPreview();
-            assertTrue("MODS", preview != null && preview.trim().length() > 10);
+            assertTrue(preview != null && preview.trim().length() > 10, "MODS preview");
         } finally {
             xmlIS.close();
         }

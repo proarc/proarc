@@ -17,6 +17,21 @@
 
 package cz.cas.lib.proarc.desa;
 
+import cz.cas.lib.proarc.desa.pspsip.ObjectFactory;
+import cz.cas.lib.proarc.desa.pspsip.PSPSIP;
+import cz.cas.lib.proarc.desa.pspsip.ResultType;
+import cz.cas.lib.proarc.desa.pspsip.SipType;
+import cz.cas.lib.proarc.desa.soap.AsyncSubmitPackageEndRequest;
+import cz.cas.lib.proarc.desa.soap.AsyncSubmitPackageStartRequest;
+import cz.cas.lib.proarc.desa.soap.FileHashAlg;
+import cz.cas.lib.proarc.desa.soap.GetPackageStatusRequest;
+import cz.cas.lib.proarc.desa.soap.SIPSubmission;
+import cz.cas.lib.proarc.desa.soap.SIPSubmissionFault;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.ws.Holder;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -30,21 +45,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.ws.Holder;
-
-import cz.cas.lib.proarc.desa.pspsip.ObjectFactory;
-import cz.cas.lib.proarc.desa.pspsip.PSPSIP;
-import cz.cas.lib.proarc.desa.pspsip.ResultType;
-import cz.cas.lib.proarc.desa.pspsip.SipType;
-import cz.cas.lib.proarc.desa.soap.FileHashAlg;
-import cz.cas.lib.proarc.desa.soap.SIPSubmission;
-import cz.cas.lib.proarc.desa.soap.SIPSubmissionFault;
 import org.apache.commons.io.FileUtils;
 
 /**
@@ -85,7 +86,9 @@ public final class SIP2DESATransporter {
         return results;
     }
 
-    /** used just in case non REST usage! */
+    /**
+     * used just in case non REST usage!
+     */
     private File desaFolder;
 
     private String logRoot = "";
@@ -326,7 +329,7 @@ public final class SIP2DESATransporter {
      */
     private void initJAXB() throws JAXBException {
         if (marshaller != null) {
-            return ;
+            return;
         }
         JAXBContext jaxbContext = getPspipJaxb();
         marshaller = jaxbContext.createMarshaller();
@@ -346,37 +349,49 @@ public final class SIP2DESATransporter {
      * @param writeResults
      */
     private void uploadFile(File file, SipType sipType, boolean writeResults) {
-         Holder<String> sipId = new Holder<String>(getSipId(file));
-        Holder<String> idSipVersion = new Holder<String>();
+        Holder<String> sipId = new Holder<String>(getSipId(file));
+        String idSipVersion = null;
         String checksum = getMD5Checksum(file);
         log.info("Transporting file: " + file.getName());
 
         if (useRest) {
-            idSipVersion.value = desaClient.submitPackage(file,
+            idSipVersion = desaClient.submitPackage(file,
                     operatorName, producerCode, sipId.value,
                     FileHashAlg.MD_5, checksum, "cs");
-            log.info("Received idSipVersion:" + idSipVersion.value);
-            if (idSipVersion.value == null || "".equals(idSipVersion.value)) {
+            log.info("Received idSipVersion:" + idSipVersion);
+            if (idSipVersion == null || "".equals(idSipVersion)) {
                 throw new RuntimeException("DESA REST call did not return idSipVersion for file " + file.getName());
             }
         } else {
             try {
-                desaPort.asyncSubmitPackageStart(0, producerCode, operatorName, sipId, (int) file.length(), checksum, FileHashAlg.MD_5, idSipVersion);
+                AsyncSubmitPackageStartRequest req = new AsyncSubmitPackageStartRequest();
+                req.setProducerCode(producerCode);
+                req.setUserLogin(operatorName);
+                req.setProducerSIPID(sipId.value);
+                req.setFileCheckSum(checksum);
+                req.setFileSize((int) file.length());
+                req.setFileHashAlg(FileHashAlg.MD_5);
+
+                desaPort.asyncSubmitPackageStart(req);
             } catch (SIPSubmissionFault sipSubmissionFault) {
                 throw new RuntimeException(sipSubmissionFault);
             }
-            if (idSipVersion.value == null || "".equals(idSipVersion.value)) {
+            if (idSipVersion == null || "".equals(idSipVersion)) {
                 throw new RuntimeException("DESA SOAP call did not return idSipVersion for file " + file.getName());
             }
-            File target = new File(getDesaFolder(), idSipVersion.value + ".sip");
+            File target = new File(getDesaFolder(), idSipVersion + ".sip");
             try {
                 FileUtils.copyFile(file, target);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            log.info("Received idSipVersion:" + idSipVersion.value);
+            log.info("Received idSipVersion:" + idSipVersion);
             try {
-                desaPort.asyncSubmitPackageEnd(0, producerCode, operatorName, idSipVersion.value);
+                AsyncSubmitPackageEndRequest req = new AsyncSubmitPackageEndRequest();
+                req.setProducerCode(producerCode);
+                req.setUserLogin(operatorName);
+                req.setIdSIPVersion(idSipVersion);
+                desaPort.asyncSubmitPackageEnd(req);
             } catch (SIPSubmissionFault sipSubmissionFault) {
                 throw new RuntimeException(sipSubmissionFault);
             }
@@ -385,7 +400,7 @@ public final class SIP2DESATransporter {
             XMLGregorianCalendar currentDate = desaClient.getXmlTypes().newXMLGregorianCalendar(new GregorianCalendar());
             PSPSIP.SIP entry = resultsFactory.createPSPSIPSIP();
             entry.setIdentifier(sipId.value);
-            entry.setIdSIPVersion(idSipVersion.value);
+            entry.setIdSIPVersion(idSipVersion);
             entry.setResultTime(currentDate);
             entry.setResultCode(ResultType.PROGRESS);
             entry.setType(sipType);
@@ -414,7 +429,7 @@ public final class SIP2DESATransporter {
         if (packageid == null) {
             for (int i = 0; i < sourceFiles.length; i++) {
                 if (sourceFiles[i].getName().endsWith(".zip")) {
-                    if (sourceFiles[i].getName().indexOf("_")>0) {
+                    if (sourceFiles[i].getName().indexOf("_") > 0) {
                         packageid = sourceFiles[i].getName().substring(0, sourceFiles[i].getName().indexOf("_"));
                     } else {
                         packageid = sourceFiles[i].getName().replace(".zip", "");
@@ -524,7 +539,7 @@ public final class SIP2DESATransporter {
             }
         }
 
-        return new int[] { sipCount, sipFinishedCount };
+        return new int[]{sipCount, sipFinishedCount};
     }
 
     /**
@@ -574,7 +589,12 @@ public final class SIP2DESATransporter {
          * (Exception e) { throw new RuntimeException(e); } }else{
          */
         try {
-            desaPort.getPackageStatus(0, producerCode, operatorName, idSipVersion, sipId, packageStateCode, packageStateText, errorCode);
+            GetPackageStatusRequest req = new GetPackageStatusRequest();
+            req.setProducerCode(producerCode);
+            req.setUserLogin(operatorName);
+            req.setIdSIPVersion(idSipVersion.value);
+
+            desaPort.getPackageStatus(req);
         } catch (SIPSubmissionFault sipSubmissionFault) {
             throw new RuntimeException(sipSubmissionFault);
         } catch (Exception e1) {
@@ -583,7 +603,8 @@ public final class SIP2DESATransporter {
         }
         /* } */
         log.info("Status: " + packageStateCode.value + " (" + packageStateText.value + ")" + (errorCode.value != null ? (", errorCode:" + errorCode.value) : ""));
-        XMLGregorianCalendar currentDate = desaClient.getXmlTypes().newXMLGregorianCalendar(new GregorianCalendar());;
+        XMLGregorianCalendar currentDate = desaClient.getXmlTypes().newXMLGregorianCalendar(new GregorianCalendar());
+        ;
         boolean retval = false;
         sip.setResultTime(currentDate);
         if ("AI_ACC_OK".equalsIgnoreCase(packageStateCode.value)) {
@@ -597,7 +618,9 @@ public final class SIP2DESATransporter {
         return retval;
     }
 
-    /** Gets target folder for SOAP submit package. */
+    /**
+     * Gets target folder for SOAP submit package.
+     */
     private File getDesaFolder() {
         if (!useRest) {
             if (desaFolder == null) {
@@ -611,8 +634,7 @@ public final class SIP2DESATransporter {
      * Check if the directory with the given path exists and create it if
      * necessary
      *
-     * @param name
-     *            The path of the requested directory
+     * @param name The path of the requested directory
      * @return The File representation of the requested directory
      */
     private static File checkDirectory(String name) {

@@ -102,7 +102,9 @@ Author Miroslav Pavelka
         </xsl:if>
 
         <xsl:element name="doi_batch">
-            <xsl:attribute name="xsi:schemaLocation">http://www.crossref.org/schema/5.3.1 http://www.crossref.org/schemas/crossref5.3.1.xsd</xsl:attribute>
+            <xsl:attribute name="xsi:schemaLocation">http://www.crossref.org/schema/5.3.1
+                http://www.crossref.org/schemas/crossref5.3.1.xsd
+            </xsl:attribute>
             <xsl:attribute name="version">5.3.1</xsl:attribute>
 
             <xsl:element name="head">
@@ -420,8 +422,10 @@ Author Miroslav Pavelka
                         <xsl:call-template name="pubdate"/>
                     </xsl:element>
 
-                    <xsl:variable name="start_page" select="./mods:relatedItem[not(@type='references')]/mods:part/mods:extent/mods:start"/>
-                    <xsl:variable name="end_page" select="./mods:relatedItem[not(@type='references')]/mods:part/mods:extent/mods:end"/>
+                    <xsl:variable name="start_page"
+                                  select="./mods:relatedItem[not(@type='references')]/mods:part/mods:extent/mods:start"/>
+                    <xsl:variable name="end_page"
+                                  select="./mods:relatedItem[not(@type='references')]/mods:part/mods:extent/mods:end"/>
 
                     <xsl:if test="$start_page or $end_page">
                         <xsl:element name="pages">
@@ -456,10 +460,12 @@ Author Miroslav Pavelka
                         </xsl:element>
                     </xsl:if>
 
-                    <xsl:if test="./mods:accessCondition[@type='use and reproduction']/@xlink:href" xmlns:xlink="http://www.w3.org/1999/xlink">
+                    <xsl:if test="./mods:accessCondition[@type='use and reproduction']/@xlink:href"
+                            xmlns:xlink="http://www.w3.org/1999/xlink">
                         <xsl:element name="ai:program">
                             <xsl:element name="ai:license_ref">
-                                <xsl:value-of select="./mods:accessCondition[@type='use and reproduction']/@xlink:href" xmlns:xlink="http://www.w3.org/1999/xlink"/>
+                                <xsl:value-of select="./mods:accessCondition[@type='use and reproduction']/@xlink:href"
+                                              xmlns:xlink="http://www.w3.org/1999/xlink"/>
                             </xsl:element>
                         </xsl:element>
                     </xsl:if>
@@ -561,32 +567,38 @@ Author Miroslav Pavelka
                                             </xsl:if>
                                             <xsl:if test="./mods:part/mods:extent[@unit='pages']/mods:start">
                                                 <xsl:element name="first_page">
-                                                    <xsl:value-of select="./mods:part/mods:extent[@unit='pages']/mods:start"/>
+                                                    <xsl:value-of
+                                                            select="./mods:part/mods:extent[@unit='pages']/mods:start"/>
                                                 </xsl:element>
                                             </xsl:if>
                                             <xsl:if test="./mods:relatedItem[@type='host']/mods:titleInfo[@otherType='title']/mods:title">
                                                 <xsl:element name="journal_title">
-                                                    <xsl:value-of select="./mods:relatedItem[@type='host']/mods:titleInfo[@otherType='title']/mods:title"/>
+                                                    <xsl:value-of
+                                                            select="./mods:relatedItem[@type='host']/mods:titleInfo[@otherType='title']/mods:title"/>
                                                 </xsl:element>
                                             </xsl:if>
                                             <xsl:if test="./mods:relatedItem[@type='host']/mods:titleInfo[@otherType='volume']/mods:title">
                                                 <xsl:element name="volume_title">
-                                                    <xsl:value-of select="./mods:relatedItem[@type='host']/mods:titleInfo[@otherType='volume']/mods:title"/>
+                                                    <xsl:value-of
+                                                            select="./mods:relatedItem[@type='host']/mods:titleInfo[@otherType='volume']/mods:title"/>
                                                 </xsl:element>
                                             </xsl:if>
                                             <xsl:if test="./mods:relatedItem[@type='host']/mods:originInfo/mods:dateIssued">
                                                 <xsl:element name="cYear">
-                                                    <xsl:value-of select="./mods:relatedItem[@type='host']/mods:originInfo/mods:dateIssued"/>
+                                                    <xsl:value-of
+                                                            select="./mods:relatedItem[@type='host']/mods:originInfo/mods:dateIssued"/>
                                                 </xsl:element>
                                             </xsl:if>
                                             <xsl:if test="./mods:relatedItem[@type='host']/mods:part/mods:detail[@type='volume']/mods:number">
                                                 <xsl:element name="volume">
-                                                    <xsl:value-of select="./mods:relatedItem[@type='host']/mods:part/mods:detail[@type='volume']/mods:number"/>
+                                                    <xsl:value-of
+                                                            select="./mods:relatedItem[@type='host']/mods:part/mods:detail[@type='volume']/mods:number"/>
                                                 </xsl:element>
                                             </xsl:if>
                                             <xsl:if test="./mods:relatedItem[@type='host']/mods:part/mods:detail[@type='issue']/mods:number">
                                                 <xsl:element name="issue">
-                                                    <xsl:value-of select="./mods:relatedItem[@type='host']/mods:part/mods:detail[@type='issue']/mods:number"/>
+                                                    <xsl:value-of
+                                                            select="./mods:relatedItem[@type='host']/mods:part/mods:detail[@type='issue']/mods:number"/>
                                                 </xsl:element>
                                             </xsl:if>
                                         </xsl:element>

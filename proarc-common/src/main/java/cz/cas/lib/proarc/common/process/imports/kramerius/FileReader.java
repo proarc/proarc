@@ -28,38 +28,38 @@ import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.object.K4Plugin;
-import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
-import cz.cas.lib.proarc.common.storage.BinaryEditor;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.LocalStorage;
-import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.SearchView;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.process.imports.FileSet;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess;
-import cz.cas.lib.proarc.common.process.imports.TiffAsJpegImporter;
-import cz.cas.lib.proarc.common.process.imports.TiffImporter;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
+import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
+import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.imports.FileSet;
+import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess;
+import cz.cas.lib.proarc.common.process.imports.TiffAsJpegImporter;
+import cz.cas.lib.proarc.common.process.imports.TiffImporter;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.SearchView;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -155,7 +155,7 @@ public class FileReader {
             //put("model:periodicalitem", NdkPlugin.MODEL_PERIODICALISSUE);
             //put("model:supplement", NdkPlugin.MODEL_PERIODICALSUPPLEMENT);
             //put("model:periodicalvolume", NdkPlugin.MODEL_PERIODICALVOLUME);
-               put("model:picture", NdkPlugin.MODEL_PICTURE);
+            put("model:picture", NdkPlugin.MODEL_PICTURE);
             put("model:sheetmusic", NdkPlugin.MODEL_SHEETMUSIC);
         }
     };
@@ -279,7 +279,7 @@ public class FileReader {
     }
 
     private String getUuidName(String name) {
-        return name.substring(0, name.length()-4);
+        return name.substring(0, name.length() - 4);
     }
 
     private void readImpl(File file, ImportProcess.ImportOptions ctx, int index) throws DigitalObjectException {
@@ -369,8 +369,8 @@ public class FileReader {
                 importItem = iSession.addObject(lObj, true);
             }
         } else {
-            LOG.log(Level.SEVERE, "The object with pid: "+ pid + " was already imported!");
-            throw new DigitalObjectException("The object with pid: "+ pid + " was already imported!");
+            LOG.log(Level.SEVERE, "The object with pid: " + pid + " was already imported!");
+            throw new DigitalObjectException("The object with pid: " + pid + " was already imported!");
         }
         lObj.flush();
         //modifyMetadataStreams(lObj.getPid(), model);
@@ -468,10 +468,10 @@ public class FileReader {
     }
 
     private void setDefualtTitle(ModsDefinition mods) {
-        String DEFAULT_NAME = "Nový model (imporován " + getTimestamp() +").";
+        String DEFAULT_NAME = "Nový model (imporován " + getTimestamp() + ").";
         boolean emptyTitle = true;
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            if (!titleInfo.getTitle().isEmpty()) {
+            if (!titleInfo.getTitleStringPlusLanguage().isEmpty()) {
                 emptyTitle = false;
                 break;
             }
@@ -491,14 +491,14 @@ public class FileReader {
     }
 
     private String getTimestamp() {
-        SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
         Date date = new Date(System.currentTimeMillis());
         return formatter.format(date);
     }
 
     private void setDateAndUser(DigitalObject dObj) {
         List<PropertyType> properties = dObj.getObjectProperties().getProperty();
-        for (PropertyType property: properties) {
+        for (PropertyType property : properties) {
             if (FoxmlUtils.PROPERTY_OWNER.equals(property.getNAME())) {
                 property.setVALUE(iSession.options.getUsername());
             }
@@ -598,7 +598,7 @@ public class FileReader {
                     path = path.substring(6);
                 }
                 File file = new File(path);
-                FileSet fileSet =  new FileSet(ImportFileScanner.getName(file));
+                FileSet fileSet = new FileSet(ImportFileScanner.getName(file));
                 fileSet.getFiles().add(new FileSet.FileEntry(file));
                 if (file.exists()) {
                     TiffAsJpegImporter importer = new TiffAsJpegImporter(null);
@@ -659,7 +659,7 @@ public class FileReader {
 
     private void replacePathInContentLocations(DatastreamType datastream, ImportProcess.ImportOptions ctx) {
         if (datastream != null && datastream.getDatastreamVersion() != null && datastream.getDatastreamVersion().get(0) != null &&
-        datastream.getDatastreamVersion().get(0).getContentLocation() != null) {
+                datastream.getDatastreamVersion().get(0).getContentLocation() != null) {
             ContentLocationType contentLocation = datastream.getDatastreamVersion().get(0).getContentLocation();
             if (contentLocation.getREF() != null) {
                 String path = contentLocation.getREF();
@@ -701,40 +701,40 @@ public class FileReader {
         datastreamVersionType.setCREATED(full.getDatastreamVersion().get(0).getCREATED());
 
         if (raw != null && raw.getDatastreamVersion() != null && raw.getDatastreamVersion().get(0) != null) {
-                ContentLocationType rawContentLocation = raw.getDatastreamVersion().get(0).getContentLocation();
-                if (rawContentLocation != null && rawContentLocation.getREF() != null) {
-                    String path = rawContentLocation.getREF();
-                    boolean containsFilePrefix = false;
-                    if (path.startsWith("file:/")) {
-                        containsFilePrefix = true;
-                        path = path.substring(6);
-                    }
-                    File file = new File(path);
-                    FileSet fileSet = new FileSet(ImportFileScanner.getName(file));
-                    fileSet.getFiles().add(new FileSet.FileEntry(file));
-                    FileSet.FileEntry entry = null;
-                    if (file.exists()) {
-                        TiffImporter importer = new TiffImporter(BatchManager.getInstance());
-                        try {
-                            entry = importer.processJp2Copy(fileSet, file, ctx.getTargetFolder(), BinaryEditor.NDK_ARCHIVAL_ID, ctx.getConfig().getNdkArchivalProcessor());
-                            if (entry != null && entry.getFile() != null) {
-                                datastreamVersionType.setMIMETYPE(ImportProcess.findMimeType(entry.getFile()));
-                                ContentLocationType contentLocation = new ContentLocationType();
-                                datastreamVersionType.setContentLocation(contentLocation);
-                                contentLocation.setTYPE("URL");
-                                if (containsFilePrefix) {
-                                    contentLocation.setREF("file:/" + entry.getFile().getAbsolutePath());
-                                } else {
-                                    contentLocation.setREF(entry.getFile().getAbsolutePath());
-                                }
-                                return ndkArchival;
+            ContentLocationType rawContentLocation = raw.getDatastreamVersion().get(0).getContentLocation();
+            if (rawContentLocation != null && rawContentLocation.getREF() != null) {
+                String path = rawContentLocation.getREF();
+                boolean containsFilePrefix = false;
+                if (path.startsWith("file:/")) {
+                    containsFilePrefix = true;
+                    path = path.substring(6);
+                }
+                File file = new File(path);
+                FileSet fileSet = new FileSet(ImportFileScanner.getName(file));
+                fileSet.getFiles().add(new FileSet.FileEntry(file));
+                FileSet.FileEntry entry = null;
+                if (file.exists()) {
+                    TiffImporter importer = new TiffImporter(BatchManager.getInstance());
+                    try {
+                        entry = importer.processJp2Copy(fileSet, file, ctx.getTargetFolder(), BinaryEditor.NDK_ARCHIVAL_ID, ctx.getConfig().getNdkArchivalProcessor());
+                        if (entry != null && entry.getFile() != null) {
+                            datastreamVersionType.setMIMETYPE(ImportProcess.findMimeType(entry.getFile()));
+                            ContentLocationType contentLocation = new ContentLocationType();
+                            datastreamVersionType.setContentLocation(contentLocation);
+                            contentLocation.setTYPE("URL");
+                            if (containsFilePrefix) {
+                                contentLocation.setREF("file:/" + entry.getFile().getAbsolutePath());
+                            } else {
+                                contentLocation.setREF(entry.getFile().getAbsolutePath());
                             }
-                        } catch(IOException e){
-                            LOG.log(Level.SEVERE, file.toString(), e);
-                            return null;
+                            return ndkArchival;
                         }
+                    } catch (IOException e) {
+                        LOG.log(Level.SEVERE, file.toString(), e);
+                        return null;
                     }
                 }
+            }
         } else {
             datastreamVersionType.setMIMETYPE(full.getDatastreamVersion().get(0).getMIMETYPE());
 //            datastreamVersionType.setSIZE(full.getDatastreamVersion().get(0).getSIZE());
@@ -793,7 +793,7 @@ public class FileReader {
                             }
                             return ndkUser;
                         }
-                    } catch(IOException e){
+                    } catch (IOException e) {
                         LOG.log(Level.SEVERE, file.toString(), e);
                         return null;
                     }
@@ -926,7 +926,7 @@ public class FileReader {
             String label = mapper.toLabel(mods);
             localObject.setLabel(label);
             localObject.flush();
-        } catch (Exception ex){
+        } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Stream Mods can not be override. " + localObject.getPid());
         }
     }
@@ -964,9 +964,9 @@ public class FileReader {
     }
 
     private void repairModsIdentifier(List<IdentifierDefinition> identifiers) {
-        for (IdentifierDefinition identifier: identifiers) {
-            if ("urn".equalsIgnoreCase(identifier.getType())) {
-                identifier.setType("uuid");
+        for (IdentifierDefinition identifier : identifiers) {
+            if ("urn".equalsIgnoreCase(identifier.getTypeString())) {
+                identifier.setTypeString("uuid");
             }
         }
     }
@@ -975,7 +975,7 @@ public class FileReader {
         return NdkPlugin.MODEL_PAGE.equals(relationEditor.getModel());
     }
 
-    private List<String> getMembers(RelationEditor relationEditor) throws DigitalObjectException{
+    private List<String> getMembers(RelationEditor relationEditor) throws DigitalObjectException {
         List<String> members = new ArrayList<>();
         for (int i = 0; i < relationEditor.getRelations().size(); i++) {
             Element element = relationEditor.getRelations().get(i);
@@ -994,7 +994,7 @@ public class FileReader {
         String oldModelId = relationEditor.getModel();
         if (oldModelId != null && !NdkPlugin.MODEL_PAGE.equals(oldModelId)) {
             String newModelId = "";
-            switch(type) {
+            switch (type) {
                 case NDK_MONOGRAPH_MAP:
                     newModelId = getModelMonographMap().get(oldModelId);
                     break;
@@ -1067,7 +1067,9 @@ public class FileReader {
         private final Storage typeOfStorage;
         private FedoraStorage remotes;
         private AkubraStorage akubraStorage;
-        /** The user cache. */
+        /**
+         * The user cache.
+         */
         private final Map<String, String> external2internalUserMap = new HashMap<String, String>();
 
         public ImportSession(BatchManager ibm, ImportProcess.ImportOptions options, AppConfiguration config) {

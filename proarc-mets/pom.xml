@@ -9,7 +9,7 @@
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>4.3.1-DEV</version>
+        <version>5.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -20,6 +20,10 @@
     <url>${proarc.wiki}</url>
 
     <dependencies>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -27,33 +31,29 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${maven.compiler.release}</source>
+                    <target>${maven.compiler.release}</target>
+                </configuration>
             </plugin>
 
-              <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <configuration>
-                    <generatePackage>cz.cas.lib.proarc.mets.info</generatePackage>
-                    <schemaLanguage>XMLSCHEMA</schemaLanguage>
-                    <schemaDirectory>src/main/resources/cz/cas/lib/proarc/mets/info</schemaDirectory>
-                    <schemaIncludes>
-                        <schemaInclude>info.xsd</schemaInclude>
-                    </schemaIncludes>
-                    <args>
-                        <!--
-                            Use custom package-info.java with preferred namespace prefixes.
-                            Requires JDK 1.6.0_24 or later or com.sun.xml.bind:jaxb-impl:2.2.2 dependency.
-                            -npa:  suppress generation of package level annotations (**/package-info.java)
-                        -->
-                        <arg>-npa</arg>
-                    </args>
-                    <extension>true</extension>
-                </configuration>
+            <plugin>
+                <groupId>org.jvnet.jaxb</groupId>
+                <artifactId>jaxb-maven-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>generate-mets</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
+                        <configuration>
+                            <schemaDirectory>src/main/resources/cz/cas/lib/proarc/mets/info</schemaDirectory>
+                            <schemaIncludes>
+                                <include>info.xsd</include>
+                            </schemaIncludes>
+                            <generatePackage>cz.cas.lib.proarc.mets.info</generatePackage>
+                            <generateDirectory>${project.build.directory}/generated-sources/xjcInfo</generateDirectory>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

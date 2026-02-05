@@ -21,15 +21,17 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.core.JdkVersion;
 import org.w3c.dom.Document;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * See src/test/resources/log4j.properties to configure jzkit logging
@@ -44,31 +46,33 @@ public class Z3950ClientTest {
     public Z3950ClientTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         host = System.getProperty("Z3950ClientTest.host");
         port = System.getProperty("Z3950ClientTest.port");
         base = System.getProperty("Z3950ClientTest.base");
-        Assume.assumeNotNull(host, port, base);
+        assertNotNull(host);
+        assertNotNull(port);
+        assertNotNull(base);
         assertEquals(JdkVersion.JAVA_17, JdkVersion.getMajorJavaVersion());
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
     @Test
     public void testSearch() throws Exception {
         String query = System.getProperty("Z3950ClientTest.testSearch.query");
-        Assume.assumeNotNull(query);
+        assertNotNull(query);
         Z3950Client client = new Z3950Client(host, Integer.parseInt(port), base);
         try {
             Iterable<byte[]> search = client.search(query);

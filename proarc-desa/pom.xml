@@ -9,7 +9,7 @@
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>4.3.1-DEV</version>
+        <version>5.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -21,7 +21,8 @@
 
     <properties>
         <!-- local junit properties -->
-        <proarc-desa.junit.properties.file>${project.basedir}/src/test/resources/junit.properties</proarc-desa.junit.properties.file>
+        <proarc-desa.junit.properties.file>${project.basedir}/src/test/resources/junit.properties
+        </proarc-desa.junit.properties.file>
     </properties>
 
     <dependencies>
@@ -29,18 +30,30 @@
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>${jerseyVersion2}</version>
         </dependency>
-
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
         </dependency>
-
-        <!-- tests -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-jaxws</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-transports-http</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -49,11 +62,20 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${maven.compiler.release}</source>
+                    <target>${maven.compiler.release}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jvnet.jaxb</groupId>
+                <artifactId>jaxb-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>desa-generate</id>
+                        <id>pspsip-generate</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
@@ -63,10 +85,10 @@
                                 <include>pspsip.xsd</include>
                             </schemaIncludes>
                             <generatePackage>cz.cas.lib.proarc.desa.pspsip</generatePackage>
-                            <generateDirectory>${project.build.directory}/generated-sources/xjc</generateDirectory>
+                            <generateDirectory>${project.build.directory}/generated-sources/xjcPspsip</generateDirectory>
                         </configuration>
                     </execution>
-                     <execution>
+                    <execution>
                         <id>nomen-generate</id>
                         <goals>
                             <goal>generate</goal>
@@ -84,32 +106,38 @@
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.jvnet.jax-ws-commons</groupId>
-                <artifactId>jaxws-maven-plugin</artifactId>
-                <configuration>
-                    <packageName>cz.cas.lib.proarc.desa.soap</packageName>
-                    <wsdlDirectory>${basedir}/src/main/resources/cz/cas/lib/proarc/desa/wsdl</wsdlDirectory>
-                    <wsdlLocation>/cz/cas/lib/proarc/desa/wsdl/SIPSubmission.wsdl</wsdlLocation>
-                    <xnocompile>false</xnocompile>
-                </configuration>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-codegen-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>DESA</id>
+                        <id>desa-wsdl</id>
+                        <phase>generate-sources</phase>
                         <goals>
-                            <goal>wsimport</goal>
+                            <goal>wsdl2java</goal>
                         </goals>
+                        <configuration>
+                            <sourceRoot>${project.build.directory}/generated-sources/wsdl</sourceRoot>
+                            <wsdlOptions>
+                                <wsdlOption>
+                                    <wsdl>${basedir}/src/main/resources/cz/cas/lib/proarc/desa/wsdl/SIPSubmission.wsdl</wsdl>
+                                    <extraargs>
+                                        <extraarg>-p</extraarg>
+                                        <extraarg>cz.cas.lib.proarc.desa.soap</extraarg>
+                                        <extraarg>-b</extraarg>
+                                        <extraarg>${basedir}/src/main/resources/desa-jaxb-bindings.xjb</extraarg>
+                                    </extraargs>
+                                </wsdlOption>
+                            </wsdlOptions>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
 
+            <!-- Test plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
                 <configuration>
                     <systemPropertiesFile>${proarc-desa.junit.properties.file}</systemPropertiesFile>
                 </configuration>

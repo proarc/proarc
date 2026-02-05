@@ -23,10 +23,22 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogQueryField;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.ArrayList;
@@ -36,20 +48,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.transform.TransformerException;
+
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 
 /**
  * The resource to list available bibliographic catalogs like Aleph
@@ -58,7 +59,7 @@ import javax.xml.transform.TransformerException;
  * @author Jan Pokorsky
  */
 @Deprecated
-@Path(RestConfig.URL_API_VERSION_1 + "/" + BibliographicCatalogResourceApi.PATH)
+@Path(URL_API_VERSION_1 + "/" + BibliographicCatalogResourceApi.PATH)
 public class BibliographicCatalogResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(BibliographicCatalogResourceV1.class.getName());
@@ -75,7 +76,7 @@ public class BibliographicCatalogResourceV1 {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<CatalogDescriptor> findCatalog(
+    public ProArcResponse<CatalogDescriptor> findCatalog(
             @QueryParam(BibliographicCatalogResourceApi.CATALOG_ID) String id,
             @DefaultValue ("false") @QueryParam(BibliographicCatalogResourceApi.CATALOG_ALLOW_UPDATE) Boolean allowCatalogUpdate
     ) {
@@ -102,7 +103,7 @@ public class BibliographicCatalogResourceV1 {
         for (CatalogConfiguration cp : catalogs) {
             result.add(CatalogDescriptor.create(cp));
         }
-        return new SmartGwtResponse<CatalogDescriptor>(result);
+        return new ProArcResponse<CatalogDescriptor>(result);
     }
     
     /**
@@ -130,7 +131,7 @@ public class BibliographicCatalogResourceV1 {
                 result = bCatalog.find(catalog, fieldName, value, locale);
             } catch (ConnectException ex) {
                 LOG.log(Level.FINE, catalog, ex);
-                throw RestException.plainText(Status.SERVICE_UNAVAILABLE, ex.getLocalizedMessage());
+                throw RestException.plainText(Response.Status.SERVICE_UNAVAILABLE, ex.getLocalizedMessage());
             }
         } else {
             throw RestException.plainNotFound(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM, catalog);

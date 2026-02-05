@@ -57,7 +57,7 @@ public class NdkSoundRecordingMapper extends RdaNdkMapper {
         addGenre(mods, "sound recording");
         for (GenreDefinition genre : mods.getGenre()) {
             if ("soundrecording".equals(genre.getValue())) {
-                genre.setType("model");
+                genre.setTypeString("model");
             }
         }
         fillLanguage(mods);
@@ -74,7 +74,8 @@ public class NdkSoundRecordingMapper extends RdaNdkMapper {
             addElementType(dc.getTitles(), title.toString());
         }
 
-        addName(mods.getName(), dc.getCreators());addNameIdentifier(mods.getName(), dc.getCreators());
+        addName(mods.getName(), dc.getCreators());
+        addNameIdentifier(mods.getName(), dc.getCreators());
 
         for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
             for (PlaceDefinition place : originInfo.getPlace()) {

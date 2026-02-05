@@ -1,8 +1,8 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 1997-2007 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
  * and Distribution License("CDDL") (collectively, the "License").  You
@@ -10,7 +10,7 @@
  * a copy of the License at https://glassfish.dev.java.net/public/CDDL+GPL.html
  * or glassfish/bootstrap/legal/LICENSE.txt.  See the License for the specific
  * language governing permissions and limitations under the License.
- * 
+ *
  * When distributing the software, include this License Header Notice in each
  * file and include the License file at glassfish/bootstrap/legal/LICENSE.txt.
  * Sun designates this particular file as subject to the "Classpath" exception
@@ -19,9 +19,9 @@
  * Header, with the fields enclosed by brackets [] replaced by your own
  * identifying information: "Portions Copyrighted [year]
  * [name of copyright owner]"
- * 
+ *
  * Contributor(s):
- * 
+ *
  * If you wish your version of this file to be governed by only the CDDL or
  * only the GPL Version 2, indicate your decision by adding "[Contributor]
  * elects to include this software in this distribution under the [CDDL or GPL
@@ -35,13 +35,11 @@
  */
 package com.sun.xml.internal.bind.marshaller;
 
+import jakarta.xml.bind.JAXBContext;
 import java.io.OutputStream;
-
-import javax.xml.bind.JAXBContext;
 import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.dom.DOMResult;
-
 import org.w3c.dom.Node;
 
 // be careful about changing this class. this class is supposed to be
@@ -55,10 +53,10 @@ import org.w3c.dom.Node;
 
 /**
  * Implemented by the user application to determine URI -> prefix mapping.
- * 
+ * <p>
  * This is considered as an interface, though it's implemented as an abstract
  * class to make it easy to add new methods in a future.
- * 
+ *
  * @author Kohsuke Kawaguchi (kohsuke.kawaguchi@sun.com)
  */
 public abstract class NamespacePrefixMapper {
@@ -67,15 +65,15 @@ public abstract class NamespacePrefixMapper {
 
     /**
      * Returns a preferred prefix for the given namespace URI.
-     * 
+     * <p>
      * This method is intended to be overrided by a derived class.
-     * 
-     * 
+     *
+     *
      * <p>
      * As noted in the return value portion of the javadoc, there are several
      * cases where the preference cannot be honored. Specifically, as of JAXB RI
      * 2.0 and onward:
-     * 
+     *
      * <ol>
      * <li>
      * If the prefix returned is already in use as one of the in-scope namespace
@@ -89,34 +87,29 @@ public abstract class NamespacePrefixMapper {
      * possible prefix for the URI. This restriction is also to simplify the
      * marshaller.
      * </ol>
-     * 
-     * @param namespaceUri
-     *            The namespace URI for which the prefix needs to be found.
-     *            Never be null. "" is used to denote the default namespace.
-     * @param suggestion
-     *            When the content tree has a suggestion for the prefix to the
-     *            given namespaceUri, that suggestion is passed as a parameter.
-     *            Typicall this value comes from the QName.getPrefix to show the
-     *            preference of the content tree. This parameter may be null,
-     *            and this parameter may represent an already occupied prefix.
-     * @param requirePrefix
-     *            If this method is expected to return non-empty prefix. When
-     *            this flag is true, it means that the given namespace URI
-     *            cannot be set as the default namespace.
-     * 
+     *
+     * @param namespaceUri  The namespace URI for which the prefix needs to be found.
+     *                      Never be null. "" is used to denote the default namespace.
+     * @param suggestion    When the content tree has a suggestion for the prefix to the
+     *                      given namespaceUri, that suggestion is passed as a parameter.
+     *                      Typicall this value comes from the QName.getPrefix to show the
+     *                      preference of the content tree. This parameter may be null,
+     *                      and this parameter may represent an already occupied prefix.
+     * @param requirePrefix If this method is expected to return non-empty prefix. When
+     *                      this flag is true, it means that the given namespace URI
+     *                      cannot be set as the default namespace.
      * @return null if there's no prefered prefix for the namespace URI. In this
-     *         case, the system will generate a prefix for you.
-     * 
-     *         Otherwise the system will try to use the returned prefix, but
-     *         generally there's no guarantee if the prefix will be actually
-     *         used or not.
-     * 
-     *         return "" to map this namespace URI to the default namespace.
-     *         Again, there's no guarantee that this preference will be honored.
-     * 
-     *         If this method returns "" when requirePrefix=true, the return
-     *         value will be ignored and the system will generate one.
-     * 
+     * case, the system will generate a prefix for you.
+     * <p>
+     * Otherwise the system will try to use the returned prefix, but
+     * generally there's no guarantee if the prefix will be actually
+     * used or not.
+     * <p>
+     * return "" to map this namespace URI to the default namespace.
+     * Again, there's no guarantee that this preference will be honored.
+     * <p>
+     * If this method returns "" when requirePrefix=true, the return
+     * value will be ignored and the system will generate one.
      * @since JAXB 1.0.1
      */
     public abstract String getPreferredPrefix(String namespaceUri, String suggestion, boolean requirePrefix);
@@ -124,13 +117,13 @@ public abstract class NamespacePrefixMapper {
     /**
      * Returns a list of namespace URIs that should be declared at the root
      * element.
-     * 
+     *
      * <p>
      * By default, the JAXB RI 1.0.x produces namespace declarations only when
      * they are necessary, only at where they are used. Because of this lack of
      * look-ahead, sometimes the marshaller produces a lot of namespace
      * declarations that look redundant to human eyes. For example,
-     * 
+     *
      * <pre>
      * <xmp>
      * <?xml version="1.0"?>
@@ -142,7 +135,7 @@ public abstract class NamespacePrefixMapper {
      * </root>
      * </xmp>
      * </pre>
-     * 
+     *
      * <p>
      * The JAXB RI 2.x mostly doesn't exhibit this behavior any more, as it
      * declares all statically known namespace URIs (those URIs that are used as
@@ -150,16 +143,16 @@ public abstract class NamespacePrefixMapper {
      * additional namespaces in the middle of a document, for example when (i) a
      * QName as an attribute/element value requires a new namespace URI, or (ii)
      * DOM nodes as a portion of an object tree requires a new namespace URI.
-     * 
+     *
      * <p>
      * If you know in advance that you are going to use a certain set of
      * namespace URIs, you can override this method and have the marshaller
      * declare those namespace URIs at the root element.
-     * 
+     *
      * <p>
      * For example, by returning <code>new String[]{"urn:foo"}</code>, the
      * marshaller will produce:
-     * 
+     *
      * <pre>
      * <xmp>
      * <?xml version="1.0"?>
@@ -174,53 +167,51 @@ public abstract class NamespacePrefixMapper {
      * <p>
      * To control prefixes assigned to those namespace URIs, use the
      * {@link #getPreferredPrefix(String, String, boolean)} method.
-     * 
+     *
      * @return A list of namespace URIs as an array of {@link String}s. This
-     *         method can return a length-zero array but not null. None of the
-     *         array component can be null. To represent the empty namespace,
-     *         use the empty string <code>""</code>.
-     * 
+     * method can return a length-zero array but not null. None of the
+     * array component can be null. To represent the empty namespace,
+     * use the empty string <code>""</code>.
      * @since JAXB RI 1.0.2
      */
     public String[] getPreDeclaredNamespaceUris() {
-	return EMPTY_STRING;
+        return EMPTY_STRING;
     }
 
     /**
      * Similar to {@link #getPreDeclaredNamespaceUris()} but allows the
      * (prefix,nsUri) pairs to be returned.
-     * 
+     *
      * <p>
      * With {@link #getPreDeclaredNamespaceUris()}, applications who wish to
      * control the prefixes as well as the namespaces needed to implement both
      * {@link #getPreDeclaredNamespaceUris()} and
      * {@link #getPreferredPrefix(String, String, boolean)}.
-     * 
+     *
      * <p>
      * This version eliminates the needs by returning an array of pairs.
-     * 
+     *
      * @return always return a non-null (but possibly empty) array. The array
-     *         stores data like (prefix1,nsUri1,prefix2,nsUri2,...) Use an empty
-     *         string to represent the empty namespace URI and the default
-     *         prefix. Null is not allowed as a value in the array.
-     * 
+     * stores data like (prefix1,nsUri1,prefix2,nsUri2,...) Use an empty
+     * string to represent the empty namespace URI and the default
+     * prefix. Null is not allowed as a value in the array.
      * @since JAXB RI 2.0 beta
      */
     public String[] getPreDeclaredNamespaceUris2() {
-	return EMPTY_STRING;
+        return EMPTY_STRING;
     }
 
     /**
      * Returns a list of (prefix,namespace URI) pairs that represents namespace
      * bindings available on ancestor elements (that need not be repeated by the
      * JAXB RI.)
-     * 
+     *
      * <p>
      * Sometimes JAXB is used to marshal an XML document, which will be used as
      * a subtree of a bigger document. When this happens, it's nice for a JAXB
      * marshaller to be able to use in-scope namespace bindings of the larger
      * document and avoid declaring redundant namespace URIs.
-     * 
+     *
      * <p>
      * This is automatically done when you are marshalling to
      * {@link XMLStreamWriter}, {@link XMLEventWriter}, {@link DOMResult}, or
@@ -228,18 +219,18 @@ public abstract class NamespacePrefixMapper {
      * currently available as in-scope namespace binding. However, with other
      * output format, such as {@link OutputStream}, the JAXB RI cannot do this
      * automatically. That's when this method comes into play.
-     * 
+     *
      * <p>
      * Namespace bindings returned by this method will be used by the JAXB RI,
      * but will not be re-declared. They are assumed to be available when you
      * insert this subtree into a bigger document.
-     * 
+     *
      * <p>
      * It is <b>NOT</b> OK to return the same binding, or give the receiver a
      * conflicting binding information. It's a responsibility of the caller to
      * make sure that this doesn't happen even if the ancestor elements look
      * like:
-     * 
+     *
      * <pre>
      * <xmp>
      *   <foo:abc xmlns:foo="abc">
@@ -251,16 +242,14 @@ public abstract class NamespacePrefixMapper {
      *   </foo:abc>
      * </xmp>
      * </pre>
-     * 
-     * 
+     *
      * @return always return a non-null (but possibly empty) array. The array
-     *         stores data like (prefix1,nsUri1,prefix2,nsUri2,...) Use an empty
-     *         string to represent the empty namespace URI and the default
-     *         prefix. Null is not allowed as a value in the array.
-     * 
+     * stores data like (prefix1,nsUri1,prefix2,nsUri2,...) Use an empty
+     * string to represent the empty namespace URI and the default
+     * prefix. Null is not allowed as a value in the array.
      * @since JAXB RI 2.0 beta
      */
     public String[] getContextualNamespaceDecls() {
-	return EMPTY_STRING;
+        return EMPTY_STRING;
     }
 }

@@ -10,22 +10,22 @@ package cz.cas.lib.proarc.nsesss2;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementRef;
-import javax.xml.bind.annotation.XmlElementRefs;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElementRef;
+import jakarta.xml.bind.annotation.XmlElementRefs;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro evidenci údajů o vyřízení a uzavření entity a případném odeslání vyřizujícího dokumentu.
- * 
+ *
  * <p>Java class for tVyrizeniEntity complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tVyrizeniEntity">
  *   &lt;complexContent>
@@ -43,23 +43,22 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tVyrizeniEntity", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "odkazVyrizujiciDokumentOrOdkazVyrizovanyDokument",
-    "datumOdeslani",
-    "odeslaneMnozstvi",
-    "prijemce"
+        "odkazVyrizujiciDokumentOrOdkazVyrizovanyDokument",
+        "datumOdeslani",
+        "odeslaneMnozstvi",
+        "prijemce"
 })
 public class TVyrizeniEntity
-    extends TVyrizeni
-{
+        extends TVyrizeni {
 
     @XmlElementRefs({
-        @XmlElementRef(name = "OdkazVyrizovanyDokument", namespace = "http://www.mvcr.cz/nsesss/v2", type = JAXBElement.class),
-        @XmlElementRef(name = "OdkazVyrizujiciDokument", namespace = "http://www.mvcr.cz/nsesss/v2", type = JAXBElement.class)
+            @XmlElementRef(name = "OdkazVyrizovanyDokument", namespace = "http://www.mvcr.cz/nsesss/v2", type = JAXBElement.class),
+            @XmlElementRef(name = "OdkazVyrizujiciDokument", namespace = "http://www.mvcr.cz/nsesss/v2", type = JAXBElement.class)
     })
     protected List<JAXBElement<TOdkaz>> odkazVyrizujiciDokumentOrOdkazVyrizovanyDokument;
     @XmlElement(name = "DatumOdeslani", namespace = "http://www.mvcr.cz/nsesss/v2")
@@ -71,26 +70,26 @@ public class TVyrizeniEntity
 
     /**
      * Gets the value of the odkazVyrizujiciDokumentOrOdkazVyrizovanyDokument property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the odkazVyrizujiciDokumentOrOdkazVyrizovanyDokument property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getOdkazVyrizujiciDokumentOrOdkazVyrizovanyDokument().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link JAXBElement }{@code <}{@link TOdkaz }{@code >}
      * {@link JAXBElement }{@code <}{@link TOdkaz }{@code >}
-     * 
-     * 
+     *
+     *
      */
     public List<JAXBElement<TOdkaz>> getOdkazVyrizujiciDokumentOrOdkazVyrizovanyDokument() {
         if (odkazVyrizujiciDokumentOrOdkazVyrizovanyDokument == null) {
@@ -101,11 +100,10 @@ public class TVyrizeniEntity
 
     /**
      * Gets the value of the datumOdeslani property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getDatumOdeslani() {
         return datumOdeslani;
@@ -113,11 +111,10 @@ public class TVyrizeniEntity
 
     /**
      * Sets the value of the datumOdeslani property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setDatumOdeslani(TDatum value) {
         this.datumOdeslani = value;
@@ -125,11 +122,10 @@ public class TVyrizeniEntity
 
     /**
      * Gets the value of the odeslaneMnozstvi property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getOdeslaneMnozstvi() {
         return odeslaneMnozstvi;
@@ -137,11 +133,10 @@ public class TVyrizeniEntity
 
     /**
      * Sets the value of the odeslaneMnozstvi property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setOdeslaneMnozstvi(String value) {
         this.odeslaneMnozstvi = value;
@@ -149,11 +144,10 @@ public class TVyrizeniEntity
 
     /**
      * Gets the value of the prijemce property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobyExterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobyExterni }
+     *
      */
     public TOsobyExterni getPrijemce() {
         return prijemce;
@@ -161,11 +155,10 @@ public class TVyrizeniEntity
 
     /**
      * Sets the value of the prijemce property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobyExterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobyExterni }
+     *
      */
     public void setPrijemce(TOsobyExterni value) {
         this.prijemce = value;

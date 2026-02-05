@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 
 /**
  * Imports soundrecording files
+ *
  * @author Lukas Sykora
  */
 public class SoundRecordingImport extends FileSetImport {
@@ -108,7 +109,7 @@ public class SoundRecordingImport extends FileSetImport {
                     batch.setState(Batch.State.LOADING_FAILED);
                     batch.setUpdated(new Timestamp(System.currentTimeMillis()));
                     batch.setLog(item.getFile() + "\n" + item.getLog());
-                    return ;
+                    return;
                 }
             }
         }
@@ -121,7 +122,7 @@ public class SoundRecordingImport extends FileSetImport {
         for (ImageImporter consumer : consumers) {
             BatchManager.BatchItemObject item = consumer.consume(fileSet, ctx);
             if (item != null) {
-                LOG.log(Level.FINE, "time: {0} ms, {1}", new Object[] {System.currentTimeMillis() - start, fileSet});
+                LOG.log(Level.FINE, "time: {0} ms, {1}", new Object[]{System.currentTimeMillis() - start, fileSet});
                 ctx.setConsumedFileCounter(ctx.getConsumedFileCounter() + 1);
                 return item;
             }

@@ -8,25 +8,25 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlElementDecl;
-import javax.xml.bind.annotation.XmlRegistry;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.annotation.XmlElementDecl;
+import jakarta.xml.bind.annotation.XmlRegistry;
 import javax.xml.namespace.QName;
 
 
 /**
- * This object contains factory methods for each 
- * Java content interface and Java element interface 
- * generated in the cz.cas.lib.proarc.nsesss2 package. 
- * <p>An ObjectFactory allows you to programatically 
- * construct new instances of the Java representation 
- * for XML content. The Java representation of XML 
- * content can consist of schema derived interfaces 
- * and classes representing the binding of schema 
- * type definitions, element declarations and model 
- * groups.  Factory methods for each of these are 
+ * This object contains factory methods for each
+ * Java content interface and Java element interface
+ * generated in the cz.cas.lib.proarc.nsesss2 package.
+ * <p>An ObjectFactory allows you to programatically
+ * construct new instances of the Java representation
+ * for XML content. The Java representation of XML
+ * content can consist of schema derived interfaces
+ * and classes representing the binding of schema
+ * type definitions, element declarations and model
+ * groups.  Factory methods for each of these are
  * provided in this class.
- * 
+ *
  */
 @XmlRegistry
 public class ObjectFactory {
@@ -45,14 +45,14 @@ public class ObjectFactory {
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: cz.cas.lib.proarc.nsesss2
-     * 
+     *
      */
     public ObjectFactory() {
     }
 
     /**
      * Create an instance of {@link Dil }
-     * 
+     *
      */
     public Dil createDil() {
         return new Dil();
@@ -60,7 +60,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TEvidencniUdajeDilu }
-     * 
+     *
      */
     public TEvidencniUdajeDilu createTEvidencniUdajeDilu() {
         return new TEvidencniUdajeDilu();
@@ -68,7 +68,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TDokumenty }
-     * 
+     *
      */
     public TDokumenty createTDokumenty() {
         return new TDokumenty();
@@ -76,7 +76,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Dokument }
-     * 
+     *
      */
     public Dokument createDokument() {
         return new Dokument();
@@ -84,7 +84,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TEvidencniUdajeDokumentu }
-     * 
+     *
      */
     public TEvidencniUdajeDokumentu createTEvidencniUdajeDokumentu() {
         return new TEvidencniUdajeDokumentu();
@@ -92,7 +92,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TKomponenty }
-     * 
+     *
      */
     public TKomponenty createTKomponenty() {
         return new TKomponenty();
@@ -100,7 +100,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Spis }
-     * 
+     *
      */
     public Spis createSpis() {
         return new Spis();
@@ -108,7 +108,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TEvidencniUdajeSpisu }
-     * 
+     *
      */
     public TEvidencniUdajeSpisu createTEvidencniUdajeSpisu() {
         return new TEvidencniUdajeSpisu();
@@ -116,7 +116,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TManipulace }
-     * 
+     *
      */
     public TManipulace createTManipulace() {
         return new TManipulace();
@@ -124,7 +124,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TOsobyInterni }
-     * 
+     *
      */
     public TOsobyInterni createTOsobyInterni() {
         return new TOsobyInterni();
@@ -132,7 +132,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TDorucenyDokument }
-     * 
+     *
      */
     public TDorucenyDokument createTDorucenyDokument() {
         return new TDorucenyDokument();
@@ -140,7 +140,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TVytah }
-     * 
+     *
      */
     public TVytah createTVytah() {
         return new TVytah();
@@ -148,7 +148,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TOsobaInterni }
-     * 
+     *
      */
     public TOsobaInterni createTOsobaInterni() {
         return new TOsobaInterni();
@@ -156,7 +156,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TManipulaceSpisovyPlan }
-     * 
+     *
      */
     public TManipulaceSpisovyPlan createTManipulaceSpisovyPlan() {
         return new TManipulaceSpisovyPlan();
@@ -164,7 +164,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TPlatnost }
-     * 
+     *
      */
     public TPlatnost createTPlatnost() {
         return new TPlatnost();
@@ -172,7 +172,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TPrevodDokumentu }
-     * 
+     *
      */
     public TPrevodDokumentu createTPrevodDokumentu() {
         return new TPrevodDokumentu();
@@ -180,7 +180,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TSchvalovani }
-     * 
+     *
      */
     public TSchvalovani createTSchvalovani() {
         return new TSchvalovani();
@@ -188,7 +188,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TKlicovaSlova }
-     * 
+     *
      */
     public TKlicovaSlova createTKlicovaSlova() {
         return new TKlicovaSlova();
@@ -196,7 +196,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TSpisovyPlan }
-     * 
+     *
      */
     public TSpisovyPlan createTSpisovyPlan() {
         return new TSpisovyPlan();
@@ -204,7 +204,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TSubjektExterni }
-     * 
+     *
      */
     public TSubjektExterni createTSubjektExterni() {
         return new TSubjektExterni();
@@ -212,7 +212,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TBezpecnostniKategorie }
-     * 
+     *
      */
     public TBezpecnostniKategorie createTBezpecnostniKategorie() {
         return new TBezpecnostniKategorie();
@@ -220,7 +220,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TEvidencniUdajeKomponenty }
-     * 
+     *
      */
     public TEvidencniUdajeKomponenty createTEvidencniUdajeKomponenty() {
         return new TEvidencniUdajeKomponenty();
@@ -228,7 +228,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TTypovySpis }
-     * 
+     *
      */
     public TTypovySpis createTTypovySpis() {
         return new TTypovySpis();
@@ -236,7 +236,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TNeevidence }
-     * 
+     *
      */
     public TNeevidence createTNeevidence() {
         return new TNeevidence();
@@ -244,7 +244,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TPristupnost }
-     * 
+     *
      */
     public TPristupnost createTPristupnost() {
         return new TPristupnost();
@@ -252,7 +252,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TTrideniSoucasti }
-     * 
+     *
      */
     public TTrideniSoucasti createTTrideniSoucasti() {
         return new TTrideniSoucasti();
@@ -260,7 +260,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TSchvaleni }
-     * 
+     *
      */
     public TSchvaleni createTSchvaleni() {
         return new TSchvaleni();
@@ -268,7 +268,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TTrideniVecneSkupiny }
-     * 
+     *
      */
     public TTrideniVecneSkupiny createTTrideniVecneSkupiny() {
         return new TTrideniVecneSkupiny();
@@ -276,7 +276,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TSoucast }
-     * 
+     *
      */
     public TSoucast createTSoucast() {
         return new TSoucast();
@@ -284,7 +284,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TVystup }
-     * 
+     *
      */
     public TVystup createTVystup() {
         return new TVystup();
@@ -292,7 +292,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TPuvodSeskupeni }
-     * 
+     *
      */
     public TPuvodSeskupeni createTPuvodSeskupeni() {
         return new TPuvodSeskupeni();
@@ -300,7 +300,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TVyrizeni }
-     * 
+     *
      */
     public TVyrizeni createTVyrizeni() {
         return new TVyrizeni();
@@ -308,7 +308,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TPrevodKomponenty }
-     * 
+     *
      */
     public TPrevodKomponenty createTPrevodKomponenty() {
         return new TPrevodKomponenty();
@@ -316,7 +316,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TOvereniCertifikatu }
-     * 
+     *
      */
     public TOvereniCertifikatu createTOvereniCertifikatu() {
         return new TOvereniCertifikatu();
@@ -324,7 +324,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TPopis }
-     * 
+     *
      */
     public TPopis createTPopis() {
         return new TPopis();
@@ -332,7 +332,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TTrideniDilu }
-     * 
+     *
      */
     public TTrideniDilu createTTrideniDilu() {
         return new TTrideniDilu();
@@ -340,7 +340,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TJazyky }
-     * 
+     *
      */
     public TJazyky createTJazyky() {
         return new TJazyky();
@@ -348,7 +348,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TKonverzeADDA }
-     * 
+     *
      */
     public TKonverzeADDA createTKonverzeADDA() {
         return new TKonverzeADDA();
@@ -356,7 +356,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TIdentifikace }
-     * 
+     *
      */
     public TIdentifikace createTIdentifikace() {
         return new TIdentifikace();
@@ -364,7 +364,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TOdkaz }
-     * 
+     *
      */
     public TOdkaz createTOdkaz() {
         return new TOdkaz();
@@ -372,7 +372,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TOsobaExterni }
-     * 
+     *
      */
     public TOsobaExterni createTOsobaExterni() {
         return new TOsobaExterni();
@@ -380,7 +380,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TIdentifikator }
-     * 
+     *
      */
     public TIdentifikator createTIdentifikator() {
         return new TIdentifikator();
@@ -388,7 +388,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TEvidencniUdajeSoucasti }
-     * 
+     *
      */
     public TEvidencniUdajeSoucasti createTEvidencniUdajeSoucasti() {
         return new TEvidencniUdajeSoucasti();
@@ -396,7 +396,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TTypDokumentu }
-     * 
+     *
      */
     public TTypDokumentu createTTypDokumentu() {
         return new TTypDokumentu();
@@ -404,7 +404,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TVyrazovani }
-     * 
+     *
      */
     public TVyrazovani createTVyrazovani() {
         return new TVyrazovani();
@@ -412,7 +412,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TOsobyExterni }
-     * 
+     *
      */
     public TOsobyExterni createTOsobyExterni() {
         return new TOsobyExterni();
@@ -420,7 +420,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TTrideniTypovehoSpisu }
-     * 
+     *
      */
     public TTrideniTypovehoSpisu createTTrideniTypovehoSpisu() {
         return new TTrideniTypovehoSpisu();
@@ -428,7 +428,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TMaterskaEntitaVecneSkupiny }
-     * 
+     *
      */
     public TMaterskaEntitaVecneSkupiny createTMaterskaEntitaVecneSkupiny() {
         return new TMaterskaEntitaVecneSkupiny();
@@ -436,7 +436,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TTrideniDokumentu }
-     * 
+     *
      */
     public TTrideniDokumentu createTTrideniDokumentu() {
         return new TTrideniDokumentu();
@@ -444,7 +444,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TDatum }
-     * 
+     *
      */
     public TDatum createTDatum() {
         return new TDatum();
@@ -452,7 +452,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TManipulaceDokumentu }
-     * 
+     *
      */
     public TManipulaceDokumentu createTManipulaceDokumentu() {
         return new TManipulaceDokumentu();
@@ -460,7 +460,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TEvidencniUdajeTypovehoSpisu }
-     * 
+     *
      */
     public TEvidencniUdajeTypovehoSpisu createTEvidencniUdajeTypovehoSpisu() {
         return new TEvidencniUdajeTypovehoSpisu();
@@ -468,7 +468,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TManipulaceKomponenty }
-     * 
+     *
      */
     public TManipulaceKomponenty createTManipulaceKomponenty() {
         return new TManipulaceKomponenty();
@@ -476,7 +476,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TRedakce }
-     * 
+     *
      */
     public TRedakce createTRedakce() {
         return new TRedakce();
@@ -484,7 +484,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TTrideniSpisu }
-     * 
+     *
      */
     public TTrideniSpisu createTTrideniSpisu() {
         return new TTrideniSpisu();
@@ -492,7 +492,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TSkartacniRizeni }
-     * 
+     *
      */
     public TSkartacniRizeni createTSkartacniRizeni() {
         return new TSkartacniRizeni();
@@ -500,7 +500,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TVlastniDokument }
-     * 
+     *
      */
     public TVlastniDokument createTVlastniDokument() {
         return new TVlastniDokument();
@@ -508,7 +508,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TOvereniBezpecnostnihoPrvku }
-     * 
+     *
      */
     public TOvereniBezpecnostnihoPrvku createTOvereniBezpecnostnihoPrvku() {
         return new TOvereniBezpecnostnihoPrvku();
@@ -516,7 +516,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TMaterskaEntitaTypovehoSpisu }
-     * 
+     *
      */
     public TMaterskaEntitaTypovehoSpisu createTMaterskaEntitaTypovehoSpisu() {
         return new TMaterskaEntitaTypovehoSpisu();
@@ -524,7 +524,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TPuvodDokumentu }
-     * 
+     *
      */
     public TPuvodDokumentu createTPuvodDokumentu() {
         return new TPuvodDokumentu();
@@ -532,7 +532,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TMaterskeEntityDokumentu }
-     * 
+     *
      */
     public TMaterskeEntityDokumentu createTMaterskeEntityDokumentu() {
         return new TMaterskeEntityDokumentu();
@@ -540,7 +540,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TVyrizeniEntity }
-     * 
+     *
      */
     public TVyrizeniEntity createTVyrizeniEntity() {
         return new TVyrizeniEntity();
@@ -548,7 +548,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TJineUdaje }
-     * 
+     *
      */
     public TJineUdaje createTJineUdaje() {
         return new TJineUdaje();
@@ -556,7 +556,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TZtvarneni }
-     * 
+     *
      */
     public TZtvarneni createTZtvarneni() {
         return new TZtvarneni();
@@ -564,7 +564,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TSubjektInterni }
-     * 
+     *
      */
     public TSubjektInterni createTSubjektInterni() {
         return new TSubjektInterni();
@@ -572,7 +572,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TEvidencniUdajeVecneSkupiny }
-     * 
+     *
      */
     public TEvidencniUdajeVecneSkupiny createTEvidencniUdajeVecneSkupiny() {
         return new TEvidencniUdajeVecneSkupiny();
@@ -580,7 +580,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TUrceneCasoveObdobi }
-     * 
+     *
      */
     public TUrceneCasoveObdobi createTUrceneCasoveObdobi() {
         return new TUrceneCasoveObdobi();
@@ -588,7 +588,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TKonverzeDD }
-     * 
+     *
      */
     public TKonverzeDD createTKonverzeDD() {
         return new TKonverzeDD();
@@ -596,7 +596,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TDataceVyrazeni }
-     * 
+     *
      */
     public TDataceVyrazeni createTDataceVyrazeni() {
         return new TDataceVyrazeni();
@@ -604,7 +604,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TPoznamky }
-     * 
+     *
      */
     public TPoznamky createTPoznamky() {
         return new TPoznamky();
@@ -612,7 +612,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TKomponenta }
-     * 
+     *
      */
     public TKomponenta createTKomponenta() {
         return new TKomponenta();
@@ -620,7 +620,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TEvidence }
-     * 
+     *
      */
     public TEvidence createTEvidence() {
         return new TEvidence();
@@ -628,7 +628,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TMaterskaEntitaDilu }
-     * 
+     *
      */
     public TMaterskaEntitaDilu createTMaterskaEntitaDilu() {
         return new TMaterskaEntitaDilu();
@@ -636,7 +636,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TMaterskaEntitaSpisu }
-     * 
+     *
      */
     public TMaterskaEntitaSpisu createTMaterskaEntitaSpisu() {
         return new TMaterskaEntitaSpisu();
@@ -644,7 +644,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TCertifikat }
-     * 
+     *
      */
     public TCertifikat createTCertifikat() {
         return new TCertifikat();
@@ -652,7 +652,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TSkartacniRezim }
-     * 
+     *
      */
     public TSkartacniRezim createTSkartacniRezim() {
         return new TSkartacniRezim();
@@ -660,7 +660,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TVecnaSkupina }
-     * 
+     *
      */
     public TVecnaSkupina createTVecnaSkupina() {
         return new TVecnaSkupina();
@@ -668,7 +668,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TUzavreni }
-     * 
+     *
      */
     public TUzavreni createTUzavreni() {
         return new TUzavreni();
@@ -676,7 +676,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TMaterskaEntitaSoucasti }
-     * 
+     *
      */
     public TMaterskaEntitaSoucasti createTMaterskaEntitaSoucasti() {
         return new TMaterskaEntitaSoucasti();
@@ -684,7 +684,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TManipulaceSeskupeni }
-     * 
+     *
      */
     public TManipulaceSeskupeni createTManipulaceSeskupeni() {
         return new TManipulaceSeskupeni();
@@ -692,7 +692,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TTrideni }
-     * 
+     *
      */
     public TTrideni createTTrideni() {
         return new TTrideni();
@@ -700,7 +700,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TSouvislosti }
-     * 
+     *
      */
     public TSouvislosti createTSouvislosti() {
         return new TSouvislosti();
@@ -708,7 +708,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TPopisKomponenty }
-     * 
+     *
      */
     public TPopisKomponenty createTPopisKomponenty() {
         return new TPopisKomponenty();
@@ -716,7 +716,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://www.mvcr.cz/nsesss/v2", name = "NazevFyzickeOsoby", scope = TSubjektExterni.class)
     public JAXBElement<String> createTSubjektExterniNazevFyzickeOsoby(String value) {
@@ -725,7 +725,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://www.mvcr.cz/nsesss/v2", name = "OrganizacniUtvar", scope = TSubjektExterni.class)
     public JAXBElement<String> createTSubjektExterniOrganizacniUtvar(String value) {
@@ -734,7 +734,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://www.mvcr.cz/nsesss/v2", name = "PostovniAdresa", scope = TSubjektExterni.class)
     public JAXBElement<String> createTSubjektExterniPostovniAdresa(String value) {
@@ -743,7 +743,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://www.mvcr.cz/nsesss/v2", name = "ElektronickyKontakt", scope = TSubjektExterni.class)
     public JAXBElement<String> createTSubjektExterniElektronickyKontakt(String value) {
@@ -752,7 +752,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://www.mvcr.cz/nsesss/v2", name = "PracovniPozice", scope = TSubjektExterni.class)
     public JAXBElement<String> createTSubjektExterniPracovniPozice(String value) {
@@ -761,7 +761,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://www.mvcr.cz/nsesss/v2", name = "NazevOrganizace", scope = TSubjektExterni.class)
     public JAXBElement<String> createTSubjektExterniNazevOrganizace(String value) {
@@ -770,7 +770,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://www.mvcr.cz/nsesss/v2", name = "SidloOrganizace", scope = TSubjektExterni.class)
     public JAXBElement<String> createTSubjektExterniSidloOrganizace(String value) {
@@ -779,7 +779,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link TIdentifikator }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://www.mvcr.cz/nsesss/v2", name = "IdentifikatorFyzickeOsoby", scope = TSubjektExterni.class)
     public JAXBElement<TIdentifikator> createTSubjektExterniIdentifikatorFyzickeOsoby(TIdentifikator value) {
@@ -788,7 +788,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link TIdentifikator }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://www.mvcr.cz/nsesss/v2", name = "IdentifikatorOrganizace", scope = TSubjektExterni.class)
     public JAXBElement<TIdentifikator> createTSubjektExterniIdentifikatorOrganizace(TIdentifikator value) {
@@ -797,7 +797,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link TOdkaz }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://www.mvcr.cz/nsesss/v2", name = "OdkazVyrizujiciDokument", scope = TVyrizeniEntity.class)
     public JAXBElement<TOdkaz> createTVyrizeniEntityOdkazVyrizujiciDokument(TOdkaz value) {
@@ -806,7 +806,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link TOdkaz }{@code >}}
-     * 
+     *
      */
     @XmlElementDecl(namespace = "http://www.mvcr.cz/nsesss/v2", name = "OdkazVyrizovanyDokument", scope = TVyrizeniEntity.class)
     public JAXBElement<TOdkaz> createTVyrizeniEntityOdkazVyrizovanyDokument(TOdkaz value) {

@@ -113,7 +113,7 @@ public final class PurgeFedoraObject {
 
     private void process(String pid, boolean hierarchy) throws PurgeException {
         if (!toPurge.add(pid)) {
-            return ;
+            return;
         }
         if (hierarchy) {
             List<SearchViewItem> items = getHierarchy(pid);
@@ -121,7 +121,7 @@ public final class PurgeFedoraObject {
                 toPurge.add(item.getPid());
             }
         }
-        
+
         // For now it presumes that objects are referenced by one parent thus
         // only roots are queried for parent.
         // Later it should ask for parents of each deleted object. It will be
@@ -164,6 +164,7 @@ public final class PurgeFedoraObject {
 
     /**
      * Removes all objects that will be deleted from PID's relations in RELS-EXT.
+     *
      * @param pid object to update
      */
     private void updateRelations(String pid) throws DigitalObjectException {

@@ -16,19 +16,18 @@
  */
 package cz.cas.lib.proarc.common.dao.empiredb;
 
-import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.GroupDao;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.UserGroupTable;
 import cz.cas.lib.proarc.common.user.Group;
-import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import org.apache.empire.data.bean.BeanResult;
 import org.apache.empire.db.DBCommand;
+import org.apache.empire.db.DBContext;
+import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
-import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
 
 /**
  * Manages user groups stored in RDBMS.
@@ -57,10 +56,11 @@ public final class EmpireGroupDao extends EmpireDao implements GroupDao {
 
         deleteConnectiogTableGroupUser(groupId);
 
-        Connection c = getConnection();
         DBCommand cmd = db.createCommand();
         cmd.where(db.tableUserGroup.id.is(groupId));
-        db.executeDelete(db.tableUserGroup, cmd, c);
+
+        DBContext context = getContext();
+        context.executeDelete(db.tableUserGroup, cmd);
     }
 
     private void deleteConnectiogTableGroupUser(Integer groupId) {
@@ -68,51 +68,51 @@ public final class EmpireGroupDao extends EmpireDao implements GroupDao {
             throw new IllegalArgumentException("Unsupported missing groupId!");
         }
 
-        Connection c = getConnection();
         DBCommand cmd = db.createCommand();
         cmd.where(db.tableGroupMember.groupid.is(groupId));
-        db.executeDelete(db.tableGroupMember, cmd, c);
+
+        DBContext context = getContext();
+        context.executeDelete(db.tableGroupMember, cmd);
     }
 
     @Override
     public void update(Group group) {
-        DBRecord dbr = new DBRecord();
+        DBContext contet = getContext();
+        DBRecord record = new DBRecord(contet, table);
+
         try {
             if (group.getId() == null) {
-                dbr.create(table);
+                record.create();
                 final Timestamp now = new Timestamp(System.currentTimeMillis());
                 if (group.getCreated() == null) {
                     group.setCreated(now);
                 }
                 group.setTimestamp(now);
             } else {
-                dbr.read(table, new Object[] {group.getId()}, getConnection());
+                record.read(table.id.is(group.getId()));
             }
-            dbr.setBeanValues(group);
-            try {
-                dbr.update(getConnection());
-            } catch (RecordUpdateInvalidException ex) {
-                throw new ConcurrentModificationException(ex);
-            }
-            dbr.getBeanProperties(group);
+            record.setBeanProperties(group);
+
+            record.update();
         } finally {
-            dbr.close();
+            record.close();
         }
+
+        DBCommand cmd = db.createCommand();
+        cmd.select(table.getColumns());
+        cmd.where(table.id.is(group.getId()));
+
+        getBeanProperties(cmd, 1);
     }
 
     @Override
     public Group find(int id) {
-        DBRecord dbr = new DBRecord();
-        try {
-            dbr.read(table, id, getConnection());
-            Group group = new Group();
-            dbr.getBeanProperties(group);
-            return group;
-        } catch (RecordNotFoundException ex) {
-            return null;
-        } finally {
-            dbr.close();
-        }
+
+        DBCommand cmd = db.createCommand();
+        cmd.select(table.getColumns());
+        cmd.where(table.id.is(id));
+
+        return getBeanProperties(cmd, 1);
     }
 
     @Override
@@ -131,8 +131,26 @@ public final class EmpireGroupDao extends EmpireDao implements GroupDao {
         if (grpRemoteType != null) {
             cmd.where(table.remoteType.is(grpRemoteType));
         }
-        beans.fetch(getConnection());
+        beans.fetch(getContext());
         return Collections.unmodifiableList(beans);
+    }
+
+    private Group getBeanProperties(DBCommand cmd, int limit) {
+        DBContext context = getContext();
+        DBReader reader = new DBReader(context);
+        try {
+            reader.open(cmd);
+            List<Group> groups = reader.getBeanList(Group.class, limit);
+            if (!groups.isEmpty()) {
+                return groups.getFirst();
+            } else {
+                return null;
+            }
+        } catch (RecordNotFoundException ex) {
+            return null;
+        } finally {
+            reader.close();
+        }
     }
 
 }

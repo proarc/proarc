@@ -95,6 +95,9 @@ import cz.cas.lib.proarc.premis.PremisUtils;
 import cz.cas.lib.proarc.urnnbn.ResolverUtils;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.xml.bind.JAXB;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -107,13 +110,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXB;
 import javax.xml.transform.dom.DOMSource;
 import org.aes.audioobject.AudioObject;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.w3c.dom.Node;
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
 
 import static cz.cas.lib.proarc.common.process.imports.TiffImporter.scale;
 import static cz.cas.lib.proarc.common.process.imports.TiffImporter.writeImage;
@@ -318,7 +318,6 @@ public class FileReader {
         return localObject;
 
 
-
     }
 
     private void processStructLink(StructLink structLink) throws DigitalObjectException {
@@ -369,12 +368,12 @@ public class FileReader {
             }
             //process volume as top level
             if (volumeDivs.size() == 1) {
-                processDiv(null, null,volumeDivs.get(0), ctx, true);
+                processDiv(null, null, volumeDivs.get(0), ctx, true);
                 return null;
             }
             //if monograph div contains more subdivs, first is supposed to be the volume, the rest are supplements that will be nested in the volume.
             if (volumeDivs.size() > 1) {
-                LocalStorage.LocalObject volume = processDiv(null, null,volumeDivs.get(0), ctx, true);
+                LocalStorage.LocalObject volume = processDiv(null, null, volumeDivs.get(0), ctx, true);
                 for (int i = 1; i < volumeDivs.size(); i++) {
                     processDiv(volume, null, volumeDivs.get(i), ctx, false);
                 }
@@ -477,7 +476,7 @@ public class FileReader {
                 return NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT;
             } else if (NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(parentModel) || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(parentModel) || NdkEbornPlugin.MODEL_EMONOGRAPHUNIT.equals(parentModel)) {
                 return NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT;
-            } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parentModel) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentModel) || NdkAudioPlugin.MODEL_TRACK.equals(parentModel) || NdkAudioPlugin.MODEL_SONG.equals(parentModel)){
+            } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parentModel) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentModel) || NdkAudioPlugin.MODEL_TRACK.equals(parentModel) || NdkAudioPlugin.MODEL_SONG.equals(parentModel)) {
                 return NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT;
             } else if (OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(parentModel) || OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(parentModel) || OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(parentModel)) {
                 return OldPrintPlugin.MODEL_SUPPLEMENT;
@@ -906,7 +905,7 @@ public class FileReader {
         if (iSession.getDevicePid() != null) {
             return iSession.getDevicePid();
         }
-        List<Device> devices  = iSession.findAllDevices();
+        List<Device> devices = iSession.findAllDevices();
         for (Device device : devices) {
             if (isEqualDevice(newDevice, device.getDescription())) {
                 return device.getId();
@@ -1040,8 +1039,8 @@ public class FileReader {
                         endRead = System.nanoTime() - start;
                     }
                     file = writeImage(
-                                scale(tiff, config.getPreviewScaling(), previewMaxWidth, previewMaxHeight),
-                                ctx.getTargetFolder(), targetName, imageType);
+                            scale(tiff, config.getPreviewScaling(), previewMaxWidth, previewMaxHeight),
+                            ctx.getTargetFolder(), targetName, imageType);
                 }
                 if (!InputUtils.isJpeg(file)) {
                     throw new IllegalStateException("Not a JPEG content: " + file);
@@ -1356,7 +1355,7 @@ public class FileReader {
         }
 
         public List<Device> findAllDevices() throws DeviceException {
-            return this.deviceRepository.find(config, null, true,0);
+            return this.deviceRepository.find(config, null, true, 0);
         }
 
         public BatchManager getImportManager() {
@@ -1517,7 +1516,7 @@ public class FileReader {
             } else if (value != null && sourceValue == null) {
                 return 1;
             } else {
-                return  value.equals(sourceValue) ? 0 : 1;
+                return value.equals(sourceValue) ? 0 : 1;
             }
         }
     }

@@ -56,7 +56,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 import static cz.cas.lib.proarc.common.process.imports.replaceStream.ReplaceStreamScanner.checkIfFileHasExtension;
 
@@ -289,7 +289,7 @@ public class FileReader {
     }
 
     private File getSibling(File original, String suffix) {
-        return new File(original.getParentFile(), (getName(original)  + "." + suffix).replace("..", "."));
+        return new File(original.getParentFile(), (getName(original) + "." + suffix).replace("..", "."));
     }
 
     protected static String toValidDsId(File file, ImportProcess.ImportOptions context) throws IOException {
@@ -303,7 +303,7 @@ public class FileReader {
             }
         } else if (checkIfFileHasExtension(file.getName(), context.getConfig().getPlainOcrFileSuffix())) {
             return StringEditor.OCR_ID;
-        } else if (checkIfFileHasExtension(file.getName(),  context.getConfig().getRawFileSuffix(), "." + ImageMimeType.TIFF.getDefaultFileExtension()) && InputUtils.isTiff(file)) {
+        } else if (checkIfFileHasExtension(file.getName(), context.getConfig().getRawFileSuffix(), "." + ImageMimeType.TIFF.getDefaultFileExtension()) && InputUtils.isTiff(file)) {
             return BinaryEditor.RAW_ID;
         } else if (checkIfFileHasExtension(file.getName(), context.getConfig().getNdkFullFileSuffix(), ".full." + ImageMimeType.JPEG.getDefaultFileExtension()) && InputUtils.isJpeg(file)) {
             return BinaryEditor.FULL_ID;

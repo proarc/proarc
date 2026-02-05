@@ -18,33 +18,33 @@ package cz.cas.lib.proarc.webapp.server.rest.v2;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.software.Software;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.SoftwareResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.SoftwareResourceApi;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETERS;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_DEVICE;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_2;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
@@ -52,7 +52,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
  *
  * @author Lukas Sykora
  */
-@Path(RestConfig.URL_API_VERSION_2 + "/" + SoftwareResourceApi.PATH)
+@Path(URL_API_VERSION_2 + "/" + SoftwareResourceApi.PATH)
 public class SoftwareResource extends SoftwareResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(SoftwareResource.class.getName());
@@ -69,24 +69,24 @@ public class SoftwareResource extends SoftwareResourceV1 {
 
     @DELETE
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Software> deleteSoftware(
+    public ProArcResponse<Software> deleteSoftware(
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id
             ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_DEVICE)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 
         try {
             return super.deleteSoftware(id);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Software> getSoftwares(
+    public ProArcResponse<Software> getSoftwares(
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id,
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
             @QueryParam(SoftwareResourceApi.SOFTWARE_START_ROW_PARAM) int startRow
@@ -95,19 +95,19 @@ public class SoftwareResource extends SoftwareResourceV1 {
             return super.getSoftwares(id, model, startRow);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(SoftwareResourceApi.PATH_SET)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Software> getSoftwareSet() {
+    public ProArcResponse<Software> getSoftwareSet() {
         try {
             return super.getSoftwareSet();
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -120,20 +120,20 @@ public class SoftwareResource extends SoftwareResourceV1 {
     @GET
     @Path(SoftwareResourceApi.PATH_PREVIEW)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Software> getSoftwarePreview(
+    public ProArcResponse<Software> getSoftwarePreview(
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id
     ) {
         try {
             return super.getSoftwarePreview(id);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Software> newSoftware(
+    public ProArcResponse<Software> newSoftware(
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_LABEL) String label,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MEMBERS) List<String> setOfIds,
@@ -141,20 +141,20 @@ public class SoftwareResource extends SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION) String description,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_DEVICE)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
             return super.newSoftware(label, model, setOfIds, type, description, timestamp);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @PUT
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Software> updateSoftware(
+    public ProArcResponse<Software> updateSoftware(
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_LABEL) String label,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
@@ -162,17 +162,17 @@ public class SoftwareResource extends SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION) String description,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_DEVICE)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (id == null || label == null || label.isEmpty() || model == null || model.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, SoftwareResourceApi.SOFTWARE_ITEM_ID, SoftwareResourceApi.SOFTWARE_ITEM_MODEL));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, SoftwareResourceApi.SOFTWARE_ITEM_ID, SoftwareResourceApi.SOFTWARE_ITEM_MODEL));
         }
         try {
             return super.updateSoftware(id, label, model, setOfIds, description, timestamp);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 }

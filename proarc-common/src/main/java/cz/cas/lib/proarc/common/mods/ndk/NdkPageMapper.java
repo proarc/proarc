@@ -35,6 +35,10 @@ import cz.cas.lib.proarc.mods.Text;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,10 +46,6 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
@@ -54,13 +54,21 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class NdkPageMapper extends NdkMapper {
 
     private static final Logger LOG = Logger.getLogger(NdkPageMapper.class.getName());
-    /** {@code /mods/part/detail@type} */
+    /**
+     * {@code /mods/part/detail@type}
+     */
     protected static final String NUMBER_TYPE_PAGE_INDEX = "pageIndex";
-    /** {@code /mods/part/detail@type} */
+    /**
+     * {@code /mods/part/detail@type}
+     */
     protected static final String NUMBER_TYPE_PAGE_NUMBER = "pageNumber";
-    /** {@code /mods/part@type} */
+    /**
+     * {@code /mods/part@type}
+     */
     public static final String PAGE_TYPE_NORMAL = "normalPage";
-    /** A default value of {@code /mods/typeOfResource}. */
+    /**
+     * A default value of {@code /mods/typeOfResource}.
+     */
     public static final String RESOURCE_TYPE_TEXT = "text";
 
     public static ResourceBundle getPageTypeLabels(Locale locale) {
@@ -102,25 +110,25 @@ public class NdkPageMapper extends NdkMapper {
     public Page toJsonObject(ModsDefinition mods, Context ctx) {
         Page page = new Page();
         if (NdkPlugin.MODEL_NDK_PAGE.equals(super.getModelId())) {
-                for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-                    page.setTitle(getTitleDefinitionValue(titleInfo, "title"));
-                    page.setSubtitle(getTitleDefinitionValue(titleInfo, "subtitle"));
-                }
-                for (NoteDefinition noteDefinition : mods.getNote()) {
-                    page.setNote(noteDefinition.getValue() == null ? "" : noteDefinition.getValue());
-                }
-                for (GenreDefinition genreDefinition : mods.getGenre()) {
-                    page.setGenre(genreDefinition.getValue() == null ? "" : genreDefinition.getValue());
-                }
-                for (TypeOfResourceDefinition typeOfResourceDefinition : mods.getTypeOfResource()) {
-                    page.setTypeOfResource(typeOfResourceDefinition.getValue() == null ? "" : typeOfResourceDefinition.getValue());
-                }
-                for (PhysicalDescriptionDefinition physicalDescription : mods.getPhysicalDescription()) {
-                    page.setPhysicalDescription(getPhysicalDescriptionValue(physicalDescription));
-                }
-                for (PartDefinition partDefinition : mods.getPart()) {
-                    page.setExtent(getExtentValue(partDefinition));
-                }
+            for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
+                page.setTitle(getTitleDefinitionValue(titleInfo, "title"));
+                page.setSubtitle(getTitleDefinitionValue(titleInfo, "subtitle"));
+            }
+            for (NoteDefinition noteDefinition : mods.getNote()) {
+                page.setNote(noteDefinition.getValue() == null ? "" : noteDefinition.getValue());
+            }
+            for (GenreDefinition genreDefinition : mods.getGenre()) {
+                page.setGenre(genreDefinition.getValue() == null ? "" : genreDefinition.getValue());
+            }
+            for (TypeOfResourceDefinition typeOfResourceDefinition : mods.getTypeOfResource()) {
+                page.setTypeOfResource(typeOfResourceDefinition.getValue() == null ? "" : typeOfResourceDefinition.getValue());
+            }
+            for (PhysicalDescriptionDefinition physicalDescription : mods.getPhysicalDescription()) {
+                page.setPhysicalDescription(getPhysicalDescriptionValue(physicalDescription));
+            }
+            for (PartDefinition partDefinition : mods.getPart()) {
+                page.setExtent(getExtentValue(partDefinition));
+            }
         } else {
             List<PartDefinition> parts = mods.getPart();
             if (!parts.isEmpty()) {
@@ -138,7 +146,7 @@ public class NdkPageMapper extends NdkMapper {
             String pageType = null;
             for (PartDefinition part : mods.getPart()) {
                 if (pageIndex == null) {
-                    pageIndex = getNumber(getDetail(part.getDetail(), NUMBER_TYPE_PAGE_INDEX)); 
+                    pageIndex = getNumber(getDetail(part.getDetail(), NUMBER_TYPE_PAGE_INDEX));
                 }
                 if (pageNumber == null) {
                     pageNumber = getNumber(getDetail(part.getDetail(), NUMBER_TYPE_PAGE_NUMBER));
@@ -173,7 +181,7 @@ public class NdkPageMapper extends NdkMapper {
     private String getTitleDefinitionValue(TitleInfoDefinition titleInfo, String value) {
         switch (value) {
             case "title":
-                return !titleInfo.getTitle().isEmpty() ? titleInfo.getTitle().get(0).getValue() : "";
+                return !titleInfo.getTitleStringPlusLanguage().isEmpty() ? titleInfo.getTitleStringPlusLanguage().get(0).getValue() : "";
             case "subtitle":
                 return !titleInfo.getSubTitle().isEmpty() ? titleInfo.getSubTitle().get(0).getValue() : "";
             default:
@@ -215,7 +223,7 @@ public class NdkPageMapper extends NdkMapper {
         String pageNumber = page.getNumber();
         String pageNote = page.getPhysicalDescription();
 
-        if((pageType != null && !PAGE_TYPE_NORMAL.equals(pageType)) || pageIndex != null || pageNumber != null || pageNote != null) {
+        if ((pageType != null && !PAGE_TYPE_NORMAL.equals(pageType)) || pageIndex != null || pageNumber != null || pageNote != null) {
             PartDefinition part = new PartDefinition();
 
             if (pageType != null && !PAGE_TYPE_NORMAL.equals(pageType)) {
@@ -240,8 +248,6 @@ public class NdkPageMapper extends NdkMapper {
         mods.getIdentifier().addAll(getIdentifierDefinition(page.getIdentifiers()));
         return mods;
     }
-
-
 
 
     @Override
@@ -286,7 +292,6 @@ public class NdkPageMapper extends NdkMapper {
     }
 
 
-
     protected DetailDefinition getDetail(List<DetailDefinition> details, String type) {
         for (DetailDefinition detail : details) {
             if (type.equals(detail.getType())) {
@@ -309,11 +314,10 @@ public class NdkPageMapper extends NdkMapper {
     protected List<IdentifierItem> getIdentifierItems(List<IdentifierDefinition> ids) {
         List<IdentifierItem> iis = new ArrayList<>(ids.size());
         for (IdentifierDefinition id : ids) {
-            iis.add(new IdentifierItem(id.getType(), id.getValue()));
+            iis.add(new IdentifierItem(id.getTypeString(), id.getValue()));
         }
         return iis;
     }
-
 
 
     @XmlRootElement(name = "page")

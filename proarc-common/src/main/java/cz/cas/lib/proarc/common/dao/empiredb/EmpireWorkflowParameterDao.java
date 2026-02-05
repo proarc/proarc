@@ -22,18 +22,15 @@ import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskParameterView;
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.apache.empire.data.bean.BeanResult;
 import org.apache.empire.db.DBCommand;
+import org.apache.empire.db.DBContext;
 import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
-import org.apache.empire.db.DBRecordData;
 
 /**
  *
@@ -58,13 +55,18 @@ public class EmpireWorkflowParameterDao extends EmpireDao implements WorkflowPar
         if (taskId == null) {
             throw new IllegalArgumentException("Unsupported missing taskId!");
         }
-        Connection c = getConnection();
-        DBRecord r = new DBRecord();
-        for (TaskParameter param : params) {
-            param.setTaskId(taskId);
-            r.create(tableParams);
-            r.setBeanValues(param);
-            r.update(c);
+
+        DBContext context = getContext();
+        DBRecord record = new DBRecord(context, tableParams);
+        try {
+            for (TaskParameter param : params) {
+                param.setTaskId(taskId);
+                record.create();
+                record.setBeanProperties(param);
+                record.update();
+            }
+        } finally {
+            record.close();
         }
     }
 
@@ -73,10 +75,12 @@ public class EmpireWorkflowParameterDao extends EmpireDao implements WorkflowPar
         if (taskId == null) {
             throw new IllegalArgumentException("Unsupported missing taskId!");
         }
-        Connection c = getConnection();
+
         DBCommand cmd = db.createCommand();
         cmd.where(tableParams.taskId.is(taskId));
-        db.executeDelete(tableParams, cmd, c);
+
+        DBContext context = getContext();
+        context.executeDelete(tableParams, cmd);
     }
 
     @Override
@@ -87,7 +91,7 @@ public class EmpireWorkflowParameterDao extends EmpireDao implements WorkflowPar
         BeanResult<TaskParameter> result = new BeanResult<TaskParameter>(TaskParameter.class, tableParams);
         DBCommand cmd = result.getCommand();
         cmd.where(tableParams.taskId.is(taskId));
-        result.fetch(getConnection());
+        result.fetch(getContext());
         return Collections.unmodifiableList(result);
     }
 
@@ -111,26 +115,21 @@ public class EmpireWorkflowParameterDao extends EmpireDao implements WorkflowPar
         if (filter.getTaskId() != null) {
             cmd.where(tableParams.taskId.is(filter.getTaskId()));
         }
-        if (filter.getProfileName()!= null) {
+        if (filter.getProfileName() != null) {
             cmd.where(tableParams.paramRef.is(filter.getProfileName()));
         }
         if (filter.getJobId() != null) {
             cmd.where(db.tableWorkflowTask.jobId.is(filter.getJobId()));
         }
 
-        DBReader reader = new DBReader();
+        DBContext context = getContext();
+        DBReader reader = new DBReader(context);
         try {
-            reader.open(cmd, getConnection());
+            reader.open(cmd);
             if (!reader.skipRows(filter.getOffset())) {
                 return Collections.emptyList();
             }
-            ArrayList<TaskParameterView> viewItems = new ArrayList<TaskParameterView>(filter.getMaxCount());
-            for (Iterator<DBRecordData> it = reader.iterator(filter.getMaxCount()); it.hasNext();) {
-                DBRecordData rec = it.next();
-                TaskParameterView view = new TaskParameterView();
-                rec.getBeanProperties(view);
-                viewItems.add(view);
-            }
+            List<TaskParameterView> viewItems = reader.getBeanList(TaskParameterView.class, filter.getMaxCount());
             return viewItems;
         } finally {
             reader.close();

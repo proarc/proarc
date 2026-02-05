@@ -37,16 +37,16 @@ public class ImportUtils {
 
             try {
                 int length = splitName.length;
-                if (splitName[length-3].length() == 2 && splitName[length-2].length() == 2 && splitName[length-1].length() == 2) {
-                    int disc = Integer.valueOf(splitName[splitName.length-3]);
-                    int song = Integer.valueOf(splitName[splitName.length-2]);
-                    int track = Integer.valueOf(splitName[splitName.length-1]);
+                if (splitName[length - 3].length() == 2 && splitName[length - 2].length() == 2 && splitName[length - 1].length() == 2) {
+                    int disc = Integer.valueOf(splitName[splitName.length - 3]);
+                    int song = Integer.valueOf(splitName[splitName.length - 2]);
+                    int track = Integer.valueOf(splitName[splitName.length - 1]);
 
                     if (disc < 1 || song < 1) {
                         LOG.log(Level.WARNING, "Spatna hodnota v nazvu souboru. Nepodarilo se automaticky vytvorit hierarchii objektu: " + splitName + ".");
                         return false;
                     }
-                    if (track > 0 ) {
+                    if (track > 0) {
                         if (songsPid.size() < song) {
                             pid = FoxmlUtils.createPid();
                             Hierarchy songHierarchy = new Hierarchy(pid, null);

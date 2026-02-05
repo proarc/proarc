@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.common.storage;
 
+import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixType;
 import cz.cas.lib.proarc.mix.MixUtils;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import java.io.File;
 import javax.xml.transform.Source;
 
@@ -77,6 +77,7 @@ public class MixEditor {
 
     /**
      * Gets persisted MIX.
+     *
      * @return MIX or {@code null}
      * @throws DigitalObjectException failure
      */
@@ -91,6 +92,7 @@ public class MixEditor {
 
     /**
      * Gets persisted MIX as {@link Mix} class.
+     *
      * @return MIX or {@code null}
      * @throws DigitalObjectException failure
      */
@@ -111,11 +113,11 @@ public class MixEditor {
 
     /**
      * Generates and writes MIX for the passed content.
-     * 
-     * @param content file containing e.g. an image
-     * @param jhoveCtx jHove context
+     *
+     * @param content   file containing e.g. an image
+     * @param jhoveCtx  jHove context
      * @param timestamp timestamp
-     * @param msg log message
+     * @param msg       log message
      * @throws DigitalObjectException failure
      */
     public void write(File content, JhoveContext jhoveCtx, long timestamp, String msg) throws DigitalObjectException {
@@ -123,7 +125,7 @@ public class MixEditor {
             Mix mix = JhoveUtility.getMix(content, jhoveCtx, null, null, null).getMix();
             if (mix == null) {
                 throw new DigitalObjectException(
-                    object.getPid(), null, profileTemplate.getDsID(), "jHove cannot generate MIX for " + content.toString(), null);
+                        object.getPid(), null, profileTemplate.getDsID(), "jHove cannot generate MIX for " + content.toString(), null);
             }
             write(mix, timestamp, msg);
         } catch (DigitalObjectException ex) {

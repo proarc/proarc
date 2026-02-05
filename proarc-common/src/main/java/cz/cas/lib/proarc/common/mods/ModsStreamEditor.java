@@ -1,32 +1,32 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.cas.lib.proarc.common.mods;
 
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.mods.custom.Mapping;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.PageMapper;
 import cz.cas.lib.proarc.common.mods.custom.PageMapper.Page;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.StringReader;
@@ -94,7 +94,7 @@ public final class ModsStreamEditor {
         ModsDefinition mods = new ModsDefinition();
         mods.setVersion(ModsUtils.VERSION);
         IdentifierDefinition identifierType = new IdentifierDefinition();
-        identifierType.setType("uuid");
+        identifierType.setTypeString("uuid");
         String uuid = FoxmlUtils.pidAsUuid(pid);
         identifierType.setValue(uuid);
         mods.getIdentifier().add(identifierType);
@@ -111,13 +111,13 @@ public final class ModsStreamEditor {
     public static ModsDefinition addPid(ModsDefinition mods, String pid) {
         String uuid = FoxmlUtils.pidAsUuid(pid);
         for (IdentifierDefinition id : mods.getIdentifier()) {
-            if ("uuid".equals(id.getType()) && uuid.equals(id.getValue())) {
+            if ("uuid".equals(id.getTypeString()) && uuid.equals(id.getValue())) {
                 return mods;
             }
         }
         IdentifierDefinition id = new IdentifierDefinition();
         id.setValue(uuid);
-        id.setType("uuid");
+        id.setTypeString("uuid");
         mods.getIdentifier().add(0, id);
         return mods;
     }

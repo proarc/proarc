@@ -22,13 +22,6 @@ import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.BatchItem.FileState;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
-import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -37,6 +30,13 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
+import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
@@ -51,6 +51,9 @@ import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.SubjectDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -58,9 +61,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 
 /**
  * Imports files grouped to {@link FileSet file sets}.
@@ -116,7 +116,7 @@ public class FileSetImport implements ImportHandler {
         importConfig.setJhoveContext(JhoveUtility.createContext());
         try {
             consumeFileSets(batch, fileSets, importConfig);
-            if(batch.getState().equals(Batch.State.LOADING)
+            if (batch.getState().equals(Batch.State.LOADING)
                     && "profile.chronicle".equals(importConfig.getConfig().getProfileId())
                     && importConfig.getConfig().getCreateModelsHierarchy()) {
                 String pid = createObject(fileSets, ChroniclePlugin.MODEL_CHRONICLEVOLUME, batchManager, importConfig);
@@ -130,7 +130,7 @@ public class FileSetImport implements ImportHandler {
 
     private String createObject(List<FileSet> fileSets, String model, BatchManager batchManager, ImportProcess.ImportOptions importConfig) throws DigitalObjectException, JAXBException {
         String pid = FoxmlUtils.createPid();
-        DigitalObjectManager dom  = DigitalObjectManager.getDefault();
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
         DigitalObjectManager.CreateHandler handler = dom.create(model, pid, null, importConfig.getUser(), null, "create new object with pid: " + pid);
         handler.create();
 
@@ -202,16 +202,16 @@ public class FileSetImport implements ImportHandler {
         StringPlusLanguage title = new StringPlusLanguage();
         title.setValue(chronicle.getNazev());
         TitleInfoDefinition titleInfo = new TitleInfoDefinition();
-        titleInfo.getTitle().add(title);
+        titleInfo.getTitleStringPlusLanguage().add(title);
         mods.getTitleInfo().add(titleInfo);
 
         IdentifierDefinition identifierLocalId = new IdentifierDefinition();
-        identifierLocalId.setType("localId");
+        identifierLocalId.setTypeString("localId");
         identifierLocalId.setValue(chronicle.getLocalId());
         mods.getIdentifier().add(identifierLocalId);
 
         IdentifierDefinition identifierId = new IdentifierDefinition();
-        identifierId.setType("id");
+        identifierId.setTypeString("id");
         identifierId.setValue(chronicle.getId());
         mods.getIdentifier().add(identifierId);
 
@@ -248,43 +248,43 @@ public class FileSetImport implements ImportHandler {
     private void setGeoStorage(ModsDefinition mods, String mistoUlozeni) {
         switch (mistoUlozeni) {
             case "226102010":       // SOkA Jihlava
-                setGeoStorageValue(mods, "Česká republika","Jihovýchod",
-                        "Kraj Vysočina","Jihlava",
-                        "Jihomoravský","Jihlava",
-                        "Jihlava","Jihlava",
-                        "Jihlava","Fritzova",
-                        "Fritzova 4800/19, 58601 Jihlava","1",
-                        "60","108",
-                        "3707","37",
-                        "1503","3018",
-                        "586846","412317",
-                        "170534","25038184");
+                setGeoStorageValue(mods, "Česká republika", "Jihovýchod",
+                        "Kraj Vysočina", "Jihlava",
+                        "Jihomoravský", "Jihlava",
+                        "Jihlava", "Jihlava",
+                        "Jihlava", "Fritzova",
+                        "Fritzova 4800/19, 58601 Jihlava", "1",
+                        "60", "108",
+                        "3707", "37",
+                        "1503", "3018",
+                        "586846", "412317",
+                        "170534", "25038184");
                 break;
             case "226103010":       // SOkA Pelhrimov
-                setGeoStorageValue(mods, "Česká republika","Jihovýchod",
-                        "Kraj Vysočina","Pelhřimov",
-                        "Jihočeský","Pelhřimov",
-                        "Pelhřimov","Pelhřimov",
-                        "Pelhřimov","Pražská",
-                        "Pražská 1883, 39301 Pelhřimov","1",
-                        "60","108",
-                        "3304","33",
-                        "388","809",
-                        "547492","404292",
-                        "381462","20147929");
+                setGeoStorageValue(mods, "Česká republika", "Jihovýchod",
+                        "Kraj Vysočina", "Pelhřimov",
+                        "Jihočeský", "Pelhřimov",
+                        "Pelhřimov", "Pelhřimov",
+                        "Pelhřimov", "Pražská",
+                        "Pražská 1883, 39301 Pelhřimov", "1",
+                        "60", "108",
+                        "3304", "33",
+                        "388", "809",
+                        "547492", "404292",
+                        "381462", "20147929");
                 break;
             case "226101010":       // SOkA Havlickuv Brod
-                setGeoStorageValue(mods, "Česká republika","Jihovýchod",
-                        "Kraj Vysočina","Havlíčkův Brod",
-                        "Východočeský","Havlíčkův Brod",
-                        "Havlíčkův Brod","Havlíčkův Brod",
-                        "Havlíčkův Brod","Kyjovská",
-                        "Kyjovská 1125, 58001 Havlíčkův Brod","1",
-                        "60","108",
-                        "3601","36",
-                        "949","1996",
-                        "568414","409472",
-                        "111783","9599100");
+                setGeoStorageValue(mods, "Česká republika", "Jihovýchod",
+                        "Kraj Vysočina", "Havlíčkův Brod",
+                        "Východočeský", "Havlíčkův Brod",
+                        "Havlíčkův Brod", "Havlíčkův Brod",
+                        "Havlíčkův Brod", "Kyjovská",
+                        "Kyjovská 1125, 58001 Havlíčkův Brod", "1",
+                        "60", "108",
+                        "3601", "36",
+                        "949", "1996",
+                        "568414", "409472",
+                        "111783", "9599100");
                 break;
             case "226104010":       //SOkA Trebic
                 setGeoStorageValue(mods, "Česká republika", "Jihovýchod",
@@ -415,7 +415,7 @@ public class FileSetImport implements ImportHandler {
         for (ImageImporter consumer : consumers) {
             BatchItemObject item = consumer.consume(fileSet, ctx);
             if (item != null) {
-                LOG.log(Level.FINE, "time: {0} ms, {1}", new Object[] {System.currentTimeMillis() - start, fileSet});
+                LOG.log(Level.FINE, "time: {0} ms, {1}", new Object[]{System.currentTimeMillis() - start, fileSet});
                 ctx.setConsumedFileCounter(ctx.getConsumedFileCounter() + 1);
                 return item;
             }

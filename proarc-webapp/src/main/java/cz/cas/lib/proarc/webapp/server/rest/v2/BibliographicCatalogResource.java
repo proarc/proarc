@@ -17,20 +17,21 @@
 package cz.cas.lib.proarc.webapp.server.rest.v2;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.BibliographicCatalogResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
+
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_2;
 
 /**
  * The resource to list available bibliographic catalogs like Aleph
@@ -38,7 +39,7 @@ import javax.ws.rs.core.MediaType;
  *
  * @author Lukas Sykora
  */
-@Path(RestConfig.URL_API_VERSION_2 + "/" + BibliographicCatalogResourceApi.PATH)
+@Path(URL_API_VERSION_2 + "/" + BibliographicCatalogResourceApi.PATH)
 public class BibliographicCatalogResource extends BibliographicCatalogResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(BibliographicCatalogResource.class.getName());
@@ -51,7 +52,7 @@ public class BibliographicCatalogResource extends BibliographicCatalogResourceV1
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<CatalogDescriptor> findCatalog(
+    public ProArcResponse<CatalogDescriptor> findCatalog(
             @QueryParam(BibliographicCatalogResourceApi.CATALOG_ID) String id,
             @DefaultValue("false") @QueryParam(BibliographicCatalogResourceApi.CATALOG_ALLOW_UPDATE) Boolean allowCatalogUpdate
     ) {
@@ -59,7 +60,7 @@ public class BibliographicCatalogResource extends BibliographicCatalogResourceV1
             return super.findCatalog(id, allowCatalogUpdate);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 

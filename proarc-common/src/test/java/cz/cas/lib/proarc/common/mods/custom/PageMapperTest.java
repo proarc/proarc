@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -23,15 +23,17 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.custommonkey.xmlunit.XMLAssert;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.xmlunit.builder.DiffBuilder;
+import org.xmlunit.diff.Diff;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  *
@@ -42,19 +44,19 @@ public class PageMapperTest {
     public PageMapperTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -112,7 +114,15 @@ public class PageMapperTest {
         ModsDefinition expectedMods = ModsUtils.unmarshal(PageMapperTest.class.getResource("page_mods_updated.xml"), ModsDefinition.class);
         String expectedXml = ModsUtils.toXml(expectedMods, true);
 //        System.out.println(expectedXml);
-        XMLAssert.assertXMLEqual(expectedXml, resultXml);
+
+        Diff diff = DiffBuilder.compare(expectedXml)
+                .withTest(resultXml)
+                .ignoreWhitespace()   // ignoruje rozdíly v mezerách
+                .ignoreComments()     // ignoruje komentáře
+                .checkForSimilar()    // porovnává semanticky, ne strict string
+                .build();
+
+        assertFalse(diff.hasDifferences(), "XML se neshoduje: " + diff.toString());
     }
 
     @Test

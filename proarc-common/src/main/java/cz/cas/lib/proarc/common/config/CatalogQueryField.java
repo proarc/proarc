@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.config;
 
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * The field descriptor for catalog queries.
@@ -45,18 +45,30 @@ public class CatalogQueryField {
 
     private String getFieldNameDefault(String name) {
         switch (name) {
-            case "issn": return "ISSN";
-            case "isbn": return "ISBN";
-            case "barcode": return "Čárový kód";
-            case "ean": return "Čárový kód";
-            case "signature": return "Signatura";
-            case "ccnb": return "čČNB";
-            case "sys": return "SYS";
-            case "id": return "ID";
-            case "author": return "Autor";
-            case "title": return "Název";
-            case "001": return "Pole 001";
-            default: return name;
+            case "issn":
+                return "ISSN";
+            case "isbn":
+                return "ISBN";
+            case "barcode":
+                return "Čárový kód";
+            case "ean":
+                return "Čárový kód";
+            case "signature":
+                return "Signatura";
+            case "ccnb":
+                return "čČNB";
+            case "sys":
+                return "SYS";
+            case "id":
+                return "ID";
+            case "author":
+                return "Autor";
+            case "title":
+                return "Název";
+            case "001":
+                return "Pole 001";
+            default:
+                return name;
         }
     }
 

@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,12 +22,14 @@ import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.util.Arrays;
 import java.util.List;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  *
@@ -38,19 +40,19 @@ public class IdentifierMapperTest {
     public IdentifierMapperTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -68,9 +70,9 @@ public class IdentifierMapperTest {
 
         IdentifierMapper instance = new IdentifierMapper();
         IdentifierItem[] expResult = {
-            new IdentifierItem(0, "uuid", "1"),
-            new IdentifierItem(1, "issn", "issn-1"),
-            new IdentifierItem(2, "issn", "issn-2")
+                new IdentifierItem(0, "uuid", "1"),
+                new IdentifierItem(1, "issn", "issn-1"),
+                new IdentifierItem(2, "issn", "issn-2")
         };
         List result = instance.map(mods);
         assertArrayEquals(expResult, result.toArray());
@@ -78,7 +80,7 @@ public class IdentifierMapperTest {
 
     private static IdentifierDefinition create(String type, String value) {
         IdentifierDefinition ident = new IdentifierDefinition();
-        ident.setType(type);
+        ident.setTypeString(type);
         ident.setValue(value);
         return ident;
     }
@@ -99,14 +101,14 @@ public class IdentifierMapperTest {
                 new IdentifierItem(2, "isbn", "isbn-1"),
                 new IdentifierItem(0, "uuid", "2"),
                 new IdentifierItem(null, "uuid", "append")
-                );
+        );
 
         IdentifierMapper instance = new IdentifierMapper();
         Object[] expResult = {
-            create("uuid", "insert"),
-            create("isbn", "isbn-1"),
-            create("uuid", "2"),
-            create("uuid", "append"),
+                create("uuid", "insert"),
+                create("isbn", "isbn-1"),
+                create("uuid", "2"),
+                create("uuid", "append"),
         };
         instance.map(mods, updates);
 
@@ -127,7 +129,7 @@ public class IdentifierMapperTest {
     public static boolean assertIdentifiersEquals(Object i1, Object i2) {
         return assertIdentifiersEquals((IdentifierDefinition) i1, (IdentifierDefinition) i2);
     }
-    
+
     public static boolean assertIdentifiersEquals(IdentifierDefinition i1, IdentifierDefinition i2) {
         if (equals(i1, i2)) {
             return true;
@@ -143,14 +145,14 @@ public class IdentifierMapperTest {
         if (!equals(i1.getValue(), i2.getValue())) {
             return false;
         }
-        if (!equals(i1.getType(), i2.getType())) {
+        if (!equals(i1.getTypeString(), i2.getTypeString())) {
             return false;
         }
         return true;
     }
 
     private static String toString(IdentifierDefinition i) {
-        return i == null ? null : String.format("IdentifierDefinition[%s, %s]", i.getType(), i.getValue());
+        return i == null ? null : String.format("IdentifierDefinition[%s, %s]", i.getTypeString(), i.getValue());
     }
 
 }

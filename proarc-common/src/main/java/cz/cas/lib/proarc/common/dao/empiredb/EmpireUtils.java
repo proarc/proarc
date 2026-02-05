@@ -25,16 +25,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.empire.commons.OptionEntry;
 import org.apache.empire.commons.Options;
-import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
-import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBColumnExpr;
 import org.apache.empire.db.DBCommand;
+import org.apache.empire.db.DBContext;
+import org.apache.empire.db.DBDDLGenerator;
 import org.apache.empire.db.DBDatabase;
-import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBExpr;
+import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRelation;
+import org.apache.empire.db.DBSQLBuilder;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
@@ -49,47 +50,75 @@ import org.apache.empire.db.expr.compare.DBCompareExpr;
 class EmpireUtils {
 
     /**
-     * Adds DDL statements for a new table. In addition to {@link DBDatabaseDriver#getDDLScript}
      * it adds also DDL statements for references.
      */
-    public static void addTable(DBTable table, DBDatabaseDriver driver, DBSQLScript script) {
-        driver.getDDLScript(DBCmdType.CREATE, table, script);
+    public static void addTable(DBTable table, DBContext context, DBSQLScript script) {
+        context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, table, script);
         for (DBRelation relation : table.getForeignKeyRelations()) {
-            driver.getDDLScript(DBCmdType.CREATE, relation, script);
+            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, relation, script);
         }
     }
 
     /**
      * Adds DDL statement to the script to remove a table constraint.
      */
-    public static void dropRelation(DBRelation relation, DBDatabaseDriver driver, DBSQLScript script) {
-        StringBuilder sql = new StringBuilder();
-        DBSQLScript helper = new DBSQLScript();
-        DBTable sourceTable = relation.getForeignKeyTable();
-        sql.append("-- drop foreign key constraint ");
-        sql.append(relation.getName());
-        sql.append(" --\r\n");
-        sql.append("ALTER TABLE ");
-        sourceTable.addSQL(sql, DBExpr.CTX_FULLNAME);
+    public static void dropRelation(DBRelation relation, DBContext context, DBSQLScript script) {
 
-        driver.getDDLScript(DBCmdType.DROP, relation, helper);
-        sql.append(' ');
-        sql.append(helper.getStmt(0));
-        script.addStmt(sql);
+
+        final DBTable sourceTable = relation.getForeignKeyTable();
+
+        DBSQLScript helper = new DBSQLScript(script.getContext());
+        context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.DROP, relation, helper);
+
+        String raw = helper.toString().trim();
+        if (raw.isEmpty()) {
+            DBSQLBuilder note = context.getDbms().createSQLBuilder();
+            note.append("-- drop foreign key constraint ").append(relation.getName())
+                    .append(" (no DDL generated)");
+            script.addStmt(note);
+            return;
+        }
+
+        String[] stmts = raw.split(";\\s*");
+        for (String frag : stmts) {
+            String fragment = frag.trim();
+            if (fragment.isEmpty()) {
+                continue;
+            }
+            String upper = fragment.toUpperCase();
+
+            if (upper.startsWith("ALTER TABLE")) {
+                DBSQLBuilder whole = context.getDbms().createSQLBuilder();
+                whole.append("-- drop foreign key constraint ").append(relation.getName()).append('\n');
+                whole.append(fragment);
+                script.addStmt(whole);
+                continue;
+            }
+
+            DBSQLBuilder sql = context.getDbms().createSQLBuilder();
+            sql.append("-- drop foreign key constraint ").append(relation.getName()).append('\n');
+            sql.append("ALTER TABLE ");
+            sourceTable.addSQL(sql, DBExpr.CTX_FULLNAME);
+            sql.append(' ').append(fragment);
+
+            script.addStmt(sql);
+        }
+
     }
 
     /**
      * Adds a column to the {@code order by} clause of the command.
-     * @param cmd SQL command
+     *
+     * @param cmd                    SQL command
      * @param columnBeanPropertyName a property name of the sort column,
-     *          possibly prefixed with {@code '-'} to make the sorting descending.
-     * @param defaultSortByColumn {@code null} or a column to use in case of
-     *          missing {@code columnBeanPropertyName}
-     * @param defaultDescending {@code true} to sort {@code defaultSortByColumn} top down
+     *                               possibly prefixed with {@code '-'} to make the sorting descending.
+     * @param defaultSortByColumn    {@code null} or a column to use in case of
+     *                               missing {@code columnBeanPropertyName}
+     * @param defaultDescending      {@code true} to sort {@code defaultSortByColumn} top down
      */
     public static void addOrderBy(DBCommand cmd,
-            String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
-            boolean defaultDescending
+                                  String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
+                                  boolean defaultDescending
     ) {
         DBColumnExpr[] selectExprList = cmd.getSelectExprList();
         List<? extends DBColumnExpr> selections = Arrays.asList(selectExprList);
@@ -97,8 +126,8 @@ class EmpireUtils {
     }
 
     private static void addOrderBy(DBCommand cmd, List<? extends DBColumnExpr> selections,
-            String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
-            boolean defaultDescending
+                                   String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
+                                   boolean defaultDescending
     ) {
         DBColumnExpr sortByCol = findSelection(selections, columnBeanPropertyName);
         boolean descending;
@@ -108,7 +137,7 @@ class EmpireUtils {
             sortByCol = defaultSortByColumn;
             descending = defaultDescending;
         } else {
-            return ;
+            return;
         }
         cmd.orderBy(sortByCol, descending);
     }
@@ -134,7 +163,7 @@ class EmpireUtils {
     /**
      * Adds datetime filters.to the where statement.
      *
-     * @param column a DB to filter
+     * @param column     a DB to filter
      * @param dateFilter list of date filters as (operator, datetime) or single datetime
      */
     public static void addWhereDate(DBCommand cmd, DBTableColumn column, List<String> dateFilter) {
@@ -146,8 +175,9 @@ class EmpireUtils {
 
     /**
      * Adds an LIKE statement to the where clause.
-     * @param cmd the SQL command
-     * @param column the column to compare
+     *
+     * @param cmd         the SQL command
+     * @param column      the column to compare
      * @param likePattern the compared value without wildcards. The supplied value may be {@code null}.
      * @return the modified command
      */
@@ -171,8 +201,9 @@ class EmpireUtils {
 
     /**
      * Adds an equals statement to the where clause.
-     * @param cmd the SQL command
-     * @param column the column to compare
+     *
+     * @param cmd     the SQL command
+     * @param column  the column to compare
      * @param isValue the compared value. The supplied value may be {@code null}.
      * @return the modified command
      */
@@ -192,7 +223,7 @@ class EmpireUtils {
 
     /**
      *
-     * @param column a DB to filter
+     * @param column      a DB to filter
      * @param dateEntries list of entries with date (key) and optional operator (value).
      */
     static List<DBCompareExpr> createWhereDateExpr(DBTableColumn column, List<Entry<String, String>> dateEntries) {
@@ -226,7 +257,7 @@ class EmpireUtils {
         if (dateFilter == null) {
             return dExpressions;
         }
-        for (Iterator<String> dfit = dateFilter.iterator(); dfit.hasNext();) {
+        for (Iterator<String> dfit = dateFilter.iterator(); dfit.hasNext(); ) {
             String dateOrOperand = dfit.next();
             if (dfit.hasNext()) {
                 String operand = dateOrOperand;
@@ -253,31 +284,29 @@ class EmpireUtils {
          * Adds a timestamp column to the table used for optimistic locking.
          *
          * <p>This implementation creates column that can be modified with
-         * {@link DBRecord#setBeanValues } or {@link DBRecord#setValue } as
+         * {@link DBRecord#setBeanProperties} or {@link DBRecord#setValue } as
          * the column is not read-only or auto generated.
          *
          * @param columnName the column name
-         *
          * @return the timestamp table column object
          */
         @Override
-        public DBTableColumn addTimestampColumn(String columnName) {
-            return addTimestampColumn(columnName, DataMode.NotNull);
+        public DBTableColumn addTimestamp(String columnName) {
+            return addTimestampColumn(columnName, true);
         }
 
         /**
          * Adds a timestamp column to the table used for optimistic locking.
          *
          * @param columnName the column name
-         * @param mode use AutoGenerated in case user bean does not handle timestamp
-         *
+         * @param required   use AutoGenerated in case user bean does not handle timestamp
          * @return the timestamp table column object
          */
-        public DBTableColumn addTimestampColumn(String columnName, DataMode mode) {
+        public DBTableColumn addTimestampColumn(String columnName, boolean required) {
             // Do NOT change to DataMode.AutoGenerated; otherwise DBRecord.setBeanValues ignores user timestamp!
             // DBDatabase.SYSDATE used mainly for ALTER TABLE ADD column to fill default values.
             // DBRecord.setBeanValues MUST set any timestamp for the new record!
-            DBTableColumn col = addColumn(columnName, DataType.DATETIME, 0, mode, DBDatabase.SYSDATE);
+            DBTableColumn col = addColumn(columnName, DataType.DATETIME, 0, required, DBDatabase.SYSDATE);
             setTimestampColumn(col);
             return col;
         }
@@ -288,7 +317,7 @@ class EmpireUtils {
         }
 
         public DBTableColumn addSequenceColumn(String columnName, String seqName) {
-            return addColumn(columnName, DataType.AUTOINC, 0, DataMode.AutoGenerated, seqName);
+            return addColumn(columnName, DataType.AUTOINC, 0, true, seqName);
         }
 
         public boolean isTimestamp(DBColumn c) {

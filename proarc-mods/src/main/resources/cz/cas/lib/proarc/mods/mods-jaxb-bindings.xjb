@@ -1,0 +1,95 @@
+<jaxb:bindings version="3.0"
+               xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+               xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='abstractDefinition']/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="typeString"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='accessConditionDefinition']/xs:complexContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="typeString"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='genreDefinition']/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="typeString"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='identifierDefinition']/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="typeString"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='physicalLocationDefinition']/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="typeString"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='copyInformationDefinition']/xs:sequence/xs:element[@name='note']/xs:complexType/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="typeString"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='itemIdentifierDefinition']/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="typeString"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='noteDefinition']/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="typeString"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='dateOtherDefinition']/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="typeString"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='partDefinition']/xs:attribute[@name='type']">
+        <jaxb:property name="type"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='detailDefinition']/xs:attribute[@name='type']">
+        <jaxb:property name="type"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:element[@name='text']/xs:complexType/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="typeString"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='physicalDescriptionNote']/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="typeString"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='tableOfContentsDefinition']/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="typeString"/>
+    </jaxb:bindings>
+
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='languageTermDefinition']/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="type"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='scriptTermDefinition']/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="type"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='roleTermDefinition']/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="type"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='placeTermDefinition']/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="type"/>
+    </jaxb:bindings>
+
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='nameDefinition']/xs:attribute[@name='type']">
+        <jaxb:property name="typeEnum"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='namePartDefinition']/xs:simpleContent/xs:extension/xs:attribute[@name='type']">
+        <jaxb:property name="type"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='relatedItemDefinition']/xs:attribute[@name='type']">
+        <jaxb:property name="typeEnum"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='subjectTitleInfoDefinition']/xs:attribute[@name='type']">
+        <jaxb:property name="typeEnum"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='subjectNameDefinition']/xs:attribute[@name='type']">
+        <jaxb:property name="typeEnum"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='titleInfoDefinition']/xs:attribute[@name='type']">
+        <jaxb:property name="typeEnum"/>
+    </jaxb:bindings>
+
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:attributeGroup[@name='languageAttributeGroup']/xs:attribute[@ref='xml:lang']">
+        <jaxb:property name="xmlLang"/>
+    </jaxb:bindings>
+
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='titleInfoDefinition']/xs:sequence/xs:element[@ref='title']">
+        <jaxb:property name="titleStringPlusLanguage"/>
+    </jaxb:bindings>
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:complexType[@name='subjectTitleInfoDefinition']/xs:sequence/xs:element[@ref='title']">
+        <jaxb:property name="titleStringPlusLanguage"/>
+    </jaxb:bindings>
+
+    <jaxb:bindings schemaLocation="mods-jaxb.xsd" node="//xs:element[@name='role']">
+        <jaxb:property name="roleDefinition"/>
+    </jaxb:bindings>
+
+</jaxb:bindings>

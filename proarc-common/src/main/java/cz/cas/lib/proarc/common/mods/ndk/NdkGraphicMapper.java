@@ -64,7 +64,7 @@ public final class NdkGraphicMapper extends RdaNdkMapper {
         // name/role/roleTerm@type="CODE"
         // name/role/roleTerm@authority="marcrelator"
         for (NameDefinition name : mods.getName()) {
-            for (RoleDefinition role : name.getRole()) {
+            for (RoleDefinition role : name.getRoleDefinition()) {
                 for (RoleTermDefinition roleTerm : role.getRoleTerm()) {
                     if (roleTerm.getAuthority() == null) {
                         roleTerm.setAuthority("marcrelator");
@@ -99,7 +99,8 @@ public final class NdkGraphicMapper extends RdaNdkMapper {
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
             addElementType(dc.getTitles(), createTitleString(titleInfo));
         }
-        addName(mods.getName(), dc.getCreators());addNameIdentifier(mods.getName(), dc.getCreators());
+        addName(mods.getName(), dc.getCreators());
+        addNameIdentifier(mods.getName(), dc.getCreators());
         addElementType(dc.getTypes(), getDcType());
         addStringPlusLanguage(dc.getDescriptions(), mods.getAbstract());
         addStringPlusLanguage(dc.getDescriptions(), mods.getNote());

@@ -17,7 +17,7 @@
 
 package cz.cas.lib.proarc.common.jobs;
 
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 
@@ -39,7 +39,7 @@ public interface ProArcJob {
      * Initializes the job and sets itself into the supplied scheduler
      *
      * @param scheduler scheduler for the job to schedule into
-     * @param jobId job instance identifier from config (do not mix with job type)
+     * @param jobId     job instance identifier from config (do not mix with job type)
      * @param jobConfig subset of app configuration with config specified by jobId
      * @throws SchedulerException when job scheduling fails
      */

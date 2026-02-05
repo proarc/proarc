@@ -122,7 +122,7 @@ public class ChangeModels {
             }
             return null;
         } catch (DigitalObjectException ex) {
-            LOG.log(Level.SEVERE, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + " items.") ;
+            LOG.log(Level.SEVERE, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + " items.");
             return new ChangeModelResult(updatedPid, new DigitalObjectException(pid, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + " items."));
         }
     }
@@ -182,10 +182,10 @@ public class ChangeModels {
                 case NdkPlugin.MODEL_NDK_PAGE:
                     mods = fixNdkPageMods(mods);
                     break;
-               case NdkPlugin.MODEL_MONOGRAPHVOLUME:
+                case NdkPlugin.MODEL_MONOGRAPHVOLUME:
                     fixNdkMonographVolumeMods(mods, parentPid);
                     break;
-               case NdkPlugin.MODEL_MONOGRAPHTITLE:
+                case NdkPlugin.MODEL_MONOGRAPHTITLE:
                     fixNdkMonographVolumeMods(mods, parentPid);
                     break;
                 default:
@@ -546,8 +546,8 @@ public class ChangeModels {
                 }
             }
             if (rootTitleInfo != null && title != null) {
-                if (title.getTitle().isEmpty() && !rootTitleInfo.getTitle().isEmpty()) {
-                    title.getTitle().addAll(rootTitleInfo.getTitle());
+                if (title.getTitleStringPlusLanguage().isEmpty() && !rootTitleInfo.getTitleStringPlusLanguage().isEmpty()) {
+                    title.getTitleStringPlusLanguage().addAll(rootTitleInfo.getTitleStringPlusLanguage());
                 }
                 if (title.getSubTitle().isEmpty() && !rootTitleInfo.getSubTitle().isEmpty()) {
                     title.getSubTitle().addAll(rootTitleInfo.getSubTitle());
@@ -566,8 +566,8 @@ public class ChangeModels {
 
     private void fixCollectionOfClippingsVolumeMods(ModsDefinition mods, String parentPid) throws DigitalObjectException {
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            titleInfo.getTitle().clear();
-            titleInfo.getTitle().addAll(titleInfo.getPartName());
+            titleInfo.getTitleStringPlusLanguage().clear();
+            titleInfo.getTitleStringPlusLanguage().addAll(titleInfo.getPartName());
             titleInfo.getPartName().clear();
         }
     }
@@ -597,18 +597,18 @@ public class ChangeModels {
 
     private void fixTitleInfo(String titleValue, ModsDefinition mods) {
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            titleInfo.getPartName().addAll(titleInfo.getTitle());
-            titleInfo.getTitle().clear();
+            titleInfo.getPartName().addAll(titleInfo.getTitleStringPlusLanguage());
+            titleInfo.getTitleStringPlusLanguage().clear();
             StringPlusLanguage title = new StringPlusLanguage();
             title.setValue(titleValue);
-            titleInfo.getTitle().add(title);
+            titleInfo.getTitleStringPlusLanguage().add(title);
         }
     }
 
     private String getTitle(ModsDefinition mods) {
         if (mods != null) {
             for (TitleInfoDefinition title : mods.getTitleInfo()) {
-                for (StringPlusLanguage titleInfo : title.getTitle()) {
+                for (StringPlusLanguage titleInfo : title.getTitleStringPlusLanguage()) {
                     return titleInfo.getValue();
                 }
             }
@@ -759,7 +759,7 @@ public class ChangeModels {
             mods.getGenre().add(genre);
         }
         if (mods.getGenre().size() > 0) {
-            mods.getGenre().get(0).setType(pageType);
+            mods.getGenre().get(0).setTypeString(pageType);
         }
         return mods;
     }

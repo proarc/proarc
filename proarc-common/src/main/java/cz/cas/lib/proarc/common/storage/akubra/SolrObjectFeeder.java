@@ -122,8 +122,8 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
 
         try {
             addOrUpdateDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status,
-                        ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, software, members,
-                        pageIndex, pageType, pageNumber, pagePosition, genre, urnNbn, descriptionStandard, partNumber, identifiers,
+                    ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, software, members,
+                    pageIndex, pageType, pageNumber, pagePosition, genre, urnNbn, descriptionStandard, partNumber, identifiers,
                     insertNewDocument);
             if (commit) {
                 commit();
@@ -134,8 +134,8 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
     }
 
     private UpdateResponse addOrUpdateDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user,
-                                                     String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, String software, List<String> members, String pageIndex,
-                                                     String pageType, String pageNumber, String pagePosition, String genre, String urnNbn, String descriptionStandatd, String partNumber, String[] identifiers, boolean insertNewDocument) throws SolrServerException, IOException {
+                                                          String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, String software, List<String> members, String pageIndex,
+                                                          String pageType, String pageNumber, String pagePosition, String genre, String urnNbn, String descriptionStandatd, String partNumber, String[] identifiers, boolean insertNewDocument) throws SolrServerException, IOException {
         SolrInputDocument sdoc = new SolrInputDocument();
         sdoc.addField(FIELD_SOURCE, pid);
         sdoc.addField(FIELD_PID, pid);
@@ -194,7 +194,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         for (IdentifierDefinition identifier : mods.getIdentifier()) {
             if (identifier.getValue() != null && !identifier.getValue().isEmpty()) {
                 if (identifier.getInvalid() == null || identifier.getInvalid().equals("false") || identifier.getInvalid().equals("no")) {
-//                    identifiers.add(identifier.getType() == null ? "" : (identifier.getType()));
+//                    identifiers.add(identifier.getTypeString() == null ? "" : (identifier.getTypeString()));
                     identifiers.add(identifier.getValue());
                 }
             }
@@ -220,7 +220,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
 
     private String getUrnNbn(ModsDefinition mods) {
         for (IdentifierDefinition identifier : mods.getIdentifier()) {
-            if ("urnnbn".equals(identifier.getType()) && (identifier.getInvalid() == null || "".equals(identifier.getInvalid()) || "false".equals(identifier.getInvalid()))) {
+            if ("urnnbn".equals(identifier.getTypeString()) && (identifier.getInvalid() == null || "".equals(identifier.getInvalid()) || "false".equals(identifier.getInvalid()))) {
                 return identifier.getValue();
             }
         }

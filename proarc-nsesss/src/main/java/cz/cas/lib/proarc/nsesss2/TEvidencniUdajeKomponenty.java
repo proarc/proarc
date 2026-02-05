@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro evidenční údaje entity "komponenta".
- * 
+ *
  * <p>Java class for tEvidencniUdajeKomponenty complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tEvidencniUdajeKomponenty">
  *   &lt;complexContent>
@@ -36,16 +36,16 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tEvidencniUdajeKomponenty", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "identifikace",
-    "popis",
-    "trideni",
-    "manipulace",
-    "prevod"
+        "identifikace",
+        "popis",
+        "trideni",
+        "manipulace",
+        "prevod"
 })
 public class TEvidencniUdajeKomponenty {
 
@@ -62,11 +62,10 @@ public class TEvidencniUdajeKomponenty {
 
     /**
      * Gets the value of the identifikace property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TIdentifikace }
-     *     
+     *
+     * @return possible object is
+     * {@link TIdentifikace }
+     *
      */
     public TIdentifikace getIdentifikace() {
         return identifikace;
@@ -74,11 +73,10 @@ public class TEvidencniUdajeKomponenty {
 
     /**
      * Sets the value of the identifikace property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TIdentifikace }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TIdentifikace }
+     *
      */
     public void setIdentifikace(TIdentifikace value) {
         this.identifikace = value;
@@ -86,11 +84,10 @@ public class TEvidencniUdajeKomponenty {
 
     /**
      * Gets the value of the popis property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TPopisKomponenty }
-     *     
+     *
+     * @return possible object is
+     * {@link TPopisKomponenty }
+     *
      */
     public TPopisKomponenty getPopis() {
         return popis;
@@ -98,11 +95,10 @@ public class TEvidencniUdajeKomponenty {
 
     /**
      * Sets the value of the popis property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TPopisKomponenty }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TPopisKomponenty }
+     *
      */
     public void setPopis(TPopisKomponenty value) {
         this.popis = value;
@@ -110,11 +106,10 @@ public class TEvidencniUdajeKomponenty {
 
     /**
      * Gets the value of the trideni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TTrideni }
-     *     
+     *
+     * @return possible object is
+     * {@link TTrideni }
+     *
      */
     public TTrideni getTrideni() {
         return trideni;
@@ -122,11 +117,10 @@ public class TEvidencniUdajeKomponenty {
 
     /**
      * Sets the value of the trideni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TTrideni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TTrideni }
+     *
      */
     public void setTrideni(TTrideni value) {
         this.trideni = value;
@@ -134,11 +128,10 @@ public class TEvidencniUdajeKomponenty {
 
     /**
      * Gets the value of the manipulace property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TManipulaceKomponenty }
-     *     
+     *
+     * @return possible object is
+     * {@link TManipulaceKomponenty }
+     *
      */
     public TManipulaceKomponenty getManipulace() {
         return manipulace;
@@ -146,11 +139,10 @@ public class TEvidencniUdajeKomponenty {
 
     /**
      * Sets the value of the manipulace property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TManipulaceKomponenty }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TManipulaceKomponenty }
+     *
      */
     public void setManipulace(TManipulaceKomponenty value) {
         this.manipulace = value;
@@ -158,11 +150,10 @@ public class TEvidencniUdajeKomponenty {
 
     /**
      * Gets the value of the prevod property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TPrevodKomponenty }
-     *     
+     *
+     * @return possible object is
+     * {@link TPrevodKomponenty }
+     *
      */
     public TPrevodKomponenty getPrevod() {
         return prevod;
@@ -170,11 +161,10 @@ public class TEvidencniUdajeKomponenty {
 
     /**
      * Sets the value of the prevod property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TPrevodKomponenty }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TPrevodKomponenty }
+     *
      */
     public void setPrevod(TPrevodKomponenty value) {
         this.prevod = value;

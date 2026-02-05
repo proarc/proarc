@@ -38,7 +38,7 @@ public class MixMapper {
     }
 
     /* Not supported yet */
-    public void update (Mix mix) {
+    public void update(Mix mix) {
     }
 
     public static class MixWrapper extends TechnicalMetadataWrapper {

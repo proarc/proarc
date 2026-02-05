@@ -63,6 +63,7 @@ import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import jakarta.xml.bind.DataBindingException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
@@ -74,7 +75,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.xml.bind.DataBindingException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Validator;
 import org.xml.sax.SAXException;
@@ -197,7 +197,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             } catch (DataBindingException | SAXException | IOException ex) {
                 checkValidation(errHandler, xmlData);
                 throw new DigitalObjectValidationException(xmlData.getPid(),
-                            xmlData.getBatchId(), ModsStreamEditor.DATASTREAM_ID, null, ex)
+                        xmlData.getBatchId(), ModsStreamEditor.DATASTREAM_ID, null, ex)
                         .addValidation("mods", ex.getMessage(), true);
             }
         } else {
@@ -249,7 +249,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             } catch (DataBindingException | SAXException | IOException ex) {
                 checkValidation(errHandler, xmlData);
                 throw new DigitalObjectValidationException(xmlData.getPid(),
-                            xmlData.getBatchId(), ModsStreamEditor.DATASTREAM_ID, null, ex)
+                        xmlData.getBatchId(), ModsStreamEditor.DATASTREAM_ID, null, ex)
                         .addValidation("mods", ex.getMessage(), true);
             }
         }
@@ -378,7 +378,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             if (!ex.getValidations().isEmpty()) {
                 throw ex;
             }
-            return ;
+            return;
         }
         DigitalObjectValidationException ex = new DigitalObjectValidationException(fobject.getPid(), null,
                 DESCRIPTION_DATASTREAM_ID, "MODS validation", null);
@@ -411,10 +411,10 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         // check URN:NBN
         for (IdentifierDefinition oldId : oldIds) {
             if (!skipUrnNbnValidation) {
-                if ("urnnbn".equals(oldId.getType()) && oldId.getValue() != null && !oldId.getValue().trim().isEmpty() && (oldId.getInvalid() == null || "no".equals(oldId.getInvalid()))) {
+                if ("urnnbn".equals(oldId.getTypeString()) && oldId.getValue() != null && !oldId.getValue().trim().isEmpty() && (oldId.getInvalid() == null || "no".equals(oldId.getInvalid()))) {
                     boolean missingId = true;
                     for (IdentifierDefinition id : mods.getIdentifier()) {
-                        if (oldId.getType().equals(id.getType()) && oldId.getValue().equals(id.getValue())) {
+                        if (oldId.getTypeString().equals(id.getTypeString()) && oldId.getValue().equals(id.getValue())) {
                             missingId = false;
                             break;
                         }
@@ -434,10 +434,12 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         checkDoiDuplicity(mods, ex);
     }
 
-    /** issue 443. */
+    /**
+     * issue 443.
+     */
     private void checkDoiDuplicity(ModsDefinition mods, DigitalObjectValidationException ex) throws DigitalObjectException {
         if (ex == null) {
-            return ;
+            return;
         }
         SearchView search = null;
         try {
@@ -452,7 +454,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             throw new IllegalStateException(ioException);
         }
         for (IdentifierDefinition idDef : mods.getIdentifier()) {
-            if ("doi".equals(idDef.getType()) && idDef.getValue() != null) {
+            if ("doi".equals(idDef.getTypeString()) && idDef.getValue() != null) {
                 String doi = idDef.getValue();
                 if (doi != null && !doi.isEmpty()) {
                     try {
@@ -481,7 +483,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     }
 
     protected void write(String modelId, ModsDefinition mods,
-            DescriptionMetadata<?> options, String message, String typeRecord) throws DigitalObjectException {
+                         DescriptionMetadata<?> options, String message, String typeRecord) throws DigitalObjectException {
         ModsDefinition oldMods = null;
         long timestamp = options.getTimestamp();
         if (timestamp < 0) {
@@ -571,7 +573,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                     throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
                 }
             } catch (Exception ex) {
-              throw new IllegalStateException(ex);
+                throw new IllegalStateException(ex);
             }
         }
         return crawler;

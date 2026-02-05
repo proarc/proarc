@@ -49,7 +49,7 @@ public class SoftwareUtils {
     public static String createDefaultDescription(String model, String type) throws SoftwareException {
         if (SoftwareRepository.METAMODEL_AGENT_ID.equals(model)) {
             return DEFAULT_AGENT;
-        } else if(SoftwareRepository.METAMODEL_EVENT_ID.equals(model)) {
+        } else if (SoftwareRepository.METAMODEL_EVENT_ID.equals(model)) {
             if (TYPE_EVENT_CREATION.equals(type)) {
                 return DEFAULT_EVENT_CREATION;
             } else if (TYPE_EVENT_XML_CREATION.equals(type)) {

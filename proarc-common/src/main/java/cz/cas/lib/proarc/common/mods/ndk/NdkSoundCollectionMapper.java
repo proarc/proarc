@@ -76,8 +76,8 @@ public class NdkSoundCollectionMapper extends RdaNdkMapper {
                 }
             }
             // sets type in element dateOther
-            for(DateOtherDefinition dateOther : oi.getDateOther()){
-                dateOther.setType(oi.getEventType());
+            for (DateOtherDefinition dateOther : oi.getDateOther()) {
+                dateOther.setTypeString(oi.getEventType());
             }
         }
         // mods/physicalDescription/form="print"
@@ -127,8 +127,9 @@ public class NdkSoundCollectionMapper extends RdaNdkMapper {
             addElementType(dc.getTitles(), title.toString());
         }
 
-        addName(mods.getName(), dc.getCreators());addNameIdentifier(mods.getName(), dc.getCreators());
-        if (mods.getTypeOfResource() != null && mods.getTypeOfResource().size()>0) {
+        addName(mods.getName(), dc.getCreators());
+        addNameIdentifier(mods.getName(), dc.getCreators());
+        if (mods.getTypeOfResource() != null && mods.getTypeOfResource().size() > 0) {
             addElementType(dc.getTypes(), mods.getTypeOfResource().get(0).getValue());
         }
         addElementType(dc.getTypes(), getDcType());

@@ -17,19 +17,23 @@
 package cz.cas.lib.proarc.common.user;
 
 import cz.cas.lib.proarc.common.storage.FedoraTestSupport;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  *
@@ -37,30 +41,32 @@ import org.junit.rules.TestName;
  */
 public class FedoraUserDaoTest {
 
-    @Rule
-    public TestName testName = new TestName();
+    @TempDir
+    File tempDir;
+
     private FedoraTestSupport support;
     private FedoraTransaction tx;
+    private String testValue = "testValue";
 
     public FedoraUserDaoTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         support = new FedoraTestSupport();
         support.cleanUp();
         tx = new FedoraTransaction(support.getRemoteStorage());
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -70,13 +76,13 @@ public class FedoraUserDaoTest {
         dao.setTransaction(tx);
         UserProfile user = new UserProfile();
         user.setUserName("testUser");
-        dao.add(user, support.getTestUser(), testName.getMethodName());
+        dao.add(user, support.getTestUser(), testValue);
         assertEquals("testUser", user.getUserName());
         final String userPid = user.getUserNameAsPid();
         assertTrue(tx.getRemoteStorage().exist(userPid));
 
         try {
-            dao.add(user, support.getTestUser(), testName.getMethodName());
+            dao.add(user, support.getTestUser(), testValue);
             fail("Created the duplicate of user! " + userPid);
         } catch (Exception e) {
         }
@@ -89,12 +95,12 @@ public class FedoraUserDaoTest {
         UserProfile user = new UserProfile();
         user.setUserName("testRemoteUser");
         user.setRemoteName("remoteName");
-        dao.add(user, support.getTestUser(), testName.getMethodName());
+        dao.add(user, support.getTestUser(), testValue);
         assertEquals("testRemoteUser", user.getUserName());
         String userPid = user.getUserNameAsPid();
         assertTrue(tx.getRemoteStorage().exist(userPid));
 
-        dao.add(user, support.getTestUser(), testName.getMethodName());
+        dao.add(user, support.getTestUser(), testValue);
         assertEquals("testRemoteUser_1", user.getUserName());
         userPid = user.getUserNameAsPid();
         assertTrue(tx.getRemoteStorage().exist(userPid));
@@ -106,14 +112,14 @@ public class FedoraUserDaoTest {
         dao.setTransaction(tx);
         UserProfile user = new UserProfile();
         user.setUserName("testUser");
-        dao.add(user, support.getTestUser(), testName.getMethodName());
+        dao.add(user, support.getTestUser(), testValue);
 
-        Group g = Group.create(testName.getMethodName(), testName.getMethodName() + "Title");
+        Group g = Group.create(testValue, testValue + "Title");
         FedoraGroupDao groupDao = new FedoraGroupDao();
         groupDao.setTransaction(tx);
-        groupDao.addGroup(g, support.getTestUser(), testName.getMethodName());
+        groupDao.addGroup(g, support.getTestUser(), testValue);
 
-        dao.setMembership(user, Arrays.asList(g), testName.getMethodName());
+        dao.setMembership(user, Arrays.asList(g), testValue);
 
         String userPid = user.getUserNameAsPid();
         RemoteObject fobject = tx.getRemoteStorage().find(userPid);
@@ -127,13 +133,13 @@ public class FedoraUserDaoTest {
         FedoraUserDao dao = new FedoraUserDao();
         dao.setTransaction(tx);
         UserProfile user = new UserProfile();
-        user.setUserName(testName.getMethodName() + "_1");
-        dao.add(user, support.getTestUser(), testName.getMethodName());
+        user.setUserName(testValue + "_1");
+        dao.add(user, support.getTestUser(), testValue);
         String userPid1 = user.getUserNameAsPid();
 
         user = new UserProfile();
-        user.setUserName(testName.getMethodName() + "_2");
-        dao.add(user, support.getTestUser(), testName.getMethodName());
+        user.setUserName(testValue + "_2");
+        dao.add(user, support.getTestUser(), testValue);
         String userPid2 = user.getUserNameAsPid();
         assertTrue(tx.getRemoteStorage().exist(userPid1));
         assertTrue(tx.getRemoteStorage().exist(userPid2));

@@ -16,17 +16,18 @@
  */
 package cz.cas.lib.proarc.common.dao.empiredb;
 
-import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.UserSettingDao;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.UserSettingTable;
 import cz.cas.lib.proarc.common.user.UserSetting;
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import org.apache.empire.data.bean.BeanResult;
 import org.apache.empire.db.DBCommand;
+import org.apache.empire.db.DBContext;
+import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
-import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
 
 /**
  * Manages user setting stored in RDBMS.
@@ -49,39 +50,38 @@ public final class EmpireUserSettingDao extends EmpireDao implements UserSetting
 
     @Override
     public void update(UserSetting userSetting) {
-        DBRecord dbr = new DBRecord();
+        DBContext context = getContext();
+        DBRecord record = new DBRecord(context, table);
+
         try {
             if (userSetting.getId() == null) {
-                dbr.create(table);
+                record.create();
+                Timestamp now = new Timestamp(System.currentTimeMillis());
+                userSetting.setTimestamp(now);
             } else {
-                dbr.read(table, userSetting.getId(), getConnection());
+                record.read(table.id.is(userSetting.getId()));
             }
-            dbr.setModified(table.userSetting, true);
-            dbr.setBeanValues(userSetting);
-            try {
-                dbr.update(getConnection());
-            } catch (RecordUpdateInvalidException ex) {
-                throw new ConcurrentModificationException(ex);
-            }
-            dbr.getBeanProperties(userSetting);
+            record.setBeanProperties(userSetting);
+
+            record.update();
         } finally {
-            dbr.close();
+            record.close();
         }
+
+        DBCommand cmd = db.createCommand();
+        cmd.select(table.getColumns());
+        cmd.where(table.id.is(userSetting.getId()));
+
+        getBeanProperties(cmd, 1);
     }
 
     @Override
     public UserSetting find(int id) {
-        DBRecord dbr = new DBRecord();
-        try {
-            dbr.read(table, id, getConnection());
-            UserSetting userSetting = new UserSetting();
-            dbr.getBeanProperties(userSetting);
-            return userSetting;
-        } catch (RecordNotFoundException ex) {
-            return null;
-        } finally {
-            dbr.close();
-        }
+        DBCommand cmd = db.createCommand();
+        cmd.select(table.getColumns());
+        cmd.where(table.id.is(id));
+
+        return getBeanProperties(cmd, 1);
     }
 
     @Override
@@ -90,7 +90,25 @@ public final class EmpireUserSettingDao extends EmpireDao implements UserSetting
         DBCommand cmd = beans.getCommand();
         cmd.where(table.userId.is(userId));
         cmd.orderBy(table.id);
-        beans.fetch(getConnection());
+        beans.fetch(getContext());
         return Collections.unmodifiableList(beans);
+    }
+
+    private UserSetting getBeanProperties(DBCommand cmd, int limit) {
+        DBContext context = getContext();
+        DBReader reader = new DBReader(context);
+        try {
+            reader.open(cmd);
+            List<UserSetting> userSettings = reader.getBeanList(UserSetting.class, limit);
+            if (!userSettings.isEmpty()) {
+                return userSettings.getFirst();
+            } else {
+                return null;
+            }
+        } catch (RecordNotFoundException ex) {
+            return null;
+        } finally {
+            reader.close();
+        }
     }
 }

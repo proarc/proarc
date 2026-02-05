@@ -1,29 +1,29 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.cas.lib.proarc.common.storage.relation;
 
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAnyElement;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import org.w3c.dom.Element;
 
 /**
@@ -58,26 +58,26 @@ public class RdfDescription {
     @XmlAttribute(namespace = Relations.RDF_NS)
     private RelationResource about;
 
-    @XmlElement (namespace = Relations.PROARC_RELS_NS)
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
     private String archivalCopiesPath;
 
-    @XmlElement (namespace = Relations.PROARC_RELS_NS)
+    @XmlElement(namespace = Relations.PROARC_RELS_NS)
     private String pdfValidationStatus;
 
     /**
      * RDF relation defines model of the digital object. E.g.:
-     *
+     * <p>
      * <p/>{@code <fedora-model:hasModel rdf:resource="info:fedora/mode:page"/>}
      *
      * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Content+Model+Architecture'>
-     *      Content Model Architecture</a>
+     * Content Model Architecture</a>
      */
     @XmlElement(namespace = Relations.FEDORA_MODEL_NS)
     private RdfRelation hasModel;
 
     /**
      * RDF relation defines digital device of the digital object. E.g.:
-     *
+     * <p>
      * <p/>{@code <proarc-rels:hasDevice rdf:resource="info:fedora/device:scanner1"/>}
      */
     @XmlElement(namespace = Relations.PROARC_RELS_NS)
@@ -85,7 +85,7 @@ public class RdfDescription {
 
     /**
      * RDF relation defines digital software of the digital object. E.g.:
-     *
+     * <p>
      * <p/>{@code <proarc-rels:hasSoftware rdf:resource="info:fedora/software:objectSet"/>}
      */
     @XmlElement(namespace = Relations.PROARC_RELS_NS)
@@ -93,7 +93,7 @@ public class RdfDescription {
 
     /**
      * RDF relation defines filename of the imported digital content. E.g.:
-     *
+     * <p>
      * <p/>{@code <proarc-rels:importFile>ABA00726009905207199800001.tif<importFile/>}
      */
     @XmlElement(namespace = Relations.PROARC_RELS_NS)
@@ -101,7 +101,7 @@ public class RdfDescription {
 
     /**
      * RDF relation defines existence of any export. It can be some SIP ID or folder E.g.:
-     *
+     * <p>
      * <p/>{@code <proarc-rels:hasExport>1234<hasExport/>}
      * <p>It is expected to be overridden by the latest export for now.
      */
@@ -110,7 +110,7 @@ public class RdfDescription {
 
     /**
      * RDF relation defines existence of NDK export.
-     *
+     * <p>
      * <p/>{@code <proarc-rels:hasNdkExport>1234<hasNdkExport/>}
      * <p>It is expected to be overridden by the latest export for now.
      */
@@ -119,7 +119,7 @@ public class RdfDescription {
 
     /**
      * RDF relation defines existence of Kramerius export.
-     *
+     * <p>
      * <p/>{@code <proarc-rels:hasKrameriusExport>1234<hasKrameriusExport/>}
      * <p>It is expected to be overridden by the latest export for now.
      */
@@ -128,7 +128,7 @@ public class RdfDescription {
 
     /**
      * RDF relation defines existence of Archive export.
-     *
+     * <p>
      * <p/>{@code <proarc-rels:hasArchiveExport>1234<hasArchiveExport/>}
      * <p>It is expected to be overridden by the latest export for now.
      */
@@ -137,7 +137,7 @@ public class RdfDescription {
 
     /**
      * RDF relation defines existence of Cejsch export.
-     *
+     * <p>
      * <p/>{@code <proarc-rels:hasCejschExport>1234<hasCejschExport/>}
      * <p>It is expected to be overridden by the latest export for now.
      */
@@ -146,7 +146,7 @@ public class RdfDescription {
 
     /**
      * RDF relation defines existence of Crossref export.
-     *
+     * <p>
      * <p/>{@code <proarc-rels:hasCrossrefExport>1234<hasCrossrefExport/>}
      * <p>It is expected to be overridden by the latest export for now.
      */
@@ -155,29 +155,29 @@ public class RdfDescription {
 
     /**
      * RDF relation referencing members of the digital object.
-     *
+     * <p>
      * <p/>{@code <fedora-rels-ext:hasMember rdf:resource="info:fedora/uuid:ebbd1d68-f5e0-4074-a2a6-19ecef6a6759"/>}
      *
      * @see <a href='http://www.fedora.info/definitions/1/0/fedora-relsext-ontology.rdfs'>
-     *      Fedora Relationships</a>
+     * Fedora Relationships</a>
      */
     @XmlElement(name = "hasMember", namespace = Relations.FEDORA_EXTERNALS_NS)
     private List<RdfRelation> hasMembers;
 
     /**
      * RDF relation defines a membership of the digital object.
-     *
+     * <p>
      * <p/>{@code <fedora-rels-ext:isMemberOf rdf:resource="info:fedora/group:user_group"/>}
      *
      * @see <a href='http://www.fedora.info/definitions/1/0/fedora-relsext-ontology.rdfs'>
-     *      Fedora Relationships</a>
+     * Fedora Relationships</a>
      */
     @XmlElement(name = "isMemberOf", namespace = Relations.FEDORA_EXTERNALS_NS)
     private List<RdfRelation> memberships;
 
     /**
      * RDF relation referencing members of the digital object.
-     *
+     * <p>
      * <p/>{@code <proarc-rels:hasOwner rdf:resource="info:fedora/group:owner"/>}
      */
     @XmlElement(name = "hasOwner", namespace = Relations.PROARC_RELS_NS)
@@ -198,6 +198,7 @@ public class RdfDescription {
 
     /**
      * Gets described object.
+     *
      * @return the Fedora URI
      */
     public RelationResource getAbout() {
@@ -206,6 +207,7 @@ public class RdfDescription {
 
     /**
      * Sets Fedora URI of described object.
+     *
      * @param about URI
      */
     public void setAbout(RelationResource about) {
@@ -214,6 +216,7 @@ public class RdfDescription {
 
     /**
      * Other relations.
+     *
      * @return list of DOM elements
      */
     public List<Element> getRelations() {
@@ -225,6 +228,7 @@ public class RdfDescription {
 
     /**
      * Relations defining object hierarchy graph.
+     *
      * @return list of members
      */
     public List<RdfRelation> getMemberRelations() {
@@ -236,6 +240,7 @@ public class RdfDescription {
 
     /**
      * Relations defining the reverse object hierarchy graph (isMemberOf).
+     *
      * @return list of objects, where the object is a member.
      */
     public List<RdfRelation> getMembershipRelations() {
@@ -247,6 +252,7 @@ public class RdfDescription {
 
     /**
      * Relations defining ownership of the object.
+     *
      * @return list of owners
      */
     public List<RdfRelation> getOwners() {

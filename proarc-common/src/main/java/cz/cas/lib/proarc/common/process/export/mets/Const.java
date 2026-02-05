@@ -82,7 +82,7 @@ public class Const {
     public final static String NDK_EXPORT_STRUCTMAP_SOUNDPART = "soundpart";
 
     public final static String GENRE_ARTICLE = "article";
-    public final static String GENRE_CARTOGRAPHIC= "cartographic";
+    public final static String GENRE_CARTOGRAPHIC = "cartographic";
     public final static String GENRE_CHAPTER = "chapter";
     public final static String GENRE_ISSUE = "issue";
     public final static String GENRE_PICTURE = "picture";

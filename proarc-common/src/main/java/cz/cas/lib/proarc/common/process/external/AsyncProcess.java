@@ -90,7 +90,7 @@ public class AsyncProcess extends Thread {
             IOUtils.closeQuietly(process.getErrorStream());
             IOUtils.closeQuietly(process.getOutputStream());
             done.set(true);
-             try {
+            try {
                 outputConsumer.join();
             } catch (InterruptedException ex) {
                 LOG.log(Level.SEVERE, null, ex);

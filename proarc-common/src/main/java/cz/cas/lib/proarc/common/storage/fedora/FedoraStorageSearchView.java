@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -125,11 +125,11 @@ public final class FedoraStorageSearchView extends SearchView {
     public List<SearchViewItem> findQuery(SearchViewQuery q, String status)
             throws FedoraClientException, IOException {
 
-        boolean active =  "active".equals(status) ? true : false;
+        boolean active = "active".equals(status) ? true : false;
         final int objectsLimit = 80;
         StringBuilder query = new StringBuilder();
         if (q.getModel() != null && !q.getModel().isEmpty()) {
-        //    query.append("type~").append(translateModels(q.getModel()));
+            //    query.append("type~").append(translateModels(q.getModel()));
         }
         // FedoraClient.findObjects() does not support OR operator!
         if (!q.getHasOwners().isEmpty()) {
@@ -202,7 +202,7 @@ public final class FedoraStorageSearchView extends SearchView {
         sortField = createSortField(sortField);
         sort = createSort(sort);
         while (!pids.isEmpty()) {
-            List<SearchViewItem> items = findAdvancedObjects(pids, status, organization, processor, model,sortField + " " + sort, offset, limit);
+            List<SearchViewItem> items = findAdvancedObjects(pids, status, organization, processor, model, sortField + " " + sort, offset, limit);
             result.addAll(items);
             String token = response.getToken();
             if (token == null || result.size() + objectsLimit > maxLimit) {
@@ -300,7 +300,7 @@ public final class FedoraStorageSearchView extends SearchView {
     /**
      * Finds descriptors of passed PIDs.
      *
-     * @param pids PIDs of digital objects
+     * @param pids       PIDs of digital objects
      * @param onlyActive {@code true} includes only active objects
      * @return list of descriptors
      * @throws FedoraClientException
@@ -367,7 +367,7 @@ public final class FedoraStorageSearchView extends SearchView {
 
         String onlyActiveExpr = onlyActive
                 ? "and        $pid     <info:fedora/fedora-system:def/model#state>"
-                        + "           <info:fedora/fedora-system:def/model#Active>"
+                + "           <info:fedora/fedora-system:def/model#Active>"
                 : "";
         query = query.replace("${includeActive}", onlyActiveExpr);
 
@@ -394,7 +394,7 @@ public final class FedoraStorageSearchView extends SearchView {
     /**
      * Finds children of the passed remote object. The result list is sorted
      * using RELS-EXT stream.
-     * 
+     *
      * @param parentPid PID of parent to query
      * @return the sorted list
      * @throws FedoraClientException
@@ -403,13 +403,13 @@ public final class FedoraStorageSearchView extends SearchView {
     @Override
     public List<SearchViewItem> findSortedChildren(String parentPid)
             throws FedoraClientException, IOException, DigitalObjectException {
-        
+
         RemoteObject parent = storage.find(parentPid);
         List<String> memberPids = new RelationEditor(parent).getMembers();
         List<SearchViewItem> items = find(memberPids);
         ArrayList<SearchViewItem> sortedItems = new ArrayList<SearchViewItem>(memberPids.size());
         for (String memberPid : memberPids) {
-            for (Iterator<SearchViewItem> it = items.iterator(); it.hasNext();) {
+            for (Iterator<SearchViewItem> it = items.iterator(); it.hasNext(); ) {
                 SearchViewItem item = it.next();
                 if (memberPid.equals(item.getPid())) {
                     sortedItems.add(item);
@@ -430,7 +430,7 @@ public final class FedoraStorageSearchView extends SearchView {
         ArrayList<SearchViewItem> pageModelsList = new ArrayList<>();
         ArrayList<SearchViewItem> otherModelsList = new ArrayList<>();
         for (String memberPid : memberPids) {
-            for (Iterator<SearchViewItem> it = items.iterator(); it.hasNext();) {
+            for (Iterator<SearchViewItem> it = items.iterator(); it.hasNext(); ) {
                 SearchViewItem item = it.next();
                 if (memberPid.equals(item.getPid())) {
                     if (NdkPlugin.MODEL_PAGE.equals(item.getModel()) || NdkPlugin.MODEL_NDK_PAGE.equals(item.getModel()) || OldPrintPlugin.MODEL_PAGE.equals(item.getModel())) {
@@ -496,10 +496,10 @@ public final class FedoraStorageSearchView extends SearchView {
         sortField = createSortField(sortField);
         sort = createSort(sort);
         if (label == null && identifier == null && owner == null) {
-            return findAdvancedObjects(null, status, organization, processor, model,sortField + " " + sort, offset, limit);
+            return findAdvancedObjects(null, status, organization, processor, model, sortField + " " + sort, offset, limit);
         }
         List<String> pids = findAdvancedPids(new SearchViewQuery().setLabel(label).setIdentifier(identifier).setModel(model).setOwner(owner));
-        return findAdvancedObjects(pids, status, organization, processor, model,sortField + " " + sort, offset, limit);
+        return findAdvancedObjects(pids, status, organization, processor, model, sortField + " " + sort, offset, limit);
     }
 
     @Override
@@ -556,7 +556,7 @@ public final class FedoraStorageSearchView extends SearchView {
             if (token == null) {
                 break;
             }
-            response =FedoraClient.findObjects().query(queryString).resultFormat("xml").pid().maxResults(100).sessionToken(token).execute(fedora);
+            response = FedoraClient.findObjects().query(queryString).resultFormat("xml").pid().maxResults(100).sessionToken(token).execute(fedora);
             pids = response.getPids();
             objectsPid.addAll(pids);
         }
@@ -682,7 +682,7 @@ public final class FedoraStorageSearchView extends SearchView {
         if (sortField == null || sortField.isEmpty()) {
             return "$label";
         } else {
-            switch(sortField) {
+            switch (sortField) {
                 case "created":
                     return "$created";
                 case "label":
@@ -767,7 +767,7 @@ public final class FedoraStorageSearchView extends SearchView {
         return consumeSearch(search.execute(fedora));
     }
 
-    public List<SearchViewItem> findByModel(String modelId) throws  IOException, FedoraClientException {
+    public List<SearchViewItem> findByModel(String modelId) throws IOException, FedoraClientException {
         return findByModel(0, modelId);
     }
 
@@ -810,6 +810,7 @@ public final class FedoraStorageSearchView extends SearchView {
 
     /**
      * Is the device referred with {@code hasDevice} relation by any digital object?
+     *
      * @param deviceId device PID
      * @return {@code true} if it is connected
      * @throws IOException
@@ -827,7 +828,7 @@ public final class FedoraStorageSearchView extends SearchView {
 
     @Override
     public boolean isSoftwareInUse(String softwareId) throws IOException, FedoraClientException {
-        String query = QUERY_FIND_REFERRERS.replace("${PID}",softwareId);
+        String query = QUERY_FIND_REFERRERS.replace("${PID}", softwareId);
         RiSearch search = buildSearch(query);
         search.limit(1);
         search.stream(true);
@@ -852,7 +853,7 @@ public final class FedoraStorageSearchView extends SearchView {
             // requires mapper without mix in annotation of Item
             mapper = JsonUtils.createObjectMapper();
         }
-        return  mapper.readValue(json, Result.class);
+        return mapper.readValue(json, Result.class);
     }
 
     private List<SearchViewItem> consumeSearch(List<SearchViewItem> items) {
@@ -881,12 +882,13 @@ public final class FedoraStorageSearchView extends SearchView {
         item.setState(replaceUriWithPid(item.getState()));
         return item;
     }
+
     void resolveObjectLabel(SearchViewItem item) {
         // XXX implement a plugin cache
         MetaModel model = MetaModelRepository.getInstance().find(item.getModel());
         if (model == null) {
             // other than digital object model (device, ...)
-            return ;
+            return;
         }
         HasSearchViewHandler hasHandler = model.getPlugin().getHandlerProvider(HasSearchViewHandler.class);
         if (hasHandler != null) {

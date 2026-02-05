@@ -5,32 +5,32 @@
     <!-- Export the paths for translatable code with API -->
 
     <source path="i18n">
-        <include name="BundleName.java" />
-        <include name="BundleValue.java" />
+        <include name="BundleName.java"/>
+        <include name="BundleValue.java"/>
     </source>
 
     <source path="mods">
-        <include name="custom/ModsConstants.java" />
-        <include name="custom/ModsCutomEditorType.java" />
+        <include name="custom/ModsConstants.java"/>
+        <include name="custom/ModsCutomEditorType.java"/>
     </source>
 
     <source path="object">
-        <include name="model/DatastreamEditorType.java" />
+        <include name="model/DatastreamEditorType.java"/>
     </source>
 
     <source path="workflow/model">
-        <include name="Job.java" />
-        <include name="MaterialType.java" />
-        <include name="Task.java" />
-        <include name="ValueType.java" />
-        <include name="WorkflowModelConsts.java" />
+        <include name="Job.java"/>
+        <include name="MaterialType.java"/>
+        <include name="Task.java"/>
+        <include name="ValueType.java"/>
+        <include name="WorkflowModelConsts.java"/>
     </source>
 
     <source path="workflow/profile">
-        <include name="*View.java" />
-        <include name="DisplayType.java" />
-        <include name="Way.java" />
-        <include name="WorkflowProfileConsts.java" />
+        <include name="*View.java"/>
+        <include name="DisplayType.java"/>
+        <include name="Way.java"/>
+        <include name="WorkflowProfileConsts.java"/>
     </source>
 
 </module>

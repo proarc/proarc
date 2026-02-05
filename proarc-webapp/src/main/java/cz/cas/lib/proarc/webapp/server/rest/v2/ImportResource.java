@@ -20,19 +20,29 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.storage.PageView.Item;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.rest.DateTimeParam;
 import cz.cas.lib.proarc.webapp.server.rest.ImportFolder;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1;
 import cz.cas.lib.proarc.webapp.server.rest.v1.ImportResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -41,6 +51,8 @@ import java.util.logging.Logger;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETERS;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_SYS_ADMIN;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_2;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
@@ -55,7 +67,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
  * @see <a href="http://127.0.0.1:8888/Editor/rest/application.wadl">WADL in dev mode</a>
  * @see <a href="http://127.0.0.1:8888/Editor/rest/application.wadl/xsd0.xsd">XML Scema in dev mode</a>
  */
-@Path(RestConfig.URL_API_VERSION_2 + "/" + ImportResourceApi.PATH)
+@Path(URL_API_VERSION_2 + "/" + ImportResourceApi.PATH)
 public class ImportResource extends ImportResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(ImportResource.class.getName());
@@ -73,7 +85,7 @@ public class ImportResource extends ImportResourceV1 {
     @Path(ImportResourceApi.FOLDER_PATH)
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<ImportFolder> listFolder(
+    public ProArcResponse<ImportFolder> listFolder(
             @QueryParam(ImportResourceApi.IMPORT_FOLDER_PARENT_PARAM) @DefaultValue("") String parent,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @QueryParam(ImportResourceApi.IMPORT_START_ROW_PARAM) @DefaultValue("-1") int startRow
@@ -82,14 +94,14 @@ public class ImportResource extends ImportResourceV1 {
             return super.listFolder(parent, profileId, startRow);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<BatchView> newBatch(
+    public ProArcResponse<BatchView> newBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_SOFTWARE_PARAM) String software,
@@ -105,21 +117,21 @@ public class ImportResource extends ImportResourceV1 {
             return super.newBatch(path, device, software, indices, profileId, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(ImportResourceApi.BATCH_GENERATE_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<BatchView> newBatch(
+    public ProArcResponse<BatchView> newBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path
     ) {
         try {
             return super.newBatch(path);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -127,7 +139,7 @@ public class ImportResource extends ImportResourceV1 {
         @POST
     @Path(ImportResourceApi.BATCHES_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<BatchView> newBatches(
+    public ProArcResponse<BatchView> newBatches(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String pathes,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_SOFTWARE_PARAM) String software,
@@ -143,34 +155,34 @@ public class ImportResource extends ImportResourceV1 {
             return super.newBatches(pathes, device, software, indices, profileId, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @DELETE
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<BatchView> deleteBatch(
+    public ProArcResponse<BatchView> deleteBatch(
             @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) List<Integer> batchIds,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_USERID) Integer creatorId
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_SYS_ADMIN)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_SYS_ADMIN)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
             return super.deleteBatch(batchIds, batchState, profileId, creatorId);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<BatchView> listBatches(
+    public ProArcResponse<BatchView> listBatches(
             @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState,
             @QueryParam(ImportResourceApi.IMPORT_BATCH_CREATE_FROM) DateTimeParam createFrom,
@@ -194,7 +206,7 @@ public class ImportResource extends ImportResourceV1 {
                     profile, creatorId, priority, startRow, size, sortBy);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -202,38 +214,38 @@ public class ImportResource extends ImportResourceV1 {
     @GET
     @Path(ImportResourceApi.BATCHES_IN_PROCESS_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<BatchView> listProcessingBatches(
+    public ProArcResponse<BatchView> listProcessingBatches(
             @QueryParam(ImportResourceApi.IMPORT_BATCH_STATE) Set<Batch.State> batchState
     ) {
         try {
             return super.listProcessingBatches(batchState);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(ImportResourceApi.BATCH_STOP_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<BatchView> stopBatch(
+    public ProArcResponse<BatchView> stopBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId
     ) {
         if (batchId == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ImportResourceApi.IMPORT_BATCH_ID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ImportResourceApi.IMPORT_BATCH_ID));
         }
         try {
             return super.stopBatch(batchId);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @PUT
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<BatchView> updateBatch(
+    public ProArcResponse<BatchView> updateBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PARENTPID) String parentPid,
             @FormParam(ImportResourceApi.IMPORT_BATCH_STATE) Batch.State state,
@@ -242,20 +254,20 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
     ) {
         if (batchId == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ImportResourceApi.IMPORT_BATCH_ID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ImportResourceApi.IMPORT_BATCH_ID));
         }
         try {
             return super.updateBatch(batchId, parentPid, state, profileId, useNewMetadata, useOriginalMetadata);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.BATCHITEM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<Item> listBatchItems(
+    public ProArcResponse<Item> listBatchItems(
             @QueryParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
             @QueryParam(ImportResourceApi.BATCHITEM_PID) String pid,
             @QueryParam("_startRow") int startRow
@@ -264,14 +276,14 @@ public class ImportResource extends ImportResourceV1 {
             return super.listBatchItems(batchId, pid, startRow);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @DELETE
     @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.BATCHITEM_PATH)
     @Consumes({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Item> deleteBatchItem(
+    public ProArcResponse<Item> deleteBatchItem(
             ProArcRequest.DeleteObjectRequest deleteObjectRequest) {
         return deleteBatchItem(deleteObjectRequest.batchId, deleteObjectRequest.getPidsAsSet());
     }
@@ -279,7 +291,7 @@ public class ImportResource extends ImportResourceV1 {
     @DELETE
     @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.BATCHITEM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<Item> deleteBatchItem(
+    public ProArcResponse<Item> deleteBatchItem(
             @QueryParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
             @QueryParam(ImportResourceApi.BATCHITEM_PID) Set<String> pids
     ) {
@@ -287,32 +299,32 @@ public class ImportResource extends ImportResourceV1 {
             return super.deleteBatchItem(batchId, pids);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.IMPORT_FUNCTION_UNLOCK_FOLDER)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<BatchView> unlockFolder(
+    public ProArcResponse<BatchView> unlockFolder(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId
     ) {
         if ((path == null || path.isEmpty()) && batchId == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, ImportResourceApi.IMPORT_BATCH_FOLDER, ImportResourceApi.IMPORT_BATCH_ID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, ImportResourceApi.IMPORT_BATCH_FOLDER, ImportResourceApi.IMPORT_BATCH_ID));
         }
         try {
             return super.unlockFolder(path, batchId);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(ImportResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DigitalObjectResourceV1.InternalExternalProcessResult> generateAlto(
+    public ProArcResponse<DigitalObjectResourceV1.InternalExternalProcessResult> generateAlto(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
@@ -320,7 +332,7 @@ public class ImportResource extends ImportResourceV1 {
             return super.generateAlto(path, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 }

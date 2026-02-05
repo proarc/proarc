@@ -18,17 +18,17 @@ package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.authentication.ProarcPrincipal;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response.Status;
 import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response.Status;
 
 /**
  * Information about current request session.
- * 
+ *
  * @author Jan Pokorsky
  */
 public final class SessionContext {
@@ -41,7 +41,7 @@ public final class SessionContext {
         this.ip = ip;
     }
 
-    public static SessionContext from(HttpServletRequest request) throws WebApplicationException{
+    public static SessionContext from(HttpServletRequest request) throws WebApplicationException {
         Principal userPrincipal = request.getUserPrincipal();
         String remoteAddr = getRemoteAddr(request);
         if (userPrincipal != null && userPrincipal instanceof ProarcPrincipal) {
@@ -60,6 +60,7 @@ public final class SessionContext {
 
     /**
      * Gets session context as Fedora log in JSON format.
+     *
      * @return
      */
     public String asFedoraLog() {
@@ -85,6 +86,7 @@ public final class SessionContext {
     /**
      * Guesses real client IP. E.g. Apache with mod_proxy in front of Tomcat
      * puts origin client IP to X-Forwarded-For header.
+     *
      * @param request
      * @return
      */

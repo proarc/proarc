@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPid;
 
 /**
@@ -47,7 +48,7 @@ public class ChronicleVolumeMapper extends NdkMonographVolumeMapper {
     private void checkUuidIdentifier(ModsDefinition mods, String pid) {
         String uuid = FoxmlUtils.pidAsUuid(pid);
         for (IdentifierDefinition id : mods.getIdentifier()) {
-            if ("uuid".equals(id.getType()) && !uuid.equals(id.getValue())) {
+            if ("uuid".equals(id.getTypeString()) && !uuid.equals(id.getValue())) {
                 id.setInvalid("yes");
             }
         }
@@ -112,7 +113,7 @@ public class ChronicleVolumeMapper extends NdkMonographVolumeMapper {
         List<IdentifierDefinition> identifiers = new ArrayList<>();
         List<IdentifierDefinition> relatedItemIdentifiers = new ArrayList<>();
         for (IdentifierDefinition identifier : mods.getIdentifier()) {
-            if (ALLOW_IDENTIFIER_TYPE.contains(identifier.getType())) {
+            if (ALLOW_IDENTIFIER_TYPE.contains(identifier.getTypeString())) {
                 relatedItemIdentifiers.add(identifier);
             } else {
                 identifiers.add(identifier);

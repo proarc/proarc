@@ -63,13 +63,13 @@ public final class MapperUtils {
     public static ModsDefinition addPid(ModsDefinition mods, String pid) {
         String uuid = FoxmlUtils.pidAsUuid(pid);
         for (IdentifierDefinition id : mods.getIdentifier()) {
-            if (uuid.equals(id.getValue()) && "uuid".equals(id.getType())) {
+            if (uuid.equals(id.getValue()) && "uuid".equals(id.getTypeString())) {
                 return mods;
             }
         }
         IdentifierDefinition id = new IdentifierDefinition();
         id.setValue(uuid);
-        id.setType("uuid");
+        id.setTypeString("uuid");
         mods.getIdentifier().add(0, id);
         return mods;
     }
@@ -114,6 +114,7 @@ public final class MapperUtils {
 
     /**
      * Creates title according to LoC {@code MODS->DC} mapping.
+     *
      * @param ti MODS titleInfo
      * @return string for DC title
      */
@@ -129,9 +130,10 @@ public final class MapperUtils {
 
     /**
      * Builds title from {@code titleInfo} subelements.
-     * @param title the result title
+     *
+     * @param title      the result title
      * @param titleParts parts to add
-     * @param prefix an optional parts prefix. Added in case the passed title is not empty.
+     * @param prefix     an optional parts prefix. Added in case the passed title is not empty.
      * @return the result title
      */
     static StringBuilder addTitlePart(StringBuilder title, List<StringPlusLanguage> titleParts, String prefix) {
@@ -154,7 +156,7 @@ public final class MapperUtils {
     }
 
     static StringBuilder addTitle(StringBuilder title, TitleInfoDefinition ti) {
-        return addTitlePart(title, ti.getTitle(), " ");
+        return addTitlePart(title, ti.getTitleStringPlusLanguage(), " ");
     }
 
     static StringBuilder addSubTitle(StringBuilder title, TitleInfoDefinition ti) {
@@ -286,7 +288,7 @@ public final class MapperUtils {
     public static void fillLocation(ModsDefinition mods) {
         PhysicalLocationDefinition physical = null;
         for (LocationDefinition location : mods.getLocation()) {
-            for (PhysicalLocationDefinition physicalLocation :location.getPhysicalLocation()) {
+            for (PhysicalLocationDefinition physicalLocation : location.getPhysicalLocation()) {
                 if (physicalLocation.getValue() != null) {
                     physical = physicalLocation;
                 }
@@ -442,7 +444,7 @@ public final class MapperUtils {
                     DetailDefinition detail = new DetailDefinition();
                     //        detail.setType(extent.getUnit());
                     StringPlusLanguage detailNumber = new StringPlusLanguage();
-                    detailNumber.setValue((start == null ? "" : start.getValue())+ "-" + (end == null ? "" : end.getValue()));
+                    detailNumber.setValue((start == null ? "" : start.getValue()) + "-" + (end == null ? "" : end.getValue()));
                     detail.getNumber().add(detailNumber);
                     part.getDetail().clear();
                     part.getDetail().add(detail);
@@ -463,7 +465,7 @@ public final class MapperUtils {
                 part.getDetail().clear();
                 DetailDefinition detail = new DetailDefinition();
                 StringPlusLanguage detailNumber = new StringPlusLanguage();
-                detailNumber.setValue((start == null ? "" : start.getValue())+ "-" + (end == null ? "" : end.getValue()));
+                detailNumber.setValue((start == null ? "" : start.getValue()) + "-" + (end == null ? "" : end.getValue()));
                 detail.getNumber().add(detailNumber);
                 part.getDetail().add(detail);
             }
@@ -502,7 +504,7 @@ public final class MapperUtils {
                 //issue #706 - write dc:data even if point is not present
                 //String point = toValue(date.getPoint());
                 //if (point != null) {
-                    addElementType(dc.getDates(), date.getValue());
+                addElementType(dc.getDates(), date.getValue());
                 //}
             }
             if (originInfo.getDateIssued().isEmpty()) {
@@ -543,10 +545,11 @@ public final class MapperUtils {
         }
         return dcElms;
     }
+
     static String findTitle(ModsDefinition mods) {
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
             if (titleInfo.getType() == null || titleInfo.getType().isEmpty()) {
-                for (StringPlusLanguage title : titleInfo.getTitle()) {
+                for (StringPlusLanguage title : titleInfo.getTitleStringPlusLanguage()) {
                     if (title.getValue() != null && !title.getValue().isEmpty()) {
                         return title.getValue();
                     }

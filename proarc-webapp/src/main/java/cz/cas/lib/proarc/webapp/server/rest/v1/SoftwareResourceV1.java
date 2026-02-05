@@ -32,13 +32,28 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.mets.Mets;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.SoftwareResourceApi;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -46,26 +61,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import javax.xml.transform.stream.StreamSource;
 
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_SOFTWARE_IN_USE;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_DEVICE;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
 
 /**
@@ -74,7 +74,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermissio
  * @author Lukas Sykora
  */
 @Deprecated
-@Path(RestConfig.URL_API_VERSION_1 + "/" + SoftwareResourceApi.PATH)
+@Path(URL_API_VERSION_1 + "/" + SoftwareResourceApi.PATH)
 public class SoftwareResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(SoftwareResourceV1.class.getName());
@@ -112,22 +112,22 @@ public class SoftwareResourceV1 {
 
     @DELETE
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Software> deleteSoftware(
+    public ProArcResponse<Software> deleteSoftware(
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id
             ) throws SoftwareException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
+        checkPermission(user, PERMISSION_FUNCTION_DEVICE);
 
         try {
             boolean deleted = devRepo.deleteSoftware(id, session.asFedoraLog());
             if (!deleted) {
                 Locale locale = session.getLocale(httpHeaders);
 //                throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
-                return SmartGwtResponse.asError(returnLocalizedMessage(ERR_SOFTWARE_IN_USE));
+                return ProArcResponse.asError(returnLocalizedMessage(ERR_SOFTWARE_IN_USE));
             }
             Software software = new Software();
             software.setId(id);
-            return new SmartGwtResponse<Software>(software);
+            return new ProArcResponse<Software>(software);
         } catch (SoftwareNotFoundException ex) {
 //            LOG.log(Level.SEVERE, id, ex);
             throw RestException.plainNotFound(SoftwareResourceApi.SOFTWARE_ITEM_ID, id);
@@ -142,7 +142,7 @@ public class SoftwareResourceV1 {
      */
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Software> getSoftwares(
+    public ProArcResponse<Software> getSoftwares(
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id,
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
             @QueryParam(SoftwareResourceApi.SOFTWARE_START_ROW_PARAM) int startRow
@@ -160,18 +160,18 @@ public class SoftwareResourceV1 {
             total = result.size();
         }
         int endRow = startRow + result.size() - 1;
-        return new SmartGwtResponse<Software>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, result);
+        return new ProArcResponse<Software>(ProArcResponse.STATUS_SUCCESS, startRow, endRow, total, result);
     }
 
     @GET
     @Path(SoftwareResourceApi.PATH_SET)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Software> getSoftwareSet() {
+    public ProArcResponse<Software> getSoftwareSet() {
         try {
             return getSoftwares(null, SoftwareRepository.METAMODEL_SET_ID, 0);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -184,7 +184,7 @@ public class SoftwareResourceV1 {
     @GET
     @Path(SoftwareResourceApi.PATH_PREVIEW)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Software> getSoftwarePreview(
+    public ProArcResponse<Software> getSoftwarePreview(
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id
             ) throws SoftwareException {
         if (id == null) {
@@ -194,12 +194,12 @@ public class SoftwareResourceV1 {
         int total = result.size();
         int startRow = 0;
         int endRow = startRow + result.size() - 1;
-        return new SmartGwtResponse<Software>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, result);
+        return new ProArcResponse<Software>(ProArcResponse.STATUS_SUCCESS, startRow, endRow, total, result);
     }
 
     @POST
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Software> newSoftware(
+    public ProArcResponse<Software> newSoftware(
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_LABEL) String label,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MEMBERS) List<String> setOfIds,
@@ -208,7 +208,7 @@ public class SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
+        checkPermission(user, PERMISSION_FUNCTION_DEVICE);
 
 
         try {
@@ -238,7 +238,7 @@ public class SoftwareResourceV1 {
             if (update) {
                 software = devRepo.update(software, session.asFedoraLog());
             }
-            return new SmartGwtResponse<Software>(software);
+            return new ProArcResponse<Software>(software);
         } catch (SoftwareException ex) {
 
             throw new WebApplicationException(ex);
@@ -247,7 +247,7 @@ public class SoftwareResourceV1 {
 
     @PUT
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Software> updateSoftware(
+    public ProArcResponse<Software> updateSoftware(
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_LABEL) String label,
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
@@ -256,7 +256,7 @@ public class SoftwareResourceV1 {
             @FormParam(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP) Long timestamp
             ) throws SoftwareException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
+        checkPermission(user, PERMISSION_FUNCTION_DEVICE);
 
         if (id == null || label == null || label.isEmpty() || model == null || model.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing software!");
@@ -280,7 +280,7 @@ public class SoftwareResourceV1 {
             update.setSetOfLinkedIds(new ArrayList<>());
         }
         Software updated = devRepo.update(update, session.asFedoraLog());
-        return new SmartGwtResponse<Software>(updated);
+        return new ProArcResponse<Software>(updated);
     }
 
     protected String returnLocalizedMessage(String key, Object... arguments) {

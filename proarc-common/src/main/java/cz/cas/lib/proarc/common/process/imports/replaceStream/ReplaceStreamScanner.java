@@ -70,6 +70,7 @@ public class ReplaceStreamScanner {
     protected static boolean checkIfFileHasExtension(String filename, String... extension) {
         return checkIfFileHasExtension(filename, Arrays.stream(extension).toArray());
     }
+
     protected static boolean checkIfFileHasExtension(String filename, Object[] extensions) {
         return Arrays.stream(extensions).anyMatch(entry -> filename.endsWith((String) entry));
     }

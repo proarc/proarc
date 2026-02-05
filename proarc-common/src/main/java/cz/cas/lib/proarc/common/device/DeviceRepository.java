@@ -50,6 +50,12 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.premis.AgentComplexType;
 import cz.cas.lib.proarc.premis.PremisComplexType;
 import cz.cas.lib.proarc.premis.PremisUtils;
+import jakarta.ws.rs.core.Response;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,12 +65,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
 import org.w3c.dom.Element;
 
@@ -189,7 +189,7 @@ public final class DeviceRepository {
         } catch (DigitalObjectNotFoundException ex) {
             throw new DeviceNotFoundException(null, ex, id);
         } catch (FedoraClientException ex) {
-            if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+            if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 throw new DeviceNotFoundException(null, ex, id);
             } else {
                 throw new DeviceException(id, ex);
@@ -492,7 +492,7 @@ public final class DeviceRepository {
     }
 
     private String getModel(String modelOld) {
-        if(modelOld != null && !modelOld.isEmpty()) {
+        if (modelOld != null && !modelOld.isEmpty()) {
             if (METAMODEL_ID.equals(modelOld) || METAMODEL_ID_LABEL.equals(modelOld)) {
                 return METAMODEL_ID;
             } else if (METAMODEL_AUDIODEVICE_ID.equals(modelOld) || METAMODEL_AUDIODEVICE_ID_LABEL.equals(modelOld)) {

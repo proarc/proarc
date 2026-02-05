@@ -42,10 +42,10 @@ public class FilterFindParameterQuery {
     }
 
     /**
-     * @param params parameters fetched from DB
-     * @param filter query
+     * @param params       parameters fetched from DB
+     * @param filter       query
      * @param optionalTask the task necessary in case there is no fetched parameter or {@code null}
-     * @param wd workflow definition
+     * @param wd           workflow definition
      * @return the list of parameters
      */
     public List<TaskParameterView> filter(

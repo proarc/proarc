@@ -20,27 +20,31 @@ import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
 import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils.ControlGroup;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.xml.bind.JAXB;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.List;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXB;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.transform.stream.StreamResult;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -48,31 +52,31 @@ import org.junit.Test;
  */
 public class LocalStorageTest {
 
-    @Rule
-    public CustomTemporaryFolder tmp = new CustomTemporaryFolder();
+    @TempDir
+    File tempDir;
 
     public LocalStorageTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
     @Test
     public void testLoad() throws Exception {
-        File foxml = tmp.newFile();
+        File foxml = tempDir;
         String pid = "PID";
         DigitalObject dobj = FoxmlUtils.createFoxml(pid);
         FoxmlUtils.marshal(new StreamResult(foxml), dobj, true);
@@ -126,7 +130,7 @@ public class LocalStorageTest {
 
     @Test
     public void testCreate_File_DigitalObject() throws Exception {
-        File foxml = tmp.newFile();
+        File foxml = tempDir;
         String pid = "PID";
         DigitalObject dobj = FoxmlUtils.createFoxml(pid);
         LocalStorage instance = new LocalStorage();
@@ -140,7 +144,7 @@ public class LocalStorageTest {
 
     @Test
     public void testCreate_File() throws Exception {
-        File foxml = tmp.newFile();
+        File foxml = tempDir;
         LocalStorage instance = new LocalStorage();
         LocalObject result = instance.create(foxml);
         assertLocalObject(result);
@@ -150,7 +154,7 @@ public class LocalStorageTest {
 
     @Test
     public void testCreate_String_File() throws Exception {
-        File foxml = tmp.newFile();
+        File foxml = tempDir;
         String pid = "PID";
         LocalStorage instance = new LocalStorage();
         LocalObject result = instance.create(pid, foxml);
@@ -205,7 +209,7 @@ public class LocalStorageTest {
         assertEquals(mime.toString(), editor.getProfile().getDsMIME());
         assertNull(editor.getProfile().getDsFormatURI());
         byte[] data = "data".getBytes("UTF-8");
-        File attachment = tmp.newFile();
+        File attachment = tempDir;
         editor.write(attachment.toURI(), 0, null);
         editor.write(data, editor.getLastModified(), null);
         lobject.flush();
@@ -274,7 +278,7 @@ public class LocalStorageTest {
         assertEquals(mime.toString(), editor.getProfile().getDsMIME());
         assertNull(editor.getProfile().getDsFormatURI());
         byte[] data = "data".getBytes("UTF-8");
-        File attachment = tmp.newFile();
+        File attachment = tempDir;
         editor.write(attachment.toURI(), 0, null);
         editor.write(new ByteArrayInputStream(data), editor.getLastModified(), null);
         lobject.flush();
@@ -348,7 +352,7 @@ public class LocalStorageTest {
         assertNotNull(editor.getProfile());
         assertEquals(mime.toString(), editor.getProfile().getDsMIME());
         assertEquals(formatUri, editor.getProfile().getDsFormatURI());
-        File attachment = tmp.newFile();
+        File attachment = tempDir;
         editor.write(attachment.toURI(), 0, null);
         XmlData xdata = new XmlData("data");
         EditorResult xmlResult = editor.createResult();
@@ -389,7 +393,7 @@ public class LocalStorageTest {
         assertEquals(mime.toString(), editor.getProfile().getDsMIME());
         assertNull(editor.getProfile().getDsFormatURI());
         byte[] data = "data".getBytes("UTF-8");
-        File attachment = tmp.newFile();
+        File attachment = tempDir;
         editor.write(attachment.toURI(), 0, null);
         editor.write(new ByteArrayInputStream(data), editor.getLastModified(), null);
         lobject.flush();
@@ -433,7 +437,7 @@ public class LocalStorageTest {
     @XmlRootElement
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class XmlData {
-        
+
         String data;
 
         public XmlData(String data) {

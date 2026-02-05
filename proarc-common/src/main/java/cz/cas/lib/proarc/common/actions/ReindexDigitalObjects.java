@@ -104,7 +104,7 @@ public class ReindexDigitalObjects {
             FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
             object = rstorage.find(pid);
             metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())){
+        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
             object = akubraStorage.find(pid);
             metsContext = buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
@@ -235,7 +235,7 @@ public class ReindexDigitalObjects {
                 FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
                 object = rstorage.find(parentId);
                 search = rstorage.getSearch(locale);
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())){
+            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(parentId);
                 search = akubraStorage.getSearch(locale);
@@ -248,7 +248,6 @@ public class ReindexDigitalObjects {
 
         RelationEditor relationEditor = new RelationEditor(object);
         List<String> members = relationEditor.getMembers();
-
 
 
         int pageIndex = 1;

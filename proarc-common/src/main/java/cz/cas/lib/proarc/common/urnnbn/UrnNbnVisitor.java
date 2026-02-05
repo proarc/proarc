@@ -17,8 +17,19 @@
 package cz.cas.lib.proarc.common.urnnbn;
 
 
-import cz.cas.lib.proarc.common.object.*;
-import cz.cas.lib.proarc.common.object.ndk.*;
+import cz.cas.lib.proarc.common.object.DescriptionMetadata;
+import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
+import cz.cas.lib.proarc.common.object.DigitalObjectElement;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DisseminationHandler;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.VisitorException;
+import cz.cas.lib.proarc.common.object.ndk.DefaultNdkVisitor;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
@@ -39,15 +50,20 @@ import cz.cas.lib.proarc.urnnbn.model.registration.Import;
 import cz.cas.lib.proarc.urnnbn.model.response.ErrorType;
 import cz.cas.lib.proarc.urnnbn.model.response.RegistrarScopeIdentifier;
 import cz.cas.lib.proarc.urnnbn.model.response.UrnNbn;
-import org.apache.commons.io.FileUtils;
-import org.xml.sax.SAXException;
-
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.io.FileUtils;
+import org.xml.sax.SAXException;
 
 /**
  * Walks down the NDK hierarchy and registers missing URN:NBN with {@link ResolverClient}.
@@ -335,7 +351,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
     public Void visitNdkEMonographSupplement(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
         if (registeringObject != null) {
             if (!(NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(registeringObject.getModelId())
-                        || NdkEbornPlugin.MODEL_EMONOGRAPHUNIT.equals(registeringObject.getModelId()))) {
+                    || NdkEbornPlugin.MODEL_EMONOGRAPHUNIT.equals(registeringObject.getModelId()))) {
                 // supplement under monograph volume - ignore
                 // invalid hierarchy
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
@@ -1852,7 +1868,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 return null;
             }
             UrnNbn urnNbn = response.getUrnNbn();
-            if (urnNbn == null || urnNbn.getValue() == null) {
+            if (urnNbn == null || urnNbn.getUrnNbnElementValue() == null) {
                 p.getStatus().error(elm, Status.EXCEPTION,
                         "The resolver returns no URN:NBN value! Check the server configuration.");
             }
@@ -1903,7 +1919,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                 return null;
             }
             UrnNbn urnNbn = response.getUrnNbn();
-            if (urnNbn == null || urnNbn.getValue() == null) {
+            if (urnNbn == null || urnNbn.getUrnNbnElementValue() == null) {
                 p.getStatus().error(urnNbnOldValue, Status.EXCEPTION,
                         "The resolver returns no URN:NBN value! Check the server configuration.");
             } else {
@@ -1931,14 +1947,14 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                             return null;
                         }
                         urnNbn = response.getUrnNbn();
-                        if (urnNbn == null || urnNbn.getValue() == null) {
+                        if (urnNbn == null || urnNbn.getUrnNbnElementValue() == null) {
                             p.getStatus().error(elm, Status.EXCEPTION,
                                     "The resolver returns no URN:NBN value! Check the server configuration.");
                         }
                         return urnNbn;
                     }
                 } else {
-                    p.getStatus().error(elm, Status.EXCEPTION, urnNbn.getStatus() + ":" + urnNbn.getValue());
+                    p.getStatus().error(elm, Status.EXCEPTION, urnNbn.getStatus() + ":" + urnNbn.getUrnNbnElementValue());
                 }
             }
         } catch (Exception ex) {
@@ -2016,14 +2032,14 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         if (urnNbn == null) {
             return;
         }
-        String urnnbn = urnNbn.getValue();
+        String urnnbn = urnNbn.getUrnNbnElementValue();
         if (urnnbn == null) {
             p.getStatus().error(elm, Status.EXCEPTION, "Missing URN:NBN in the resolver response!");
             return;
         }
         try {
             IdentifierDefinition urnNbnId = new IdentifierDefinition();
-            urnNbnId.setType("urnnbn");
+            urnNbnId.setTypeString("urnnbn");
             urnNbnId.setValue(urnnbn);
             DigitalObjectHandler objectHandler = elm.getHandler();
             elmMods.getIdentifier().add(urnNbnId);
@@ -2046,14 +2062,14 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         if (urnNbn == null) {
             return;
         }
-        String urnnbn = urnNbn.getValue();
+        String urnnbn = urnNbn.getUrnNbnElementValue();
         if (urnnbn == null) {
             p.getStatus().error(elm, Status.EXCEPTION, "Missing URN:NBN in the resolver response!");
             return;
         }
         try {
             IdentifierDefinition urnNbnId = new IdentifierDefinition();
-            urnNbnId.setType("urnnbn");
+            urnNbnId.setTypeString("urnnbn");
             urnNbnId.setValue(urnnbn);
             elmMods.getIdentifier().add(urnNbnId);
 

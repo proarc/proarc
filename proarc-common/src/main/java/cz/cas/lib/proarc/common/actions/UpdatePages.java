@@ -101,7 +101,7 @@ public class UpdatePages {
                 value = value.substring(start.length());
             }
             if (value.endsWith(end)) {
-                value = value.substring(0, value.length()-end.length());
+                value = value.substring(0, value.length() - end.length());
             }
         }
         return value;
@@ -310,7 +310,7 @@ public class UpdatePages {
                 mods.getNote().add(noteDefinition);
             }
             noteDefinition.setValue(pagePosition);
-            pagePositionIndex ++;
+            pagePositionIndex++;
         }
     }
 
@@ -364,7 +364,7 @@ public class UpdatePages {
             }
             if (setGenre) {
                 for (GenreDefinition genre : mods.getGenre()) {
-                    genre.setType(this.pageType);
+                    genre.setTypeString(this.pageType);
                 }
             }
         }
@@ -409,7 +409,7 @@ public class UpdatePages {
                     }
                 }
             } else {
-                DetailDefinition detailDefinition  = null;
+                DetailDefinition detailDefinition = null;
                 for (PartDefinition part : mods.getPart()) {
                     for (DetailDefinition detail : part.getDetail()) {
                         if (ModsConstants.FIELD_PAGE_NUMBER.equals(detail.getType()) || ModsConstants.FIELD_PAGE_NUMBER_SPLIT.equals(detail.getType())) {
@@ -551,7 +551,7 @@ public class UpdatePages {
         }
         List<BatchManager.BatchItemObject> selectedList = new ArrayList<>();
         for (String pid : pids) {
-            for (BatchManager.BatchItemObject object :objects) {
+            for (BatchManager.BatchItemObject object : objects) {
                 if (object.getPid().equals(pid)) {
                     selectedList.add(object);
                 }

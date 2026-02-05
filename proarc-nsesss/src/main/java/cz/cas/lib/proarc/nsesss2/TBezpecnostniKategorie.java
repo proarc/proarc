@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Bezpečnostní kategorie je opatření spojené s entitou, které podmiňuje nebo definuje pravidla určující podmínky přístupu k ní. Toto opatření se uplatňuje zejména v souvislosti s klasifikací dokumentu, který obsahuje utajovanou informaci, stupněm utajení, jímž je klasifikován (zákon č. 412/2005 Sb.), nebo v souvislosti s označením dokumentu pro omezení přístupu k němu podle jiného právního předpisu, anebo v souvislosti s rozhodnutím organizace (původce) omezit přístup k jím stanoveným kategoriím entit.
- * 
+ *
  * <p>Java class for tBezpecnostniKategorie complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tBezpecnostniKategorie">
  *   &lt;complexContent>
@@ -36,16 +36,16 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tBezpecnostniKategorie", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "identifikator",
-    "nazev",
-    "komentar",
-    "oduvodneni",
-    "bezpecnostniStupen"
+        "identifikator",
+        "nazev",
+        "komentar",
+        "oduvodneni",
+        "bezpecnostniStupen"
 })
 public class TBezpecnostniKategorie {
 
@@ -62,11 +62,10 @@ public class TBezpecnostniKategorie {
 
     /**
      * Gets the value of the identifikator property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @return possible object is
+     * {@link TIdentifikator }
+     *
      */
     public TIdentifikator getIdentifikator() {
         return identifikator;
@@ -74,11 +73,10 @@ public class TBezpecnostniKategorie {
 
     /**
      * Sets the value of the identifikator property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TIdentifikator }
+     *
      */
     public void setIdentifikator(TIdentifikator value) {
         this.identifikator = value;
@@ -86,11 +84,10 @@ public class TBezpecnostniKategorie {
 
     /**
      * Gets the value of the nazev property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getNazev() {
         return nazev;
@@ -98,11 +95,10 @@ public class TBezpecnostniKategorie {
 
     /**
      * Sets the value of the nazev property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setNazev(String value) {
         this.nazev = value;
@@ -110,11 +106,10 @@ public class TBezpecnostniKategorie {
 
     /**
      * Gets the value of the komentar property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getKomentar() {
         return komentar;
@@ -122,11 +117,10 @@ public class TBezpecnostniKategorie {
 
     /**
      * Sets the value of the komentar property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setKomentar(String value) {
         this.komentar = value;
@@ -134,11 +128,10 @@ public class TBezpecnostniKategorie {
 
     /**
      * Gets the value of the oduvodneni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getOduvodneni() {
         return oduvodneni;
@@ -146,11 +139,10 @@ public class TBezpecnostniKategorie {
 
     /**
      * Sets the value of the oduvodneni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setOduvodneni(String value) {
         this.oduvodneni = value;
@@ -158,11 +150,10 @@ public class TBezpecnostniKategorie {
 
     /**
      * Gets the value of the bezpecnostniStupen property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getBezpecnostniStupen() {
         return bezpecnostniStupen;
@@ -170,11 +161,10 @@ public class TBezpecnostniKategorie {
 
     /**
      * Sets the value of the bezpecnostniStupen property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setBezpecnostniStupen(String value) {
         this.bezpecnostniStupen = value;

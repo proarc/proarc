@@ -19,28 +19,29 @@ package cz.cas.lib.proarc.common.process.imports.audio;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
+import cz.cas.lib.proarc.common.process.imports.FileSet;
+import cz.cas.lib.proarc.common.process.imports.ImageImporter;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess;
+import cz.cas.lib.proarc.common.process.imports.ImportProfile;
+import cz.cas.lib.proarc.common.process.imports.InputUtils;
 import cz.cas.lib.proarc.common.storage.AesEditor;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.storage.PageView.PageViewHandler;
 import cz.cas.lib.proarc.common.storage.PageView.PageViewItem;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.process.imports.FileSet;
-import cz.cas.lib.proarc.common.process.imports.ImageImporter;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess;
-import cz.cas.lib.proarc.common.process.imports.ImportProfile;
-import cz.cas.lib.proarc.common.process.imports.InputUtils;
-import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
+import jakarta.ws.rs.core.MediaType;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -51,7 +52,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.stream.FileImageOutputStream;
-import javax.ws.rs.core.MediaType;
 
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
@@ -86,37 +86,37 @@ public class WaveImporter implements ImageImporter {
         BatchManager.BatchItemObject batchLocalObject = ibm.addLocalObject(ctx.getBatch(), localObj);
 
         try {
-        FileSet.FileEntry waveEntry = findWave(fileSet, ctx.getConfig().getNdkSourceAudioFileSuffix());
-        FileSet.FileEntry flacEntry = findFlac(fileSet, ctx.getConfig().getNdkSourceAudioFileSuffix());
+            FileSet.FileEntry waveEntry = findWave(fileSet, ctx.getConfig().getNdkSourceAudioFileSuffix());
+            FileSet.FileEntry flacEntry = findFlac(fileSet, ctx.getConfig().getNdkSourceAudioFileSuffix());
 
-        if (ctx.getConfig().getRequiredDatastreamId().contains(BinaryEditor.RAW_AUDIO_ID)) {
-            if (waveEntry == null && flacEntry == null) {
-                throw new FileNotFoundException("Missing source audio: " +
-                        new File(fileSet.getName() + ctx.getConfig().getNdkSourceAudioFileSuffix()).getName());
+            if (ctx.getConfig().getRequiredDatastreamId().contains(BinaryEditor.RAW_AUDIO_ID)) {
+                if (waveEntry == null && flacEntry == null) {
+                    throw new FileNotFoundException("Missing source audio: " +
+                            new File(fileSet.getName() + ctx.getConfig().getNdkSourceAudioFileSuffix()).getName());
+                }
+            } else {
+                if (waveEntry == null && flacEntry == null) {
+                    waveEntry = findWave(fileSet, null);
+                    flacEntry = findFlac(fileSet, null);
+                }
             }
-        } else {
+            // check wave file
             if (waveEntry == null && flacEntry == null) {
-                waveEntry = findWave(fileSet, null);
-                flacEntry = findFlac(fileSet, null);
+                return null;
             }
-        }
-        // check wave file
-        if (waveEntry == null && flacEntry == null) {
-            return null;
-        }
-        ImportProfile config = ctx.getConfig();
+            ImportProfile config = ctx.getConfig();
 
-        File f;
-        String type;
-        if (waveEntry != null) {
-            f = waveEntry.getFile();
-            type = WAVE;
-        } else if (flacEntry != null) {
-            f = flacEntry.getFile();
-            type = FLAC;
-        } else {
-            return null;
-        }
+            File f;
+            String type;
+            if (waveEntry != null) {
+                f = waveEntry.getFile();
+                type = WAVE;
+            } else if (flacEntry != null) {
+                f = flacEntry.getFile();
+                type = FLAC;
+            } else {
+                return null;
+            }
             if (!(InputUtils.isWave(f) || InputUtils.isFlac(f))) {
                 throw new IllegalStateException("Not a WAVE/FLAC content: " + f);
             }

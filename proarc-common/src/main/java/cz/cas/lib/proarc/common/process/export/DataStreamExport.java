@@ -45,6 +45,7 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
+import jakarta.xml.bind.JAXBException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -57,7 +58,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
 import javax.xml.transform.TransformerException;
 
 /**
@@ -82,7 +82,6 @@ public final class DataStreamExport {
     private byte[] buffer = new byte[10 * 1024];
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
-
 
 
     public DataStreamExport(AppConfiguration configuration, AkubraConfiguration akubraConfiguration) throws IOException {
@@ -123,7 +122,7 @@ public final class DataStreamExport {
     private void exportPid(File target, boolean hierarchy, String pid, List<String> dsIds) throws ExportException {
         String extension;
         if (exportedPids.contains(pid)) {
-            return ;
+            return;
         }
         exportedPids.add(pid);
 
@@ -158,7 +157,8 @@ public final class DataStreamExport {
         for (String dsId : dsIds) {
             try {
                 exportPid(target, object, dsId, extension);
-            } catch (TransformerException | JAXBException | DigitalObjectException | IOException | FedoraClientException |
+            } catch (TransformerException | JAXBException | DigitalObjectException | IOException |
+                     FedoraClientException |
                      MetsExportException ex) {
                 throw new ExportException(filename(pid, dsId), ex);
             }

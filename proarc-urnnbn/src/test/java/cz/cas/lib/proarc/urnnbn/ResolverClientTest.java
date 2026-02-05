@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.urnnbn;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.junit.Assume;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  *
@@ -35,25 +35,27 @@ public class ResolverClientTest {
     public ResolverClientTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         String serviceUrl = System.getProperty("proarc-urnnbn.ResolverClient.url");
         String user = System.getProperty("proarc-urnnbn.ResolverClient.user");
         String passwd = System.getProperty("proarc-urnnbn.ResolverClient.passwd");
         String registrar = "";
-        Assume.assumeNotNull(serviceUrl, user, passwd);
+        assertNotNull(serviceUrl);
+        assertNotNull(user);
+        assertNotNull(passwd);
         client = new ResolverClient(serviceUrl, registrar, null, user, passwd);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 

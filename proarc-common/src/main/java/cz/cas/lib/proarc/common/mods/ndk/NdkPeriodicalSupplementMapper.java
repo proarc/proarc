@@ -70,7 +70,7 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
         for (OriginInfoDefinition oi : mods.getOriginInfo()) {
             // sets type in element dateOther
             for (DateOtherDefinition dateOther : oi.getDateOther()) {
-                dateOther.setType(oi.getEventType());
+                dateOther.setTypeString(oi.getEventType());
             }
         }
         fillPhysicalDescription(mods);
@@ -110,18 +110,18 @@ public class NdkPeriodicalSupplementMapper extends RdaNdkMapper {
             String type = null;
             if (genre.getValue() == null || "".equals(genre.getValue())) {
                 genre.setValue(Const.GENRE_SUPPLEMENT);
-            } else if (genre.getValue() != null && Const.GENRE_SUPPLEMENT.equals(genre.getValue()) && genre.getType() == null) {
+            } else if (genre.getValue() != null && Const.GENRE_SUPPLEMENT.equals(genre.getValue()) && genre.getTypeString() == null) {
                 if (NdkPlugin.MODEL_PERIODICALISSUE.equals(ctx.getParentModel())) {
-                    genre.setType("issue_supplement");
+                    genre.setTypeString("issue_supplement");
                 } else if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(ctx.getParentModel())) {
-                    genre.setType("volume_supplement");
+                    genre.setTypeString("volume_supplement");
                 }
             } else if (genre.getValue() != null && !Const.GENRE_SUPPLEMENT.equals(genre.getValue())) {
                 if ("volume_supplement".equals(genre.getValue()) || "issue_supplement".equals(genre.getValue())) {
                     type = genre.getValue();
                     genre.setValue(Const.GENRE_SUPPLEMENT);
-                    if (genre.getType() == null || genre.getType().isEmpty()) {
-                        genre.setType(type);
+                    if (genre.getTypeString() == null || genre.getTypeString().isEmpty()) {
+                        genre.setTypeString(type);
                     }
                 }
             }

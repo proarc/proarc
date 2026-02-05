@@ -20,15 +20,15 @@ package cz.cas.lib.proarc.mets;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlIDREF;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlIDREF;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  * areaType: Complex Type for Area Linking The area element provides for more
@@ -39,15 +39,15 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * section of a file (e.g, subsection of an image, or a subsection of the video
  * display of a video file. The area element has no content; all information is
  * recorded within its various attributes.
- * 
- * 
+ *
+ *
  * <p>
  * Java class for areaType complex type.
- * 
+ *
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="areaType">
  *   &lt;complexContent>
@@ -109,8 +109,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "areaType", namespace = "http://www.loc.gov/METS/")
@@ -148,9 +148,9 @@ public class AreaType {
 
     /**
      * Gets the value of the id property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getID() {
         return id;
@@ -158,10 +158,9 @@ public class AreaType {
 
     /**
      * Sets the value of the id property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setID(String value) {
         this.id = value;
@@ -169,9 +168,9 @@ public class AreaType {
 
     /**
      * Gets the value of the fileid property.
-     * 
+     *
      * @return possible object is {@link Object }
-     * 
+     *
      */
     public Object getFILEID() {
         return fileid;
@@ -179,10 +178,9 @@ public class AreaType {
 
     /**
      * Sets the value of the fileid property.
-     * 
-     * @param value
-     *            allowed object is {@link Object }
-     * 
+     *
+     * @param value allowed object is {@link Object }
+     *
      */
     public void setFILEID(Object value) {
         this.fileid = value;
@@ -190,9 +188,9 @@ public class AreaType {
 
     /**
      * Gets the value of the shape property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getSHAPE() {
         return shape;
@@ -200,10 +198,9 @@ public class AreaType {
 
     /**
      * Sets the value of the shape property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setSHAPE(String value) {
         this.shape = value;
@@ -211,9 +208,9 @@ public class AreaType {
 
     /**
      * Gets the value of the coords property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getCOORDS() {
         return coords;
@@ -221,10 +218,9 @@ public class AreaType {
 
     /**
      * Sets the value of the coords property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setCOORDS(String value) {
         this.coords = value;
@@ -232,9 +228,9 @@ public class AreaType {
 
     /**
      * Gets the value of the begin property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getBEGIN() {
         return begin;
@@ -242,10 +238,9 @@ public class AreaType {
 
     /**
      * Sets the value of the begin property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setBEGIN(String value) {
         this.begin = value;
@@ -253,9 +248,9 @@ public class AreaType {
 
     /**
      * Gets the value of the end property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getEND() {
         return end;
@@ -263,10 +258,9 @@ public class AreaType {
 
     /**
      * Sets the value of the end property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setEND(String value) {
         this.end = value;
@@ -274,9 +268,9 @@ public class AreaType {
 
     /**
      * Gets the value of the betype property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getBETYPE() {
         return betype;
@@ -284,10 +278,9 @@ public class AreaType {
 
     /**
      * Sets the value of the betype property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setBETYPE(String value) {
         this.betype = value;
@@ -295,9 +288,9 @@ public class AreaType {
 
     /**
      * Gets the value of the extent property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getEXTENT() {
         return extent;
@@ -305,10 +298,9 @@ public class AreaType {
 
     /**
      * Sets the value of the extent property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setEXTENT(String value) {
         this.extent = value;
@@ -316,9 +308,9 @@ public class AreaType {
 
     /**
      * Gets the value of the exttype property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getEXTTYPE() {
         return exttype;
@@ -326,10 +318,9 @@ public class AreaType {
 
     /**
      * Sets the value of the exttype property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setEXTTYPE(String value) {
         this.exttype = value;
@@ -337,25 +328,25 @@ public class AreaType {
 
     /**
      * Gets the value of the admid property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the admid property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getADMID().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list {@link Object }
-     * 
-     * 
+     *
+     *
      */
     public List<Object> getADMID() {
         if (admid == null) {
@@ -366,25 +357,25 @@ public class AreaType {
 
     /**
      * Gets the value of the contentids property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the contentids property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getCONTENTIDS().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list {@link String }
-     * 
-     * 
+     *
+     *
      */
     public List<String> getCONTENTIDS() {
         if (contentids == null) {

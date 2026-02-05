@@ -56,7 +56,7 @@ public class HierarchyObjectVisitor<R, P> implements DigitalObjectVisitor<R, P> 
         }
     }
 
-    public R visitChildrenOnlyIf(DigitalObjectElement elm, P p, String... models) throws  VisitorException {
+    public R visitChildrenOnlyIf(DigitalObjectElement elm, P p, String... models) throws VisitorException {
         List<String> modelsList = new ArrayList<>();
         for (String model : models) {
             modelsList.add(model);

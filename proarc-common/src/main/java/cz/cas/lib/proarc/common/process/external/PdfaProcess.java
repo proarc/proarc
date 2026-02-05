@@ -33,6 +33,7 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
+import jakarta.xml.bind.JAXBException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -40,9 +41,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
 import javax.xml.transform.TransformerException;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 public class PdfaProcess {
 
@@ -151,7 +151,7 @@ public class PdfaProcess {
     }
 
     private File createFile(File pidFolder, InputStream inputStream) throws IOException, InterruptedException {
-        File pdfFile = new File(pidFolder, pidFolder.getName()+ ".pdf");
+        File pdfFile = new File(pidFolder, pidFolder.getName() + ".pdf");
         boolean done = false;
         try {
             FileOutputStream outputStream = new FileOutputStream(pdfFile);

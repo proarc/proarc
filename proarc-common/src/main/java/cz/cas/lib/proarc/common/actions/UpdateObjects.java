@@ -126,7 +126,7 @@ public class UpdateObjects {
     public void updateObjects(String signatura, String sigla) throws DigitalObjectException {
         this.signaturaValue = signatura;
         this.siglaValue = sigla;
-        if (updatedPids!= null && !updatedPids.isEmpty()) {
+        if (updatedPids != null && !updatedPids.isEmpty()) {
             if (sigla != null && !sigla.isEmpty()) {
                 List<String> accepted = appConfig.getModsOptions().getAcceptableSiglaId();
                 if (!accepted.contains(sigla)) {

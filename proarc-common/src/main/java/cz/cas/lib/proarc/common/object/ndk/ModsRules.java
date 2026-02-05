@@ -40,7 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * Checks Mods rules.
@@ -60,12 +60,12 @@ public class ModsRules {
     private static final String PROP_MODS_PHYSICAL_LOCATION_SIGLA = "metadata.mods.location.physicalLocation.sigla";
     private List<String> acceptableSiglaId;
 
-    public static final String ERR_NDK_SUPPLEMENT_GENRE_TYPE ="Err_Ndk_Supplement_Genre_Type";
-    public static final String ERR_NDK_MODEL_GENRE_TYPE ="Err_Ndk_Model_Genre_Type";
-    public static final String ERR_NDK_ORIGININFO_DATEISSSUED ="Err_Ndk_OriginInfo_DateIssued";
-    public static final String ERR_NDK_PHYSICALLOCATION_MULTIPLE ="Err_Ndk_PhysicalLocation_Multiple";
-    public static final String ERR_NDK_PHYSICALLOCATION_SIGLA ="Err_Ndk_PhysicalLocation_Sigla";
-    public static final String ERR_NDK_RELATEDITEM_PHYSICALLOCATION_SIGLA ="Err_Ndk_RelatedItem_PhysicalLocation_Sigla";
+    public static final String ERR_NDK_SUPPLEMENT_GENRE_TYPE = "Err_Ndk_Supplement_Genre_Type";
+    public static final String ERR_NDK_MODEL_GENRE_TYPE = "Err_Ndk_Model_Genre_Type";
+    public static final String ERR_NDK_ORIGININFO_DATEISSSUED = "Err_Ndk_OriginInfo_DateIssued";
+    public static final String ERR_NDK_PHYSICALLOCATION_MULTIPLE = "Err_Ndk_PhysicalLocation_Multiple";
+    public static final String ERR_NDK_PHYSICALLOCATION_SIGLA = "Err_Ndk_PhysicalLocation_Sigla";
+    public static final String ERR_NDK_RELATEDITEM_PHYSICALLOCATION_SIGLA = "Err_Ndk_RelatedItem_PhysicalLocation_Sigla";
 
     private static final Set<String> PICTURE_GENRE_MAP = new HashSet<>(Arrays.asList("photograph", "chart", "graphic", "illustration", "advertisement", "map", "plate", "table", "technicalPlanScheme", "unspecified"));
     private static final Set<String> ARTICLE_GENRE_MAP = new HashSet<>(Arrays.asList("abstract", "annotation", "bibliography", "dedication", "afterword", "editorsNote", "advertisement", "bibliographicalPortrait", "obituary", "sheetMusic", "tableOfContents", "preface", "contributors", "review", "index", "summary", "interview", "study", "technicalPlanScheme", "introduction", "conclusion", "otherNote", "unspecified", "mainArticle", "editorial", "news"));
@@ -75,7 +75,8 @@ public class ModsRules {
             "bibliography", "dedication", "afterword", "illustration", "advertisement", "map", "sheetMusic", "tableOfContents", "preface", "index", "table", "introduction", "conclusion",
             "imgDisc", "manuscriptNotes", "calibrationTable", "fragmentsOfBookbinding", "scaleReference"));
 
-    private ModsRules() {}
+    private ModsRules() {
+    }
 
     public ModsRules(String modelId, ModsDefinition mods, DigitalObjectValidationException ex, NdkMapper.Context context, AppConfiguration appConfiguration) {
         this.modelId = modelId;
@@ -97,25 +98,25 @@ public class ModsRules {
         this.parentPid = parentPid;
     }
 
-    public void check() throws DigitalObjectValidationException{
+    public void check() throws DigitalObjectValidationException {
         checkGenreType(mods, modelId);
         checkDateIssued(mods, modelId);
         checkPhysicalLocation(mods.getLocation());
         checkRelatedItemPhysicalLocation(mods.getRelatedItem());
 
-        if (!exception.getValidations().isEmpty()){
+        if (!exception.getValidations().isEmpty()) {
             throw exception;
         }
     }
 
-    public void checkExtended() throws DigitalObjectValidationException{
+    public void checkExtended() throws DigitalObjectValidationException {
         checkGenreType(mods, modelId);
         checkDateIssued(mods, modelId);
         checkPhysicalLocation(mods.getLocation());
         checkPhysicalLocationCount(mods.getLocation());
         checkRelatedItemPhysicalLocation(mods.getRelatedItem());
 
-        if (!exception.getValidations().isEmpty()){
+        if (!exception.getValidations().isEmpty()) {
             throw exception;
         }
     }
@@ -138,7 +139,7 @@ public class ModsRules {
         }
     }
 
-    public void checkPhysicalLocation (List<LocationDefinition> locations, String bundleKey) {
+    public void checkPhysicalLocation(List<LocationDefinition> locations, String bundleKey) {
         for (LocationDefinition location : locations) {
             for (PhysicalLocationDefinition physicalLocation : location.getPhysicalLocation()) {
                 if ("siglaADR".equals(physicalLocation.getAuthority())) {
@@ -158,14 +159,14 @@ public class ModsRules {
                 for (GenreDefinition genre : mods.getGenre()) {
                     if (expectedType == null) {
                         continue; // nenalezen expected type
-                    } else if (!expectedType.equals(genre.getType())) {
-                        exception.addValidation("MODS rules", ERR_NDK_SUPPLEMENT_GENRE_TYPE, false, expectedType, genre.getType());
+                    } else if (!expectedType.equals(genre.getTypeString())) {
+                        exception.addValidation("MODS rules", ERR_NDK_SUPPLEMENT_GENRE_TYPE, false, expectedType, genre.getTypeString());
                     }
                 }
             }
         } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId) || NdkPlugin.MODEL_ARTICLE.equals(modelId) || NdkPlugin.MODEL_PICTURE.equals(modelId)) {
             for (GenreDefinition genre : mods.getGenre()) {
-                String genreType = genre.getType();
+                String genreType = genre.getTypeString();
                 if (genreType != null && !genreType.isEmpty()) {
                     if (NdkPlugin.MODEL_CHAPTER.equals(modelId)) {
                         if (!CHAPTER_GENRE_MAP.contains(genreType)) {
@@ -214,7 +215,7 @@ public class ModsRules {
 
     public void checkDateIssuedFormat(ModsDefinition mods, String modelId) {
         if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId) ||
-            NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(modelId)) {
+                NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(modelId)) {
             if (mods != null) {
                 for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
                     for (DateDefinition date : originInfo.getDateIssued()) {
@@ -243,7 +244,7 @@ public class ModsRules {
                     }
                 }
             }
-        } else if (parentDate != null){
+        } else if (parentDate != null) {
             if (parentDate != null) {
                 if (!value.contains(parentDate)) {
                     exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);

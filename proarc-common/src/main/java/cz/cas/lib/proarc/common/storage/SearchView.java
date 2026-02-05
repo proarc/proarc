@@ -32,6 +32,7 @@ public abstract class SearchView {
     public List<SearchViewItem> find(boolean onlyActive, List<String> pids) throws FedoraClientException, IOException {
         throw new IOException("Method is not implmeneted");
     }
+
     public List<SearchViewItem> findAllObjects() throws FedoraClientException, IOException {
         throw new IOException("Method is not implmeneted");
     }
@@ -40,7 +41,7 @@ public abstract class SearchView {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findByModel(String modelId) throws  IOException, FedoraClientException {
+    public List<SearchViewItem> findByModel(String modelId) throws IOException, FedoraClientException {
         throw new IOException("Method is not implmeneted");
     }
 

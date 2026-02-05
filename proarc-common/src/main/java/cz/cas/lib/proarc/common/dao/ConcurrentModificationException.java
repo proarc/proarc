@@ -21,7 +21,7 @@ package cz.cas.lib.proarc.common.dao;
  * @author Jan Pokorsky
  */
 public class ConcurrentModificationException extends RuntimeException {
-    
+
     private static final long serialVersionUID = 1L;
 
     /**

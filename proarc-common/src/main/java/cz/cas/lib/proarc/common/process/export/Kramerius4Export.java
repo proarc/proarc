@@ -77,6 +77,9 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -96,9 +99,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.io.IOUtils;
@@ -123,7 +123,7 @@ import static cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement
 
 /**
  * Exports digital object and transforms its data streams to Kramerius4 format.
- *
+ * <p>
  * For now it exports FOXML in archive format. It is memory intensive but fast.
  * In case of OOME it should be rewritten to export FOXML in public or migrate
  * format and fetch each managed data streams with REST or build the whole FOXML
@@ -146,12 +146,16 @@ public final class Kramerius4Export {
     private DigitalObjectCrawler crawler;
 
     private final SearchView search;
-    /** already exported PIDs to prevent loops */
+    /**
+     * already exported PIDs to prevent loops
+     */
     private HashSet<String> exportedPids = new HashSet<String>();
-    /** PIDs scheduled for export */
+    /**
+     * PIDs scheduled for export
+     */
     private Queue<Pair> toExport = new LinkedList<Pair>();
     private K4Informations informations = new K4Informations();
-    
+
     private final Kramerius4ExportOptions kramerius4ExportOptions;
     private AppConfiguration appConfig;
     private AkubraConfiguration akubraConfiguration;
@@ -318,7 +322,7 @@ public final class Kramerius4Export {
             ExportUtils.writeExportResult(target, reslog);
             krameriusResult.setException(ex);
             //throw new IllegalStateException(ex.getMessage());
-        } catch (MetsExportException ex ) {
+        } catch (MetsExportException ex) {
             ex.printStackTrace();
             result.setStatus(ExportResultLog.ResultStatus.FAILED);
             result.getError().add(new ExportResultLog.ResultError(null, ex));
@@ -474,10 +478,10 @@ public final class Kramerius4Export {
                 throw new IllegalStateException(pid, e);
             }
         }
-       return false;
+        return false;
     }
 
-    private boolean selectedPidHasParent(HashSet<String> pidsToExport, File output,HashSet<String> selectedPids, String[] models) {
+    private boolean selectedPidHasParent(HashSet<String> pidsToExport, File output, HashSet<String> selectedPids, String[] models) {
         Map<String, Set<String>> buildPidTree = buildPidTree(selectedPids, pidsToExport);
         for (Entry<String, Set<String>> node : buildPidTree.entrySet()) {
             String pid = node.getKey();
@@ -497,7 +501,7 @@ public final class Kramerius4Export {
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
                 }
-                for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
+                for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext(); ) {
                     DatastreamType datastream = it.next();
                     if (!isArchive && kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                         it.remove();
@@ -514,7 +518,6 @@ public final class Kramerius4Export {
         }
         return false;
     }
-
 
 
     private boolean hasParentFromDublincore(DatastreamType datastream, String[] models) {
@@ -701,7 +704,7 @@ public final class Kramerius4Export {
 //            String foxml = object.asText();
 //            dobj = FoxmlUtils.unmarshal(foxml, DigitalObject.class);
             List<DatastreamType> datastreamTypes = selectDatastreams(dobj.getDatastream(), BinaryEditor.NDK_AUDIO_ARCHIVAL_ID, BinaryEditor.NDK_AUDIO_USER_ID);
-            if (datastreamTypes.size() > 0 ){
+            if (datastreamTypes.size() > 0) {
                 desctinationObject.getDigitalObject().getDatastream().addAll(datastreamTypes);
             }
             return;
@@ -782,7 +785,7 @@ public final class Kramerius4Export {
                     if (pageIndex == -1) {
                         throw new MetsExportException(pid, "Strana (" + element.getOriginalPid() + ") nemá vyplněný index strany. Očekávaná hodnota " + expectedPageIndex + ".", false, null);
                     } else {
-                        throw new MetsExportException(pid, "Strana (" + element.getOriginalPid() + ") má neočekávaný index strany. Očekávaná hodnota " + expectedPageIndex + ", ale byl nalezen index "+ pageIndex + ".", false, null);
+                        throw new MetsExportException(pid, "Strana (" + element.getOriginalPid() + ") má neočekávaný index strany. Očekávaná hodnota " + expectedPageIndex + ", ale byl nalezen index " + pageIndex + ".", false, null);
                     }
                 } else {
                     informations.add(pid, model, pageIndex, parentPid);
@@ -798,8 +801,9 @@ public final class Kramerius4Export {
      * that were selected for export.
      * <p/>RELS-EXT of exported parent objects contains only PIDs that are subject to export.
      * Other relations are excluded.
+     *
      * @param output output folder
-     * @param pids PIDs selected for export
+     * @param pids   PIDs selected for export
      */
     private void exportParents(File output, Collection<String> pids) {
         Map<String, Set<String>> buildPidTree = buildPidTree(pids, exportedPids);
@@ -850,7 +854,7 @@ public final class Kramerius4Export {
     /**
      * Builds tree of digital objects as map of parent nodes and their children.
      *
-     * @param pids PIDs that will be leafs of the tree
+     * @param pids         PIDs that will be leafs of the tree
      * @param exportedPids collection of already exported PIDs
      * @return {@code Map<parent-PID, Set<child-PID>>}
      */
@@ -875,7 +879,7 @@ public final class Kramerius4Export {
         List<DigitalObjectElement> reversePath = crawler.getReversePath(selectedPid);
         reversePath.add(crawler.getEntry(selectedPid));
         Set<String> lastChildren = null;
-        for (Iterator<DigitalObjectElement> it = reversePath.iterator(); it.hasNext();) {
+        for (Iterator<DigitalObjectElement> it = reversePath.iterator(); it.hasNext(); ) {
             DigitalObjectElement elm = it.next();
             if (lastChildren != null) {
                 lastChildren.add(elm.getPid());
@@ -890,17 +894,17 @@ public final class Kramerius4Export {
         }
     }
 
-    private void exportDatastreams(LocalObject local, RelationEditor editor,  boolean hasParent, MissingObject missingObject) throws DigitalObjectException {
+    private void exportDatastreams(LocalObject local, RelationEditor editor, boolean hasParent, MissingObject missingObject) throws DigitalObjectException {
         DigitalObject dobj = local.getDigitalObject();
         // XXX replace DS only for other than image/* MIMEs?
         DatastreamType fullDs = FoxmlUtils.findDatastream(dobj, BinaryEditor.FULL_ID);
         DatastreamType rawDs = fullDs != null ? null : FoxmlUtils.findDatastream(dobj, BinaryEditor.RAW_ID);
         updateModsIfNeeded(local, editor.getModel());
-        for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
+        for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext(); ) {
             DatastreamType datastream = it.next();
             if (!isArchive && kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                 // use RAW if FULL is not available
-                if (rawDs != datastream ) {
+                if (rawDs != datastream) {
                     it.remove();
                     continue;
                 }
@@ -918,7 +922,7 @@ public final class Kramerius4Export {
         DigitalObject dobj = local.getDigitalObject();
         RelationEditor editor = new RelationEditor(local);
         updateModsIfNeeded(local, editor.getModel());
-        for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext();) {
+        for (Iterator<DatastreamType> it = dobj.getDatastream().iterator(); it.hasNext(); ) {
             DatastreamType datastream = it.next();
             if (!isArchive && kramerius4ExportOptions.getExcludeDatastreams().contains(datastream.getID())) {
                 it.remove();
@@ -955,9 +959,9 @@ public final class Kramerius4Export {
         }
     }
 
-    private void processDublinCore(DatastreamType datastream,  boolean hasParent) {
+    private void processDublinCore(DatastreamType datastream, boolean hasParent) {
         if (!DcStreamEditor.DATASTREAM_ID.equals(datastream.getID())) {
-            return ;
+            return;
         }
         DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
         XmlContentType xmlContent = version.getXmlContent();
@@ -991,7 +995,7 @@ public final class Kramerius4Export {
 
     private void processMods(DatastreamType datastream) {
         if (!ModsStreamEditor.DATASTREAM_ID.equals(datastream.getID())) {
-            return ;
+            return;
         }
         DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
         XmlContentType xmlContent = version.getXmlContent();
@@ -1008,7 +1012,7 @@ public final class Kramerius4Export {
      */
     private void processOcr(DatastreamType datastream) {
         if (!StringEditor.OCR_ID.equals(datastream.getID())) {
-            return ;
+            return;
         }
         DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
         if (version.getBinaryContent() == null || version.getBinaryContent().length == 0) {
@@ -1018,7 +1022,7 @@ public final class Kramerius4Export {
 
     /**
      * Removes all subelements with xsi:nil attribute as they are worthless.
-     *
+     * <p>
      * JAXB optimizes namespace declarations and moves them to common parent elements
      * but Fedora ingest ignores it. Then some ingested datastreams may be broken
      * as they miss optimized namespace declarations (xsi in this case).
@@ -1044,7 +1048,7 @@ public final class Kramerius4Export {
     private static void wrapModsInCollection(XmlContentType xmlContent) {
         Element mods = xmlContent.getAny().get(0);
         if ("modsCollection".equals(mods.getLocalName())) {
-            return ;
+            return;
         }
         Element modsCollection = mods.getOwnerDocument().createElementNS(
                 ModsStreamEditor.DATASTREAM_FORMAT_URI, "mods:modsCollection");
@@ -1054,11 +1058,11 @@ public final class Kramerius4Export {
     }
 
     private void processRelsExt(String pid, DatastreamType datastream,
-            RelationEditor editor, Collection<String> includePids,
-            boolean hasParent, MissingObject missingObject) {
+                                RelationEditor editor, Collection<String> includePids,
+                                boolean hasParent, MissingObject missingObject) {
 
         if (!RelationEditor.DATASTREAM_ID.equals(datastream.getID())) {
-            return ;
+            return;
         }
         try {
             transformRelation2Kramerius(pid, editor, includePids, hasParent, missingObject);
@@ -1075,7 +1079,7 @@ public final class Kramerius4Export {
     }
 
     private void transformRelation2Kramerius(String pid, RelationEditor editor, Collection<String> includePids, boolean hasParent, MissingObject missingObject
-            ) throws DigitalObjectException {
+    ) throws DigitalObjectException {
         List<SearchViewItem> childDescriptors = null;
         List<String> children = null;
 
@@ -1141,7 +1145,7 @@ public final class Kramerius4Export {
 //            if (hasParent && (OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(modelId))) {
 //                k4ModelId = K4Plugin.MODEL_MONOGRAPHUNIT;
 //            } else {
-                k4ModelId = kramerius4ExportOptions.getModelMap().get(modelId);
+            k4ModelId = kramerius4ExportOptions.getModelMap().get(modelId);
 //            }
             k4ModelId = k4ModelId == null ? modelId : k4ModelId;
             editor.setModel(k4ModelId);
@@ -1204,7 +1208,7 @@ public final class Kramerius4Export {
     private void setDonator(List<Element> relations, Document doc, RelationEditor editor) throws DigitalObjectException {
         for (Element relation : relations) {
             if ("hasDonator".equals(relation.getTagName())) {
-                return ;
+                return;
             }
         }
         if (editor.getDonator() != null) {
@@ -1239,7 +1243,7 @@ public final class Kramerius4Export {
                     if (pageNumberStart == Integer.MIN_VALUE + 1) {
                         if (extent.getStart() != null) {
                             String value = extent.getStart().getValue();
-                            value = value.replaceAll("\\D+","");
+                            value = value.replaceAll("\\D+", "");
                             if (value != null && !value.isEmpty()) {
                                 pageNumberStart = Integer.parseInt(value);
                             }
@@ -1353,7 +1357,7 @@ public final class Kramerius4Export {
     }
 
     private static SearchViewItem remove(String pid, List<SearchViewItem> childDescriptors) {
-        for (Iterator<SearchViewItem> it = childDescriptors.iterator(); it.hasNext();) {
+        for (Iterator<SearchViewItem> it = childDescriptors.iterator(); it.hasNext(); ) {
             SearchViewItem desc = it.next();
             if (pid.equals(desc.getPid())) {
                 it.remove();
@@ -1365,14 +1369,15 @@ public final class Kramerius4Export {
 
     /**
      * Sets OAI ID as relation if necessary.
-     * @param pid PID to use as OAI ID
+     *
+     * @param pid       PID to use as OAI ID
      * @param relations list of existing relations
-     * @param doc DOM
+     * @param doc       DOM
      */
     private static void setOaiId(String pid, List<Element> relations, Document doc) {
         for (Element relation : relations) {
             if (OAI_NS.equals(relation.getNamespaceURI()) && "itemID".equals(relation.getLocalName())) {
-                return ;
+                return;
             }
         }
         Element elm = doc.createElementNS(OAI_NS, "oai:itemID");
@@ -1382,9 +1387,10 @@ public final class Kramerius4Export {
 
     /**
      * Sets kramerius:policy as relation if necessary.
-     * @param policy access policy
+     *
+     * @param policy    access policy
      * @param relations list of existing relations
-     * @param doc DOM
+     * @param doc       DOM
      */
     private static void setPolicy(String policy, List<Element> relations, Document doc) {
         if (policy != null) {

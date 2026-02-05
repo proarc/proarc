@@ -40,9 +40,13 @@ public class DigitalObjectCrawler {
 
     private final DigitalObjectManager dom;
     private final SearchView search;
-    /** Maps PIDs to their parent elements. */
+    /**
+     * Maps PIDs to their parent elements.
+     */
     private final Map<String, DigitalObjectElement> parents;
-    /** Maps PIDs to elements. */
+    /**
+     * Maps PIDs to elements.
+     */
     private final Map<String, DigitalObjectElement> cache;
     private final DigitalObjectElement.Factory elmFactory;
 
@@ -90,6 +94,7 @@ public class DigitalObjectCrawler {
 
     /**
      * Gets parent.
+     *
      * @param pid child ID
      * @return the parent element or {@link DigitalObjectElement#NULL} in case of root.
      * @throws DigitalObjectNotFoundException failure
@@ -138,6 +143,7 @@ public class DigitalObjectCrawler {
 
     /**
      * Gets list of parents up to the root.
+     *
      * @param pid object ID to search parents
      * @return the list
      */

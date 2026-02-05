@@ -29,7 +29,7 @@ import java.util.Set;
  * @author Jan Pokorsky
  */
 class CejshContext {
-    
+
     private DigitalObjectElement title;
     private DigitalObjectElement volume;
     private DigitalObjectElement issue;
@@ -75,7 +75,8 @@ class CejshContext {
 
     /**
      * Use to include given articles.
-     * @param articleParent parent issue
+     *
+     * @param articleParent   parent issue
      * @param includeArticles articles to include
      */
     public void setFilter(DigitalObjectElement articleParent, Set<DigitalObjectElement> includeArticles) {
@@ -86,6 +87,7 @@ class CejshContext {
 
     /**
      * Gets articles that should be filtered from a given parent.
+     *
      * @param parent
      * @return either set of articles to include or empty set to include all.
      */

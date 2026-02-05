@@ -38,7 +38,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.TransformerException;
 import org.apache.commons.io.FileUtils;
-import org.codehaus.jettison.json.JSONException;
+import org.json.JSONException;
 
 import static cz.cas.lib.proarc.common.config.CatalogConfiguration.PROPERTY_CATALOG_DIRECTORY;
 import static cz.cas.lib.proarc.common.config.CatalogConfiguration.PROPERTY_CATALOG_URL_LINK;
@@ -65,23 +65,23 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
     protected boolean allowUpdateRecord(CatalogConfiguration catalog) {
         boolean ok = true;
         if (catalog.getCatalogDirectory() == null || catalog.getCatalogDirectory().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_CATALOG_DIRECTORY));
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg", catalog.getPrefix(), PROPERTY_CATALOG_DIRECTORY));
             ok = false;
         }
         if (catalog.getCatalogUrlLink() == null || catalog.getCatalogUrlLink().isEmpty()) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_CATALOG_URL_LINK));
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg", catalog.getPrefix(), PROPERTY_CATALOG_URL_LINK));
             ok = false;
         }
         if (catalog.getField001BaseLenght() == null || catalog.getField001BaseLenght() < 0) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_FIELD001_BASE_LENGHT));
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg", catalog.getPrefix(), PROPERTY_FIELD001_BASE_LENGHT));
             ok = false;
         }
         if (catalog.getField001BaseDefault() == null) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_FIELD001_BASE_DEFAULT));
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg", catalog.getPrefix(), PROPERTY_FIELD001_BASE_DEFAULT));
             ok = false;
         }
         if (catalog.getField001SysnoLenght() == null) {
-            LOG.severe(String.format("Missing %s.%s in proarc.cfg",  catalog.getPrefix(), PROPERTY_FIELD001_SYSNO_LENGHT));
+            LOG.severe(String.format("Missing %s.%s in proarc.cfg", catalog.getPrefix(), PROPERTY_FIELD001_SYSNO_LENGHT));
             ok = false;
         }
         return ok;

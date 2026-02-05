@@ -25,7 +25,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FilenameUtils;
 
 /**
@@ -125,9 +125,9 @@ public class GenericExternalProcess extends ExternalProcess {
 
     /**
      * Interpolate parameter values. The replace pattern is {@code ${name}}.
+     *
      * @param s a string to search for placeholders
      * @return the resolved string
-     * @see #addParameter(java.lang.String, java.lang.String)
      */
     static String interpolateParameters(String s, Map<String, String> parameters) {
         if (s == null || s.length() < 4 || parameters.isEmpty()) { // minimal replaceable value ${x}
@@ -136,7 +136,7 @@ public class GenericExternalProcess extends ExternalProcess {
         // finds ${name} patterns
         Matcher m = REPLACE_PARAM_PATTERN.matcher(s);
         StringBuffer sb = null;
-        while(m.find()) {
+        while (m.find()) {
             if (m.groupCount() == 1) {
                 String param = m.group(1);
                 String replacement = parameters.get(param);
@@ -155,9 +155,9 @@ public class GenericExternalProcess extends ExternalProcess {
 
     void interpolateParameters(List<String> cmdLine) {
         if (parameters.isEmpty()) {
-            return ;
+            return;
         }
-        for (ListIterator<String> it = cmdLine.listIterator(); it.hasNext();) {
+        for (ListIterator<String> it = cmdLine.listIterator(); it.hasNext(); ) {
             it.set(interpolateParameters(it.next(), parameters.getMap()));
         }
     }
@@ -199,7 +199,7 @@ public class GenericExternalProcess extends ExternalProcess {
         }
 
     }
-    
+
     public static class ProcessResult {
 
         private final Map<String, String> parameters;
@@ -239,8 +239,8 @@ public class GenericExternalProcess extends ExternalProcess {
          * @return
          */
         public static ProcessResult getResultParameters(Configuration conf,
-                Map<String, String> inputParameters, boolean skippedProcess,
-                int exitCode, String log) {
+                                                        Map<String, String> inputParameters, boolean skippedProcess,
+                                                        int exitCode, String log) {
 
             // gets <processorId>.param.* parameters with interpolated values
             // it allows to share properties among process and read helper values from process declaration (mime, output file, ...)
@@ -280,9 +280,9 @@ public class GenericExternalProcess extends ExternalProcess {
         }
 
         private static Map<String, String> addResultParamaters(Configuration conf,
-                String processorId, Map<String, String> result) {
+                                                               String processorId, Map<String, String> result) {
 
-            for (Iterator<String> it = conf.getKeys("param"); it.hasNext();) {
+            for (Iterator<String> it = conf.getKeys("param"); it.hasNext(); ) {
                 String param = it.next();
                 String value = interpolateParameters(conf.getString(param), result);
                 String resultName = processorId == null ? param : processorId + '.' + param;
@@ -293,8 +293,9 @@ public class GenericExternalProcess extends ExternalProcess {
 
         /**
          * Resolves whether the {@code exitExpression} matches to {@code exitCode}.
+         *
          * @param exitExpression syntax:
-         *      {@code '*' | '>' exitCode | '<' exitCode | exitCode [',' exitCode]*}
+         *                       {@code '*' | '>' exitCode | '<' exitCode | exitCode [',' exitCode]*}
          * @param exitCode
          * @return
          */

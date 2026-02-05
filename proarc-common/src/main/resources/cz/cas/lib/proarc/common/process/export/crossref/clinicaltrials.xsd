@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.crossref.org/clinicaltrials.xsd" targetNamespace="http://www.crossref.org/clinicaltrials.xsd">
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.crossref.org/clinicaltrials.xsd"
+            targetNamespace="http://www.crossref.org/clinicaltrials.xsd">
     <xsd:annotation>
-        <xsd:documentation> Linked Clinical Trials is a CrossRef initiative helping to connect the published literature to registered clinical trials associated with the research, - version 1.0 (initial release) September 24, 2015 </xsd:documentation>
+        <xsd:documentation>Linked Clinical Trials is a CrossRef initiative helping to connect the published literature
+            to registered clinical trials associated with the research, - version 1.0 (initial release) September 24,
+            2015
+        </xsd:documentation>
     </xsd:annotation>
     <xsd:element name="program">
         <xsd:annotation>
-            <xsd:documentation>Accommodates deposit of linked clincal trials metadata. The clinical-trial-number value will be a string that must match a specific pattern appropriate for a given clinical trial registry. The registry is identified in the required attribute 'registry' and must be the DOI of a recognized registry (see http://dx.doi.org/10.18810/registries) </xsd:documentation>
+            <xsd:documentation>Accommodates deposit of linked clincal trials metadata. The clinical-trial-number value
+                will be a string that must match a specific pattern appropriate for a given clinical trial registry. The
+                registry is identified in the required attribute 'registry' and must be the DOI of a recognized registry
+                (see http://dx.doi.org/10.18810/registries)
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -17,7 +25,7 @@
         <xsd:complexType mixed="true">
             <xsd:attribute name="registry" use="required">
                 <xsd:annotation>
-                    <xsd:documentation> The clinical trial identifier related to the article. </xsd:documentation>
+                    <xsd:documentation>The clinical trial identifier related to the article.</xsd:documentation>
                 </xsd:annotation>
                 <xsd:simpleType>
                     <xsd:restriction base="xsd:string">
@@ -29,7 +37,9 @@
             </xsd:attribute>
             <xsd:attribute name="type" use="optional">
                 <xsd:annotation>
-                    <xsd:documentation> Used to identify the article publication date in relation to the issuance of the trial results </xsd:documentation>
+                    <xsd:documentation>Used to identify the article publication date in relation to the issuance of the
+                        trial results
+                    </xsd:documentation>
                 </xsd:annotation>
                 <xsd:simpleType>
                     <xsd:restriction base="xsd:string">

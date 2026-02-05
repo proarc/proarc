@@ -23,7 +23,7 @@ import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * Uses VIPS for converting large jpg images to tiff
@@ -47,7 +47,7 @@ public class VIPSConvert extends ExternalProcess {
         }
     }
 
-    public VIPSConvert (Configuration conf, File input, File output) {
+    public VIPSConvert(Configuration conf, File input, File output) {
         super(conf);
         this.input = input;
         this.output = output;

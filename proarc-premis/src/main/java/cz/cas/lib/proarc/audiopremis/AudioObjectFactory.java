@@ -1,9 +1,9 @@
 package cz.cas.lib.proarc.audiopremis;
 
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlElementDecl;
-import javax.xml.bind.annotation.XmlRegistry;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.annotation.XmlElementDecl;
+import jakarta.xml.bind.annotation.XmlRegistry;
 import javax.xml.namespace.QName;
 
 @XmlRegistry
@@ -36,7 +36,7 @@ public class AudioObjectFactory {
         return new JAXBElement<String>(_SETTINGS, String.class, null, value);
     }
 
-    public NkComplexType createNkComplexType(){
+    public NkComplexType createNkComplexType() {
         return new NkComplexType();
     }
 }

@@ -17,24 +17,22 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
+import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.storage.DigitalObjectConcurrentModificationException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.json.JsonUtils;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.Provider;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 /**
  * Helper class to throw HTTP errors in different formats.
  *
@@ -82,11 +80,11 @@ public class RestException extends WebApplicationException {
         return new RestException(json(Response.status(status), errorCode, errorKey, message).build());
     }
 
-    private static ResponseBuilder plainText(ResponseBuilder rb, String message) {
+    private static Response.ResponseBuilder plainText(Response.ResponseBuilder rb, String message) {
         return rb.type(MediaType.TEXT_PLAIN_TYPE).entity(message);
     }
     
-    private static ResponseBuilder json(ResponseBuilder rb, int errorCode, String errorKey, String message) {
+    private static Response.ResponseBuilder json(Response.ResponseBuilder rb, int errorCode, String errorKey, String message) {
         try {
             StringWriter sw = new StringWriter();
             JsonUtils.defaultObjectMapper().writeValue(sw, new ErrorResponse(errorCode, errorKey, message));

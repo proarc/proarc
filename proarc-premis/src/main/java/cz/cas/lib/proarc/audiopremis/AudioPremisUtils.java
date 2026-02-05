@@ -11,9 +11,9 @@ import cz.cas.lib.proarc.premis.ExtensionComplexType;
 import cz.cas.lib.proarc.premis.LinkingAgentIdentifierComplexType;
 import cz.cas.lib.proarc.premis.ObjectFactory;
 import cz.cas.lib.proarc.premis.PremisComplexType;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Marshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
@@ -70,7 +70,7 @@ public class AudioPremisUtils {
         return retval;
     }
 
-    private Node createNode(JAXBElement jaxb, JAXBContext jc, String expression) throws  Exception{
+    private Node createNode(JAXBElement jaxb, JAXBContext jc, String expression) throws Exception {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder();
         Document document = db.newDocument();

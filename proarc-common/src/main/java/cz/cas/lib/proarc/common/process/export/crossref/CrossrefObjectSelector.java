@@ -69,6 +69,7 @@ class CrossrefObjectSelector {
 
     /**
      * Selects articles for the passed parent (periodical issue or volume) and the article's filter.
+     *
      * @param parent a parent object to query for articles
      * @param filter {@code null} or empty set stands for all articles to include
      */
@@ -89,9 +90,9 @@ class CrossrefObjectSelector {
     /**
      * Finds exportable object and possible set of their articles that should
      * be included in the resulting export.
-     * @param pids a list of PIDs to search for
-     * @param statusHandler an event logger
-     * @return 
+     *
+     * @param pids          a list of PIDs to search for
+     * @return
      */
     private LinkedHashMap<DigitalObjectElement, Set<DigitalObjectElement>> find(
             List<String> pids
@@ -127,12 +128,12 @@ class CrossrefObjectSelector {
     }
 
     private void searchPath(List<DigitalObjectElement> entryPath,
-            Set<DigitalObjectElement> articleFilter
+                            Set<DigitalObjectElement> articleFilter
     ) throws DigitalObjectException {
         DigitalObjectElement entry = entryPath.get(0);
         String modelId = entry.getModelId();
         if (NdkPlugin.MODEL_PERIODICALISSUE.equals(modelId)
-                ) {
+        ) {
             addSelection(entryPath, articleFilter);
         } else if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(modelId)) {
             List<DigitalObjectElement> children = crawler.getChildren(entry.getPid());
@@ -161,7 +162,7 @@ class CrossrefObjectSelector {
     }
 
     private void searchChildren(DigitalObjectElement entry, List<DigitalObjectElement> entryPath,
-            List<DigitalObjectElement> children) throws DigitalObjectException {
+                                List<DigitalObjectElement> children) throws DigitalObjectException {
 
         for (DigitalObjectElement child : children) {
             List<DigitalObjectElement> childPath = new ArrayList<DigitalObjectElement>(entryPath.size() + 1);

@@ -16,18 +16,19 @@
  */
 package cz.cas.lib.proarc.common.process.export.cejsh;
 
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.DescriptionMetadata;
+import cz.cas.lib.proarc.common.object.DigitalObjectElement;
+import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.process.export.ExportParams;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
-import cz.cas.lib.proarc.common.object.DescriptionMetadata;
-import cz.cas.lib.proarc.common.object.DigitalObjectElement;
-import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
 import cz.cas.lib.proarc.common.xml.TransformErrorListener;
+import jakarta.xml.bind.DatatypeConverter;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -46,7 +47,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.xml.XMLConstants;
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -67,6 +67,12 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 import org.apache.commons.io.Charsets;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -74,12 +80,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.model.enums.CompressionLevel;
-import net.lingala.zip4j.model.enums.CompressionMethod;
-import net.lingala.zip4j.model.enums.EncryptionMethod;
 
 /**
  * Builds the cejsh package of articles.
@@ -230,6 +230,7 @@ class CejshBuilder {
 
     /**
      * Transforms a collection of articles to the bwmeta document.
+     *
      * @param src modsCollection in MODS format
      * @param dst bwmeta document
      * @return the error handler
@@ -308,6 +309,7 @@ class CejshBuilder {
     /**
      * Lists all files that should be part of a zip. Folder entries are not part of the list.
      * See issue #413.
+     *
      * @param folder a folder to scan
      * @return the list of files
      */

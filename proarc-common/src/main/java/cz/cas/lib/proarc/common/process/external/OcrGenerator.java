@@ -18,7 +18,7 @@ package cz.cas.lib.proarc.common.process.external;
 
 import java.io.File;
 import java.util.List;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * Created by Jakub Kremlacek on 19.4.17.

@@ -22,16 +22,16 @@ import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import com.yourmediashelf.fedora.generated.foxml.PropertyType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils.ControlGroup;
-import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.object.DisseminationHandler;
 import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils.ControlGroup;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.DivType.Fptr;
 import cz.cas.lib.proarc.mets.FileType;
@@ -45,6 +45,8 @@ import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.MetsType.MetsHdr;
 import cz.cas.lib.proarc.mets.MetsType.MetsHdr.Agent;
 import cz.cas.lib.proarc.mets.StructMapType;
+import jakarta.ws.rs.core.Response;
+import jakarta.xml.bind.JAXB;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -55,8 +57,6 @@ import java.net.URI;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXB;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -81,16 +81,23 @@ public class PackageBuilder {
 
     /**
      * A {@link MdWrap#setMDTYPE(java.lang.String) } helper.
+     *
      * @see <a href='http://www.loc.gov/standards/mets/docs/mets.v1-9.html#mdWrap'>mdWrap</a>
      */
-    public enum MdType { DC, MODS }
+    public enum MdType {DC, MODS}
 
     public static final String METS_FILENAME = "mets.xml";
-    /** The type of the structural map of other objects like devices. */
+    /**
+     * The type of the structural map of other objects like devices.
+     */
     public static final String STRUCTMAP_OTHERS_TYPE = "OTHERS";
-    /** The type of the structural map of digital objects. */
+    /**
+     * The type of the structural map of digital objects.
+     */
     public static final String STRUCTMAP_PHYSICAL_TYPE = "PHYSICAL";
-    /** The ID of the {@code div} containing a list of devices. */
+    /**
+     * The ID of the {@code div} containing a list of devices.
+     */
     public static final String DIV_DEVICE_LIST_ID = "DIV_DEVICES";
 
     private File pkgFolder;
@@ -142,7 +149,7 @@ public class PackageBuilder {
         agent.setROLE("CREATOR");
         agent.setTYPE("OTHER");
 //        agent.setTYPE("ORGANIZATION");
-       // metsHdr.getAgent().add(agent);
+        // metsHdr.getAgent().add(agent);
 
         mets = new Mets();
 //        mets.setID(null);
@@ -333,8 +340,8 @@ public class PackageBuilder {
     }
 
     private FileMD5Info copyStream(String pid,
-            DatastreamType dt, DatastreamVersionType ds, DisseminationHandler dHandler,
-            File dsFile
+                                   DatastreamType dt, DatastreamVersionType ds, DisseminationHandler dHandler,
+                                   File dsFile
     ) throws DigitalObjectException {
         String dsId = dt.getID();
         ControlGroup ctrlGroup = ControlGroup.fromExternal(dt.getCONTROLGROUP());

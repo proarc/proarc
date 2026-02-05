@@ -5,7 +5,7 @@
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>4.3.1-DEV</version>
+        <version>5.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -27,187 +27,28 @@
 
         <dependency>
             <groupId>org.springframework</groupId>
-            <artifactId>spring</artifactId>
-            <version>2.5</version>
-            <scope>compile</scope>
+            <artifactId>spring-core</artifactId>
+            <version>5.3.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>5.3.9</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.marc4j</groupId>
+            <artifactId>marc4j</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.jzkit</groupId>
             <artifactId>jzkit_z3950_plugin</artifactId>
-            <version>3.0.0</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>ant</artifactId>
-                    <groupId>ant</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>antlr</artifactId>
-                    <groupId>antlr</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>asm</artifactId>
-                    <groupId>asm</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>asm-attrs</artifactId>
-                    <groupId>asm</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>avalon-framework</artifactId>
-                    <groupId>avalon-framework</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>cglib</artifactId>
-                    <groupId>cglib</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>classworlds</artifactId>
-                    <groupId>classworlds</groupId>
-                </exclusion>
-                <!-- required by Z3950ServiceFactory, not by ZEndpoint -->
-                <exclusion>
-                    <artifactId>commons-beanutils</artifactId>
-                    <groupId>commons-beanutils</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>commons-collections</artifactId>
-                    <groupId>commons-collections</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>commons-digester</artifactId>
-                    <groupId>commons-digester</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>commons-discovery</artifactId>
-                    <groupId>commons-discovery</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>commons-fileupload</artifactId>
-                    <groupId>commons-fileupload</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>commons-io</artifactId>
-                    <groupId>commons-io</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>commons-logging</artifactId>
-                    <groupId>commons-logging</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>dom4j</artifactId>
-                    <groupId>dom4j</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>ehcache</artifactId>
-                    <groupId>net.sf.ehcache</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>hibernate</artifactId>
-                    <groupId>org.hibernate</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>hibernate-annotations</artifactId>
-                    <groupId>org.hibernate</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>hibernate-commons-annotations</artifactId>
-                    <groupId>org.hibernate</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>jdbm</artifactId>
-                    <groupId>jdbm</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>jta</artifactId>
-                    <groupId>javax.transaction</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>junit</artifactId>
-                    <groupId>junit</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>logkit</artifactId>
-                    <groupId>logkit</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>maven-antrun-plugin</artifactId>
-                    <groupId>org.apache.maven.plugins</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>maven-artifact</artifactId>
-                    <groupId>org.apache.maven</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>maven-artifact-manager</artifactId>
-                    <groupId>org.apache.maven</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>maven-model</artifactId>
-                    <groupId>org.apache.maven</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>maven-plugin-api</artifactId>
-                    <groupId>org.apache.maven</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>maven-profile</artifactId>
-                    <groupId>org.apache.maven</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>maven-project</artifactId>
-                    <groupId>org.apache.maven</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>maven-repository-metadata</artifactId>
-                    <groupId>org.apache.maven</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>persistence-api</artifactId>
-                    <groupId>javax.persistence</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>plexus-container-default</artifactId>
-                    <groupId>org.codehaus.plexus</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>plexus-utils</artifactId>
-                    <groupId>org.codehaus.plexus</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>servlet-api</artifactId>
-                    <groupId>javax.servlet</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>spring</artifactId>
-                    <groupId>org.springframework</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>wagon-provider-api</artifactId>
-                    <groupId>org.apache.maven.wagon</groupId>
-                </exclusion>
-                <!--                <exclusion>
-                    <artifactId>xalan</artifactId>
-                    <groupId>xalan</groupId>
-                </exclusion>-->
-                <exclusion>
-                    <artifactId>xercesImpl</artifactId>
-                    <groupId>xerces</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>xml-apis</artifactId>
-                    <groupId>xml-apis</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>xmlParserAPIs</artifactId>
-                    <groupId>xerces</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         
@@ -220,6 +61,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${maven.compiler.release}</source>
+                    <target>${maven.compiler.release}</target>
+                </configuration>
             </plugin>
 
             <plugin>

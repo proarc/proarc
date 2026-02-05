@@ -31,7 +31,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * Checks RDA rules.
@@ -54,13 +54,13 @@ public class RdaRules {
                     OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT,
                     NdkClippingPlugin.MODEL_CLIPPING_UNIT)));
 
-    public static final String ERR_NDK_RDA_EMPTYEVENTTYPE ="Err_Ndk_Rda_EmptyEventType";
+    public static final String ERR_NDK_RDA_EMPTYEVENTTYPE = "Err_Ndk_Rda_EmptyEventType";
     public static final String ERR_NDK_RDA_EMPTYVALUE = "Err_Ndk_Rda_EmptyValue";
     public static final String ERR_NDK_RDA_FILLVALUE = "Err_Ndk_Rda_FillValue";
     public static final String ERR_NDK_DESCRIPTIONSTANDARD = "Err_Ndk_DescriptionStandard";
     public static final String ERR_NDK_AACR_EMPTYVALUE = "Err_Ndk_Aacr_EmptyValue";
     public static final String ERR_NDK_AACR_INVALIDVALUE = "Err_Ndk_Aacr_InvalidValue";
-    public static final String ERR_NDK_ORIGININFO_EVENTTYPE_WRONGVALUE ="Err_Ndk_OriginInfo_EventType_WrongValue";
+    public static final String ERR_NDK_ORIGININFO_EVENTTYPE_WRONGVALUE = "Err_Ndk_OriginInfo_EventType_WrongValue";
 
     public RdaRules(String modelId, ModsDefinition mods, DigitalObjectValidationException ex) {
         this.modelId = modelId;
@@ -68,21 +68,24 @@ public class RdaRules {
         this.exception = ex;
     }
 
-    private RdaRules() {}
+    private RdaRules() {
+    }
 
-    public void check() throws DigitalObjectValidationException{
+    public void check() throws DigitalObjectValidationException {
         if (HAS_MEMBER_RDA_VALIDATION_MODELS.contains(modelId)) {
             checkAndRepairRules(mods);
             for (OriginInfoDefinition oi : mods.getOriginInfo()) {
                 checkOriginInfoRdaRules(oi);
             }
         }
-        if (!exception.getValidations().isEmpty()){
+        if (!exception.getValidations().isEmpty()) {
             throw exception;
         }
     }
 
-    /** Checks if the correct fields are filled depending on eventType */
+    /**
+     * Checks if the correct fields are filled depending on eventType
+     */
     private void checkOriginInfoRdaRules(OriginInfoDefinition oi) {
         String eventType = oi.getEventType();
         if (eventType == null || ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION.equals(eventType)) {
@@ -112,14 +115,16 @@ public class RdaRules {
 
     private boolean hasDateOtherPublication(List<DateOtherDefinition> dateOthers) {
         for (DateOtherDefinition dateOther : dateOthers) {
-            if ("publication".equals(dateOther.getType())) {
+            if ("publication".equals(dateOther.getTypeString())) {
                 return true;
             }
         }
         return false;
     }
 
-    /** Checks if elements in List is null */
+    /**
+     * Checks if elements in List is null
+     */
     private void checkDateNull(List dates, String event, String element, boolean mustBeFill) {
         for (Object date : dates) {
             Object dateValue = ((DateDefinition) date).getValue();
@@ -131,11 +136,13 @@ public class RdaRules {
         }
     }
 
-    /** Checks if elements in List is null */
+    /**
+     * Checks if elements in List is null
+     */
     private void checkDateOtherNull4Publication(List dates, String event, String element, boolean mustBeFill) {
         for (Object date : dates) {
             Object dateValue = ((DateOtherDefinition) date).getValue();
-            String dateType = ((DateOtherDefinition) date).getType();
+            String dateType = ((DateOtherDefinition) date).getTypeString();
             if (!"publication".equals(dateType)) {
                 if (mustBeFill && dateValue == null) {
                     exception.addValidation("RDA rules", ERR_NDK_RDA_FILLVALUE, true);
@@ -146,7 +153,9 @@ public class RdaRules {
         }
     }
 
-    /** Checks if the list is empty */
+    /**
+     * Checks if the list is empty
+     */
     private boolean checkDateEmpty(List dates, String event, String element, boolean mustBeFill) {
         if (mustBeFill && dates.isEmpty()) {
             exception.addValidation("RDA rules", ERR_NDK_RDA_FILLVALUE, true, element, event);
@@ -158,7 +167,9 @@ public class RdaRules {
         return false;
     }
 
-    /** Checks if the correct fields are filled depending on eventType */
+    /**
+     * Checks if the correct fields are filled depending on eventType
+     */
     private void checkAndRepairRules(ModsDefinition mods) {
         if (mods.getRecordInfo().isEmpty()) {
             return;
@@ -177,7 +188,9 @@ public class RdaRules {
         }
     }
 
-    /** Check rules for descriptionStandard=RDA */
+    /**
+     * Check rules for descriptionStandard=RDA
+     */
     private void checkRDA(ModsDefinition mods) {
         boolean fillEventType = false;      //true only when eventType="publication" or "production"
         if (mods.getOriginInfo().size() == 0) {
@@ -195,7 +208,9 @@ public class RdaRules {
         }
     }
 
-    /** Check rules for descriptionStandard=AACR */
+    /**
+     * Check rules for descriptionStandard=AACR
+     */
     private void checkAACR(ModsDefinition mods) {
         for (OriginInfoDefinition oi : mods.getOriginInfo()) {
             if (oi.getEventType() != null) {
@@ -210,20 +225,25 @@ public class RdaRules {
         }
     }
 
-    /** Compare if descriptionStandard has only allowed value
-     *  Allowed value are RDA or AACR
+    /**
+     * Compare if descriptionStandard has only allowed value
+     * Allowed value are RDA or AACR
      */
     private boolean unallowedValueinDescriptionStandard(String descriptionStandard) {
         return !ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA.equalsIgnoreCase(descriptionStandard)
                 && !ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(descriptionStandard);
     }
 
-    /** @return true when String is null, otherwise @return false */
+    /**
+     * @return true when String is null, otherwise @return false
+     */
     private boolean isDescriptionStandardNull(String descriptionStandard) {
         return descriptionStandard == null;
     }
 
-    /** Sets value AACR in descriptionStandard */
+    /**
+     * Sets value AACR in descriptionStandard
+     */
     private void setDescriptionStandard(ModsDefinition mods) {
         StringPlusLanguagePlusAuthority description = new StringPlusLanguagePlusAuthority();
         description.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR);

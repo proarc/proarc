@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.common.dao;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.sql.Timestamp;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 
 /**
  * The batch describes group of {@link BatchItem items} related to some task
@@ -42,7 +42,6 @@ public class Batch {
     public static final String EXPORT_KRAMERIUS = "exportProfile.kramerius";
     public static final String EXPORT_NDK = "exportProfile.ndk";
     public static final String EXPORT_ARCHIVE = "exportProfile.archive";
-    public static final String EXPORT_DESA = "exportProfile.desa";
     public static final String EXPORT_CEJSH = "exportProfile.cejsh";
     public static final String EXPORT_CROSSREF = "exportProfile.crossref";
     public static final String EXPORT_KWIS = "exportProfile.kwis";
@@ -68,14 +67,14 @@ public class Batch {
 
         EMPTY, LOADING, IMPORT_PLANNED, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, LOADING_CONFLICT,
         EXPORTING, EXPORT_PLANNED, EXPORT_FAILED, EXPORT_VALID_WARNING, EXPORT_DONE,
-//        REINDEXING, REINDEX_FAILED, REINDEX_DONE,
+        //        REINDEXING, REINDEX_FAILED, REINDEX_DONE,
 //        CHANGING_OWNERS, CHANGE_OWNERS_FAILED, CHANGE_OWNERS_DONE,
         UPLOADING, UPLOAD_FAILED, UPLOAD_DONE,
         INTERNAL_RUNNING, INTERNAL_PLANNED, INTERNAL_FAILED, INTERNAL_DONE,
         EXTERNAL_RUNNING, EXTERNAL_PLANNED, EXTERNAL_FAILED, EXTERNAL_DONE,
         STOPPED
     }
-    
+
     private Integer id;
     private String folder;
     private String title;

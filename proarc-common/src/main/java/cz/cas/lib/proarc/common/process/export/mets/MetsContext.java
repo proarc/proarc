@@ -35,14 +35,14 @@ import java.util.Optional;
 
 /**
  * Context for Mets mets export
- *
+ * <p>
  * If Fedora is used as a source for FoXML documents, then fedoraClient should
  * be set and fsParentMap and path should be empty.
- *
+ * <p>
  * If FoXML documents are stored on a file system, then fedoraClient should be
  * empty and fsParentMap must contain parent mappings and path is an absolute
  * path to the directory with FoXML documents
- *
+ * <p>
  * outputPath is an absolute path where PSP packages are stored
  *
  * @author Robert Simonovsky
@@ -67,14 +67,18 @@ public class MetsContext {
     private JhoveContext jhoveContext;
     private NdkExportOptions options;
 
-    /** Sets options */
-    public void setConfig(NdkExportOptions options){
+    /**
+     * Sets options
+     */
+    public void setConfig(NdkExportOptions options) {
         this.options = options;
     }
 
 
-    /** Returns options */
-    public NdkExportOptions getOptions(){
+    /**
+     * Returns options
+     */
+    public NdkExportOptions getOptions() {
         return options;
     }
 
@@ -92,6 +96,7 @@ public class MetsContext {
 
     /**
      * Sets the ProArc version
+     *
      * @param proarcVersion
      */
     public void setProarcVersion(String proarcVersion) {
@@ -105,6 +110,7 @@ public class MetsContext {
     public void setPackageDir(File packageDir) {
         this.packageDir = packageDir;
     }
+
     /**
      * Resets the element Id counter
      *
@@ -115,6 +121,7 @@ public class MetsContext {
         packageID = null;
         rootElement = null;
     }
+
     /**
      * returns true if URNNBN is not mandatory
      *

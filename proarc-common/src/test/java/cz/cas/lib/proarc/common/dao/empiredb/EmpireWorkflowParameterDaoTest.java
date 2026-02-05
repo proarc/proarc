@@ -30,10 +30,12 @@ import java.util.Map;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -48,7 +50,7 @@ public class EmpireWorkflowParameterDaoTest {
     private EmpireWorkflowParameterDao dao;
     private Timestamp dbTimestamp;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         support = new DbUnitSupport();
         schema = support.getEmireCfg().getSchema();
@@ -59,7 +61,7 @@ public class EmpireWorkflowParameterDaoTest {
         dao.setTransaction(tx);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         if (tx != null) {
             tx.close();
@@ -80,8 +82,8 @@ public class EmpireWorkflowParameterDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         Task task = new Task().addId(BigDecimal.ONE);
@@ -129,8 +131,8 @@ public class EmpireWorkflowParameterDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_param.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         Task task = new Task().addId(BigDecimal.ONE);
@@ -151,8 +153,8 @@ public class EmpireWorkflowParameterDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_param.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         Task task = new Task().addId(BigDecimal.ONE);

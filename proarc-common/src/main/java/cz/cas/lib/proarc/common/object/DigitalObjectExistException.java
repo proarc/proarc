@@ -28,7 +28,7 @@ public class DigitalObjectExistException extends DigitalObjectException {
     private static final long serialVersionUID = 1L;
 
     public DigitalObjectExistException(String pid,
-            Integer batchId, String message, Throwable cause) {
+                                       Integer batchId, String message, Throwable cause) {
 
         super(pid, batchId, null, message, cause);
     }

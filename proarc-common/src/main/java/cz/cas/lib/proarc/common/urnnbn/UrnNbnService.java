@@ -208,7 +208,8 @@ public class UrnNbnService {
         }
 
         try {
-            cz.cas.lib.proarc.urnnbn.model.response.Response response = ctx.getClient().deactivateUrnNbnValue(urnNbnValue);;
+            cz.cas.lib.proarc.urnnbn.model.response.Response response = ctx.getClient().deactivateUrnNbnValue(urnNbnValue);
+            ;
             ErrorType error = response.getError();
             if (error != null) {
                 // remote deactivation failed
@@ -225,7 +226,7 @@ public class UrnNbnService {
                 return statusHandler;
             }
             UrnNbn urnNbn = response.getUrnNbn();
-            if (urnNbn == null || urnNbn.getValue() == null) {
+            if (urnNbn == null || urnNbn.getUrnNbnElementValue() == null) {
                 statusHandler.error(urnNbnValue, Status.EXCEPTION,
                         "The resolver returns no URN:NBN value! Check the server configuration.");
             } else {
@@ -246,7 +247,7 @@ public class UrnNbnService {
                         statusHandler.ok(registrarScopeIdentifier.getType() + ":" + registrarScopeIdentifier.getValue(), "Deactivated " + urnNbnValue);
                     }
                 } else {
-                    statusHandler.error(urnNbnValue, Status.EXCEPTION, urnNbn.getStatus() + ":" + urnNbn.getValue());
+                    statusHandler.error(urnNbnValue, Status.EXCEPTION, urnNbn.getStatus() + ":" + urnNbn.getUrnNbnElementValue());
                 }
             }
         } catch (Exception ex) {

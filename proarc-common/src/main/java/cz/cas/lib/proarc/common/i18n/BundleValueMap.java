@@ -38,9 +38,10 @@ public class BundleValueMap extends ValueMap<BundleValue> {
 
     /**
      * Creates a value map from a resource bundle.
-     * @param mapId map ID
+     *
+     * @param mapId    map ID
      * @param baseName resource bundle name
-     * @param locale locale
+     * @param locale   locale
      * @return the sorted value map
      */
     public static ValueMap<BundleValue> fromBundle(String mapId, String baseName, Locale locale) {

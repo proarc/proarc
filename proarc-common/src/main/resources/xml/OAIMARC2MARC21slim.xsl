@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet xmlns="http://www.loc.gov/MARC21/slim" xmlns:oai="http://www.openarchives.org/OAI/1.1/oai_marc" version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" exclude-result-prefixes="oai">
+<xsl:stylesheet xmlns="http://www.loc.gov/MARC21/slim" xmlns:oai="http://www.openarchives.org/OAI/1.1/oai_marc"
+                version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" exclude-result-prefixes="oai">
     <xsl:template match="oai:oai_marc">
         <record xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/MARC21/slim
-        http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd" >
+        http://www.loc.gov/standards/marcxml/schema/MARC21slim.xsd">
             <leader>
                 <!--#486: use the real leader if there is oai:fixfield[@id='LDR']-->
                 <xsl:choose>
                     <xsl:when test="oai:fixfield[@id='LDR']">
-                        <xsl:value-of select="(oai:fixfield[@id='LDR'])[1]" />
+                        <xsl:value-of select="(oai:fixfield[@id='LDR'])[1]"/>
                     </xsl:when>
                     <xsl:otherwise>
                         <xsl:text>     </xsl:text>
@@ -28,7 +29,7 @@
     <xsl:template match="oai:fixfield">
         <xsl:element name="controlfield">
             <xsl:call-template name="id2tag"/>
-<!--            <xsl:value-of select="substring(text(),1,string-length(text())-1)"/>-->
+            <!--            <xsl:value-of select="substring(text(),1,string-length(text())-1)"/>-->
             <xsl:value-of select="text()"/>
         </xsl:element>
     </xsl:template>

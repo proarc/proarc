@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -19,14 +19,14 @@ package cz.cas.lib.proarc.common.mods.custom;
 import cz.cas.lib.proarc.mods.ObjectFactory;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
+import jakarta.xml.bind.JAXBElement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
 
 /**
  *
@@ -78,12 +78,12 @@ public final class MapperUtils {
     public static List<JAXBElement<String>> toJaxb(List<String> values, QName name) {
         ArrayList<JAXBElement<String>> result = new ArrayList<>(values.size());
         for (String value : values) {
-            result.add( new JAXBElement<>(name, String.class, value));
+            result.add(new JAXBElement<>(name, String.class, value));
         }
         return result;
     }
 
-    public static  <T> T findFirst(List<?> list, Class<T> type) {
+    public static <T> T findFirst(List<?> list, Class<T> type) {
         Iterator<T> it = find(list, type).iterator();
         return it.hasNext() ? it.next() : null;
     }
@@ -102,7 +102,7 @@ public final class MapperUtils {
         JAXBElement<?> elm = findFirst(elms, names);
         return elm == null ? null : type.cast(elm.getValue());
     }
-    
+
     public static JAXBElement<?> findFirst(List<JAXBElement<?>> elms, QName... names) {
         for (JAXBElement<?> elm : elms) {
             QName elmName = elm.getName();
@@ -138,7 +138,7 @@ public final class MapperUtils {
         }
         return result;
     }
-    
+
     public static <T> List<JAXBElement<T>> find(List<JAXBElement<T>> elms, QName... names) {
         List<JAXBElement<T>> result = new ArrayList<>();
         for (JAXBElement<T> elm : elms) {
@@ -183,7 +183,7 @@ public final class MapperUtils {
     }
 
     public static void remove(List<?> list, Class<?> type) {
-        for (Iterator<?> it = list.iterator(); it.hasNext();) {
+        for (Iterator<?> it = list.iterator(); it.hasNext(); ) {
             Object item = it.next();
             if (type.isInstance(item)) {
                 it.remove();
@@ -208,7 +208,7 @@ public final class MapperUtils {
     public static <T> List<T> noNull(List<T> list) {
         return noNull(list, false);
     }
-    
+
     public static <T> List<T> noNull(List<T> list, boolean liveList) {
         return list != null
                 ? list

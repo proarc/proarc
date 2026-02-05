@@ -95,7 +95,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
-                new RelationCriteria[] {}
+                new RelationCriteria[]{}
         ));
         // eMonograph unit should contain some media (e.g. PDF)
         models.add(new MetaModel(
@@ -106,8 +106,8 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA),
-                new RelationCriteria[] {new RelationCriteria(MODEL_EMONOGRAPHTITLE, RelationCriteria.Type.PID)}
+                        DatastreamEditorType.ATM, DatastreamEditorType.MEDIA),
+                new RelationCriteria[]{new RelationCriteria(MODEL_EMONOGRAPHTITLE, RelationCriteria.Type.PID)}
         ));
         // eMonograph volume should contain some media (e.g. PDF)
         models.add(new MetaModel(
@@ -118,7 +118,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA)
+                        DatastreamEditorType.ATM, DatastreamEditorType.MEDIA)
         ));
         models.add(new MetaModel(
                 MODEL_EMONOGRAPHSUPPLEMENT, null, null,
@@ -128,8 +128,8 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA),
-                new RelationCriteria[] {
+                        DatastreamEditorType.ATM, DatastreamEditorType.MEDIA),
+                new RelationCriteria[]{
                         new RelationCriteria(MODEL_EMONOGRAPHVOLUME, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_EMONOGRAPHUNIT, RelationCriteria.Type.PID)
                 }
@@ -145,7 +145,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         DatastreamEditorType.OCR, DatastreamEditorType.MEDIA,
                         DatastreamEditorType.ATM),
                 //new RelationCriteria[] {new RelationCriteria(MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)} why periodical?
-                new RelationCriteria[] {
+                new RelationCriteria[]{
                         new RelationCriteria(MODEL_EMONOGRAPHVOLUME, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_EMONOGRAPHUNIT, RelationCriteria.Type.PID)
                 }
@@ -158,7 +158,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
-                new RelationCriteria[] {}
+                new RelationCriteria[]{}
         ));
         models.add(new MetaModel(
                 MODEL_EPERIODICALVOLUME, null, null,
@@ -169,8 +169,8 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICAL, RelationCriteria.Type.PID),
-                                        new RelationCriteria(NdkPlugin.MODEL_PERIODICAL, RelationCriteria.Type.PID)}
+                new RelationCriteria[]{new RelationCriteria(MODEL_EPERIODICAL, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_PERIODICAL, RelationCriteria.Type.PID)}
         ));
         // eIssue volume should contain some media (e.g. PDF)
         models.add(new MetaModel(
@@ -182,8 +182,8 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM, DatastreamEditorType.MEDIA),
-                new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID),
-                                        new RelationCriteria(NdkPlugin.MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)}
+                new RelationCriteria[]{new RelationCriteria(MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)}
         ));
         models.add(new MetaModel(
                 MODEL_EPERIODICALSUPPLEMENT, null, null,
@@ -193,8 +193,8 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                        DatastreamEditorType.ATM,  DatastreamEditorType.MEDIA),
-                new RelationCriteria[] {
+                        DatastreamEditorType.ATM, DatastreamEditorType.MEDIA),
+                new RelationCriteria[]{
                         new RelationCriteria(MODEL_EPERIODICALISSUE, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkPlugin.MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_EPERIODICALVOLUME, RelationCriteria.Type.PID),
@@ -210,7 +210,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.OCR, DatastreamEditorType.MEDIA,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {new RelationCriteria(MODEL_EPERIODICALISSUE, RelationCriteria.Type.PID)}
+                new RelationCriteria[]{new RelationCriteria(MODEL_EPERIODICALISSUE, RelationCriteria.Type.PID)}
 
         ));
         return Collections.unmodifiableList(models);
@@ -218,7 +218,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
 
     @Override
     public <T extends HasDataHandler> T getHandlerProvider(Class<T> type) {
-        return type.isInstance(this) ? type.cast(this): null;
+        return type.isInstance(this) ? type.cast(this) : null;
 //        if (!type.equals(HasMetadataHandler.class)) {
 //            return null;
 //        } else if (type.equals(HasDisseminationHandler.class)) {

@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.process.imports.audio;
 
 import com.yourmediashelf.fedora.generated.foxml.ObjectFactory;
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
@@ -27,23 +26,23 @@ import cz.cas.lib.proarc.common.dao.BatchItemDao;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
+import cz.cas.lib.proarc.common.process.imports.FileSet;
+import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.process.imports.FileSet;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
-import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
-import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.File;
@@ -57,37 +56,34 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import org.apache.commons.io.FileUtils;
-import org.custommonkey.xmlunit.SimpleNamespaceContext;
-import org.custommonkey.xmlunit.XMLAssert;
-import org.custommonkey.xmlunit.XMLUnit;
-import org.custommonkey.xmlunit.exceptions.XpathException;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xmlunit.xpath.JAXPXPathEngine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-//import cz.cas.lib.proarc.common.fedora.Aes57Editor;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.xmlunit.assertj.XmlAssert.assertThat;
 
 public class WaveImporterTest {
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder();
+    @TempDir
+    File tempDir;
 
     private File ac1;
     private File uc1;
     private AppConfiguration config;
     private AkubraConfiguration akubraConfiguration;
-    private ArrayList<Object> toVerify = new ArrayList<Object>();;
+    private ArrayList<Object> toVerify = new ArrayList<Object>();
+    ;
     private JhoveContext jhoveContext;
     private UserProfile junit;
     private BatchManager ibm;
@@ -95,19 +91,19 @@ public class WaveImporterTest {
     public WaveImporterTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         junit = new UserProfile();
         junit.setUserName("junit");
-        File root = temp.getRoot();
+        File root = tempDir;
         System.out.println("root: " + root.toString());
 
         ac1 = new File(root, "audio1.ac.wav");
@@ -121,7 +117,7 @@ public class WaveImporterTest {
         assertTrue(uc1.length() > 0);
 
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
+            put(AppConfiguration.PROPERTY_APP_HOME, tempDir.getPath());
         }});
         if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
@@ -129,7 +125,9 @@ public class WaveImporterTest {
             this.akubraConfiguration = null;
         }
 
-        jhoveContext = JhoveUtility.createContext(temp.newFolder("jhove"));
+        File jhoveFolder = new File(tempDir, "jhove");
+        jhoveFolder.mkdirs();
+        jhoveContext = JhoveUtility.createContext(jhoveFolder);
 
         DaoFactory daos = createMockDaoFactory();
         ibm = new BatchManager(config, daos);
@@ -142,7 +140,7 @@ public class WaveImporterTest {
         );
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         if (jhoveContext != null) {
             jhoveContext.destroy();
@@ -198,9 +196,8 @@ public class WaveImporterTest {
     }
 
     @Test
-    public void testConsume() throws IOException, SAXException, XpathException {
-        temp.setDeleteOnExit(true);
-        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot(), config.getImportConfiguration(), null);
+    public void testConsume() throws IOException, SAXException {
+        File targetFolder = ImportProcess.createTargetFolder(tempDir, config.getImportConfiguration(), null);
         assertTrue(targetFolder.exists());
 
         String mimetype = ImportProcess.findMimeType(ac1);
@@ -227,20 +224,11 @@ public class WaveImporterTest {
         assertEquals(ObjectState.LOADED, result.getState());
 
         File foxml = result.getFile();
-        assertTrue(foxml.toString(), foxml.exists());
+        assertTrue(foxml.exists(), () -> foxml.toString());
 
         File rootFoxml = new File(foxml.getParent(), BatchManager.ROOT_ITEM_FILENAME);
-        assertTrue(rootFoxml.toString(), rootFoxml.exists());
-/*
-        File preview1 = new File(targetFolder, "audio1.preview.jpg");
-        assertTrue(preview1.exists() && preview1.length() > 0);
+        assertTrue(rootFoxml.exists(), () -> rootFoxml.toString());
 
-        File thumb = new File(targetFolder, "audio1.thumb.jpg");
-        assertTrue(thumb.exists() && thumb.length() > 0);
-
-        File raw = new File(targetFolder, "audio1.full.jpg");
-        assertTrue(raw.exists() && raw.length() > 0);
-*/
         SchemaFactory sfactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         URL foxmlXsdUrl = ObjectFactory.class.getResource("/xsd/foxml/foxml1-1.xsd");
         assertNotNull(foxmlXsdUrl);
@@ -250,22 +238,23 @@ public class WaveImporterTest {
         // check datastreams with xpath
         HashMap<String, String> namespaces = new HashMap<String, String>();
         namespaces.put("f", "info:fedora/fedora-system:def/foxml#");
-        XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
+
+        JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+        xpathEngine.setNamespaceContext(namespaces);
+
         String foxmlSystemId = foxml.toURI().toASCIIString();
-        XMLAssert.assertXpathExists(streamXPath(ModsStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(DcStreamEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(RelationEditor.DATASTREAM_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.FULL_ID), new InputSource(foxmlSystemId));
-        //XMLAssert.assertXpathExists(streamXPath(BinaryEditor.PREVIEW_ID), new InputSource(foxmlSystemId));
-        //MLAssert.assertXpathExists(streamXPath(BinaryEditor.THUMB_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.RAW_AUDIO_ID), new InputSource(foxmlSystemId));
-        //XMLAssert.assertXpathExists(streamXPath(Aes57Editor.RAW_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.NDK_AUDIO_ARCHIVAL_ID), new InputSource(foxmlSystemId));
-        XMLAssert.assertXpathExists(streamXPath(BinaryEditor.NDK_AUDIO_USER_ID), new InputSource(foxmlSystemId));
-        //XMLAssert.assertXpathExists(streamXPath(Aes57Editor.NDK_ARCHIVAL_ID), new InputSource(foxmlSystemId));
+
+
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(ModsStreamEditor.DATASTREAM_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(DcStreamEditor.DATASTREAM_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(RelationEditor.DATASTREAM_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.FULL_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.RAW_AUDIO_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.NDK_AUDIO_ARCHIVAL_ID));
+        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.NDK_AUDIO_USER_ID));
 
         String rootSystemId = rootFoxml.toURI().toASCIIString();
-        XMLAssert.assertXpathExists(streamXPath(RelationEditor.DATASTREAM_ID), new InputSource(rootSystemId));
+        assertThat(new InputSource(rootSystemId)).hasXPath(streamXPath(RelationEditor.DATASTREAM_ID));
         EasyMock.verify(toVerify.toArray());
     }
 
@@ -274,7 +263,7 @@ public class WaveImporterTest {
         assertTrue(uc1.delete());
         assertTrue(config.getImportConfiguration().getRequiredDatastreamId().contains(BinaryEditor.NDK_ARCHIVAL_ID));
 
-        File targetFolder = ImportProcess.createTargetFolder(temp.getRoot(), config.getImportConfiguration(), null);
+        File targetFolder = ImportProcess.createTargetFolder(tempDir, config.getImportConfiguration(), null);
         assertTrue(targetFolder.exists());
 
         ImportOptions ctx = new ImportOptions(ac1.getParentFile(),
@@ -293,6 +282,6 @@ public class WaveImporterTest {
         assertEquals(ObjectState.LOADING_FAILED, result.getState());
         String log = result.getLog();
         assertNotNull(log);
-        assertTrue(log, log.contains("Missing audio user copy: "));
+        assertTrue(log.contains("Missing audio user copy: "), () -> log);
     }
 }

@@ -46,7 +46,7 @@ public interface BatchDao extends Dao {
 
     @Deprecated
     List<BatchView> view(Integer userId, Integer batchId, Set<State> state,
-            Timestamp from, Timestamp to, int offset, int maxCount, String sortBy);
+                         Timestamp from, Timestamp to, int offset, int maxCount, String sortBy);
 
     List<Batch> findLoadingBatches();
 

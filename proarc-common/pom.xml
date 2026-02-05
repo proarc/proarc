@@ -9,7 +9,7 @@
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>4.3.1-DEV</version>
+        <version>5.0.0-SNAPSHOT</version>
         <!-- fill version in MetsElementVisitor in factory.createCreatingApplicationVersion -->
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -27,11 +27,98 @@
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>cz.incad</groupId>
+            <artifactId>img-support</artifactId>
+        </dependency>
         <dependency>
             <groupId>net.lingala.zip4j</groupId>
             <artifactId>zip4j</artifactId>
-            <version>2.11.5</version>
         </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-configuration2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-jackson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>log4j-over-slf4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openpreservation.jhove</groupId>
+            <artifactId>jhove-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.yourmediashelf.fedora.client</groupId>
+            <artifactId>fedora-client-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-jaxb-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jmockit</groupId>
+            <artifactId>jmockit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-solrj</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.akubraproject</groupId>
+            <artifactId>akubra-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.akubraproject</groupId>
+            <artifactId>akubra-fs</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.akubraproject</groupId>
+            <artifactId>akubra-map</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.empire-db</groupId>
+            <artifactId>empire-db</artifactId>
+        </dependency>
+
+
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-mets</artifactId>
@@ -54,29 +141,8 @@
         </dependency>
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
-            <artifactId>proarc-desa</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-urnnbn</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openpreservation.jhove</groupId>
-            <artifactId>jhove-core</artifactId>
-            <version>1.16.7</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openpreservation.jhove</groupId>
-            <artifactId>jhove-modules</artifactId>
-            <version>1.16.7</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.3</version>
-            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
@@ -88,129 +154,10 @@
             <artifactId>proarc-z3950</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>cz.incad</groupId>
-            <artifactId>img-support</artifactId>
-            <version>0.0.1</version>
-        </dependency>
-
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-nsesss</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>cz.registrdigitalizace</groupId>
-            <artifactId>soapclient</artifactId>
-            <version>1.1</version>
-            <exclusions>
-                <!-- JAX-WS 2.2 JDK 1.6 support-->
-                <!--excluded jaxb-api and jaxws-api that must be placed in ${catalina.base}/endorsed folder-->
-                <exclusion>
-                    <artifactId>jaxws-api</artifactId>
-                    <groupId>javax.xml.ws</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>commons-configuration</groupId>
-            <artifactId>commons-configuration</artifactId>
-            <version>1.8</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
-            <version>2.2.5-2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.empire-db</groupId>
-            <artifactId>empire-db</artifactId>
-            <version>2.4.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-client</artifactId>
-            <version>${jerseyVersion2}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.yourmediashelf.fedora.client</groupId>
-            <artifactId>fedora-client-core</artifactId>
-            <version>0.7</version>
-        </dependency>
-        <!--javax.ws.rs.core.MediaType-->
-        <!--JsonUtils-->
-        <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-json</artifactId>
-            <version>${jerseyVersion}</version>
-            <exclusions>
-                <!-- excluded not to downgrade soapclient/jaxws-rt/jaxb-impl.2.2.5-2-->
-                <exclusion>
-                    <artifactId>jaxb-impl</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-module-jaxb-annotations</artifactId>
-            <version>${jacksonVersion}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.quartz-scheduler</groupId>
-            <artifactId>quartz</artifactId>
-            <version>2.3.2</version>
-        </dependency>
-
-        <!-- tests -->
-        <dependency>
-            <groupId>org.jmockit</groupId>
-            <artifactId>jmockit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.dbunit</groupId>
-            <artifactId>dbunit</artifactId>
-            <version>2.4.9</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>xmlunit</groupId>
-            <artifactId>xmlunit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
@@ -221,69 +168,41 @@
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-codingHistory</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>cz.incad.kramerius</groupId>
-            <artifactId>common</artifactId>
-            <version>7.0.9</version>
-        </dependency>
-<!--        <dependency>-->
-<!--            <groupId>cz.incad.kramerius</groupId>-->
-<!--            <artifactId>import-jaxb</artifactId>-->
-<!--            <version>7.0.9</version>-->
-<!--        </dependency>-->
-        <dependency>
-            <groupId>org.apache.solr</groupId>
-            <artifactId>solr-solrj</artifactId>
-            <version>6.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.ehcache</groupId>
-            <artifactId>ehcache</artifactId>
-            <version>3.3.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-all</artifactId>
-            <version>3.11.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.akubraproject</groupId>
-            <artifactId>akubra-core</artifactId>
-            <version>0.4.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.akubraproject</groupId>
-            <artifactId>akubra-fs</artifactId>
-            <version>0.4.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.akubraproject</groupId>
-            <artifactId>akubra-map</artifactId>
-            <version>0.4.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>RELEASE</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-foxml</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
         </dependency>
         <dependency>
-            <groupId>fast-md5</groupId>
-            <artifactId>fast-md5</artifactId>
-            <version>2.5</version>
+            <groupId>cz.incad.kramerius</groupId>
+            <artifactId>common</artifactId>
         </dependency>
         <dependency>
-            <groupId>cz.cas.lib.proarc</groupId>
-            <artifactId>proarc-mix</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.xmlunit</groupId>
+            <artifactId>xmlunit-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.xmlunit</groupId>
+            <artifactId>xmlunit-assertj</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.dbunit</groupId>
+            <artifactId>dbunit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
         </dependency>
 
 
@@ -315,6 +234,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${maven.compiler.release}</source>
+                    <target>${maven.compiler.release}</target>
+                </configuration>
             </plugin>
 
             <plugin>
@@ -322,13 +245,13 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <systemPropertyVariables>
-                        <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties</java.util.logging.config.file>
+                        <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties
+                        </java.util.logging.config.file>
                     </systemPropertyVariables>
                     <systemPropertiesFile>${proarc-common.junit.properties.file}</systemPropertiesFile>
                 </configuration>
             </plugin>
 
-            <!--Create sources.jar to allow inheriting included GWT modules-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -362,15 +285,22 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <systemPropertyVariables>
-                                <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties</java.util.logging.config.file>
-                                <proarc-common.DbUnitSupport.jdbc.url>jdbc:postgresql://localhost:5432/proarc_test</proarc-common.DbUnitSupport.jdbc.url>
+                                <java.util.logging.config.file>${project.build.testOutputDirectory}/logging.properties
+                                </java.util.logging.config.file>
+                                <proarc-common.DbUnitSupport.jdbc.url>jdbc:postgresql://localhost:5432/proarc_test
+                                </proarc-common.DbUnitSupport.jdbc.url>
                                 <proarc-common.DbUnitSupport.jdbc.user>postgres</proarc-common.DbUnitSupport.jdbc.user>
                                 <proarc-common.DbUnitSupport.jdbc.passwd></proarc-common.DbUnitSupport.jdbc.passwd>
-                                <proarc-common.DbUnitSupport.jdbc.driver>org.postgresql.Driver</proarc-common.DbUnitSupport.jdbc.driver>
-                                <proarc-common.DbUnitSupport.empiredb.driver>org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL</proarc-common.DbUnitSupport.empiredb.driver>
-                                <proarc-common.FedoraTestSupport.url>http://localhost:8085/fedora</proarc-common.FedoraTestSupport.url>
+                                <proarc-common.DbUnitSupport.jdbc.driver>org.postgresql.Driver
+                                </proarc-common.DbUnitSupport.jdbc.driver>
+                                <proarc-common.DbUnitSupport.empiredb.driver>
+                                    org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL
+                                </proarc-common.DbUnitSupport.empiredb.driver>
+                                <proarc-common.FedoraTestSupport.url>http://localhost:8085/fedora
+                                </proarc-common.FedoraTestSupport.url>
                                 <proarc-common.FedoraTestSupport.user>fedoraAdmin</proarc-common.FedoraTestSupport.user>
-                                <proarc-common.FedoraTestSupport.passwd>fedoraAdmin</proarc-common.FedoraTestSupport.passwd>
+                                <proarc-common.FedoraTestSupport.passwd>fedoraAdmin
+                                </proarc-common.FedoraTestSupport.passwd>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>

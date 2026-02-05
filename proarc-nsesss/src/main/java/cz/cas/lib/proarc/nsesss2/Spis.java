@@ -8,23 +8,23 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 
 /**
  * <p>Java class for anonymous complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType>
  *   &lt;complexContent>
@@ -38,13 +38,13 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "evidencniUdaje",
-    "dokumenty"
+        "evidencniUdaje",
+        "dokumenty"
 })
 @XmlRootElement(name = "Spis", namespace = "http://www.mvcr.cz/nsesss/v2")
 public class Spis {
@@ -61,11 +61,10 @@ public class Spis {
 
     /**
      * Gets the value of the evidencniUdaje property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TEvidencniUdajeSpisu }
-     *     
+     *
+     * @return possible object is
+     * {@link TEvidencniUdajeSpisu }
+     *
      */
     public TEvidencniUdajeSpisu getEvidencniUdaje() {
         return evidencniUdaje;
@@ -73,11 +72,10 @@ public class Spis {
 
     /**
      * Sets the value of the evidencniUdaje property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TEvidencniUdajeSpisu }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TEvidencniUdajeSpisu }
+     *
      */
     public void setEvidencniUdaje(TEvidencniUdajeSpisu value) {
         this.evidencniUdaje = value;
@@ -85,11 +83,10 @@ public class Spis {
 
     /**
      * Gets the value of the dokumenty property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDokumenty }
-     *     
+     *
+     * @return possible object is
+     * {@link TDokumenty }
+     *
      */
     public TDokumenty getDokumenty() {
         return dokumenty;
@@ -97,11 +94,10 @@ public class Spis {
 
     /**
      * Sets the value of the dokumenty property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDokumenty }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDokumenty }
+     *
      */
     public void setDokumenty(TDokumenty value) {
         this.dokumenty = value;
@@ -109,11 +105,10 @@ public class Spis {
 
     /**
      * Gets the value of the id property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getID() {
         return id;
@@ -121,11 +116,10 @@ public class Spis {
 
     /**
      * Sets the value of the id property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setID(String value) {
         this.id = value;

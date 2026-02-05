@@ -18,7 +18,7 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 
 import cz.cas.lib.proarc.common.dao.Dao;
 import cz.cas.lib.proarc.common.dao.Transaction;
-import java.sql.Connection;
+import org.apache.empire.db.DBContext;
 
 /**
  *
@@ -50,8 +50,8 @@ public abstract class EmpireDao implements Dao {
         }
     }
 
-    protected final Connection getConnection() {
-        return tx.getConnection();
+    protected final DBContext getContext() {
+        return tx.getContext();
     }
 
 }

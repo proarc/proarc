@@ -9,7 +9,7 @@
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>4.3.1-DEV</version>
+        <version>5.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -21,85 +21,68 @@
     <properties>
         <warName>proarc</warName>
         <webappDirectory>${project.build.directory}/${warName}</webappDirectory>
-        <!-- contains filtered GWT modules (*.gwt.xml) -->
-        <gwt.filtered>${project.build.directory}/gwt-filtered</gwt.filtered>
-        <smartGwtGroupId>com.isomorphic.smartgwt.lgpl</smartGwtGroupId>
-        <smartGwtArtifact>smartgwt-lgpl</smartGwtArtifact>
-        <smartGwtSkinsArtifact>smartgwt-skins</smartGwtSkinsArtifact>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>com.google.gwt</groupId>
-            <artifactId>gwt-servlet</artifactId>
-            <version>${gwtVersion}</version>
-            <scope>runtime</scope>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.google.gwt</groupId>
-            <artifactId>gwt-user</artifactId>
-            <version>${gwtVersion}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>${smartGwtGroupId}</groupId>
-            <artifactId>${smartGwtArtifact}</artifactId>
-            <version>${smartGwtVersion}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>${smartGwtGroupId}</groupId>
-            <artifactId>${smartGwtSkinsArtifact}</artifactId>
-            <version>${smartGwtVersion}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5</version>
-        </dependency>
-
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>${jerseyVersion2}</version>
         </dependency>
-
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet-core</artifactId>
-            <version>${jerseyVersion2}</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-jackson</artifactId>
-            <version>${jerseyVersion2}</version>
         </dependency>
-        <!--
-        REST file upload
-        see org.glassfish.jersey.media.multipart.MultiPartFeature in web.xml
-        -->
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-multipart</artifactId>
-            <version>${jerseyVersion2}</version>
-        </dependency>
-
-        <!-- Replace jackson 2.5.4 to fix mix-in annotations -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.jaxrs</groupId>
-            <artifactId>jackson-jaxrs-base</artifactId>
-            <version>${jacksonVersion}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
             <artifactId>jackson-jaxrs-json-provider</artifactId>
-            <version>${jacksonVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-base</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>${jacksonVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.yourmediashelf.fedora.client</groupId>
+            <artifactId>fedora-client-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>xalan</groupId>
+            <artifactId>xalan</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-configuration2</artifactId>
         </dependency>
 
         <dependency>
@@ -117,40 +100,20 @@
             <artifactId>proarc-oaidublincore</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--XXX replace FedoraClientException with proarc-common exception-->
-        <dependency>
-            <groupId>com.yourmediashelf.fedora.client</groupId>
-            <artifactId>fedora-client-core</artifactId>
-            <version>0.7</version>
-        </dependency>
-        <dependency>
-            <groupId>xalan</groupId>
-            <artifactId>xalan</artifactId>
-            <version>2.7.2</version>
-        </dependency>
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-common</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!-- proarc auth module -->
         <dependency>
             <groupId>cz.cas.lib.proarc</groupId>
             <artifactId>proarc-auth</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!--HTML5 GWT file uploader-->
         <dependency>
-            <groupId>org.moxieapps.gwt</groupId>
-            <artifactId>org.moxieapps.gwt.uploader</artifactId>
-            <version>1.1.0</version>
-        </dependency>
-
-        <!-- tests -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -175,99 +138,12 @@
 
         <plugins>
 
-            <!--
-                 Workaround to enable filtering of GWT module files as
-                 gwt:compile ignores result of resource/filtering definition.
-                 It allows to customize the module with maven profiles.
-                 * maven-resources-plugin/gwt-filter-sources execution filters *.gwt.xml files
-                 * build-helper-maven-plugin/gwt-add-filtered-sources attaches filtered sources
-
-                 The plugin must be declared before gwt-maven-plugin to run before gwt:i18n!
-            -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>gwt-filter-sources</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${gwt.filtered}</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${project.basedir}/src/main/resources</directory>
-                                    <includes>
-                                        <include>**/*.gwt.xml</include>
-                                        <!-- fill build properties -->
-                                        <include>**/ClientMessages.properties</include>
-                                    </includes>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!--
-                 See maven-resources-plugin.
-                 The plugin must be declared before gwt-maven-plugin to run before gwt:i18n!
-            -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>gwt-add-filtered-sources</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${gwt.filtered}</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- GWT Maven Plugin -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>gwt-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>i18n</goal>
-                            <goal>generateAsync</goal>
-                            <goal>compile</goal>
-<!--                            <goal>test</goal>-->
-                        </goals>
-                    </execution>
-                </executions>
-                <!-- Plugin configuration. There are many available options, see
-                  gwt-maven-plugin documentation at codehaus.org -->
+                <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <webappDirectory>${webappDirectory}</webappDirectory>
-                    <runTarget>${warName}/index.html</runTarget>
-                    <hostedWebapp>${webappDirectory}</hostedWebapp>
-                    <i18nMessagesBundle>cz.cas.lib.proarc.webapp.client.ClientMessages</i18nMessagesBundle>
-                    <enableAssertions>true</enableAssertions>
-                    <compileSourcesArtifacts>
-                        <artifact>cz.cas.lib.proarc:proarc-oaidublincore</artifact>
-                        <artifact>cz.cas.lib.proarc:proarc-common</artifact>
-                    </compileSourcesArtifacts>
-                    <!-- noServer=true disables Jetty and allows to use Tomcat with declared JDBC resources and web security-->
-                    <noserver>true</noserver>
-                    <noServer>true</noServer>
-                    <port>8080</port>
-                    <extraJvmArgs>-Xmx1g</extraJvmArgs>
-<!--                    <style>DETAILED</style>
-                    <optimizationLevel>0</optimizationLevel>-->
+                    <source>${maven.compiler.release}</source>
+                    <target>${maven.compiler.release}</target>
                 </configuration>
             </plugin>
 
@@ -304,11 +180,6 @@
                         </resource>
                     </webResources>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
 
             <plugin>

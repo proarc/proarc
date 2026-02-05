@@ -31,36 +31,37 @@ import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.JobDefinitionView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfileConsts;
-import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.WorkflowResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.WorkflowResourceApi;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.FIELD_MODELOBJECT;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_WF_CREATE_JOB;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_WF_DELETE_JOB;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_2;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
@@ -68,7 +69,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
  *
  * @author Lukas Sykora
  */
-@Path(RestConfig.URL_API_VERSION_2 + "/" + WorkflowResourceApi.PATH)
+@Path(URL_API_VERSION_2 + "/" + WorkflowResourceApi.PATH)
 public class WorkflowResource extends WorkflowResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(WorkflowResource.class.getName());
@@ -87,7 +88,7 @@ public class WorkflowResource extends WorkflowResourceV1 {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<JobView> getJob(
+    public ProArcResponse<JobView> getJob(
             @QueryParam(WorkflowModelConsts.JOB_FILTER_ID) BigDecimal id,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_CREATED) List<String> created,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_LABEL) String label,
@@ -124,13 +125,13 @@ public class WorkflowResource extends WorkflowResourceV1 {
                     sortBy, taskName, taskDate, taskUser, taskUserName, pid, rawPath, deviceId, note);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<JobView> addJob(
+    public ProArcResponse<JobView> addJob(
             @FormParam(WorkflowResourceApi.NEWJOB_PROFILE) String profileName,
             @FormParam(WorkflowResourceApi.NEWJOB_MODEL) String model,
             @FormParam(WorkflowResourceApi.NEWJOB_METADATA) String metadata,
@@ -138,21 +139,21 @@ public class WorkflowResource extends WorkflowResourceV1 {
             @FormParam(WorkflowResourceApi.NEWJOB_PARENTID) BigDecimal parentId,
             @FormParam(WorkflowResourceApi.NEWJOB_RDCZID) BigDecimal rdczId
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_WF_CREATE_JOB)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_WF_CREATE_JOB)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 
         try {
             return super.addJob(profileName, model, metadata, catalogId, parentId, rdczId);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @PUT
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<JobView> updateJob(
+    public ProArcResponse<JobView> updateJob(
             @FormParam(WorkflowModelConsts.JOB_ID) BigDecimal id,
             @FormParam(WorkflowModelConsts.JOB_LABEL) String label,
             @FormParam(WorkflowModelConsts.JOB_NOTE) String note,
@@ -164,20 +165,20 @@ public class WorkflowResource extends WorkflowResourceV1 {
             @FormParam(WorkflowModelConsts.JOB_TIMESTAMP) long timestamp
     ) {
         if (id == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_ID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_ID));
         }
         try {
             return super.updateJob(id, label, note, financed, userId, parentId, priority, state, timestamp);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @PUT
     @Path(WorkflowResourceApi.EDITOR_JOBS)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<JobView> updateJobs(
+    public ProArcResponse<JobView> updateJobs(
             @FormParam(WorkflowModelConsts.JOB_IDS) List<BigDecimal> ids,
             @FormParam(WorkflowModelConsts.JOB_FINANCED) String financed,
             @FormParam(WorkflowModelConsts.JOB_PRIORITY) Integer priority,
@@ -185,37 +186,37 @@ public class WorkflowResource extends WorkflowResourceV1 {
             @FormParam(WorkflowModelConsts.JOB_NOTE) String note
     ) {
         if (ids == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_IDS));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_IDS));
         }
         try {
             return super.updateJobs(ids, financed, priority, state, note);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @DELETE
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<JobView> deleteObject(
+    public ProArcResponse<JobView> deleteObject(
             @QueryParam(WorkflowModelConsts.JOB_FILTER_ID) List<BigDecimal> ids) {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_WF_DELETE_JOB)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_WF_DELETE_JOB)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
             return super.deleteObject(ids);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(WorkflowResourceApi.TASK_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<TaskView> getTask(
+    public ProArcResponse<TaskView> getTask(
             @QueryParam(WorkflowModelConsts.TASK_FILTER_CREATED) List<String> created,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_ID) BigDecimal id,
             @QueryParam(WorkflowModelConsts.TASK_FILTER_JOBID) BigDecimal jobId,
@@ -236,7 +237,7 @@ public class WorkflowResource extends WorkflowResourceV1 {
             return super.getTask(created, id, jobId, jobLabel, modified, priority, profileName, state, userId, note, order, startRow, sortBy, barcode, signature);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -244,21 +245,21 @@ public class WorkflowResource extends WorkflowResourceV1 {
     @Path(WorkflowResourceApi.TASK_PATH)
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<TaskView> addTask(
+    public ProArcResponse<TaskView> addTask(
             @FormParam(WorkflowModelConsts.TASK_JOBID) BigDecimal jobId,
             @FormParam(WorkflowModelConsts.TASK_PROFILENAME) String taskName
     ) {
         if (jobId == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_ID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_ID));
         }
         if (taskName == null || taskName.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.TASK_PROFILENAME));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.TASK_PROFILENAME));
         }
         try {
             return super.addTask(jobId, taskName);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -266,16 +267,16 @@ public class WorkflowResource extends WorkflowResourceV1 {
     @Path(WorkflowResourceApi.TASK_PATH)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<TaskView> updateTask(TaskUpdate task
+    public ProArcResponse<TaskView> updateTask(TaskUpdate task
     ) {
         if (task == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, "task"));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, "task"));
         }
         try {
             return super.updateTask(task);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -283,22 +284,22 @@ public class WorkflowResource extends WorkflowResourceV1 {
     @Path(WorkflowResourceApi.EDITOR_TASKS)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<TaskView> updateTasks(TasksUpdate tasks) throws WorkflowException {
+    public ProArcResponse<TaskView> updateTasks(TasksUpdate tasks) throws WorkflowException {
         if (tasks == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, "task"));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, "task"));
         }
         try {
             return super.updateTasks(tasks);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(WorkflowResourceApi.MATERIAL_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<MaterialView> getMaterial(
+    public ProArcResponse<MaterialView> getMaterial(
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_ID) BigDecimal id,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_JOBID) BigDecimal jobId,
             @QueryParam(WorkflowModelConsts.MATERIALFILTER_TASKID) BigDecimal taskId,
@@ -310,7 +311,7 @@ public class WorkflowResource extends WorkflowResourceV1 {
             return super.getMaterial(id, jobId, taskId, materialType, startRow, sortBy);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -318,36 +319,36 @@ public class WorkflowResource extends WorkflowResourceV1 {
     @Path(WorkflowResourceApi.MATERIAL_PATH)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<MaterialView> updateMaterial(
+    public ProArcResponse<MaterialView> updateMaterial(
             MaterialView mv
     ) {
         if (mv == null || mv.getId() == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, "materialView"));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, "materialView"));
         }
         try {
             return super.updateMaterial(mv);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(WorkflowResourceApi.MODS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> getDescriptionMetadata(
+    public ProArcResponse<DescriptionMetadata<Object>> getDescriptionMetadata(
             @QueryParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
-            @QueryParam(MetaModelDataSource.FIELD_EDITOR) String editorId,
-            @QueryParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId
+            @QueryParam(DigitalObjectResourceApi.METAMODEL_MODSCUSTOMEDITORID_PARAM) String editorId,
+            @QueryParam(FIELD_MODELOBJECT) String modelId
     ) {
         if (jobId == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_ID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_ID));
         }
         try {
             return super.getDescriptionMetadata(jobId, editorId, modelId);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -356,7 +357,7 @@ public class WorkflowResource extends WorkflowResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public StringEditor.StringRecord getDescriptionMetadataTxt(
             @QueryParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
-            @QueryParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId
+            @QueryParam(FIELD_MODELOBJECT) String modelId
     ) {
         try {
             return super.getDescriptionMetadataTxt(jobId, modelId);
@@ -369,49 +370,49 @@ public class WorkflowResource extends WorkflowResourceV1 {
     @PUT
     @Path(WorkflowResourceApi.MODS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadata(
+    public ProArcResponse<DescriptionMetadata<Object>> updateDescriptionMetadata(
             @FormParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String jsonData,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA) String xmlData,
-            @FormParam(MetaModelDataSource.FIELD_MODELOBJECT) String modelId,
+            @FormParam(FIELD_MODELOBJECT) String modelId,
             @DefaultValue("false")
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_STANDARD) String standard
     ) {
         if (jobId == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_ID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.JOB_ID));
         }
         try {
             return super.updateDescriptionMetadata(jobId, editorId, timestamp, jsonData, xmlData, modelId, ignoreValidation, standard);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(WorkflowResourceApi.PARAMETER_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<TaskParameterView> getParameter(
+    public ProArcResponse<TaskParameterView> getParameter(
             @QueryParam(WorkflowModelConsts.PARAMETERPROFILE_TASKID) BigDecimal taskId
     ) {
         if (taskId == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.PARAMETERPROFILE_TASKID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, WorkflowModelConsts.PARAMETERPROFILE_TASKID));
         }
         try {
             return super.getParameter(taskId);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(WorkflowResourceApi.PROFILE_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<JobDefinitionView> getProfiles(
+    public ProArcResponse<JobDefinitionView> getProfiles(
             @QueryParam(WorkflowProfileConsts.NAME) String name,
             @QueryParam(WorkflowProfileConsts.DISABLED) Boolean disabled
     ) {
@@ -419,7 +420,7 @@ public class WorkflowResource extends WorkflowResourceV1 {
             return super.getProfiles(name, disabled);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 }

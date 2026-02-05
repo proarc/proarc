@@ -107,7 +107,7 @@ public class UrnNbnStatusHandler {
         getEntry(elm.getPid())
                 .setPid(elm.getItem())
                 .getLogs(logType)
-                    .add(new StatusEntry(status, msg, urnNbn));
+                .add(new StatusEntry(status, msg, urnNbn));
     }
 
     public void log(LogType logType, String pid, Status status, String msg, String urnNbn) {
@@ -141,7 +141,7 @@ public class UrnNbnStatusHandler {
         DETAIL_INFO
     }
 
-    public enum LogType { ERROR, REGISTERED, WARNING, INFO}
+    public enum LogType {ERROR, REGISTERED, WARNING, INFO}
 
     public static class PidResult {
 

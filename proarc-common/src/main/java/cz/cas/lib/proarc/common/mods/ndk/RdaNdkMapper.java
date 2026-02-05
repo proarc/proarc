@@ -26,7 +26,7 @@ import java.io.IOException;
 public class RdaNdkMapper extends NdkMapper {
 
     @Override
-    public  RdaModsWrapper toJsonObject(ModsDefinition mods, NdkMapper.Context ctx) {
+    public RdaModsWrapper toJsonObject(ModsDefinition mods, NdkMapper.Context ctx) {
         NdkMapper.RdaModsWrapper wrapper = new NdkMapper.RdaModsWrapper();
         wrapper.setMods(mods);
         if (mods.getRecordInfo().isEmpty() || mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()) {

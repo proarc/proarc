@@ -1,6 +1,5 @@
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
-import com.google.gwt.http.client.Request;
 import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
@@ -20,12 +19,24 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.SolrObjectFeeder;
 import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
 import cz.cas.lib.proarc.common.user.UserProfile;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.IndexerResourceApi;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -36,28 +47,18 @@ import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_SOLR;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_SYS_ADMIN;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
 import static cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1.returnFunctionSuccess;
 
 @Deprecated
-@Path(RestConfig.URL_API_VERSION_1 + "/" + IndexerResourceApi.PATH)
+@Path(URL_API_VERSION_1 + "/" + IndexerResourceApi.PATH)
 public class IndexerResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(IndexerResourceV1.class.getName());
@@ -106,9 +107,9 @@ public class IndexerResourceV1 {
 
     @POST
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> indexObjects () throws SolrServerException, IOException {
+    public ProArcResponse<SearchViewItem> indexObjects () throws SolrServerException, IOException {
 
-        checkPermission(user,  UserRole.PERMISSION_FUNCTION_SOLR, UserRole.PERMISSION_FUNCTION_SYS_ADMIN);
+        checkPermission(user,  PERMISSION_FUNCTION_SOLR, PERMISSION_FUNCTION_SYS_ADMIN);
 
         if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
             throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
@@ -142,9 +143,9 @@ public class IndexerResourceV1 {
     @POST
     @Path(IndexerResourceApi.INDEX_PARENT_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> setParentsPid () throws SolrServerException, IOException {
+    public ProArcResponse<SearchViewItem> setParentsPid () throws SolrServerException, IOException {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_SYS_ADMIN);
+        checkPermission(user, PERMISSION_FUNCTION_SYS_ADMIN);
 
         if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
             throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
@@ -374,17 +375,17 @@ public class IndexerResourceV1 {
     @POST
     @Path(IndexerResourceApi.OBJECT_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> indexDocument (
+    public ProArcResponse<SearchViewItem> indexDocument (
             @FormParam(IndexerResourceApi.DIGITALOBJECT_PID) String pid
     ) {
         if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
             throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
         }
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_SOLR);
+        checkPermission(user, PERMISSION_FUNCTION_SOLR);
 
         LOG.info("Indexing document with pid started");
-        return new SmartGwtResponse<>();
+        return new ProArcResponse<>();
     }
 
     protected String returnLocalizedMessage(String key, Object... arguments) {

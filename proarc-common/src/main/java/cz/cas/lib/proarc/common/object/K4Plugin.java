@@ -63,12 +63,12 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
      * The plugin ID.
      */
     public static final String ID = "k4";
-    public static final String MODEL_MONOGRAPH="model:monograph";
+    public static final String MODEL_MONOGRAPH = "model:monograph";
     public static final String MODEL_MONOGRAPHUNIT = "model:monographunit";
-    public static final String MODEL_PAGE="model:page";
-    public static final String MODEL_PERIODICAL="model:periodical";
-    public static final String MODEL_PERIODICALITEM="model:periodicalitem";
-    public static final String MODEL_PERIODICALVOLUME="model:periodicalvolume";
+    public static final String MODEL_PAGE = "model:page";
+    public static final String MODEL_PERIODICAL = "model:periodical";
+    public static final String MODEL_PERIODICALITEM = "model:periodicalitem";
+    public static final String MODEL_PERIODICALVOLUME = "model:periodicalvolume";
     public static final String MODEL_ARTICLE = "model:article";
     public static final String MODEL_MAP = "model:map";
     public static final String MODEL_SUPPLEMENT = "model:supplement";
@@ -106,7 +106,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
 
     @Override
     public <T extends HasDataHandler> T getHandlerProvider(Class<T> type) {
-        return type.isInstance(this) ? type.cast(this): null;
+        return type.isInstance(this) ? type.cast(this) : null;
     }
 
     @Override
@@ -121,7 +121,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_PERIODICALVOLUME, null, null,
                 Arrays.asList(new ElementType("K4 Periodical Volume", "en"), new ElementType("K4 Ročník", "cs")),
@@ -131,7 +131,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_PERIODICALITEM, null, null,
                 Arrays.asList(new ElementType("K4 Periodical Item", "en"), new ElementType("K4 Výtisk", "cs")),
@@ -141,7 +141,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_MONOGRAPH, true, null,
                 Arrays.asList(new ElementType("K4 Monograph", "en"), new ElementType("K4 Monografie", "cs")),
@@ -150,7 +150,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_MONOGRAPHUNIT, null, null,
                 Arrays.asList(new ElementType("K4 Monograph Unit", "en"), new ElementType("K4 Monografie - volná část", "cs")),
@@ -160,7 +160,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_ARTICLE, null, null,
                 Arrays.asList(new ElementType("K4 Article", "en"), new ElementType("K4 Článek", "cs")),
@@ -170,7 +170,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_MAP, null, null,
                 Arrays.asList(new ElementType("K4 Map", "en"), new ElementType("K4 Mapa", "cs")),
@@ -180,7 +180,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_SUPPLEMENT, null, null,
                 Arrays.asList(new ElementType("K4 Supplement", "en"), new ElementType("K4 Příloha", "cs")),
@@ -190,7 +190,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_PICTURE, null, null,
                 Arrays.asList(new ElementType("K4 Obraz", "en"), new ElementType("K4 Obraz", "cs")),
@@ -200,7 +200,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_SHEETMUSIC, null, null,
                 Arrays.asList(new ElementType("K4 Sheetmusic", "en"), new ElementType("K4 Hudebnina", "cs")),
@@ -210,7 +210,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_INTERNALPART, null, null,
                 Arrays.asList(new ElementType("K4 Internal Part", "en"), new ElementType("K4 Vnitřní část", "cs")),
@@ -220,7 +220,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_GRAPHIC, null, null,
                 Arrays.asList(new ElementType("K4 Grafics", "en"), new ElementType("K4 Grafika", "cs")),
@@ -230,7 +230,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_CONVOLUTE, null, null,
                 Arrays.asList(new ElementType("K4 Convolute", "en"), new ElementType("K4 Konvolut", "cs")),
@@ -240,7 +240,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_SOUNDRECORDING, null, null,
                 Arrays.asList(new ElementType("K4 Soundrecording", "en"), new ElementType("K4 Zvukový dokument", "cs")),
@@ -250,7 +250,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_SOUNDUNIT, null, null,
                 Arrays.asList(new ElementType("K4 Sound unit", "en"), new ElementType("K4 Zvuková jednotka", "cs")),
@@ -260,7 +260,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_TRACK, null, null,
                 Arrays.asList(new ElementType("K4 Track", "en"), new ElementType("K4 Track", "cs")),
@@ -270,7 +270,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_PAGE, null, true,
                 Arrays.asList(new ElementType("Page", "en"), new ElementType("Strana", "cs")),
@@ -278,7 +278,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
                 ModsCutomEditorType.EDITOR_PAGE,
                 this,
                 EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN, DatastreamEditorType.TECHNICAL))
-                ));
+        ));
 
         return models;
     }
@@ -510,7 +510,7 @@ public class K4Plugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDef
         }
 
         private void validate(ModsDefinition mods) throws DigitalObjectException {
-             // not supported yet
+            // not supported yet
         }
     }
 }

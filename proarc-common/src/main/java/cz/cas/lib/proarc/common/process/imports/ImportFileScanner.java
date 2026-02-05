@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2011 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -40,18 +40,20 @@ import java.util.TreeMap;
  * @author Jan Pokorsky
  */
 public final class ImportFileScanner {
-    
+
     public enum State {
         IMPORTED, NEW, EMPTY, NOT_SET;
     }
 
     public static final String IMPORT_STATE_FILENAME = "proarc_import_status.log";
-    /** system filenames to exclude from digital content list */
+    /**
+     * system filenames to exclude from digital content list
+     */
     private static final Set<String> EXCLUDE_FILENAMES = new HashSet<String>(Arrays.asList(
             IMPORT_STATE_FILENAME,
             ImportProcess.TMP_DIR_NAME,
             "Thumbs.db"
-            ));
+    ));
 
     private static final FileFilter FOLDER_FILTER = new FileFilter() {
         @Override
@@ -68,7 +70,7 @@ public final class ImportFileScanner {
                     //   instead of "on", "online", "on board"
                     // '&' to reset definition does not work for space
                     "'\u0020' < 0"
-                    + czechDefault.getRules());
+                            + czechDefault.getRules());
         } catch (ParseException ex) {
             throw new IllegalStateException(ex);
         }
@@ -76,11 +78,11 @@ public final class ImportFileScanner {
 
     /**
      * File name comparator. It delegates to extended Czech collator implementation.
+     *
      * @see <a href='http://www.docjar.com/html/api/sun/text/resources/CollationData_cs.java.html'>CollationData_cs.java</a>
-     * @see java.text.CollationRules
      */
     private static final Comparator<File> FILE_COMPARATOR = new Comparator<File>() {
-        
+
         private final Comparator<Object> czech = createCzechCollator();
 
         @Override
@@ -123,7 +125,7 @@ public final class ImportFileScanner {
         File[] files = folder.listFiles();
         List<File> contents = new ArrayList<File>(files.length);
         for (File file : files) {
-            if (file.isFile()&& file.canRead() && !EXCLUDE_FILENAMES.contains(file.getName())) {
+            if (file.isFile() && file.canRead() && !EXCLUDE_FILENAMES.contains(file.getName())) {
                 contents.add(file);
             }
         }
@@ -149,7 +151,7 @@ public final class ImportFileScanner {
     private static String repairFilename(String filename) {
         if (filename.startsWith("mca_") || filename.startsWith("MCA_") ||
                 filename.startsWith("uca_") || filename.startsWith("UCA_")) {
-            return  "SA_" + filename.substring(4);
+            return "SA_" + filename.substring(4);
         } else if (filename.startsWith("sa_") || filename.startsWith("SA_")) {
             return "SA_" + filename.substring(3);
         }

@@ -10,19 +10,19 @@ package cz.cas.lib.proarc.nsesss2;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro popis konverze dokumentu nebo komponenty z analogové podoby do digitální podoby (AD) nebo z podoby digitální do podoby analogové (DA).
- * 
+ *
  * <p>Java class for tKonverzeAD-DA complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tKonverzeAD-DA">
  *   &lt;complexContent>
@@ -39,15 +39,15 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tKonverzeAD-DA", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "vystup",
-    "oduvodneni",
-    "autorizovanaKonverze",
-    "odkazVstup"
+        "vystup",
+        "oduvodneni",
+        "autorizovanaKonverze",
+        "odkazVstup"
 })
 public class TKonverzeADDA {
 
@@ -62,25 +62,25 @@ public class TKonverzeADDA {
 
     /**
      * Gets the value of the vystup property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the vystup property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getVystup().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link TVystup }
-     * 
-     * 
+     *
+     *
      */
     public List<TVystup> getVystup() {
         if (vystup == null) {
@@ -91,11 +91,10 @@ public class TKonverzeADDA {
 
     /**
      * Gets the value of the oduvodneni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getOduvodneni() {
         return oduvodneni;
@@ -103,11 +102,10 @@ public class TKonverzeADDA {
 
     /**
      * Sets the value of the oduvodneni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setOduvodneni(String value) {
         this.oduvodneni = value;
@@ -115,11 +113,10 @@ public class TKonverzeADDA {
 
     /**
      * Gets the value of the autorizovanaKonverze property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TLogicky }
-     *     
+     *
+     * @return possible object is
+     * {@link TLogicky }
+     *
      */
     public TLogicky getAutorizovanaKonverze() {
         return autorizovanaKonverze;
@@ -127,11 +124,10 @@ public class TKonverzeADDA {
 
     /**
      * Sets the value of the autorizovanaKonverze property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TLogicky }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TLogicky }
+     *
      */
     public void setAutorizovanaKonverze(TLogicky value) {
         this.autorizovanaKonverze = value;
@@ -139,11 +135,10 @@ public class TKonverzeADDA {
 
     /**
      * Gets the value of the odkazVstup property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOdkaz }
-     *     
+     *
+     * @return possible object is
+     * {@link TOdkaz }
+     *
      */
     public TOdkaz getOdkazVstup() {
         return odkazVstup;
@@ -151,11 +146,10 @@ public class TKonverzeADDA {
 
     /**
      * Sets the value of the odkazVstup property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOdkaz }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOdkaz }
+     *
      */
     public void setOdkazVstup(TOdkaz value) {
         this.odkazVstup = value;

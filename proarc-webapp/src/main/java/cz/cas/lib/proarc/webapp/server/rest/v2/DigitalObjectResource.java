@@ -31,20 +31,35 @@ import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.StringEditor.StringRecord;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
-import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.rest.AnnotatedMetaModel;
 import cz.cas.lib.proarc.webapp.server.rest.LocalDateParam;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -59,24 +74,6 @@ import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -87,6 +84,18 @@ import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAME
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETERS;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_SAME_PID_AND_PARENT;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.FIELD_MODELOBJECT;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_CHANGE_MODEL;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_CZIDLO;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_DELETE_ACTION;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_DELETE_USER;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_IMPORT_TO_CATALOG;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_LOCK_OBJECT;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UNLOCK_OBJECT;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UPDATE_ALL_OBJECTS;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UPDATE_MODEL;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_2;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
@@ -106,7 +115,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
  * @author Lukas Sykora
  */
 
-@Path(RestConfig.URL_API_VERSION_2 + "/" + DigitalObjectResourceApi.PATH)
+@Path(URL_API_VERSION_2 + "/" + DigitalObjectResourceApi.PATH)
 public class DigitalObjectResource extends DigitalObjectResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(DigitalObjectResource.class.getName());
@@ -128,7 +137,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
 
     @POST
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> newObject(
+    public ProArcResponse<SearchViewItem> newObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
@@ -153,11 +162,11 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
                 .stream().map(metaModel -> metaModel.getPid()).collect(Collectors.toSet());
 
         if (isLocked(parentPid)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
 
         if (modelId == null || !models.contains(modelId)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_MODEL));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_MODEL));
         }
         try {
             if (!seriesMissingDaysIncluded) {
@@ -169,17 +178,17 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
                     seriesPartNumberFrom, seriesSignatura, seriesFrequency, seriesCount, seriesDateFormat, xmlMetadata, workflowJobId, catalogId, createObject, validation);
         } catch (DigitalObjectException ex) {
                 LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-                return SmartGwtResponse.asError(ex.getMyMessage());
+                return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @DELETE
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> deleteObject(
+    public ProArcResponse<InternalExternalProcessResult> deleteObject(
             @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
             @DefaultValue("true") boolean hierarchy,
@@ -190,26 +199,26 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (purge || restore) {
-            if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DELETE_ACTION)) {
-                return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+            if (!hasPermission(user, PERMISSION_FUNCTION_DELETE_ACTION)) {
+                return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
         }
 
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.deleteObject(pids, hierarchy, purge, restore, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @DELETE
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> deleteObject(
+    public ProArcResponse<InternalExternalProcessResult> deleteObject(
             ProArcRequest.DeleteObjectRequest deleteObjectRequest,
             @QueryParam(DigitalObjectResourceApi.DELETE_PID_PARAM) List<String> pids,
             @QueryParam(DigitalObjectResourceApi.DELETE_HIERARCHY_PARAM)
@@ -224,33 +233,33 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return super.deleteObject(deleteObjectRequest, pids, hierarchy, purge, restore, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @DELETE
     @Path(DigitalObjectResourceApi.PURGE_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> purgeObjects(
+    public ProArcResponse<InternalExternalProcessResult> purgeObjects(
             @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM)
             @DefaultValue("deleted") SearchType type,
             @QueryParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly) {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_DELETE_USER)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_DELETE_USER)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
             return super.purgeObjects(type, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(DigitalObjectResourceApi.SEARCH_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> search(
+    public ProArcResponse<SearchViewItem> search(
             @QueryParam(DigitalObjectResourceApi.SEARCH_OWNER_PARAM) String owner,
             @DefaultValue(SearchType.DEFAULT)
             @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM) SearchType type,
@@ -275,14 +284,14 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
                     queryTitle, queryStatus, queryOrganization, queryProcessor, startRow, sort, sortField);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(DigitalObjectResourceApi.MEMBERS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> findMembers(
+    public ProArcResponse<SearchViewItem> findMembers(
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parent,
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ROOT_PARAM) String root
     ) {
@@ -290,10 +299,10 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return super.findMembers(parent, root);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -301,17 +310,17 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.MEMBERS_PATH)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> setMembers(
+    public ProArcResponse<SearchViewItem> setMembers(
             ProArcRequest.SetMemberRequest request
     ) {
         try {
             return super.setMembers(request);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -319,37 +328,37 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.MEMBERS_PATH)
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> setMembers(
+    public ProArcResponse<SearchViewItem> setMembers(
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toSetPids
     ) {
         if (batchId == null && parentPid == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
         }
         if (isLocked(parentPid)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         boolean batchImportMembers = batchId != null;
         if (toSetPids == null || toSetPids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
         }
         if (!batchImportMembers && toSetPids.contains(parentPid)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_ITEM_PID, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_ITEM_PID, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
         }
 
         HashSet<String> toSetPidSet = new HashSet<String>(toSetPids);
         if (toSetPidSet.size() != toSetPids.size()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_DUPLICATES, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_DUPLICATES, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
         }
         try {
             return super.setMembers(parentPid, batchId, toSetPids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
 
     }
@@ -357,66 +366,66 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.MEMBERS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> addMembers(
+    public ProArcResponse<SearchViewItem> addMembers(
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toAddPids,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) {
         if (parentPid == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
         }
         if (toAddPids == null || toAddPids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
         }
         if (toAddPids.contains(parentPid)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_ITEM_PID, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_ITEM_PID, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
         }
         if (isLocked(parentPid) || isLocked(toAddPids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         HashSet<String> addPidSet = new HashSet<String>(toAddPids);
         if (addPidSet.size() != toAddPids.size()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_DUPLICATES, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_DUPLICATES, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
         }
         try {
             return super.addMembers(parentPid, toAddPids, batchId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @DELETE
     @Path(DigitalObjectResourceApi.MEMBERS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> deleteMembers(
+    public ProArcResponse<SearchViewItem> deleteMembers(
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toRemovePids,
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) {
         if (parentPid == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
         }
         if (toRemovePids == null || toRemovePids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
         }
         if (toRemovePids.contains(parentPid)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_ITEM_PID, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_ITEM_PID, DigitalObjectResourceApi.MEMBERS_ITEM_PARENT));
         }
         if (isLocked(parentPid) || isLocked(toRemovePids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.deleteMembers(parentPid, toRemovePids, batchId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -424,17 +433,17 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.MEMBERS_PATH + '/' + DigitalObjectResourceApi.MEMBERS_MOVE_PATH)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> moveMembers(
+    public ProArcResponse<SearchViewItem> moveMembers(
             ProArcRequest.MoveMembersRequest request
     ) {
         try {
             return super.moveMembers(request);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -442,47 +451,47 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.MEMBERS_PATH + '/' + DigitalObjectResourceApi.MEMBERS_MOVE_PATH)
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> moveMembers(
+    public ProArcResponse<SearchViewItem> moveMembers(
             @FormParam(DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID) String srcParentPid,
             @FormParam(DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID) String dstParentPid,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> movePids
     ) {
         if (srcParentPid == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID));
         }
         if (dstParentPid == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID));
         }
         if (srcParentPid.equals(dstParentPid)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID, DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID, DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID));
         }
         if (movePids == null || movePids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
         }
 
         if (isLocked(srcParentPid) || isLocked(dstParentPid) || isLocked(movePids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
 
         HashSet<String> movePidSet = new HashSet<String>(movePids);
         if (movePidSet.isEmpty()) {
-            return new SmartGwtResponse<SearchViewItem>(Collections.<SearchViewItem>emptyList());
+            return new ProArcResponse<SearchViewItem>(Collections.<SearchViewItem>emptyList());
         } else if (movePidSet.size() != movePids.size()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_DUPLICATES, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_DUPLICATES, DigitalObjectResourceApi.MEMBERS_ITEM_PID));
         }
         if (movePidSet.contains(dstParentPid)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_ITEM_PID, DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_SAME_PID_AND_PARENT, DigitalObjectResourceApi.MEMBERS_ITEM_PID, DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID));
         }
 
         try {
             return super.moveMembers(srcParentPid, dstParentPid, batchId, movePids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -546,29 +555,29 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @GET
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> getDescriptionMetadata(
+    public ProArcResponse<DescriptionMetadata<Object>> getDescriptionMetadata(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
     ) {
         if (pid == null || pid.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
             return super.getDescriptionMetadata(pid, batchId, editorId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @PUT
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadata(
+    public ProArcResponse<DescriptionMetadata<Object>> updateDescriptionMetadata(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId,
@@ -576,35 +585,35 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String jsonData,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA) String xmlData,
             @FormParam(WorkflowModelConsts.PARAMETER_JOBID) BigDecimal jobId,
-            @FormParam(MetaModelDataSource.FIELD_MODELOBJECT) String model,
+            @FormParam(FIELD_MODELOBJECT) String model,
             @DefaultValue("false")
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_STANDARD) String standard
     ) {
         if ((pid == null || pid.isEmpty()) && (jobId == null)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (timestamp == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
         }
         if (isLocked(pid)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.updateDescriptionMetadata(pid, batchId, editorId, timestamp, jsonData, xmlData, jobId, model, ignoreValidation, standard);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @PUT
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_OBJECTS)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> updateDescriptionMetadataObjects(
+    public ProArcResponse<SearchViewItem> updateDescriptionMetadataObjects(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PARTNUMBER) String partNumber,
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGNATURA) String signatura,
@@ -612,23 +621,23 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     ) {
 
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
             return super.updateDescriptionMetadataObjects(pids, partNumber, signatura, sigla);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_VALIDATE_OBJECT_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> validateObject(
+    public ProArcResponse<DescriptionMetadata<Object>> validateObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
     ) {
@@ -636,17 +645,17 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return super.validateObject(pid, batchId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @PUT
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_ADD_AUTHORITY)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> addAuthority(
+    public ProArcResponse<DescriptionMetadata<Object>> addAuthority(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
@@ -654,29 +663,29 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
     ) {
         if (pid == null || pid.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (timestamp == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
         }
         if (isLocked(pid)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.addAuthority(pid, batchId, timestamp, jsonData, editorId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @PUT
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateDescriptionMetadataPages(
+    public ProArcResponse<DescriptionMetadata<Object>> updateDescriptionMetadataPages(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_APPLY_TO) String applyTo,
             @FormParam(DigitalObjectResourceApi.MODS_PAGE_RULES_APPLY_TO_FIRST_PAGE) String applyToFirstPage,
@@ -694,17 +703,17 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) {
         if (pidsArray == null || pidsArray.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PIDS));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PIDS));
         }
         try {
             return super.updateDescriptionMetadataPages(pidsArray, applyTo, applyToFirstPage, prefix, suffix, useBrackets,
                     sequenceType, startNumber, incrementNumber, startIndex, pageType, doubleColumns, pagePosition, isReprePage, batchId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -712,17 +721,17 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES_COPY_METADATA)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> copyDescriptionMetadataToPages(
+    public ProArcResponse<DescriptionMetadata<Object>> copyDescriptionMetadataToPages(
             ProArcRequest.CopyPagesMetadataRequest request
     ) {
         try {
             return super.copyDescriptionMetadataToPages(request);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -730,7 +739,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_EDITOR_PAGES_COPY_METADATA)
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> copyDescriptionMetadataToPages(
+    public ProArcResponse<DescriptionMetadata<Object>> copyDescriptionMetadataToPages(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SOURCE_PIDS) List<String> sourcePids,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_DESTINATION_PIDS) List<String> destinationPids,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_COPY_PAGE_NUMBER) Boolean copyPageNumber,
@@ -744,78 +753,78 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return super.copyDescriptionMetadataToPages(sourcePids, destinationPids, copyPageNumber, copyPageType, copyPageIndex, copyPagePosition, copyPageRepre, batchId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_ADD_BRACKETS)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> updatePagesAddBrackets(
+    public ProArcResponse<SearchViewItem> updatePagesAddBrackets(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) {
         if (pidsArray == null || pidsArray.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PIDS));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PIDS));
         }
         try {
             return super.updatePagesAddBrackets(pidsArray, batchId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.MODS_PATH + '/' + DigitalObjectResourceApi.MODS_CUSTOM_FUNCTION_REMOVE_BRACKETS)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<SearchViewItem> updatePagesRemoveBrackets(
+    public ProArcResponse<SearchViewItem> updatePagesRemoveBrackets(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PIDS) String pidsArray,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
     ) {
         if (pidsArray == null || pidsArray.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PIDS));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PIDS));
         }
         try {
             return super.updatePagesRemoveBrackets(pidsArray, batchId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(DigitalObjectResourceApi.METAMODEL_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<AnnotatedMetaModel> listModels(
+    public ProArcResponse<AnnotatedMetaModel> listModels(
     ) {
         try {
             return super.listModels();
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(DigitalObjectResourceApi.STREAMPROFILE_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DatastreamResult> getStreamProfile(
+    public ProArcResponse<DatastreamResult> getStreamProfile(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.STREAMPROFILE_ID) String dsId
     ) {
         if (pid == null || pid.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
             if (pid == null || pid.isEmpty()) {
@@ -860,13 +869,13 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
                     }
                 }
             }
-            return new SmartGwtResponse<DatastreamResult>(result);
+            return new ProArcResponse<DatastreamResult>(result);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -945,7 +954,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @Path(DigitalObjectResourceApi.DISSEMINATION_PATH)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> updateDissemination(
+    public ProArcResponse<InternalExternalProcessResult> updateDissemination(
             @FormDataParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormDataParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId,
@@ -956,26 +965,26 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormDataParam(DigitalObjectResourceApi.DISSEMINATION_ERROR) @DefaultValue("false") boolean jsonErrors
     ) {
         if (pid == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (file == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DISSEMINATION_FILE));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DISSEMINATION_FILE));
         }
         if (dsId != null && !dsId.equals(BinaryEditor.RAW_ID)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DISSEMINATION_DATASTREAM));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DISSEMINATION_DATASTREAM));
         }
         try {
             return super.updateDissemination(pid, batchId, dsId, file, fileInfo, fileBodyPart, mimeType, jsonErrors);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @DELETE
     @Path(DigitalObjectResourceApi.DISSEMINATION_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse deleteDissemination(
+    public ProArcResponse deleteDissemination(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId
@@ -984,10 +993,10 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return super.deleteDissemination(pid, batchId, dsId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -1009,18 +1018,18 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.THUMB_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> generateThumbnail(
+    public ProArcResponse<InternalExternalProcessResult> generateThumbnail(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (pids == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
             return super.generateThumbnail(pids, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -1074,7 +1083,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.GENERATE_ALTO_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> generateAlto(
+    public ProArcResponse<InternalExternalProcessResult> generateAlto(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
@@ -1082,14 +1091,14 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return super.generateAlto(pid, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.GENERATE_PDFA)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> generatePdfA(
+    public ProArcResponse<InternalExternalProcessResult> generatePdfA(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
@@ -1097,21 +1106,21 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return super.generatePdfA(pid, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.VALIDATE_OBJECT_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<InternalExternalProcessResult> validate(
+    public ProArcResponse<InternalExternalProcessResult> validate(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         try {
             return super.validate(pids);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -1134,7 +1143,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @PUT
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_AES_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateTechnicalMetadataAes(
+    public ProArcResponse<DescriptionMetadata<Object>> updateTechnicalMetadataAes(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
@@ -1142,47 +1151,47 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA) String jsonData
     ) {
         if (timestamp == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
         }
         if (pid == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA, DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA, DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA));
         }
         if (isLocked(pid)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.updateTechnicalMetadataAes(pid, batchId, timestamp, xmlData, jsonData);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_AES_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> getTechnicalMetadataAes(
+    public ProArcResponse<DescriptionMetadata<Object>> getTechnicalMetadataAes(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
     ) {
         if (pid == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
             return super.getTechnicalMetadataAes(pid, batchId, editorId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -1205,7 +1214,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @PUT
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_PREMIS_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateTechnicalMetadataPremis(
+    public ProArcResponse<DescriptionMetadata<Object>> updateTechnicalMetadataPremis(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
@@ -1213,48 +1222,48 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA) String jsonData
     ) {
         if (timestamp == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
         }
         if (pid == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA, DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA, DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA));
         }
         if (isLocked(pid)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.updateTechnicalMetadataPremis(pid, batchId, timestamp, xmlData, jsonData);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_PREMIS_GENERATE_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> generateTechnicalMetadataPremis(
+    public ProArcResponse<SearchViewItem> generateTechnicalMetadataPremis(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId
     ) {
 
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
 
         try {
             return super.generateTechnicalMetadataPremis(pids, batchId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -1278,7 +1287,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @PUT
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_CODING_HISTORY_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateCodingHistory(
+    public ProArcResponse<DescriptionMetadata<Object>> updateCodingHistory(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
@@ -1286,47 +1295,47 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA) String jsonData
     ) {
         if (timestamp == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.TIMESTAMP_PARAM));
         }
         if (pid == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if ((xmlData == null || xmlData.length() == 0) && (jsonData == null || jsonData.length() == 0)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA, DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETERS, DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA, DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA));
         }
         if (isLocked(pid)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.updateCodingHistory(pid, batchId, timestamp, xmlData, jsonData);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_CODING_HISTORY_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<DescriptionMetadata<Object>> getCodingHistoryMetadata(
+    public ProArcResponse<DescriptionMetadata<Object>> getCodingHistoryMetadata(
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId
     ) {
         if (pid == null) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
             return super.getCodingHistoryMetadata(pid, batchId, editorId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -1365,7 +1374,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @GET
     @Path(DigitalObjectResourceApi.ATM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<AtmItem> getAtm(
+    public ProArcResponse<AtmItem> getAtm(
             @QueryParam(DigitalObjectResourceApi.ATM_ITEM_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.ATM_ITEM_BATCHID) Integer batchId
     ) {
@@ -1373,17 +1382,17 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return super.getAtm(pid, batchId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @PUT
     @Path(DigitalObjectResourceApi.ATM_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<AtmItem> updateAtm(
+    public ProArcResponse<AtmItem> updateAtm(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) Set<String> pids,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_OWNER) String owner,
@@ -1397,230 +1406,230 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.ATM_ITEM_ARCHIVAL_COPIES) String archivalCopiesPath
     ) {
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
             return super.updateAtm(pids, batchId, owner, deviceId, softwareId, organization, status, userName, model, donator, archivalCopiesPath);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.URNNBN_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<UrnNbnResult> registerUrnNbn(
+    public ProArcResponse<UrnNbnResult> registerUrnNbn(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.registerUrnNbn(pids, resolverId, hierarchy);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_INVALIDATE_LOCAL_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<UrnNbnResult> invalidateLocalUrnNbn(
+    public ProArcResponse<UrnNbnResult> invalidateLocalUrnNbn(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CZIDLO)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.invalidateLocalUrnNbn(pids, hierarchy);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_CREATE_SUCCESSOR_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<UrnNbnResult> createSuccessorUrnNbn(
+    public ProArcResponse<UrnNbnResult> createSuccessorUrnNbn(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CZIDLO)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.createSuccessorUrnNbn(pids, resolverId, hierarchy);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_INVALIDATE_REMOTE_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<UrnNbnResult> invalidateRemoteUrnNbn(
+    public ProArcResponse<UrnNbnResult> invalidateRemoteUrnNbn(
             @FormParam(DigitalObjectResourceApi.URNNBN_VALUE_TO_DEACTIVATE) String urnNbnValue,
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CZIDLO)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
             return super.invalidateRemoteUrnNbn(urnNbnValue, resolverId, hierarchy);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_REGISTER_AGAIN_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<UrnNbnResult> registerAgainUrnNbn(
+    public ProArcResponse<UrnNbnResult> registerAgainUrnNbn(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CZIDLO)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.registerAgainUrnNbn(pids, resolverId, hierarchy);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.URNNBN_PATH + "/" + DigitalObjectResourceApi.URNNBN_UPDATE_IDENTIFIER_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<UrnNbnResult> updateIdentifierUrnNbn(
+    public ProArcResponse<UrnNbnResult> updateIdentifierUrnNbn(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.URNNBN_IDENTIFIER) String identifier,
             @FormParam(DigitalObjectResourceApi.URNNBN_OPERATION) String operation,
             @FormParam(DigitalObjectResourceApi.URNNBN_RESOLVER) String resolverId,
             @FormParam(DigitalObjectResourceApi.URNNBN_HIERARCHY) @DefaultValue("true") boolean hierarchy
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CZIDLO)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CZIDLO)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         if (operation == null || operation.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.URNNBN_OPERATION));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.URNNBN_OPERATION));
         }
         if (identifier == null || identifier.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.URNNBN_IDENTIFIER));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.URNNBN_IDENTIFIER));
         }
 
         try {
             return super.updateIdentifierUrnNbn(pids, identifier, operation, resolverId, hierarchy);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.LOCK_OBJECT_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> lockObject(
+    public ProArcResponse<SearchViewItem> lockObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_LOCK_OBJECT)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_LOCK_OBJECT)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
             return super.lockObject(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.UNLOCK_OBJECT_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> unlockObject(
+    public ProArcResponse<SearchViewItem> unlockObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_UNLOCK_OBJECT)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_UNLOCK_OBJECT)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
             return super.unlockObject(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.COPYOBJECT_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> copyObject(
+    public ProArcResponse<SearchViewItem> copyObject(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pidOld,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) {
         if (pidOld == null || pidOld.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pidOld)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.copyObject(pidOld, batchId, modelId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.GENERATE_JP2_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> generateJp2(
+    public ProArcResponse<SearchViewItem> generateJp2(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.GENERATE_TYPE) String type,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
@@ -1629,36 +1638,36 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return super.generateJp2(pid, type, modelId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_NDK_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changePageToNdkPage(
+    public ProArcResponse<SearchViewItem> changePageToNdkPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changePageToNdkPage(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -1666,208 +1675,208 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkPageToPage(
+    public ProArcResponse<SearchViewItem> changeNdkPageToPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkPageToPage(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_STT_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changePageToSttPage(
+    public ProArcResponse<SearchViewItem> changePageToSttPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changePageToSttPage(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeSttPageToPage(
+    public ProArcResponse<SearchViewItem> changeSttPageToPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeSttPageToPage(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_NDK_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeSttPageToNdkPage(
+    public ProArcResponse<SearchViewItem> changeSttPageToNdkPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeSttPageToNdkPage(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_STT_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkPageToSttPage(
+    public ProArcResponse<SearchViewItem> changeNdkPageToSttPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkPageToSttPage(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeClippingsVolumeToNdkMonographVolume(
+    public ProArcResponse<SearchViewItem> changeClippingsVolumeToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeClippingsVolumeToNdkMonographVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToClippingsVolume(
+    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToClippingsVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkMonographVolumeToClippingsVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographTitleToClippingsTitle(
+    public ProArcResponse<SearchViewItem> changeNdkMonographTitleToClippingsTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkMonographTitleToClippingsTitle(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -1875,390 +1884,390 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeClippingsTitleToNdkMonographTitle(
+    public ProArcResponse<SearchViewItem> changeClippingsTitleToNdkMonographTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeClippingsTitleToNdkMonographTitle(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_TO_NDK_PERIODICAL)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeK4PeriodicalToNdkPeriodical(
+    public ProArcResponse<SearchViewItem> changeK4PeriodicalToNdkPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeK4PeriodicalToNdkPeriodical(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeK4PeriodicalVolumeToNdkPeriodicalVolume(
+    public ProArcResponse<SearchViewItem> changeK4PeriodicalVolumeToNdkPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeK4PeriodicalVolumeToNdkPeriodicalVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeK4PeriodicalIssueToNdkPeriodicalIssue(
+    public ProArcResponse<SearchViewItem> changeK4PeriodicalIssueToNdkPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeK4PeriodicalIssueToNdkPeriodicalIssue(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeK4MonographToNdkMonographVolume(
+    public ProArcResponse<SearchViewItem> changeK4MonographToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeK4MonographToNdkMonographVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeK4MonographUnitToNdkMonographVolume(
+    public ProArcResponse<SearchViewItem> changeK4MonographUnitToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeK4MonographUnitToNdkMonographVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeK4MonographUnitToNdkMonographUnit(
+    public ProArcResponse<SearchViewItem> changeK4MonographUnitToNdkMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeK4MonographUnitToNdkMonographUnit(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TITLE_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographTitleToNdkMonographVolume(
+    public ProArcResponse<SearchViewItem> changeNdkMonographTitleToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkMonographTitleToNdkMonographVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographUnitToNdkMonographVolume(
+    public ProArcResponse<SearchViewItem> changeNdkMonographUnitToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkMonographUnitToNdkMonographVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_TITLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographTitle(
+    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkMonographVolumeToNdkMonographTitle(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographUnit(
+    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkMonographVolumeToNdkMonographUnit(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EMONOGRAPH_VOLUME_TO_NDK_EMONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEMonographVolumeToNdkEMonographUnit(
+    public ProArcResponse<SearchViewItem> changeNdkEMonographVolumeToNdkEMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkEMonographVolumeToNdkEMonographUnit(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EMONOGRAPH_UNIT_TO_NDK_EMONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEMonographUnitToNdkEMonographVolume(
+    public ProArcResponse<SearchViewItem> changeNdkEMonographUnitToNdkEMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkEMonographUnitToNdkEMonographVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMusicsheetToOldprintMusicsheet(
+    public ProArcResponse<SearchViewItem> changeNdkMusicsheetToOldprintMusicsheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkMusicsheetToOldprintMusicsheet(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeSttMusicsheetToNdkMusicsheet(
+    public ProArcResponse<SearchViewItem> changeSttMusicsheetToNdkMusicsheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeSttMusicsheetToNdkMusicsheet(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -2266,714 +2275,714 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_CHAPTER_TO_STT_CHAPTER)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkChapterToOldprintChapter(
+    public ProArcResponse<SearchViewItem> changeNdkChapterToOldprintChapter(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkChapterToOldprintChapter(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_CHAPTER_TO_NDK_CHAPTER)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldprintChapterToNdkChapter(
+    public ProArcResponse<SearchViewItem> changeOldprintChapterToNdkChapter(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeOldprintChapterToNdkChapter(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PICTURE_TO_STT_GRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkPictureToOldprintGraphic(
+    public ProArcResponse<SearchViewItem> changeNdkPictureToOldprintGraphic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkPictureToOldprintGraphic(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_GRAPHIC_TO_NDK_PICTURE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldprintGraphicToNdkPicture(
+    public ProArcResponse<SearchViewItem> changeOldprintGraphicToNdkPicture(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeOldprintGraphicToNdkPicture(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_CARTOGRAPHIC_TO_STT_CARTOGRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkCartographicToOldprintCartographic(
+    public ProArcResponse<SearchViewItem> changeNdkCartographicToOldprintCartographic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkCartographicToOldprintCartographic(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_CARTOGRAPHIC_TO_NDK_CARTOGRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldprintCartographicToNdkCartographic(
+    public ProArcResponse<SearchViewItem> changeOldprintCartographicToNdkCartographic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeOldprintCartographicToNdkCartographic(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TO_STT_MONOGRAPH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographVolumeToOldprintMonographVolume(
+    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToOldprintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkMonographVolumeToOldprintMonographVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_VOLUME_TO_STT_MONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldprintMonographVolumeToOldprintMonographUnit(
+    public ProArcResponse<SearchViewItem> changeOldprintMonographVolumeToOldprintMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeOldprintMonographVolumeToOldprintMonographUnit(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_UNIT_TO_STT_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldprintMonographUnitToOldprintMonographVolume(
+    public ProArcResponse<SearchViewItem> changeOldprintMonographUnitToOldprintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeOldprintMonographUnitToOldprintMonographVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_NDK_MONOGRAPH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToNdkMonographVolume(
+    public ProArcResponse<SearchViewItem> changeOldPrintMonographVolumeToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeOldPrintMonographVolumeToNdkMonographVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_SUPPLEMENT_TO_STT_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkMonographSupplementToOldPrintSupplement(
+    public ProArcResponse<SearchViewItem> changeNdkMonographSupplementToOldPrintSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkMonographSupplementToOldPrintSupplement(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_SUPPLEMENT_TO_NDK_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldPrintSupplementToNdkMonographSupplement(
+    public ProArcResponse<SearchViewItem> changeOldPrintSupplementToNdkMonographSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeOldPrintSupplementToNdkMonographSupplement(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_STT_GRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintGraphic(
+    public ProArcResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintGraphic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeOldPrintMonographVolumeToOldprintGraphic(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_GRAPHIC_TO_STT_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldPrintGraphicToOldPrintMonographVolume(
+    public ProArcResponse<SearchViewItem> changeOldPrintGraphicToOldPrintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeOldPrintGraphicToOldPrintMonographVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_STT_MUSICSHEET)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintMusicSheet(
+    public ProArcResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintMusicSheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeOldPrintMonographVolumeToOldprintMusicSheet(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_TO_NDK_EPERIODICAL)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkPeriodicalToNdkEPeriodical(
+    public ProArcResponse<SearchViewItem> changeNdkPeriodicalToNdkEPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkPeriodicalToNdkEPeriodical(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_VOLUME_TO_NDK_EPERIODICAL_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkPeriodicalVolumeToNdkEPeriodicalVolume(
+    public ProArcResponse<SearchViewItem> changeNdkPeriodicalVolumeToNdkEPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkPeriodicalVolumeToNdkEPeriodicalVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_ISSUE_TO_NDK_EPERIODICAL_ISSUE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkPeriodicalIssueToNdkEPeriodicalIssue(
+    public ProArcResponse<SearchViewItem> changeNdkPeriodicalIssueToNdkEPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkPeriodicalIssueToNdkEPeriodicalIssue(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_SUPPLEMENT_TO_NDK_EPERIODICAL_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkPeriodicalSupplementToNdkEPeriodicalSupplement(
+    public ProArcResponse<SearchViewItem> changeNdkPeriodicalSupplementToNdkEPeriodicalSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkPeriodicalSupplementToNdkEPeriodicalSupplement(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_ARTICLE_TO_NDK_EARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkArticleToNdkEArticle(
+    public ProArcResponse<SearchViewItem> changeNdkArticleToNdkEArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkArticleToNdkEArticle(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_BDM_ARTICLE_TO_NDK_EARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeBdmArticleToNdkEArticle(
+    public ProArcResponse<SearchViewItem> changeBdmArticleToNdkEArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeBdmArticleToNdkEArticle(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_TO_NDK_PERIODICAL)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEPeriodicalToNdkPeriodical(
+    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalToNdkPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkEPeriodicalToNdkPeriodical(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEPeriodicalVolumeToNdkPeriodicalVolume(
+    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalVolumeToNdkPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkEPeriodicalVolumeToNdkPeriodicalVolume(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEPeriodicalIssueToNdkPeriodicalIssue(
+    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalIssueToNdkPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkEPeriodicalIssueToNdkPeriodicalIssue(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_SUPPLEMENT_TO_NDK_PERIODICAL_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEPeriodicalSupplementToNdkPeriodicalSupplement(
+    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalSupplementToNdkPeriodicalSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkEPeriodicalSupplementToNdkPeriodicalSupplement(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EARTICLE_TO_NDK_ARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEArticleToNdkArticle(
+    public ProArcResponse<SearchViewItem> changeNdkEArticleToNdkArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkEArticleToNdkArticle(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EARTICLE_TO_BDM_ARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeNdkEArticleToBdmArticle(
+    public ProArcResponse<SearchViewItem> changeNdkEArticleToBdmArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (isLocked(pids)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_IS_LOCKED));
         }
         try {
             return super.changeNdkEArticleToBdmArticle(pids);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
@@ -2981,7 +2990,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @PUT
     @Path(DigitalObjectResourceApi.REINDEX_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> reindex(
+    public ProArcResponse<SearchViewItem> reindex(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PARENT_PID) String parentPid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId,
@@ -2992,144 +3001,144 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return super.reindex(pid, parentPid, modelId, batchId, isNightOnly);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.UPDATE_ALL_OBJECTS_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> updateAllObjects(
+    public ProArcResponse<SearchViewItem> updateAllObjects(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_ALL_OBJECTS)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_UPDATE_ALL_OBJECTS)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
             return super.updateAllObjects(pid, modelId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.UPDATE_NDK_ARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> updateNdkArticeObjects(
+    public ProArcResponse<SearchViewItem> updateNdkArticeObjects(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_UPDATE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pid == null || pid.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
             return super.updateNdkArticeObjects(pid, modelId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.UPDATE_NDK_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> updateNdkPageObjects(
+    public ProArcResponse<SearchViewItem> updateNdkPageObjects(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_UPDATE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pid == null || pid.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
             return super.updateNdkPageObjects(pid, modelId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.UPDATE_NDK_PAGE + "/" + "pageType")
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> updateNdkPageObjectsWithSpecificPageType(
+    public ProArcResponse<SearchViewItem> updateNdkPageObjectsWithSpecificPageType(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
     ) {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_UPDATE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
             return super.updateNdkPageObjectsWithSpecificPageType(pid);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.UPDATE_OLDPRINT_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> updateOldprintPageObjects(
+    public ProArcResponse<SearchViewItem> updateOldprintPageObjects(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_UPDATE_MODEL)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (pid == null || pid.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
             return super.updateOldprintPageObjects(pid, modelId);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.UPDATE_CATALOG_RECORD)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> updateCatalogRecord(
+    public ProArcResponse<SearchViewItem> updateCatalogRecord(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID) String catalogId,
             @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_IMPORT_TO_CATALOG)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_IMPORT_TO_CATALOG)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 
         if (pids == null || pids.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         if (catalogId == null || catalogId.isEmpty()) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.MODS_CUSTOM_CATALOGID));
         }
 
 
@@ -3137,34 +3146,34 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             return super.updateCatalogRecord(pids, catalogId, isNightOnly);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_OWNER_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<SearchViewItem> changeObjectOwner (
+    public ProArcResponse<SearchViewItem> changeObjectOwner (
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_OLD) String oldOwner,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_NEW) String newOwner,
             @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
 
-        if (!hasPermission(user, UserRole.PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER)) {
-            return SmartGwtResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
 
         try {
             return super.changeObjectOwner(oldOwner, newOwner, isNightOnly);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
-            return SmartGwtResponse.asError(ex.getMyMessage());
+            return ProArcResponse.asError(ex.getMyMessage());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 }

@@ -33,7 +33,6 @@ import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
-import cz.cas.lib.proarc.common.process.export.desa.DesaContext;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
@@ -52,6 +51,12 @@ import cz.cas.lib.proarc.mets.info.Info.Titleid;
 import cz.cas.lib.proarc.mets.info.Info.Validation;
 import cz.cas.lib.proarc.premis.PremisComplexType;
 import cz.cas.lib.proarc.premis.PremisUtils;
+import jakarta.xml.bind.DataBindingException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -85,12 +90,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import javax.xml.XMLConstants;
-import javax.xml.bind.DataBindingException;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -118,8 +117,8 @@ import org.w3c.dom.NodeList;
 
 /**
  * @author Robert Simonovsky
- *
- *         Utility class
+ * <p>
+ * Utility class
  *
  */
 public class MetsUtils {
@@ -205,7 +204,7 @@ public class MetsUtils {
      * @return simplified name of model
      * @throws NoSuchElementException no mapping for model<->type
      */
-    public static String getElementType(String  model) {
+    public static String getElementType(String model) {
         String type = Const.typeMap.get(model);
         if (type == null) {
             List<NdkEbornPlugin> plugins = MetaModelRepository.getInstance().find().stream().map(metaModel -> metaModel.getPlugin()).distinct()
@@ -264,13 +263,13 @@ public class MetsUtils {
 
     /**
      * Fetch PSP id - this is usually determined by some level of model.
-     * @see Const#PSPElements
      *
-     * @param pid   pid of exported model
+     * @param pid          pid of exported model
      * @param ctx
      * @param fillChildren
      * @return
      * @throws MetsExportException
+     * @see Const#PSPElements
      */
     public static List<String> findPSPPIDs(String pid, MetsContext ctx, boolean fillChildren) throws MetsExportException {
         List<String> result = new ArrayList<>();
@@ -287,7 +286,7 @@ public class MetsUtils {
             parentdbObj = readFoXML(parentId, ctx);
             parentRels = FoxmlUtils.findDatastream(parentdbObj, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
             parentModel = MetsUtils.getModel(parentRels);
-            parentType =  getElementType(parentModel);
+            parentType = getElementType(parentModel);
 
             if ((parentId.equals(pid)) && (firstParentType == null)) {
                 firstParentType = parentType;
@@ -302,7 +301,7 @@ public class MetsUtils {
                     if (parentId != null) {
                         DigitalObject parentdbObjSupp = readFoXML(parentId, ctx);
                         List<Element> parentRelsSupp = FoxmlUtils.findDatastream(parentdbObjSupp, "RELS-EXT").getDatastreamVersion().get(0).getXmlContent().getAny();
-                        String parentTypeSupp =  getElementType(MetsUtils.getModel(parentRelsSupp));
+                        String parentTypeSupp = getElementType(MetsUtils.getModel(parentRelsSupp));
                         if (Const.MONOGRAPH_UNIT.equals(parentTypeSupp) || (Const.ISSUE.equals(parentTypeSupp))) {
                             // do not add an PSP for Supplement under monograph
                             // unit or issue
@@ -667,6 +666,7 @@ public class MetsUtils {
         fileGrpMap.put(Const.AUDIO_UC_GRP_ID, UCaudioGrp);
         return fileGrpMap;
     }
+
     /**
      *
      * Reads and unmarshalls Digital Object
@@ -712,20 +712,6 @@ public class MetsUtils {
         if (Storage.FEDORA.equals(metsContext.getTypeOfStorage())) {
             return readFoXML(object.getPid(), metsContext.getFedoraClient());
         } else if (Storage.AKUBRA.equals(metsContext.getTypeOfStorage())) {
-            try {
-                return AkubraUtils.getDigitalObjectProArc(((AkubraObject) object).getManager(), object.getPid());
-            } catch (JAXBException e) {
-                throw new MetsExportException("Unable to get " + object.getPid() + " from Akubra", false, e);
-            }
-        } else {
-            return null;
-        }
-    }
-
-    public static DigitalObject readFoXML(DesaContext context, ProArcObject object) throws MetsExportException {
-        if (Storage.FEDORA.equals(context.getTypeOfStorage())) {
-            return readFoXML(object.getPid(), context.getFedoraClient());
-        } else if (Storage.AKUBRA.equals(context.getTypeOfStorage())) {
             try {
                 return AkubraUtils.getDigitalObjectProArc(((AkubraObject) object).getManager(), object.getPid());
             } catch (JAXBException e) {
@@ -851,7 +837,7 @@ public class MetsUtils {
         return false;
     }
 
-     /* Return a valid identifier for mets document removes whitespaces and if an
+    /* Return a valid identifier for mets document removes whitespaces and if an
      * identifier does not start with a letter it adds a prefix
      *
      * @param identifier
@@ -1061,7 +1047,8 @@ public class MetsUtils {
             } else {
                 throw new MetsExportException(element.getOriginalPid(), "Unable to find identifier URNNBN and UUID is missing", false, null);
             }
-        } if (ignoreMissingUrnNbn) {
+        }
+        if (ignoreMissingUrnNbn) {
             if (identifiersMap.containsKey(Const.UUID)) {
                 return identifiersMap.get(Const.UUID);
             } else {
@@ -1109,20 +1096,6 @@ public class MetsUtils {
     }
 
     public static DigitalObject readRelatedFoXML(String uuid, MetsContext context) throws MetsExportException {
-        if (Storage.FEDORA.equals(context.getTypeOfStorage())) {
-            return readRelatedFoXML(uuid, context.getFedoraClient());
-        } else if (Storage.AKUBRA.equals(context.getTypeOfStorage())) {
-            AkubraStorage akubraStorage = context.getAkubraStorage();
-            AkubraObject object = akubraStorage.find(uuid);
-            return readFoXML(context, object);
-        } else if (Storage.LOCAL.equals(context.getTypeOfStorage())) {
-            return readRelatedFoXML(context.getPath(), uuid);
-        } else {
-            return null;
-        }
-    }
-
-    public static DigitalObject readRelatedFoXML(String uuid, DesaContext context) throws MetsExportException {
         if (Storage.FEDORA.equals(context.getTypeOfStorage())) {
             return readRelatedFoXML(uuid, context.getFedoraClient());
         } else if (Storage.AKUBRA.equals(context.getTypeOfStorage())) {
@@ -1214,28 +1187,6 @@ public class MetsUtils {
         }
         if (referrers.size() > 1) {
             throw new MetsExportException("More referrers for pid:" + uuid, false);
-        }
-        return referrers.size() == 0 ? null : referrers.get(0).getPid();
-    }
-
-    public static String getParent(String uuid, DesaContext desaContext) throws MetsExportException {
-        List<SearchViewItem> referrers;
-        try {
-            if (Storage.FEDORA.equals(desaContext.getTypeOfStorage())) {
-                referrers = desaContext.getRemoteStorage().getSearch().findReferrers(uuid);
-                LOG.fine("Parent found from Fedora:" + uuid);
-            } else if (Storage.AKUBRA.equals(desaContext.getTypeOfStorage())) {
-                referrers = desaContext.getAkubraStorage().getSearch().findReferrers(uuid);
-                LOG.fine("Parent found from Fedora:" + uuid);
-            } else if (Storage.LOCAL.equals(desaContext.getAkubraStorage())) {
-                String parent = getParent(uuid, desaContext.getFsParentMap());
-                LOG.fine("Parent found from Local:" + uuid);
-                return parent;
-            } else {
-                return null;
-            }
-        } catch (Exception e) {
-            throw new MetsExportException("Error while finding parent for:" + uuid, false, e);
         }
         return referrers.size() == 0 ? null : referrers.get(0).getPid();
     }
@@ -1446,6 +1397,7 @@ public class MetsUtils {
             }
         }
     }
+
     public static <T> T unmarshal(String source, Class<T> type) {
         return unmarshal(new StreamSource(new StringReader(source)), type);
     }

@@ -43,6 +43,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import static cz.cas.lib.proarc.common.process.export.mets.Const.FEDORAPREFIX;
 
 /**
@@ -85,13 +86,13 @@ public class BornDigitalModsPlugin implements DigitalObjectPlugin, HasMetadataHa
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.OCR, DatastreamEditorType.MEDIA,
                         DatastreamEditorType.ATM)
-                ));
+        ));
         return models;
     }
 
     @Override
     public <T extends HasDataHandler> T getHandlerProvider(Class<T> type) {
-        return type.isInstance(this) ? type.cast(this): null;
+        return type.isInstance(this) ? type.cast(this) : null;
     }
 
     @Override

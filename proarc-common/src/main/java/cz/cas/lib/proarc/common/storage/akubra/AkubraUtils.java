@@ -9,6 +9,10 @@ import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import com.yourmediashelf.fedora.util.DateUtility;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,10 +30,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -72,7 +72,7 @@ public class AkubraUtils {
         try {
             InputStream inputStream = manager.retrieveObject(pid);
             try {
-                synchronized(unmarshallerKram) {
+                synchronized (unmarshallerKram) {
                     Object obj = unmarshallerKram.unmarshal(inputStream);
                     DigitalObject digitalObject = (DigitalObject) obj;
                     return digitalObject;
@@ -92,11 +92,12 @@ public class AkubraUtils {
             throw new RuntimeException(e);
         }
     }
+
     public static DigitalObject getDigitalObjectProArc(AkubraManager manager, String pid) throws JAXBException {
         try {
             InputStream inputStream = manager.retrieveObject(pid);
             try {
-                synchronized(unmarshallerProArc) {
+                synchronized (unmarshallerProArc) {
                     Object obj = unmarshallerProArc.unmarshal(inputStream);
                     DigitalObject digitalObject = (DigitalObject) obj;
                     return digitalObject;
@@ -123,7 +124,7 @@ public class AkubraUtils {
         try {
             InputStream inputStream = manager.retrieveObject(pid);
             try {
-                synchronized(unmarshallerProArc) {
+                synchronized (unmarshallerProArc) {
                     Object obj = unmarshallerProArc.unmarshal(inputStream);
                     DigitalObject digitalObject = (DigitalObject) obj;
                     List<DatastreamType> toDelete = new ArrayList<>();
@@ -200,7 +201,7 @@ public class AkubraUtils {
                 profile.setDsState(datastream.getSTATE().value());
                 profile.setDsID(datastream.getID());
 
-                DatastreamVersionType type =  getLastStreamVersion(datastream);
+                DatastreamVersionType type = getLastStreamVersion(datastream);
                 if (type != null) {
                     profile.setDsVersionID(type.getID());
                     profile.setDsLabel(type.getLABEL());
@@ -230,7 +231,7 @@ public class AkubraUtils {
             profile.setDsState(datastream.getSTATE().value());
             profile.setDsID(datastream.getID());
 
-            DatastreamVersionType type =  getLastStreamVersion(datastream);
+            DatastreamVersionType type = getLastStreamVersion(datastream);
             if (type != null) {
                 profile.setDsVersionID(type.getID());
                 profile.setDsLabel(type.getLABEL());

@@ -17,23 +17,17 @@
 
 package cz.cas.lib.proarc.common.process.export.mets;
 
-import edu.harvard.hul.ois.jhove.App;
-import edu.harvard.hul.ois.jhove.JhoveBase;
-import edu.harvard.hul.ois.jhove.Module;
-import edu.harvard.hul.ois.jhove.OutputHandler;
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
-
 import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.storage.AesEditor;
 import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
-import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.Compression;
 import cz.cas.lib.proarc.mix.BasicDigitalObjectInformationType.ObjectIdentifier;
@@ -49,6 +43,12 @@ import cz.cas.lib.proarc.mix.OrientationType;
 import cz.cas.lib.proarc.mix.StringType;
 import cz.cas.lib.proarc.mix.TypeOfDateType;
 import cz.cas.lib.proarc.mix.TypeOfOrientationType;
+import edu.harvard.hul.ois.jhove.App;
+import edu.harvard.hul.ois.jhove.JhoveBase;
+import edu.harvard.hul.ois.jhove.Module;
+import edu.harvard.hul.ois.jhove.OutputHandler;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
+import jakarta.xml.bind.JAXBElement;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -57,7 +57,6 @@ import java.util.Calendar;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -77,14 +76,15 @@ import org.w3c.dom.NodeList;
 
 /**
  * @author Robert Simonovsky
- *
- *         Utility class for jHove application
+ * <p>
+ * Utility class for jHove application
  *
  */
 public class JhoveUtility {
 
     private static final Logger LOG = Logger.getLogger(JhoveUtility.class.getName());
     static final String JHOVE_CONFIG_NAME = "jhove.conf";
+
     static {
         LOG.setLevel(Level.SEVERE);
     }
@@ -117,7 +117,7 @@ public class JhoveUtility {
                 (node.getChildNodes() != null) &&
                 node.getChildNodes().getLength() > 0 &&
                 node.getChildNodes().item(0) != null &&
-                (((DeferredTextImpl)node.getChildNodes().item(0)).getData().startsWith(value))) {
+                (((DeferredTextImpl) node.getChildNodes().item(0)).getData().startsWith(value))) {
             return node;
         } else {
             NodeList nl = node.getChildNodes();
@@ -181,7 +181,7 @@ public class JhoveUtility {
     /**
      * Creates the JHOVE context and stores its configuration in the passed folder.
      * <p>{@link JhoveContext#destroy() } will remove the configuration folder!
-
+     *
      * @param configFolder folder to store configuration files
      * @return the context
      * @throws MetsExportException failure
@@ -190,7 +190,7 @@ public class JhoveUtility {
     public static JhoveContext createContext(File configFolder) throws MetsExportException {
         Calendar calendar = Calendar.getInstance();
 
-        App app = new App(JhoveUtility.class.getSimpleName(), "1.0", new int[] { calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH) }, "jHove", "");
+        App app = new App(JhoveUtility.class.getSimpleName(), "1.0", new int[]{calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)}, "jHove", "");
         try {
             JhoveBase jhoveBase = new JhoveBase();
             File jhoveConfigFile = createJhoveConfigurationFile(configFolder);
@@ -204,17 +204,17 @@ public class JhoveUtility {
     /**
      * Gets MIX of a source image file.
      *
-     * @param sourceFile image file to describe with MIX
-     * @param tempFolder workspace for JHove
-     * @param deviceMix optional device description
-     * @param dateCreated optional date of creation of the source
+     * @param sourceFile       image file to describe with MIX
+     * @param tempFolder       workspace for JHove
+     * @param deviceMix        optional device description
+     * @param dateCreated      optional date of creation of the source
      * @param originalFileName optional image file name
      * @return the MIX description
      * @throws MetsExportException failure
      */
     public static JHoveOutput getMix(File sourceFile, File tempFolder,
-            MixType deviceMix, XMLGregorianCalendar dateCreated, String originalFileName
-            ) throws MetsExportException {
+                                     MixType deviceMix, XMLGregorianCalendar dateCreated, String originalFileName
+    ) throws MetsExportException {
 
         JhoveContext ctx = createContext(tempFolder);
         return getMix(sourceFile, ctx, deviceMix, dateCreated, null);
@@ -223,10 +223,10 @@ public class JhoveUtility {
     /**
      * Gets AES of a source image file.
      *
-     * @param sourceFile image file to describe with AES
-     * @param tempFolder workspace for JHove
-     * @param aesDevice optional device description
-     * @param dateCreated optional date of creation of the source
+     * @param sourceFile       image file to describe with AES
+     * @param tempFolder       workspace for JHove
+     * @param aesDevice        optional device description
+     * @param dateCreated      optional date of creation of the source
      * @param originalFileName optional image file name
      * @return the MIX description
      * @throws MetsExportException failure
@@ -242,15 +242,15 @@ public class JhoveUtility {
     /**
      * Gets Coding History of a source image file.
      *
-     * @param sourceFile image file to describe with AES
-     * @param tempFolder workspace for JHove
-     * @param dateCreated optional date of creation of the source
+     * @param sourceFile       image file to describe with AES
+     * @param tempFolder       workspace for JHove
+     * @param dateCreated      optional date of creation of the source
      * @param originalFileName optional image file name
      * @return the MIX description
      * @throws MetsExportException failure
      */
     public static JHoveOutput getCodingHistory(File sourceFile, File tempFolder,
-                                     XMLGregorianCalendar dateCreated, String originalFileName
+                                               XMLGregorianCalendar dateCreated, String originalFileName
     ) throws MetsExportException {
 
         JhoveContext ctx = createContext(tempFolder);
@@ -331,10 +331,10 @@ public class JhoveUtility {
     public static JHoveOutput getMix(IMetsElement metsElement, String streamName, String path, Mix mixDevice, XMLGregorianCalendar rawCreated, String originalFile) throws MetsExportException {
         if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             return getMixFromStorage(metsElement, streamName);
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             return getMixFromStorage(metsElement, streamName);
         } else if (Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            JHoveOutput jHoveOutput =  getMix(new File(path), metsElement.getMetsContext(), mixDevice, rawCreated, originalFile);
+            JHoveOutput jHoveOutput = getMix(new File(path), metsElement.getMetsContext(), mixDevice, rawCreated, originalFile);
             if (jHoveOutput.getMix() == null) {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Unable to generate Mix information for " + streamName + "image", false, null);
             }
@@ -347,7 +347,7 @@ public class JhoveUtility {
     public static JHoveOutput getCodingHistory(IMetsElement metsElement, String streamName, String path, XMLGregorianCalendar rawCreated, String originalFile) throws MetsExportException {
         if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             return getCodingHistoryFromStorage(metsElement, streamName);
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             return getCodingHistoryFromStorage(metsElement, streamName);
         } else if (Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             JHoveOutput jHoveOutput = getCodingHistory(new File(path), metsElement.getMetsContext(), rawCreated, null);
@@ -375,8 +375,8 @@ public class JhoveUtility {
         MixEditor mixEditor;
         ProArcObject proArcObject = null;
         if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            proArcObject = metsElement.getMetsContext(). getRemoteStorage().find(metsElement.getOriginalPid());
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
+            proArcObject = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             proArcObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
         }
         if (MixEditor.RAW_ID.equals(streamName)) {
@@ -417,10 +417,10 @@ public class JhoveUtility {
     public static JHoveOutput getAes(IMetsElement metsElement, String streamName, String path, AudioObjectType aes, XMLGregorianCalendar rawCreated, String originalFile) throws MetsExportException {
         if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             return getAesFromStorage(metsElement, streamName);
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             return getAesFromStorage(metsElement, streamName);
         } else if (Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            JHoveOutput jHoveOutput =  getAes(new File(path), metsElement.getMetsContext(), aes, rawCreated, originalFile);
+            JHoveOutput jHoveOutput = getAes(new File(path), metsElement.getMetsContext(), aes, rawCreated, originalFile);
             if (jHoveOutput.getMix() == null) {
                 LOG.warning("U objektu " + metsElement.getOriginalPid() + " nejsou vyplněna technická metadata a nejdou ani najít v RAW souboru pro tento objekt " + metsElement.getOriginalPid() + ".");
             }
@@ -445,8 +445,8 @@ public class JhoveUtility {
         AesEditor aesEditor;
         ProArcObject proArcObject = null;
         if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            proArcObject = metsElement.getMetsContext(). getRemoteStorage().find(metsElement.getOriginalPid());
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
+            proArcObject = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             proArcObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
         }
         if (AesEditor.RAW_ID.equals(streamName)) {
@@ -496,8 +496,8 @@ public class JhoveUtility {
         CodingHistoryEditor editor;
         ProArcObject proArcObject = null;
         if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            proArcObject = metsElement.getMetsContext(). getRemoteStorage().find(metsElement.getOriginalPid());
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())){
+            proArcObject = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
+        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             proArcObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
         }
         if (CodingHistoryEditor.RAW_ID.equals(streamName)) {
@@ -550,15 +550,15 @@ public class JhoveUtility {
         if ((mix.getImageCaptureMetadata() == null) ||
                 (mix.getImageCaptureMetadata().getGeneralCaptureInformation() == null) ||
                 (mix.getImageCaptureMetadata().getGeneralCaptureInformation().getDateTimeCreated() == null)) {
-        TypeOfDateType dateTimeCreated = new TypeOfDateType();
-        dateTimeCreated.setValue(dateCreated.toXMLFormat());
-        if (mix.getImageCaptureMetadata() == null) {
-            mix.setImageCaptureMetadata(new ImageCaptureMetadataType());
-        }
-        if (mix.getImageCaptureMetadata().getGeneralCaptureInformation() == null) {
-            mix.getImageCaptureMetadata().setGeneralCaptureInformation(new ImageCaptureMetadataType.GeneralCaptureInformation());
-        }
-        mix.getImageCaptureMetadata().getGeneralCaptureInformation().setDateTimeCreated(dateTimeCreated);
+            TypeOfDateType dateTimeCreated = new TypeOfDateType();
+            dateTimeCreated.setValue(dateCreated.toXMLFormat());
+            if (mix.getImageCaptureMetadata() == null) {
+                mix.setImageCaptureMetadata(new ImageCaptureMetadataType());
+            }
+            if (mix.getImageCaptureMetadata().getGeneralCaptureInformation() == null) {
+                mix.getImageCaptureMetadata().setGeneralCaptureInformation(new ImageCaptureMetadataType.GeneralCaptureInformation());
+            }
+            mix.getImageCaptureMetadata().getGeneralCaptureInformation().setDateTimeCreated(dateTimeCreated);
         }
     }
 
@@ -607,17 +607,17 @@ public class JhoveUtility {
     /**
      * Gets MIX of a source image file.
      *
-     * @param sourceFile image file to describe with MIX
-     * @param jhoveContext JHove
-     * @param deviceMix optional device description
-     * @param dateCreated optional date of creation of the source
+     * @param sourceFile       image file to describe with MIX
+     * @param jhoveContext     JHove
+     * @param deviceMix        optional device description
+     * @param dateCreated      optional date of creation of the source
      * @param originalFileName optional image file name
      * @return the MIX description
      * @throws MetsExportException failure
      */
     public static JHoveOutput getMix(File sourceFile, JhoveContext jhoveContext,
-            MixType deviceMix, XMLGregorianCalendar dateCreated, String originalFileName
-            ) throws MetsExportException {
+                                     MixType deviceMix, XMLGregorianCalendar dateCreated, String originalFileName
+    ) throws MetsExportException {
 
         JHoveOutput jhoveOutput = new JHoveOutput();
 
@@ -633,7 +633,7 @@ public class JhoveUtility {
             OutputHandler aboutHandler = jhoveBase.getHandler(null);
             OutputHandler xmlHandler = jhoveBase.getHandler("XML");
             LOG.log(Level.FINE, "Calling JHOVE dispatch(...) on file " + sourceFile);
-            jhoveBase.dispatch(jhoveContext.getJhoveApp(), module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[] { sourceFile.getAbsolutePath() });
+            jhoveBase.dispatch(jhoveContext.getJhoveApp(), module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[]{sourceFile.getAbsolutePath()});
             DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
             builderFactory.setNamespaceAware(true);
             DocumentBuilder builder = builderFactory.newDocumentBuilder();
@@ -706,16 +706,16 @@ public class JhoveUtility {
     /**
      * Gets Aes of a source image file.
      *
-     * @param sourceFile image file to describe with AES
-     * @param jhoveContext JHove
-     * @param aesDevice optional device description
-     * @param dateCreated optional date of creation of the source
+     * @param sourceFile       image file to describe with AES
+     * @param jhoveContext     JHove
+     * @param aesDevice        optional device description
+     * @param dateCreated      optional date of creation of the source
      * @param originalFileName optional image file name
      * @return the MIX description
      * @throws MetsExportException failure
      */
     public static JHoveOutput getAes(File sourceFile, JhoveContext jhoveContext,
-                                     AudioObjectType  aesDevice, XMLGregorianCalendar dateCreated, String originalFileName
+                                     AudioObjectType aesDevice, XMLGregorianCalendar dateCreated, String originalFileName
     ) throws MetsExportException {
 
         JHoveOutput jhoveOutput = new JHoveOutput();
@@ -732,7 +732,7 @@ public class JhoveUtility {
             OutputHandler aboutHandler = jhoveBase.getHandler(null);
             OutputHandler xmlHandler = jhoveBase.getHandler("XML");
             LOG.log(Level.FINE, "Calling JHOVE dispatch(...) on file " + sourceFile);
-            jhoveBase.dispatch(jhoveContext.getJhoveApp(), module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[] { sourceFile.getAbsolutePath() });
+            jhoveBase.dispatch(jhoveContext.getJhoveApp(), module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[]{sourceFile.getAbsolutePath()});
             DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
             builderFactory.setNamespaceAware(true);
             DocumentBuilder builder = builderFactory.newDocumentBuilder();
@@ -766,15 +766,15 @@ public class JhoveUtility {
     /**
      * Gets Coding History of a source image file.
      *
-     * @param sourceFile image file to describe with AES
-     * @param jhoveContext JHove
-     * @param dateCreated optional date of creation of the source
+     * @param sourceFile       image file to describe with AES
+     * @param jhoveContext     JHove
+     * @param dateCreated      optional date of creation of the source
      * @param originalFileName optional image file name
      * @return the MIX description
      * @throws MetsExportException failure
      */
     public static JHoveOutput getCodingHistory(File sourceFile, JhoveContext jhoveContext,
-                                     XMLGregorianCalendar dateCreated, String originalFileName
+                                               XMLGregorianCalendar dateCreated, String originalFileName
     ) throws MetsExportException {
 
         JHoveOutput jhoveOutput = new JHoveOutput();
@@ -791,7 +791,7 @@ public class JhoveUtility {
             OutputHandler aboutHandler = jhoveBase.getHandler(null);
             OutputHandler xmlHandler = jhoveBase.getHandler("XML");
             LOG.log(Level.FINE, "Calling JHOVE dispatch(...) on file " + sourceFile);
-            jhoveBase.dispatch(jhoveContext.getJhoveApp(), module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[] { sourceFile.getAbsolutePath() });
+            jhoveBase.dispatch(jhoveContext.getJhoveApp(), module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[]{sourceFile.getAbsolutePath()});
             DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
             builderFactory.setNamespaceAware(true);
             DocumentBuilder builder = builderFactory.newDocumentBuilder();
@@ -821,13 +821,13 @@ public class JhoveUtility {
     /**
      * Gets Object basic info of a source file.
      *
-     * @param sourceFile source file to describe
-     * @param jhoveContext JHove
-     * @param dateCreated optional date of creation of the source
+     * @param sourceFile       source file to describe
+     * @param jhoveContext     JHove
+     * @param dateCreated      optional date of creation of the source
      * @param originalFileName optional image file name
      */
     public static JHoveOutput getObjectInfo(File sourceFile, JhoveContext jhoveContext,
-                                     XMLGregorianCalendar dateCreated, String originalFileName
+                                            XMLGregorianCalendar dateCreated, String originalFileName
     ) throws MetsExportException {
 
         JHoveOutput jhoveOutput = new JHoveOutput();
@@ -844,7 +844,7 @@ public class JhoveUtility {
             OutputHandler aboutHandler = jhoveBase.getHandler(null);
             OutputHandler xmlHandler = jhoveBase.getHandler("XML");
             LOG.log(Level.FINE, "Calling JHOVE dispatch(...) on file " + sourceFile);
-            jhoveBase.dispatch(jhoveContext.getJhoveApp(), module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[] { sourceFile.getAbsolutePath() });
+            jhoveBase.dispatch(jhoveContext.getJhoveApp(), module, aboutHandler, xmlHandler, outputFile.getAbsolutePath(), new String[]{sourceFile.getAbsolutePath()});
             DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
             builderFactory.setNamespaceAware(true);
             DocumentBuilder builder = builderFactory.newDocumentBuilder();
@@ -900,11 +900,12 @@ public class JhoveUtility {
     /**
      * Removes JHOVE configuration files (not folder) used by the context.
      * It is here not to break {@link MetsElementVisitor}.
+     *
      * @param ctx context
      */
     public static void destroyConfigFiles(JhoveContext ctx) {
         if (ctx == null) {
-            return ;
+            return;
         }
         File configDir = ctx.getConfigFolder();
         File jhoveConfFile = new File(configDir, JHOVE_CONFIG_NAME);
@@ -939,7 +940,6 @@ public class JhoveUtility {
     /**
      * Adds the photometric information to the mix
      *
-     *
      * @param jhoveOutput
      * @param photometricInterpretation
      */
@@ -968,7 +968,7 @@ public class JhoveUtility {
      * @param jhoveOutput
      */
     public static void addOrientation(JHoveOutput jhoveOutput) {
-        if ((jhoveOutput!=null)&&(jhoveOutput.getMix()!=null)) {
+        if ((jhoveOutput != null) && (jhoveOutput.getMix() != null)) {
             if ((jhoveOutput.getMix().getImageCaptureMetadata() != null) && (jhoveOutput.getMix().getImageCaptureMetadata().getOrientation() == null)) {
                 TypeOfOrientationType orientation = new TypeOfOrientationType();
                 orientation.setValue(OrientationType.UNKNOWN);

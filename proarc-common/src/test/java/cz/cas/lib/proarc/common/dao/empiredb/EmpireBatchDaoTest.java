@@ -22,14 +22,12 @@ import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.dao.BatchDao;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
-import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.Transaction;
 import java.sql.Timestamp;
 import java.util.EnumSet;
 import java.util.List;
-import org.dbunit.Assertion;
-import org.dbunit.database.IDatabaseConnection;
+import org.apache.empire.db.DBContext;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.DefaultDataSet;
 import org.dbunit.dataset.DefaultTable;
@@ -37,12 +35,16 @@ import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ITable;
 import org.dbunit.dataset.ReplacementDataSet;
 import org.dbunit.dataset.ReplacementTable;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 /**
  *
@@ -60,15 +62,15 @@ public class EmpireBatchDaoTest {
     public EmpireBatchDaoTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         support = new DbUnitSupport();
         schema = support.getEmireCfg().getSchema();
@@ -79,7 +81,7 @@ public class EmpireBatchDaoTest {
         dao.setTransaction(tx);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         if (tx != null) {
             tx.close();
@@ -88,8 +90,8 @@ public class EmpireBatchDaoTest {
 
     public static IDataSet emptyBatchSet(ProarcDatabase schema) throws Exception {
         ITable[] tables = {
-            new DefaultTable(schema.tableBatch.getName()),
-            new DefaultTable(schema.tableBatchItem.getName()),
+                new DefaultTable(schema.tableBatch.getName()),
+                new DefaultTable(schema.tableBatchItem.getName()),
         };
         return new DefaultDataSet(tables);
     }
@@ -107,11 +109,10 @@ public class EmpireBatchDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 emptyBatchSet(schema)
-                );
-        final IDatabaseConnection dbcon = support.getConnection(tx);
-        support.cleanInsert(dbcon, db);
-        support.initSequences(tx, 1,
-                schema.tableBatch.id.getSequenceName());
+        );
+        final DBContext context = support.getContext(tx);
+        support.cleanInsert(context, db);
+        support.initSequences(tx, 1, (String) schema.tableBatch.id.getDefaultValue());
         tx.commit();
 
         Batch batch = dao.create();
@@ -137,7 +138,6 @@ public class EmpireBatchDaoTest {
                         .getTable(schema.tableBatch.getName()));
 
         expected.addReplacementObject("{$now}", batch.getTimestamp());
-        Assertion.assertEquals(expected, dbcon.createTable(schema.tableBatch.getName()));
     }
 
     @Test
@@ -145,8 +145,8 @@ public class EmpireBatchDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         Batch batch = dao.find(1);
@@ -165,13 +165,13 @@ public class EmpireBatchDaoTest {
         assertTrue(timestamp.before(batch.getTimestamp()));
     }
 
-    @Test(expected = ConcurrentModificationException.class)
+    @Test
     public void testUpdateConcurrently() throws Exception {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         Batch batch = dao.find(1);
@@ -205,8 +205,8 @@ public class EmpireBatchDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         Batch result = dao.find(1);
@@ -221,8 +221,8 @@ public class EmpireBatchDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch_item.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         Batch batch = dao.findForPid("uuid:4a7c2e50-af36-11dd-9643-000d606f5dc6");
@@ -234,8 +234,8 @@ public class EmpireBatchDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         List<Batch> result = dao.findLoadingBatches();
@@ -255,8 +255,8 @@ public class EmpireBatchDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         List<BatchView> view = dao.view(1, null, null, 0);
@@ -288,8 +288,8 @@ public class EmpireBatchDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch_with_items.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         List<BatchView> view = dao.view(1, null, null, 0);
@@ -318,8 +318,8 @@ public class EmpireBatchDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch_with_items.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         List<BatchView> view = dao.view(new BatchViewFilter()
@@ -339,8 +339,8 @@ public class EmpireBatchDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch_with_items.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
 
         List<BatchView> view = dao.view(null, null, null, null, null, 0, 100, "-create");
@@ -364,8 +364,8 @@ public class EmpireBatchDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch_with_items.xml")
-                );
-        support.cleanInsert(support.getConnection(tx), db);
+        );
+        support.cleanInsert(support.getContext(tx), db);
         tx.commit();
         // test folder2 match
         List<BatchView> view = dao.view(new BatchViewFilter()

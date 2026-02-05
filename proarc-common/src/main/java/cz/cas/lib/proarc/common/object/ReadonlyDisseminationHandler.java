@@ -19,8 +19,8 @@ package cz.cas.lib.proarc.common.object;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
 
 /**
  * The Read-only dissemination handler.

@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Metadatový kontejner pro zaznamenání právě jednoho interního subjektu.
- * 
+ *
  * <p>Java class for tOsobaInterni complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tOsobaInterni">
  *   &lt;complexContent>
@@ -32,12 +32,12 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tOsobaInterni", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "subjekt"
+        "subjekt"
 })
 public class TOsobaInterni {
 
@@ -46,11 +46,10 @@ public class TOsobaInterni {
 
     /**
      * Gets the value of the subjekt property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TSubjektInterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TSubjektInterni }
+     *
      */
     public TSubjektInterni getSubjekt() {
         return subjekt;
@@ -58,11 +57,10 @@ public class TOsobaInterni {
 
     /**
      * Sets the value of the subjekt property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TSubjektInterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TSubjektInterni }
+     *
      */
     public void setSubjekt(TSubjektInterni value) {
         this.subjekt = value;

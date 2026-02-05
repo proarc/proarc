@@ -115,7 +115,7 @@ public class CatalogUtils {
             updateNode = 264;
         }
 
-        if (couples.size() < 1  || nodesCount != 1 || (couples.size() == 1 && onlyOneOriginInfoValues(mods.getOriginInfo()))) { // knav monografie 001 000938836
+        if (couples.size() < 1 || nodesCount != 1 || (couples.size() == 1 && onlyOneOriginInfoValues(mods.getOriginInfo()))) { // knav monografie 001 000938836
             mods = repairIssuance(mods);
         } else {
             if (260 == updateNode) { //knav monografie isbn 80-200-0953-1
@@ -868,7 +868,7 @@ public class CatalogUtils {
                 constant = ModsConstants.TARGET_AUDIENCE;
             } else if (line.contains("<b>titleInfo") || line.contains("<b>Title Information)") || line.contains("<b>Informace o titulu")) {
                 constant = ModsConstants.TITLE_INFO;
-            } else if (line.contains("<b>typeOfResource") || line.contains("<b>Type of Resource")|| line.contains("<b>Typ zdroje")) {
+            } else if (line.contains("<b>typeOfResource") || line.contains("<b>Type of Resource") || line.contains("<b>Typ zdroje")) {
                 constant = ModsConstants.TYPE_OF_RESOURCE;
             }
             htmlLine.add(new HtmlLine("<tr>" + line, constant));

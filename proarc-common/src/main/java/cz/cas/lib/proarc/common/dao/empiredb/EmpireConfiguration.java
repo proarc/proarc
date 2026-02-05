@@ -22,16 +22,17 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import javax.sql.DataSource;
 import org.apache.empire.data.DataType;
-import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
+import org.apache.empire.db.DBDDLGenerator;
 import org.apache.empire.db.DBDatabase;
-import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBObject;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
-import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
-import org.apache.empire.db.postgresql.PostgreDDLGenerator;
+import org.apache.empire.db.context.DBContextStatic;
+import org.apache.empire.dbms.DBSqlPhrase;
+import org.apache.empire.dbms.postgresql.DBMSHandlerPostgreSQL;
+import org.apache.empire.dbms.postgresql.PostgresDDLGenerator;
 
 /**
  *
@@ -40,37 +41,31 @@ import org.apache.empire.db.postgresql.PostgreDDLGenerator;
 public final class EmpireConfiguration {
 
     private final ProarcDatabase schema;
-    private String jdbcClass;
     private String jdbcURL;
     private String jdbcUser;
     private String jdbcPwd;
-    private String empireDBDriverClass;
     private String databaseName;
     private DataSource dataSource;
 
     public EmpireConfiguration(
-            String jdbcClass,
             String jdbcURL,
             String jdbcUser,
             String jdbcPwd,
-            String empireDBDriverClass,
             String databaseName
-            ) {
+    ) {
 
-        this(databaseName, empireDBDriverClass);
-        this.jdbcClass = jdbcClass;
+        this(databaseName);
         this.jdbcURL = jdbcURL;
         this.jdbcUser = jdbcUser;
         this.jdbcPwd = jdbcPwd;
     }
 
-    public EmpireConfiguration(String databaseName, String empireDBDriverClass, DataSource dataSource) {
-        this(databaseName, empireDBDriverClass);
+    public EmpireConfiguration(String databaseName, DataSource dataSource) {
+        this(databaseName);
         this.dataSource = dataSource;
     }
 
-    protected EmpireConfiguration(String databaseName, String empireDBDriverClass) {
-        this.empireDBDriverClass = empireDBDriverClass;
+    protected EmpireConfiguration(String databaseName) {
         this.databaseName = databaseName;
         schema = new ProarcDatabase();
     }
@@ -78,22 +73,14 @@ public final class EmpireConfiguration {
     public ProarcDatabase getSchema() {
         return schema;
     }
-    
-    public DBDatabaseDriver getDriver() {
-        if (DBDatabaseDriverPostgreSQL.class.getName().equals(empireDBDriverClass)) {
-            if (databaseName == null || databaseName.isEmpty()) {
-//                throw new IllegalStateException("databaseName\n" + toString());
-            }
-//            DBDatabaseDriverPostgreSQL drv = new DBDatabaseDriverPostgreSQL();
-            DBDatabaseDriverPostgreSQL drv = new FixedDBDatabaseDriverPostgreSQL();
-//            drv.setDatabaseName(databaseName);
-            return drv;
-        } else {
-            throw new UnsupportedOperationException("empireDBDriverClass\n" + toString());
-        }
+
+    public DBContextStatic getContext() throws SQLException {
+        DBContextStatic context = new DBContextStatic(new FixedDBMSHandlerPostgreSQL(), getConnection());
+        context.setRollbackHandlingEnabled(true);
+        return context;
     }
 
-    public Connection getConnection() throws SQLException {
+    private Connection getConnection() throws SQLException {
         if (dataSource != null) {
             return dataSource.getConnection();
         } else {
@@ -102,76 +89,59 @@ public final class EmpireConfiguration {
     }
 
     private Connection getPostgresConnection() throws SQLException {
-        try {
-            Class.forName(jdbcClass);
-        } catch (ClassNotFoundException ex) {
-            throw new IllegalStateException(jdbcClass, ex);
-        }
         Connection c = DriverManager.getConnection(jdbcURL, jdbcUser, jdbcPwd);
         c.setAutoCommit(false);
         return c;
     }
 
     public static EmpireConfiguration postgres(DataSource ds) {
-        return new EmpireConfiguration(null, DBDatabaseDriverPostgreSQL.class.getName(), ds);
+        return new EmpireConfiguration(null, ds);
     }
-    
+
     @Override
     public String toString() {
         return "EmpireConfiguration{"
-                + "jdbcClass=" + jdbcClass
                 + ", jdbcURL=" + jdbcURL
                 + ", jdbcUser=" + jdbcUser
 //                + ", jdbcPwd=" + jdbcPwd
-                + ", empireDBDriverClass=" + empireDBDriverClass
                 + ", databaseName=" + databaseName
                 + ", dataSource=" + dataSource
                 + '}';
     }
 
-    private static final class FixedDBDatabaseDriverPostgreSQL extends DBDatabaseDriverPostgreSQL {
+    private static final class FixedDBMSHandlerPostgreSQL extends DBMSHandlerPostgreSQL {
 
         private static final long serialVersionUID = 1L;
 
-        private PostgreDDLGenerator ddlGenerator;
-
-        public FixedDBDatabaseDriverPostgreSQL() {
-            // e.g. for DATETIME:
-            //   addColumn("CREATED", DataType.DATETIME, 0, true, SYSDATE);
-            //   generate DEFAULT NOW()
-            // see DBDDLGenerator.appendColumnDesc
-            setDDLColumnDefaults(true);
-        }
+        private PostgresDDLGenerator ddlGenerator;
 
         @Override
-        public String getSQLPhrase(int phrase) {
+        public String getSQLPhrase(DBSqlPhrase phrase) {
             switch (phrase) {
-                // store milliseconds within timestamp
-                // see http://empire-db.15390.n3.nabble.com/DBSequence-Table-and-PostGre-td925674.html
-                case SQL_DATETIME_PATTERN :
+                case SQL_DATETIME_PATTERN:
                     return "yyyy-MM-dd HH:mm:ss.SSS";
             }
-            return super.getSQLPhrase(phrase); //To change body of generated methods, choose Tools | Templates.
+            return super.getSQLPhrase(phrase);
         }
 
         @Override
-        public void getDDLScript(DBCmdType type, DBObject dbo, DBSQLScript script) {
+        public void getDDLScript(DBDDLGenerator.DDLActionType type, DBObject dbo, DBSQLScript script) {
             if (ddlGenerator == null) {
-                ddlGenerator = new FixedPostgreDDLGenerator(this);
+                ddlGenerator = new FixedPostgresDDLGenerator(this);
             }
-            // forward request
             ddlGenerator.getDDLScript(type, dbo, script);
         }
 
-        @Override
-        protected String getSQLDateTimeString(Object value, int sqlTemplate, int sqlPattern, int sqlCurrentDate) {
-            if (value instanceof Timestamp && sqlPattern == SQL_DATETIME_PATTERN) {
-                // gets timestamp in full precision
-                // Postgres default timestamp precision is microseconds!
-                return '\'' +((Timestamp) value).toString() + '\'';
-            }
-            return super.getSQLDateTimeString(value, sqlTemplate, sqlPattern, sqlCurrentDate);
-        }
+        // todo
+//        @Override
+//        protected String getSQLDateTimeString(Object value, int sqlTemplate, int sqlPattern, int sqlCurrentDate) {
+//            if (value instanceof Timestamp && sqlPattern == SQL_DATETIME_PATTERN) {
+//                // gets timestamp in full precision
+//                // Postgres default timestamp precision is microseconds!
+//                return '\'' + ((Timestamp) value).toString() + '\'';
+//            }
+//            return super.getSQLDateTimeString(value, sqlTemplate, sqlPattern, sqlCurrentDate);
+//        }
 
         @Override
         public Timestamp getUpdateTimestamp(Connection conn) {
@@ -186,11 +156,11 @@ public final class EmpireConfiguration {
      *
      * <p>For now the generator creates no sequence as they are produced by PostgreSql.
      */
-    private static final class FixedPostgreDDLGenerator extends PostgreDDLGenerator {
+    private static final class FixedPostgresDDLGenerator extends PostgresDDLGenerator {
 
         private boolean isCreateDatabase;
 
-        public FixedPostgreDDLGenerator(DBDatabaseDriverPostgreSQL driver) {
+        public FixedPostgresDDLGenerator(FixedDBMSHandlerPostgreSQL driver) {
             super(driver);
         }
 

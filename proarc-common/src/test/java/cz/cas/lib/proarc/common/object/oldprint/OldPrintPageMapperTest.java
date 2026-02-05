@@ -27,14 +27,14 @@ import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  *
@@ -45,19 +45,19 @@ public class OldPrintPageMapperTest {
     public OldPrintPageMapperTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -73,9 +73,9 @@ public class OldPrintPageMapperTest {
         assertEquals("note", mapper.getPhysicalDescription(mods));
         List<IdentifierDefinition> identifiers = mapper.getIdentifiers(mods);
         assertEquals(2, identifiers.size());
-        assertEquals("issn", identifiers.get(0).getType());
+        assertEquals("issn", identifiers.get(0).getTypeString());
         assertEquals("issn value", identifiers.get(0).getValue());
-        assertEquals("uuid", identifiers.get(1).getType());
+        assertEquals("uuid", identifiers.get(1).getTypeString());
         assertEquals("1", identifiers.get(1).getValue());
     }
 
@@ -91,9 +91,9 @@ public class OldPrintPageMapperTest {
         assertEquals("note", mapper.getPhysicalDescription(mods));
         List<IdentifierDefinition> identifiers = mapper.getIdentifiers(mods);
         assertEquals(2, identifiers.size());
-        assertEquals("issn", identifiers.get(0).getType());
+        assertEquals("issn", identifiers.get(0).getTypeString());
         assertEquals("issn value", identifiers.get(0).getValue());
-        assertEquals("uuid", identifiers.get(1).getType());
+        assertEquals("uuid", identifiers.get(1).getTypeString());
         assertEquals("1", identifiers.get(1).getValue());
     }
 
@@ -121,7 +121,7 @@ public class OldPrintPageMapperTest {
         assertEquals(page.getType(), mapper.getType(mods));
         assertEquals(page.getPhysicalDescription(), mapper.getPhysicalDescription(mods));
         IdentifierDefinition idenfier = new IdentifierDefinition();
-        idenfier.setType("uuid");
+        idenfier.setTypeString("uuid");
         idenfier.setValue("1");
         assertEquals(Arrays.asList(idenfier), mapper.getIdentifiers(mods));
     }

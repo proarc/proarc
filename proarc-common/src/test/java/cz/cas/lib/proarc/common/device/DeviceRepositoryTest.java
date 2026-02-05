@@ -16,18 +16,25 @@
  */
 package cz.cas.lib.proarc.common.device;
 
+import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.storage.FedoraTestSupport;
 import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.mix.ImageCaptureMetadataType;
 import cz.cas.lib.proarc.mix.ImageCaptureMetadataType.ScannerCapture;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
 import java.util.List;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  *
@@ -42,7 +49,7 @@ public class DeviceRepositoryTest {
     public DeviceRepositoryTest() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         fedora = new FedoraTestSupport();
         storage = fedora.getRemoteStorage();
@@ -50,7 +57,7 @@ public class DeviceRepositoryTest {
         repository = new DeviceRepository(storage);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -60,7 +67,7 @@ public class DeviceRepositoryTest {
         List<Device> result = repository.find(null, null);
 
         String dump = String.valueOf(result);
-        assertFalse(dump, result.isEmpty());
+        assertFalse(result.isEmpty(), () -> dump);
         int matches = 0;
         // repo might contain other devices
         for (Device device : result) {
@@ -68,7 +75,7 @@ public class DeviceRepositoryTest {
                 ++matches;
             }
         }
-        assertEquals(dump, 1, matches);
+        assertEquals(1, matches, () -> dump);
     }
 
     @Test
@@ -103,7 +110,7 @@ public class DeviceRepositoryTest {
         Device delete = addTestDevice("testDeleteDevice");
         assertTrue(repository.deleteDevice(delete.getId(), "testDeleteDevice"));
         List<Device> result = repository.find(null, delete.getId());
-        assertTrue(String.valueOf(result), result.isEmpty());
+        assertTrue(result.isEmpty(), () -> String.valueOf(result));
     }
 
     @Test
@@ -158,14 +165,14 @@ public class DeviceRepositoryTest {
         assertNotNull(expected);
         String resDump = String.valueOf(result);
         assertNotNull(result);
-        assertEquals(resDump, 1, result.size());
+        assertEquals(1, result.size(), () -> resDump);
         assertDeviceEquals(expected, result.get(0));
     }
 
     public static void assertDeviceEquals(Device expected, Device result) {
         if (expected == null) {
             assertNull(result);
-            return ;
+            return;
         }
         assertEquals(expected.getId(), result.getId());
         assertEquals(expected.getLabel(), result.getLabel());

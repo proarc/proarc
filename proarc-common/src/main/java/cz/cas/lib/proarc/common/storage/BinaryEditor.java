@@ -1,34 +1,34 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.cas.lib.proarc.common.storage;
 
 import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import jakarta.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import javax.ws.rs.core.MediaType;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
 /**
  * Editor for managed binary content.
- * 
+ *
  * @author Jan Pokorsky
  */
 public final class BinaryEditor {
@@ -41,10 +41,14 @@ public final class BinaryEditor {
     public static final String FULL_LABEL = "Presentable version of RAW";
     public static final String RAW_ID = "RAW";
     public static final String RAW_LABEL = "Original digital content of this object";
-    /** ID of the optional data stream to hold a NDK archive copy of RAW. E.g. lossless JPEG 2000. */
+    /**
+     * ID of the optional data stream to hold a NDK archive copy of RAW. E.g. lossless JPEG 2000.
+     */
     public static final String NDK_ARCHIVAL_ID = "NDK_ARCHIVAL";
     public static final String NDK_ARCHIVAL_LABEL = "NDK archive copy of RAW";
-    /** ID of the optional data stream to hold a NDK production copy of RAW. E.g. lossy JPEG 2000. */
+    /**
+     * ID of the optional data stream to hold a NDK production copy of RAW. E.g. lossy JPEG 2000.
+     */
     public static final String NDK_USER_ID = "NDK_USER";
     public static final String NDK_USER_LABEL = "NDK user copy of RAW";
 
@@ -54,12 +58,16 @@ public final class BinaryEditor {
 
     public static final String RAW_AUDIO_ID = "RAW_AUDIO";
     public static final String RAW_AUDIO_LABEL = "Original digital content of audio object";
-    /** ID of the optional data stream to hold a NDK audio archive copy of RAW. E.g. lossless WAV. */
+    /**
+     * ID of the optional data stream to hold a NDK audio archive copy of RAW. E.g. lossless WAV.
+     */
     public static final String NDK_AUDIO_ARCHIVAL_ID = "NDK_AUDIO_ARCHIVAL";
     public static final String NDK_AUDIO_ARCHIVAL_LABEL = "NDK audio archive copy of RAW";
     public static final String NDK_AUDIO_ARCHIVAL_FLAC_ID = "NDK_AUDIO_ARCHIVAL_FLAC";
     public static final String NDK_AUDIO_ARCHIVAL_FLAC_LABEL = "NDK flac audio archive copy of RAW";
-    /** ID of the optional data stream to hold a NDK audio production copy of RAW. E.g.*/
+    /**
+     * ID of the optional data stream to hold a NDK audio production copy of RAW. E.g.
+     */
     public static final String NDK_AUDIO_USER_ID = "NDK_AUDIO_USER";
     public static final String NDK_AUDIO_USER_LABEL = "NDK audio user copy of RAW";
     public static final String NDK_AUDIO_USER_OGG_ID = "NDK_AUDIO_USER_OGG";
@@ -188,8 +196,8 @@ public final class BinaryEditor {
      * Writes source contents or just a location according to the stream profile
      * according to the actual profile control value (external/managed).
      *
-     * @param source a contents location. The contents must be accessible
-     *              even in case of an external link!
+     * @param source    a contents location. The contents must be accessible
+     *                  even in case of an external link!
      * @param timestamp
      * @param message
      * @throws DigitalObjectException failure

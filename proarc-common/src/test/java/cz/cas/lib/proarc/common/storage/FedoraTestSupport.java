@@ -27,10 +27,11 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import javax.xml.transform.stream.StreamSource;
-import org.junit.Assume;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
 
 /**
  *
@@ -43,6 +44,7 @@ public class FedoraTestSupport {
 
     /**
      * Skips unit test in case the fedora is unreachable.
+     *
      * @throws Exception
      */
     public FedoraTestSupport() {
@@ -55,13 +57,15 @@ public class FedoraTestSupport {
         String user = System.getProperty("proarc-common.FedoraTestSupport.user");
         String passwd = System.getProperty("proarc-common.FedoraTestSupport.passwd");
         String url = System.getProperty("proarc-common.FedoraTestSupport.url");
-        Assume.assumeNotNull(url, user, passwd);
+        assertNotNull(url);
+        assertNotNull(user);
+        assertNotNull(passwd);
         FedoraClient client = null;
         try {
             client = new FedoraClient(new FedoraCredentials(url, user, passwd));
             client.getServerVersion();
         } catch (Exception ex) {
-            Assume.assumeNoException(ex);
+            assumeTrue(false, () -> "Test přeskočen kvůli výjimce: " + ex);
         }
         return client;
     }
@@ -113,12 +117,6 @@ public class FedoraTestSupport {
                 .pid().query("ownerId='junit'")
                 .maxResults(5000)
                 .execute(client);
-//        String cursor = response.getCursor();
-//        String expirationDate = response.getExpirationDate();
-//        List<String> pids = response.getPids();
-//        String token = response.getToken();
-//        System.out.printf("cursor: %s, expiration: %s, token: %s,\n size: %s, pids: %s\n",
-//                cursor, expirationDate, token, pids.size(), pids);
 
         int count = 0;
         while (true) {
@@ -142,10 +140,11 @@ public class FedoraTestSupport {
     public static void assertItem(List<SearchViewItem> items, String... pids) {
         assertItem(items, Arrays.asList(pids));
     }
-    
+
     public static void assertItem(List<SearchViewItem> items, List<String> pids) {
         for (String pid : pids) {
-            assertNotNull(pid, find(items, pid));
+            assertNotNull(pid);
+            assertNotNull(find(items, pid));
         }
     }
 
@@ -155,7 +154,8 @@ public class FedoraTestSupport {
 
     public static void assertNoItem(List<SearchViewItem> items, List<String> pids) {
         for (String pid : pids) {
-            assertNull(pid, find(items, pid));
+            assertNull(pid);
+            assertNull(find(items, pid));
         }
     }
 
@@ -167,5 +167,4 @@ public class FedoraTestSupport {
         }
         return null;
     }
-
 }

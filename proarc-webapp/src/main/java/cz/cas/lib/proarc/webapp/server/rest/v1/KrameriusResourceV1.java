@@ -51,34 +51,32 @@ import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.UserProfile;
-import cz.cas.lib.proarc.webapp.client.ds.MetaModelDataSource;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.KrameriusResourceApi;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -101,11 +99,13 @@ import static cz.cas.lib.proarc.common.kramerius.KUtils.getExpectedSourcePath;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.transformKrameriusModel;
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
 import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusInstance;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.FIELD_MODELOBJECT;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 import static cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1.toValidationError;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 @Deprecated
-@Path(RestConfig.URL_API_VERSION_1 + "/" + KrameriusResourceApi.PATH)
+@Path(URL_API_VERSION_1 + "/" + KrameriusResourceApi.PATH)
 public class KrameriusResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(KrameriusResourceV1.class.getName());
@@ -134,9 +134,9 @@ public class KrameriusResourceV1 {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<String> connectionTest() {
+    public ProArcResponse<String> connectionTest() {
         LOG.fine("Succesfull attempt to connected to ProArc");
-        return new SmartGwtResponse<>("Connected to ProArc");
+        return new ProArcResponse<>("Connected to ProArc");
     }
 
     @GET
@@ -156,10 +156,10 @@ public class KrameriusResourceV1 {
             throw RestException.plainText(Response.Status.BAD_REQUEST, ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
         }
         if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
         if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
 
         try {
@@ -180,7 +180,7 @@ public class KrameriusResourceV1 {
                 metadata.setContent(metadataAsXml.getData());
                 metadata.setKrameriusInstanceId(krameriusInstanceId);
                 metadata.setModel(transformKrameriusModel(appConfig, handler.getModel().getPid()));
-                return new SmartGwtResponse<DescriptionMetadata<Object>>(metadata);
+                return new ProArcResponse<DescriptionMetadata<Object>>(metadata);
             } else {
                 DescriptionMetadata<String> metadataAsXml = metadataHandler.getMetadataAsXml();
                 StringEditor.StringRecord result = new StringEditor.StringRecord(metadataAsXml.getData(), metadataAsXml.getTimestamp(), metadataAsXml.getPid());
@@ -248,15 +248,15 @@ public class KrameriusResourceV1 {
             throw RestException.plainText(Response.Status.BAD_REQUEST, ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
         }
         if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
         if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
 
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
         if (instance == null) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unknown_Value", krameriusInstanceId, KrameriusResourceApi.KRAMERIUS_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unknown_Value", krameriusInstanceId, KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
 
         KUtils.RedirectedResult result = new KUtils.RedirectedResult(pid);
@@ -267,7 +267,7 @@ public class KrameriusResourceV1 {
             if (relationEditor.getModel() == null || relationEditor.getModel().isEmpty()) {
                 result.setStatus("Failed");
                 result.setMessage(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ImpossibleToFindModel", pid));
-                return new SmartGwtResponse<>(result);
+                return new ProArcResponse<>(result);
             }
             if (NdkPlugin.MODEL_PAGE.equals(relationEditor.getModel()) || NdkPlugin.MODEL_NDK_PAGE.equals(relationEditor.getModel()) || OldPrintPlugin.MODEL_PAGE.equals(relationEditor.getModel())) {
                 K7Authenticator authenticator = new K7Authenticator(instance);
@@ -293,13 +293,13 @@ public class KrameriusResourceV1 {
                 } else {
                     result.setStatus("Failed");
                     result.setMessage(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_ImpossibleToDownloadJpg", pid));
-                    return new SmartGwtResponse<>(result);
+                    return new ProArcResponse<>(result);
                 }
             } else {
                 result.setStatus("Failed");
                 result.setMessage(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_NoJpg4Object", pid));
                 result.setUrl(null);
-                return new SmartGwtResponse<>(result);
+                return new ProArcResponse<>(result);
             }
         } catch (Exception ex) {
             LOG.severe("Error in getting object " + pid);
@@ -307,21 +307,21 @@ public class KrameriusResourceV1 {
             result.setStatus("Failed");
             result.setUrl(null);
             result.setMessage(ex.getMessage());
-            return new SmartGwtResponse<>(result);
+            return new ProArcResponse<>(result);
         }
     }
 
     @POST
     @Path(KrameriusResourceApi.UPDATE_MODS)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<DescriptionMetadata<Object>> updateMods(
+    public ProArcResponse<DescriptionMetadata<Object>> updateMods(
             @FormParam(KrameriusResourceApi.KRAMERIUS_OBJECT_PID) String pid,
             @FormParam(KrameriusResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID) String editorId,
             @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA) String jsonData,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMXMLDATA) String xmlData,
-            @FormParam(MetaModelDataSource.FIELD_MODELOBJECT) String model,
+            @FormParam(FIELD_MODELOBJECT) String model,
             @DefaultValue("false")
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_IGNOREVALIDATION) boolean ignoreValidation,
             @FormParam(DigitalObjectResourceApi.MODS_CUSTOM_STANDARD) String standard
@@ -335,15 +335,15 @@ public class KrameriusResourceV1 {
             throw RestException.plainText(Response.Status.BAD_REQUEST, ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
         }
         if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
         if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
 
 
         if (timestamp == null) {
-            return SmartGwtResponse.asError(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
+            return ProArcResponse.asError(DigitalObjectResourceApi.TIMESTAMP_PARAM, pid);
         }
         final boolean isJsonData = xmlData == null;
         String data = isJsonData ? jsonData : xmlData;
@@ -368,16 +368,16 @@ public class KrameriusResourceV1 {
         } catch (DigitalObjectValidationException ex) {
             return toValidationError(ex, session.getLocale(httpHeaders));
         } catch (DigitalObjectNotFoundException ex) {
-            return SmartGwtResponse.asError(ex);
+            return ProArcResponse.asError(ex);
         }
 //        DigitalObjectStatusUtils.setState(doHandler.getFedoraObject(), STATUS_PROCESSING);
         doHandler.commit();
-        return new SmartGwtResponse<>(mHandler.getMetadataAsJsonObject(editorId));
+        return new ProArcResponse<>(mHandler.getMetadataAsJsonObject(editorId));
     }
 
     @POST
     @Path(KrameriusResourceApi.IMPORT_2_PROARC)
-    public SmartGwtResponse<KUtils.ImportResult> import2ProArc(
+    public ProArcResponse<KUtils.ImportResult> import2ProArc(
         @FormParam(KrameriusResourceApi.KRAMERIUS_OBJECT_PID) String pid,
         @FormParam(KrameriusResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId
     ) {
@@ -389,10 +389,10 @@ public class KrameriusResourceV1 {
             throw RestException.plainText(Response.Status.BAD_REQUEST, ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
         }
         if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
         if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
 
 
@@ -406,7 +406,7 @@ public class KrameriusResourceV1 {
             DescriptionMetadata<String> metadata = dataHandler.getDescriptionMetadata(pid, krameriusInstanceId);
             if (metadata == null) {
                 BatchUtils.finishedUploadWithError(this.batchManager, batch, "ProArc", new IOException("No metadata content for this object with pid: " + pid));
-                return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_NoMetadata4Object", pid));
+                return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_NoMetadata4Object", pid));
             }
             boolean status = dataHandler.setDescriptionMetadataToProArc(pid, metadata, krameriusInstanceId);
             if (status) {
@@ -437,12 +437,12 @@ public class KrameriusResourceV1 {
             }
             importResult.setStatus("Failed");
         }
-        return new SmartGwtResponse<>(importResult);
+        return new ProArcResponse<>(importResult);
     }
 
     @POST
     @Path(KrameriusResourceApi.IMPORT_2_KRAMERIUS)
-    public SmartGwtResponse<KUtils.ImportResult> import2Kramerius(
+    public ProArcResponse<KUtils.ImportResult> import2Kramerius(
             @FormParam(KrameriusResourceApi.KRAMERIUS_OBJECT_PID) String pid,
             @FormParam(KrameriusResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @FormParam(KrameriusResourceApi.KRAMERIUS_IMPORT_INSTANCE) String krameriusImportInstanceId
@@ -455,16 +455,16 @@ public class KrameriusResourceV1 {
             throw RestException.plainText(Response.Status.BAD_REQUEST, ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_OBJECT_PID));
         }
         if (krameriusInstanceId == null || krameriusInstanceId.isEmpty()) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
         if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
         if (krameriusImportInstanceId == null || krameriusImportInstanceId.isEmpty()) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_IMPORT_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Missing_Value", KrameriusResourceApi.KRAMERIUS_IMPORT_INSTANCE));
         }
         if (KRAMERIUS_INSTANCE_LOCAL.equals(krameriusImportInstanceId)) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_IMPORT_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unsupported_Value", KrameriusResourceApi.KRAMERIUS_IMPORT_INSTANCE));
         }
 
         BatchParams params = new BatchParams(Collections.singletonList(pid), krameriusInstanceId, krameriusImportInstanceId);
@@ -474,10 +474,10 @@ public class KrameriusResourceV1 {
 
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusImportInstanceId);
         if (instance == null) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unknown_Value", krameriusInstanceId, KrameriusResourceApi.KRAMERIUS_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_Unknown_Value", krameriusInstanceId, KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
         if (!instance.isTestType() && !user.hasPermissionToImportToProdFunction()) {
-            return SmartGwtResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_No_Permission", krameriusInstanceId, KrameriusResourceApi.KRAMERIUS_INSTANCE));
+            return ProArcResponse.asError(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_No_Permission", krameriusInstanceId, KrameriusResourceApi.KRAMERIUS_INSTANCE));
         }
 
         KDataHandler dataHandler = new KDataHandler(appConfig);
@@ -573,7 +573,7 @@ public class KrameriusResourceV1 {
             importResult.setReason(ex.getMessage());
             BatchUtils.finishedUploadWithError(this.batchManager, batch, instance.getUrl(), ex);
         }
-        return new SmartGwtResponse<>(importResult);
+        return new ProArcResponse<>(importResult);
     }
 
     protected String returnLocalizedMessage(String key, Object... arguments) {

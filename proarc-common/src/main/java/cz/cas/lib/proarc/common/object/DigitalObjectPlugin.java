@@ -29,19 +29,22 @@ public interface DigitalObjectPlugin {
 
     /**
      * Gets unique ID of the plugin.
+     *
      * @return ID
      */
     String getId();
 
     /**
      * Gets supported models.
+     *
      * @return models
      */
     Collection<MetaModel> getModel();
 
     /**
      * Gets a provider to handle contents of supported digital objects.
-     * @param <T> handler type
+     *
+     * @param <T>  handler type
      * @param type handler type class
      * @return the provider or {@code null}
      */
@@ -49,6 +52,7 @@ public interface DigitalObjectPlugin {
 
     /**
      * Gets value maps specific to provided models.
+     *
      * @return the list of value maps
      */
     List<ValueMap> getValueMaps(ValueMap.Context context);

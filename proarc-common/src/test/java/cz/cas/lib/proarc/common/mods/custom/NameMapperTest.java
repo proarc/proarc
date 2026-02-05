@@ -16,20 +16,18 @@
  */
 package cz.cas.lib.proarc.common.mods.custom;
 
-import static org.junit.Assert.assertArrayEquals;
-
-import java.util.List;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.NameMapper.NameItem;
 import cz.cas.lib.proarc.common.mods.custom.NameMapper.NameItem.NameRole;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import java.util.List;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 /**
  * 
@@ -40,23 +38,23 @@ public class NameMapperTest {
     public NameMapperTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
-    // @Test
+    @Test
     public void testRead() throws Exception {
         ModsDefinition mods = ModsUtils.unmarshal(NameMapperTest.class.getResource("monograph_mods.xml"), ModsDefinition.class);
         NameItem[] expectedAll = { new NameItem(0, "FamilyAuthor1", "GivenAuthor1", NameRole.AUTHOR), new NameItem(1, "FamilyContributor1", "GivenContributor1", NameRole.CONTRIBUTOR), new NameItem(2, "FamilyAuthor2", "GivenAuthor2", NameRole.AUTHOR), new NameItem(3, "FamilyXXX", "GivenXXX", NameRole.OTHER), new NameItem(4, "FamilyContributor2", "GivenContributor2", NameRole.CONTRIBUTOR), };

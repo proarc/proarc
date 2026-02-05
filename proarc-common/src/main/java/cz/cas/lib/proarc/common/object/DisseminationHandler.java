@@ -18,8 +18,8 @@ package cz.cas.lib.proarc.common.object;
 
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.Storage;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
 
 /**
  * Read and writes contents in its raw form.
@@ -28,6 +28,7 @@ public interface DisseminationHandler {
 
     /**
      * Gets contents as it is persisted.
+     *
      * @param httpRequest {@code null} or request to manage cached contents.
      * @return contents
      * @throws DigitalObjectException failure
@@ -36,7 +37,8 @@ public interface DisseminationHandler {
 
     /**
      * Updates contents.
-     * @param input contents
+     *
+     * @param input   contents
      * @param message update message
      * @throws DigitalObjectException failure
      */
@@ -44,6 +46,7 @@ public interface DisseminationHandler {
 
     /**
      * Removes contents.
+     *
      * @param message delete message
      * @throws DigitalObjectException failure
      */

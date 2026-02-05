@@ -36,7 +36,7 @@ import java.util.Set;
  * @author Jan Pokorsky
  */
 public class ArchiveObjectSelector {
-    
+
     protected final DigitalObjectCrawler crawler;
     protected final List<List<DigitalObjectElement>> selectedObjects = new ArrayList<>();
     protected final Set<String> processedPids = new HashSet<>();
@@ -47,6 +47,7 @@ public class ArchiveObjectSelector {
 
     /**
      * Gets a list of leaf-root paths of selected objects.
+     *
      * @return the list.
      */
     public List<List<DigitalObjectElement>> getSelectedObjects() {
@@ -55,6 +56,7 @@ public class ArchiveObjectSelector {
 
     /**
      * Computes the selection.
+     *
      * @param pids a list of PIDs to search
      * @throws DigitalObjectException failure
      */
@@ -74,7 +76,7 @@ public class ArchiveObjectSelector {
     protected void searchPath(List<DigitalObjectElement> entryPath) throws DigitalObjectException, MetsExportException {
         DigitalObjectElement entry = entryPath.get(0);
         if (processedPids.contains(entry.getPid())) {
-            return ;
+            return;
         }
         processedPids.add(entry.getPid());
         String modelId = entry.getModelId();
@@ -89,7 +91,7 @@ public class ArchiveObjectSelector {
                 || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)
                 || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(modelId)
                 || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(modelId)
-                ) {
+        ) {
             if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId) && entryPath.size() > 1 && entryPath.get(1) != null &&
                     NdkPlugin.MODEL_MONOGRAPHTITLE.equals(entryPath.get(1).getModelId())) {
                 throw new MetsExportException("Nepovolená vazba - Ndk Svazek monografie pod Ndk Vícedílnou monografii.");
@@ -128,7 +130,7 @@ public class ArchiveObjectSelector {
                 || NdkPlugin.MODEL_PICTURE.equals(modelId)
                 || BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)
                 || NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)
-                ) {
+        ) {
             if (entryPath.size() == 1) {
                 throw new DigitalObjectException(entry.getPid(), "Unexpected hierarchy: " + entryPath);
             } else {
