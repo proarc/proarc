@@ -557,9 +557,7 @@ Author Miroslav Pavelka
                                             </xsl:if>
                                             <xsl:if test="./mods:identifier[@type='doi']">
                                                 <xsl:element name="doi">
-                                                    <xsl:variable name="doiIdentifier"
-                                                                  select="./mods:identifier[@type='doi']"/>
-                                                    <xsl:value-of select="concat('https://doi.org/', $doiIdentifier)"/>
+                                                    <xsl:value-of select="./mods:identifier[@type='doi']"/>
                                                 </xsl:element>
                                             </xsl:if>
                                             <xsl:if test="./mods:originInfo/mods:dateIssued">

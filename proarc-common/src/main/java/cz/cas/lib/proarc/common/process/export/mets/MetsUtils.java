@@ -71,17 +71,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -1319,11 +1322,51 @@ public class MetsUtils {
             }
             Path path = Paths.get(targetFolder.toURI());
             Files.move(path, path.resolveSibling("error_" + targetFolder.getName()), StandardCopyOption.REPLACE_EXISTING);
+            setPermission(file);
             return file.getAbsolutePath();
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "Cannot move " + targetFolder.getName() + "error_" + targetFolder.getName());
             return targetFolder.getAbsolutePath();
         }
+    }
+
+    private static final Set<PosixFilePermission> DIR_755 =
+            EnumSet.of(
+                    PosixFilePermission.OWNER_READ,
+                    PosixFilePermission.OWNER_WRITE,
+                    PosixFilePermission.OWNER_EXECUTE,
+                    PosixFilePermission.GROUP_READ,
+                    PosixFilePermission.GROUP_EXECUTE,
+                    PosixFilePermission.OTHERS_READ,
+                    PosixFilePermission.OTHERS_EXECUTE
+            );
+
+    private static final Set<PosixFilePermission> FILE_644 =
+            EnumSet.of(
+                    PosixFilePermission.OWNER_READ,
+                    PosixFilePermission.OWNER_WRITE,
+                    PosixFilePermission.GROUP_READ,
+                    PosixFilePermission.OTHERS_READ
+            );
+
+    public static void setPermission(File targetFile) throws IOException {
+
+        boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+
+        Files.walk(targetFile.toPath())
+                .forEach(path -> {
+                    try {
+                        if (!isWindows) {
+                            if (Files.isDirectory(path)) {
+                                Files.setPosixFilePermissions(path, DIR_755);
+                            } else {
+                                Files.setPosixFilePermissions(path, FILE_644);
+                            }
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 
     public static void marshal(Result target, Mets mets, boolean indent) {
