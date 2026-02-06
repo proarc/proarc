@@ -41,6 +41,24 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static cz.cas.lib.proarc.common.process.MessageConsts.JHOVE_CANNOT_GENERATE_MIX;
+import static cz.cas.lib.proarc.common.process.MessageConsts.JHOVE_CANNOT_GENERATE_MIX_KEY;
+import static cz.cas.lib.proarc.common.process.MessageConsts.KAKADU_ILLEGAL_BAND_SIZE;
+import static cz.cas.lib.proarc.common.process.MessageConsts.KAKADU_ILLEGAL_BAND_SIZE_KEY;
+import static cz.cas.lib.proarc.common.process.MessageConsts.KAKADU_ONLY_UNCOMPRESS_FILE;
+import static cz.cas.lib.proarc.common.process.MessageConsts.KAKADU_ONLY_UNCOMPRESS_FILE_KEY;
+import static cz.cas.lib.proarc.common.process.MessageConsts.KAKADU_VALID_SUFFICES;
+import static cz.cas.lib.proarc.common.process.MessageConsts.KAKADU_VALID_SUFFICES_KEY;
+import static cz.cas.lib.proarc.common.process.MessageConsts.LINUX_NO_SPACE_LEFT;
+import static cz.cas.lib.proarc.common.process.MessageConsts.LINUX_NO_SPACE_LEFT_KEY;
+import static cz.cas.lib.proarc.common.process.MessageConsts.PERO_GENERATE_OCR_FOR;
+import static cz.cas.lib.proarc.common.process.MessageConsts.PERO_GENERATE_OCR_FOR_KEY;
+import static cz.cas.lib.proarc.common.process.MessageConsts.PROARC_APPLICATION_HAS_BEEN_STOPPED;
+import static cz.cas.lib.proarc.common.process.MessageConsts.PROARC_APPLICATION_HAS_BEEN_STOPPED_KEY;
+import static cz.cas.lib.proarc.common.process.MessageConsts.PROARC_DUPLICATE_BLOB;
+import static cz.cas.lib.proarc.common.process.MessageConsts.PROARC_DUPLICATE_BLOB_KEY;
+import static cz.cas.lib.proarc.common.process.MessageConsts.PROARC_FOLDER_TRACKED_BY_ANOTHER_BATCH;
+import static cz.cas.lib.proarc.common.process.MessageConsts.PROARC_FOLDER_TRACKED_BY_ANOTHER_BATCH_KEY;
 import static cz.cas.lib.proarc.common.process.imports.ImportProcess.getTargetFolder;
 
 /**
@@ -784,8 +802,45 @@ public class BatchManager {
 
     public static String toString(Throwable ex) {
         StringWriter sw = new StringWriter();
+        ex.printStackTrace();
         ex.printStackTrace(new PrintWriter(sw, true));
-        return sw.toString();
+        String log = sw.toString();
+        return processLog(log);
+    }
+
+    private static String processLog(String log) {
+        if (log == null || log.isEmpty()) {
+            return null;
+        } else {
+            String key = null;
+            if (log.contains(JHOVE_CANNOT_GENERATE_MIX)) {
+                key = JHOVE_CANNOT_GENERATE_MIX_KEY;
+            } else if (log.contains(KAKADU_ILLEGAL_BAND_SIZE)) {
+                key = KAKADU_ILLEGAL_BAND_SIZE_KEY;
+            } else if (log.contains(KAKADU_ONLY_UNCOMPRESS_FILE)) {
+                key = KAKADU_ONLY_UNCOMPRESS_FILE_KEY;
+            } else if (log.contains(KAKADU_VALID_SUFFICES)) {
+                key = KAKADU_VALID_SUFFICES_KEY;
+            } else if (log.contains(LINUX_NO_SPACE_LEFT)) {
+                key = LINUX_NO_SPACE_LEFT_KEY;
+            } else if (log.contains(PERO_GENERATE_OCR_FOR)) {
+                key = PERO_GENERATE_OCR_FOR_KEY;
+            } else if (log.contains(PROARC_APPLICATION_HAS_BEEN_STOPPED)) {
+                key = PROARC_APPLICATION_HAS_BEEN_STOPPED_KEY;
+            } else if (log.contains(PROARC_DUPLICATE_BLOB)) {
+                key = PROARC_DUPLICATE_BLOB_KEY;
+            } else if (log.contains(PROARC_FOLDER_TRACKED_BY_ANOTHER_BATCH)) {
+                key = PROARC_FOLDER_TRACKED_BY_ANOTHER_BATCH_KEY;
+            }
+
+            if (key == null) {
+                return log;
+            } else {
+                Locale locale = new Locale("cs");
+                ResourceBundle serverMessages = ResourceBundle.getBundle("cz.cas.lib.proarc.common.config.serverMessages", locale);
+                return serverMessages.getString(key);
+            }
+        }
     }
 
     public void deleteBatch(int batchId) {
