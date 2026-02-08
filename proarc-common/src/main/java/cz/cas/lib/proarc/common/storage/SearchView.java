@@ -100,7 +100,7 @@ public abstract class SearchView {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findAdvancedSearchItems(String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
+    public List<SearchViewItem> findAdvancedSearchItems(Boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
         throw new IOException("Method is not implmeneted");
     }
 
@@ -108,16 +108,16 @@ public abstract class SearchView {
         throw new IOException("Method is not implmeneted");
     }
 
-    public int findAdvancedSearchCount(String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid) throws FedoraClientException, IOException {
+    public int findAdvancedSearchCount(Boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid) throws FedoraClientException, IOException {
         throw new IOException("Method is not implmeneted");
     }
 
     public List<SearchViewItem> findByOwner(String owner) throws FedoraClientException, IOException {
-        return findAdvancedSearchItems(null, null, owner, null, null, null, null, null, "label", "desc", 0, Integer.MAX_VALUE);
+        return findAdvancedSearchItems(true, null, null, owner, null, null, null, null, null, "label", "desc", 0, Integer.MAX_VALUE);
     }
 
     public List<SearchViewItem> findByProcessor(String processor) throws FedoraClientException, IOException {
-        return findAdvancedSearchItems(null, null, null, null, null, processor, null, null, "label", "desc", 0, Integer.MAX_VALUE);
+        return findAdvancedSearchItems(true, null, null, null, null, null, processor, null, null, "label", "desc", 0, Integer.MAX_VALUE);
     }
 
     public int countByOwner(String owner) throws FedoraClientException, IOException {

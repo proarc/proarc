@@ -595,16 +595,21 @@ public class DigitalObjectResourceV1 {
                 if (organization == null) {
                     organization = queryOrganization;
                 }
-                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT);
-                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT);
+                items = search.findAdvancedSearchItems(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, sortField, sort.toString(), startRow, 100);
                 break;
             case DELETED:
-                items = search.findQuery(new SearchViewQuery().setTitle(queryTitle)
-                        .setLabel(queryLabel).setIdentifier(queryIdentifier)
-                        .setOwner(owner).setModel(queryModel), "deleted");
-                ;
-                total = items.size();
-                page = 1;
+                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                    items = search.findQuery(new SearchViewQuery().setTitle(queryTitle)
+                            .setLabel(queryLabel).setIdentifier(queryIdentifier)
+                            .setOwner(owner).setModel(queryModel), "deleted");
+                    ;
+                    total = items.size();
+                    page = 1;
+                } else {
+                    total = search.findAdvancedSearchCount(false, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null);
+                    items = search.findAdvancedSearchItems(false, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, sortField, sort.toString(), startRow, 100);
+                }
                 break;
             case ALL:
                 items = search.findAllObjects();
@@ -614,8 +619,8 @@ public class DigitalObjectResourceV1 {
                 if (organization == null) {
                     organization = queryOrganization;
                 }
-                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null);
-                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null);
+                items = search.findAdvancedSearchItems(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, sortField, sort.toString(), startRow, 100);
                 if (sortField == null || sortField.isEmpty() || "label".equals(sortField)) {
                     items = sortItems(items, sort);
                 }
