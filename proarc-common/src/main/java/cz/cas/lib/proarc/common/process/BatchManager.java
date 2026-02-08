@@ -59,6 +59,8 @@ import static cz.cas.lib.proarc.common.process.MessageConsts.PROARC_DUPLICATE_BL
 import static cz.cas.lib.proarc.common.process.MessageConsts.PROARC_DUPLICATE_BLOB_KEY;
 import static cz.cas.lib.proarc.common.process.MessageConsts.PROARC_FOLDER_TRACKED_BY_ANOTHER_BATCH;
 import static cz.cas.lib.proarc.common.process.MessageConsts.PROARC_FOLDER_TRACKED_BY_ANOTHER_BATCH_KEY;
+import static cz.cas.lib.proarc.common.process.MessageConsts.PROARC_MISSING_OCR;
+import static cz.cas.lib.proarc.common.process.MessageConsts.PROARC_MISSING_OCR_KEY;
 import static cz.cas.lib.proarc.common.process.imports.ImportProcess.getTargetFolder;
 
 /**
@@ -831,6 +833,8 @@ public class BatchManager {
                 key = PROARC_DUPLICATE_BLOB_KEY;
             } else if (log.contains(PROARC_FOLDER_TRACKED_BY_ANOTHER_BATCH)) {
                 key = PROARC_FOLDER_TRACKED_BY_ANOTHER_BATCH_KEY;
+            } else if (log.contains(PROARC_MISSING_OCR)) {
+                key = PROARC_MISSING_OCR_KEY;
             }
 
             if (key == null) {

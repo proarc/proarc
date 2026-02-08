@@ -28,4 +28,7 @@ public class MessageConsts {
 
     public static final String PROARC_FOLDER_TRACKED_BY_ANOTHER_BATCH = "The folder tracked by another batch import";
     public static final String PROARC_FOLDER_TRACKED_BY_ANOTHER_BATCH_KEY = "Err_ProArc_TrackedByAnotherBatch";
+
+    public static final String PROARC_MISSING_OCR = "Missing OCR";
+    public static final String PROARC_MISSING_OCR_KEY = "Err_ProArc_MissingOcr";
 }

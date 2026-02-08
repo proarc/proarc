@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.WorkWindow;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveOldPrintProducer;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveProducer;
 import cz.cas.lib.proarc.common.process.export.bagit.BagitExport;
@@ -135,6 +136,20 @@ public final class ExportProcess implements Runnable {
 
     @Override
     public void run() {
+
+        Batch batch = getBatch();
+
+        // Jsme v pracovní době a proces je odložený
+        if (WorkWindow.isWorkingTime() && !WorkWindow.isNotAllowed(batch)) {
+
+            WorkWindow.reschedule(batch);
+
+            // znovu zařadit, ale NEspouštět
+            ExportDispatcher.getDefault().addExport(this);
+
+            return; // HOTOVO, žádná výjimka
+        }
+
         start();
     }
 

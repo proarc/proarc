@@ -129,30 +129,12 @@ public final class InternalExternalDispatcher {
         ExecutorService executorService = new ThreadPoolExecutor(threadCount, threadCount, 0L,
                 TimeUnit.MILLISECONDS, new PriorityBlockingQueue<Runnable>(11, new IaEPriorityFutureComparator()), new IaEDispatcherThreadFactory()) {
 
-
-
             @Override
             protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
                 RunnableFuture<T> newTaskFor = super.newTaskFor(runnable, value);
                 return new IaEPriorityFuture<>(newTaskFor, ((InternalExternalProcess) value), ((InternalExternalProcess) value).getBatch().getPriority(), ((InternalExternalProcess) value).getBatch().getCreate());
             }
 
-            @Override
-            protected void beforeExecute(Thread t, Runnable r) {
-                super.beforeExecute(t, r);
-
-                IaEPriorityFuture<?> priorityFuture = (IaEPriorityFuture<?>) r;
-                InternalExternalProcess process = priorityFuture.getProcess();
-
-                if (!WorkWindow.isNotAllowed(process.getBatch())) {
-                    WorkWindow.reschedule(process.getBatch());
-
-                    // znovu zařadit do fronty
-                    addInternalExternalProcess(process);
-
-                    throw new RuntimeException("Proces " + process.getBatch().getId() + " přeplánován.");
-                }
-            }
         };
         return executorService;
     }
@@ -225,8 +207,18 @@ public final class InternalExternalDispatcher {
             } else if (o2 ==null) {
                 return 1;
             } else {
-                int priorityO1 = transform(((IaEPriorityFuture) o1).getPriority());
-                int priorityO2 = transform(((IaEPriorityFuture) o2).getPriority());
+                IaEPriorityFuture<?> p1 = (IaEPriorityFuture<?>) o1;
+                IaEPriorityFuture<?> p2 = (IaEPriorityFuture<?>) o2;
+
+                boolean workingTime = WorkWindow.isWorkingTime();
+
+                if (workingTime) {
+                    if (p1.isDeferred() && !p2.isDeferred()) return 1;
+                    if (!p1.isDeferred() && p2.isDeferred()) return -1;
+                }
+
+                int priorityO1 = transform(p1.getPriority());
+                int priorityO2 = transform(p2.getPriority());
 
                 // -1 pro to, co ma bezet nejdriv
                 // 0 pokud maji stejnou prioritu --> pote rozhoduje cas vzniku
@@ -286,6 +278,10 @@ public final class InternalExternalDispatcher {
 
         public InternalExternalProcess getProcess() {
             return process;
+        }
+
+        public boolean isDeferred() {
+            return !WorkWindow.isNotAllowed(process.getBatch());
         }
 
         @Override
