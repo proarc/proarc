@@ -304,25 +304,25 @@ public class SolrSearchView extends SearchView {
     }
 
     @Override
-    public List<SearchViewItem> findAdvancedSearchItems(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
+    public List<SearchViewItem> findAdvancedSearchItems(boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
         List<String> queryPids = new ArrayList<>();
         if (identifier != null && identifier.contains(",")) {
             queryPids.addAll(Arrays.asList(identifier.split("\\s*,\\s*")));
         } else {
             queryPids.add(identifier);
         }
-        return searchImplementation(offset, limit, sortField, transfromSort(sort), true, Collections.singletonList(model), queryPids, owner, organization, processor, label, status, allowAllForProcessor);
+        return searchImplementation(offset, limit, sortField, transfromSort(sort), onlyActive, Collections.singletonList(model), queryPids, owner, organization, processor, label, status, allowAllForProcessor);
     }
 
     @Override
-    public int findAdvancedSearchCount(String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension) throws IOException {
+    public int findAdvancedSearchCount(boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String creator, Boolean allowAllForProcessor, Boolean filterWithoutExtension) throws IOException {
         List<String> queryPids = new ArrayList<>();
         if (identifier != null && identifier.contains(",")) {
             queryPids.addAll(Arrays.asList(identifier.split("\\s*,\\s*")));
         } else {
             queryPids.add(identifier);
         }
-        return searchCountImplementation(0, this.maxLimit, true, Collections.singletonList(model), queryPids, owner, organization, processor, label, status, allowAllForProcessor);
+        return searchCountImplementation(0, this.maxLimit, onlyActive, Collections.singletonList(model), queryPids, owner, organization, processor, label, status, allowAllForProcessor);
     }
 
     @Override

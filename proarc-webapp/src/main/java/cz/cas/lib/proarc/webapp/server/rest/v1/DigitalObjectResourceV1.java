@@ -614,13 +614,19 @@ public class DigitalObjectResourceV1 {
                 page = 1;
                 break;
             case DELETED:
-                items = search.findQuery(new SearchViewQuery().setTitle(queryTitle)
-                        .setLabel(queryLabel).setIdentifier(queryIdentifier)
-                        .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
-                        .setHasOwners(filterGroups(user)), "deleted");
-                ;
-                total = items.size();
-                page = 1;
+                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                    items = search.findQuery(new SearchViewQuery().setTitle(queryTitle)
+                            .setLabel(queryLabel).setIdentifier(queryIdentifier)
+                            .setOwner(owner).setModel(queryModel).setCreator(queryCreator)
+                            .setHasOwners(filterGroups(user)), "deleted");
+                    ;
+                    total = items.size();
+                } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                    total = search.findAdvancedSearchCount(false, queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension);
+                    items = search.findAdvancedSearchItems(false, queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, sortField, sort.toString(), startRow, 100);
+                } else {
+                    throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+                }
                 break;
             case ALL:
                 items = search.findAllObjects();
@@ -633,8 +639,8 @@ public class DigitalObjectResourceV1 {
                 if (organization == null) {
                     organization = queryOrganization;
                 }
-                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension);
-                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(true, queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension);
+                items = search.findAdvancedSearchItems(true, queryIdentifier, queryLabel, owner, queryStatus, organization, username, queryModel, queryCreator, allowAllForProcessor, filterWithoutExtension, sortField, sort.toString(), startRow, 100);
                 if (sortField == null || sortField.isEmpty() || "label".equals(sortField)) {
                     items = sortItems(items, sort);
                 }
