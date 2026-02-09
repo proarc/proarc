@@ -297,7 +297,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         if (profileId != null) {
             cmd.where(table.profileId.in(profileId));
         }
-        EmpireUtils.addOrderBy(cmd, filter.getSortBy(), table.create, true);
+        EmpireUtils.addOrderBy(cmd, getSortByColumn(filter.getSortBy()), table.create, true);
         DBReader reader = new DBReader();
         try {
             reader.open(cmd, getConnection());
@@ -318,6 +318,33 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         } finally {
             reader.close();
         }
+    }
+
+    private String getSortByColumn(String value) {
+        String sortByColumn = "";
+        if (value.startsWith("-")) {
+            sortByColumn += "-";
+            value = value.replaceFirst("-", "");
+        }
+        switch (value) {
+            case "user":
+                sortByColumn += "userName";
+                break;
+            case "profile":
+                sortByColumn += "profileId";
+                break;
+            case "state":
+                sortByColumn += "stateAsString";
+                break;
+            case "description":
+                sortByColumn += "title";
+                break;
+            default:
+                sortByColumn += value;
+        }
+        return sortByColumn;
+
+
     }
 
     @Override
