@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.WorkWindow;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveOldPrintProducer;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveProducer;
 import cz.cas.lib.proarc.common.process.export.bagit.BagitExport;
@@ -135,6 +136,20 @@ public final class ExportProcess implements Runnable {
 
     @Override
     public void run() {
+
+        Batch batch = getBatch();
+
+        // Jsme v pracovní době a proces je odložený
+        if (WorkWindow.isWorkingTime() && !WorkWindow.isNotAllowed(batch)) {
+
+            WorkWindow.reschedule(batch);
+
+            // znovu zařadit, ale NEspouštět
+            ExportDispatcher.getDefault().addExport(this);
+
+            return; // HOTOVO, žádná výjimka
+        }
+
         start();
     }
 
@@ -458,6 +473,7 @@ public final class ExportProcess implements Runnable {
                     }
                 }
             }
+            MetsUtils.setPermission(targetFolder);
             WorkflowExport exportWorkflow = new WorkflowExport(config, akubraConfiguration, user, exportOptions.getLocale());
             try {
                 exportWorkflow.export(targetFolder, ndkResults, exportOptions.getLog());
@@ -603,6 +619,7 @@ public final class ExportProcess implements Runnable {
                 String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, null);
                 return finishedExportWithError(this.batchManager, batch, exportPath, status.getReslog().getExports());
             } else {
+                MetsUtils.setPermission(targetFolder);
                 return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, status.getTargetFolder().getAbsolutePath());
             }
         } catch (Exception ex) {
@@ -634,6 +651,7 @@ public final class ExportProcess implements Runnable {
                 String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, null);
                 return finishedExportWithError(this.batchManager, batch, exportPath, status.getReslog().getExports());
             } else {
+                MetsUtils.setPermission(targetFolder);
                 return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, status.getTargetFolder().getAbsolutePath());
             }
         } catch (Exception ex) {
@@ -692,7 +710,7 @@ public final class ExportProcess implements Runnable {
                         batch = finishedExportWithError(batchManager, batch, r.getValidationError().getExceptions());
                     }
                 } else {
-                    // XXX not used for now
+                    MetsUtils.setPermission(r.getTargetFolder());
                     batch = BatchUtils.finishedExportSuccessfully(batchManager, batch, r.getTargetFolder().getAbsolutePath());
                 }
             }
@@ -811,6 +829,7 @@ public final class ExportProcess implements Runnable {
             File exportFolder = new File(exportUri);
             File target = export.export(exportFolder, params.getHierarchy(), params.getPids(), params.getDsIds(), batch);
 //            URI targetPath = user.getUserHomeUri().relativize(target.toURI());
+            MetsUtils.setPermission(target);
             return BatchUtils.finishedExportSuccessfully(batchManager, batch, target.getAbsolutePath());
         } catch (Exception e) {
             return finishedExportWithError(batchManager, batch, batch.getFolder(), e);
@@ -840,6 +859,7 @@ public final class ExportProcess implements Runnable {
                 return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, k4Result.getValidationError().getExceptions());
 //                return logBatchFailure(batch, k4Result.getValidationError().getExceptions());
             } else {
+                MetsUtils.setPermission(exportFolder);
 //                URI targetPath = user.getUserHomeUri().relativize(k4Result.getFile().toURI());
                 if (params.getKrameriusInstanceId() == null || params.getKrameriusInstanceId().isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(params.getKrameriusInstanceId())) {
                     if (params.isBagit()) {

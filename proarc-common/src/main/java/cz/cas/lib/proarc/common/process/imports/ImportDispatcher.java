@@ -130,8 +130,6 @@ public final class ImportDispatcher {
         ExecutorService executorService = new ThreadPoolExecutor(threadCount, threadCount, 0L,
                 TimeUnit.MILLISECONDS, new PriorityBlockingQueue<Runnable>(11, new PriorityFutureComparator ()), new ImportDispatcherThreadFactory()) {
 
-
-
             @Override
             protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
                 RunnableFuture<T> newTaskFor = super.newTaskFor(runnable, value);
@@ -139,22 +137,6 @@ public final class ImportDispatcher {
                 );
             }
 
-            @Override
-            protected void beforeExecute(Thread t, Runnable r) {
-                super.beforeExecute(t, r);
-
-                PriorityFuture<?> priorityFuture = (PriorityFuture<?>) r;
-                ImportProcess process = priorityFuture.getProcess();
-
-                if (!WorkWindow.isNotAllowed(process.getBatch())) {
-                    WorkWindow.reschedule(process.getBatch());
-
-                    // znovu zařadit do fronty
-                    addImport(process);
-
-                    throw new RuntimeException("Proces " + process.getBatch().getId() + " přeplánován.");
-                }
-            }
         };
         return executorService;
     }
@@ -227,8 +209,18 @@ public final class ImportDispatcher {
             } else if (o2 ==null) {
                 return 1;
             } else {
-                int priorityO1 = transform(((PriorityFuture) o1).getPriority());
-                int priorityO2 = transform(((PriorityFuture) o2).getPriority());
+                PriorityFuture<?> p1 = (PriorityFuture<?>) o1;
+                PriorityFuture<?> p2 = (PriorityFuture<?>) o2;
+
+                boolean workingTime = WorkWindow.isWorkingTime();
+
+                if (workingTime) {
+                    if (p1.isDeferred() && !p2.isDeferred()) return 1;
+                    if (!p1.isDeferred() && p2.isDeferred()) return -1;
+                }
+
+                int priorityO1 = transform(p1.getPriority());
+                int priorityO2 = transform(p2.getPriority());
 
                 // -1 pro to, co ma bezet nejdriv
                 // 0 pokud maji stejnou prioritu --> pote rozhoduje cas vzniku
@@ -288,6 +280,10 @@ public final class ImportDispatcher {
 
         public ImportProcess getProcess() {
             return process;
+        }
+
+        public boolean isDeferred() {
+            return !WorkWindow.isNotAllowed(process.getBatch());
         }
 
         @Override

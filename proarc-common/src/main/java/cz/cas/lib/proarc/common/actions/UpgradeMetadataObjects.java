@@ -165,7 +165,7 @@ public class UpgradeMetadataObjects {
             throw new DigitalObjectException(model, e);
         }
 
-        return search.findAdvancedSearchItems(mergePids(pids), pageType, null, null, null, null, MetaModel.MODELS_LEAF, null, "created", "desc", 0, Integer.MAX_VALUE);
+        return search.findAdvancedSearchItems(true, mergePids(pids), pageType, null, null, null, null, MetaModel.MODELS_LEAF, null, "created", "desc", 0, Integer.MAX_VALUE);
     }
 
     private String mergePids(List<String> pids) {

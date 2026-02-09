@@ -489,7 +489,7 @@ public final class FedoraStorageSearchView extends SearchView {
     }
 
     @Override
-    public List<SearchViewItem> findAdvancedSearchItems(String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
+    public List<SearchViewItem> findAdvancedSearchItems(Boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
         if (SolrUtils.PROPERTY_PARENTPID_NO_PARENT.equals(parentPid)) {
             return new ArrayList<>();
         }
@@ -503,7 +503,7 @@ public final class FedoraStorageSearchView extends SearchView {
     }
 
     @Override
-    public int findAdvancedSearchCount(String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid) throws FedoraClientException, IOException {
+    public int findAdvancedSearchCount(Boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid) throws FedoraClientException, IOException {
         if (SolrUtils.PROPERTY_PARENTPID_NO_PARENT.equals(parentPid)) {
             return 0;
         }
