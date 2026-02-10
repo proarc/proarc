@@ -150,6 +150,8 @@ public final class EmpireConfiguration {
                 // see http://empire-db.15390.n3.nabble.com/DBSequence-Table-and-PostGre-td925674.html
                 case SQL_DATETIME_PATTERN :
                     return "yyyy-MM-dd HH:mm:ss.SSS";
+                case SQL_FUNC_LOWER:
+                    return "lower(?)";
             }
             return super.getSQLPhrase(phrase); //To change body of generated methods, choose Tools | Templates.
         }

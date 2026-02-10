@@ -125,7 +125,11 @@ class EmpireUtils {
                 ? prefixedBeanPropertyName.substring(1) : prefixedBeanPropertyName;
         for (DBColumnExpr selection : selections) {
             if (beanPropertyName.equals(selection.getBeanPropertyName())) {
-                return selection;
+                if (DataType.TEXT.equals(selection.getDataType())) {
+                    return selection.lower();
+                } else {
+                    return selection;
+                }
             }
         }
         return null;
