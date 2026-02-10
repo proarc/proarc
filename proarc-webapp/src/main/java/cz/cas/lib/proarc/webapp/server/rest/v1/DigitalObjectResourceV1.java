@@ -4879,12 +4879,7 @@ public class DigitalObjectResourceV1 {
 
         checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL);
 
-        SmartGwtResponse<SearchViewItem> responses = fixPageType(pid, Arrays.asList("flyleaf", "sheetMusic"));
-        if (responses != null) {
-            return responses;
-        }
-
-        return returnFunctionSuccess();
+        return fixPageType(pid, Arrays.asList("flyleaf", "sheetMusic"));
     }
 
     private SmartGwtResponse<SearchViewItem> fixPageType(String pid, List<String> pageTypes) throws DigitalObjectException, IOException, FedoraClientException {
@@ -4902,7 +4897,7 @@ public class DigitalObjectResourceV1 {
 
             upgradeMetadataObjects.fixPageType(items, pageType, pageType); // stara hodnota ignoruje velikost pismen, nova je jiz jen jedna podoba zapisu
         }
-        return null;
+        return returnFunctionSuccess();
     }
 
     private List<String> getAsPidList(List<SearchViewItem> items) {
