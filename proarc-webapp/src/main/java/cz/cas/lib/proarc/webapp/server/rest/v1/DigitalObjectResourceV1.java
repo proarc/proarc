@@ -153,6 +153,7 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -4876,20 +4877,32 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
     ) throws DigitalObjectException, IOException, FedoraClientException {
 
-        String pageType = "flyleaf";
-
         checkPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_MODEL);
 
-        Locale locale = session.getLocale(httpHeaders);
-        UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
-        List<SearchViewItem> items = upgradeMetadataObjects.findObjectsWithType(pid, MetaModel.MODELS_LEAF, pageType);
-
-        if (isLocked(getAsPidList(items))) {
-            return returnValidationError(ERR_IS_LOCKED);
+        SmartGwtResponse<SearchViewItem> responses = fixPageType(pid, Arrays.asList("flyleaf", "sheetMusic"));
+        if (responses != null) {
+            return responses;
         }
 
-        upgradeMetadataObjects.fixPageType(items, pageType, pageType); // stara hodnota ignoruje velikost pismen, nova je jiz jen jedna podoba zapisu
         return returnFunctionSuccess();
+    }
+
+    private SmartGwtResponse<SearchViewItem> fixPageType(String pid, List<String> pageTypes) throws DigitalObjectException, IOException, FedoraClientException {
+        Locale locale = session.getLocale(httpHeaders);
+        UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
+        for (String pageType : pageTypes) {
+            List<SearchViewItem> items = upgradeMetadataObjects.findObjectsWithType(pid, MetaModel.MODELS_LEAF, pageType);
+            if (items.isEmpty()) {
+                continue;
+            }
+
+            if (isLocked(getAsPidList(items))) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
+            upgradeMetadataObjects.fixPageType(items, pageType, pageType); // stara hodnota ignoruje velikost pismen, nova je jiz jen jedna podoba zapisu
+        }
+        return null;
     }
 
     private List<String> getAsPidList(List<SearchViewItem> items) {
