@@ -266,7 +266,7 @@ public final class ImportProcess implements Runnable {
         if (batch == null) {
             throw new IllegalStateException("run prepare first!");
         }
-        batch.setState(Batch.State.LOADED);
+        batch.setState(Batch.State.LOADING);
         batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch = batchManager.update(batch);
         File importFolder = importConfig.getImportFolder();
