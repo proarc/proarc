@@ -336,7 +336,7 @@ public class SolrSearchView extends SearchView {
     }
 
     @Override
-    public List<SearchViewItem> findAdvancedSearchItems(String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid, String sortField, String sort, int offset, int limit) throws IOException {
+    public List<SearchViewItem> findAdvancedSearchItems(Boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid, String sortField, String sort, int offset, int limit) throws IOException {
         List<String> queryPids = new ArrayList<>();
         if (identifier == null) {
             queryPids = null;
@@ -345,18 +345,18 @@ public class SolrSearchView extends SearchView {
         } else {
             queryPids.add(identifier);
         }
-        return searchImplementation(offset, limit, sortField, transfromSort(sort), true, Collections.singletonList(model), queryPids, owner, organization, processor, label, status, parentPid);
+        return searchImplementation(offset, limit, sortField, transfromSort(sort), onlyActive, Collections.singletonList(model), queryPids, owner, organization, processor, label, status, parentPid);
     }
 
     @Override
-    public int findAdvancedSearchCount(String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid) throws IOException {
+    public int findAdvancedSearchCount(Boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid) throws IOException {
         List<String> queryPids = new ArrayList<>();
         if (identifier != null && identifier.contains(",")) {
             queryPids.addAll(Arrays.asList(identifier.split("\\s*,\\s*")));
         } else {
             queryPids.add(identifier);
         }
-        return searchCountImplementation(0, this.maxLimit, true, Collections.singletonList(model), queryPids, owner, organization, processor, label, status, parentPid);
+        return searchCountImplementation(0, this.maxLimit, onlyActive, Collections.singletonList(model), queryPids, owner, organization, processor, label, status, parentPid);
     }
 
     @Override

@@ -137,22 +137,6 @@ public final class ExportDispatcher {
                 return new ExportPriorityFuture<>(newTaskFor, ((ExportProcess) value), ((ExportProcess) value).getBatch().getPriority(), ((ExportProcess) value).getBatch().getCreate());
             }
 
-            @Override
-            protected void beforeExecute(Thread t, Runnable r) {
-                super.beforeExecute(t, r);
-
-                ExportPriorityFuture<?> priorityFuture = (ExportPriorityFuture<?>) r;
-                ExportProcess process = priorityFuture.getProcess();
-
-                if (!WorkWindow.isNotAllowed(process.getBatch())) {
-                    WorkWindow.reschedule(process.getBatch());
-
-                    // znovu zařadit do fronty
-                    addExport(process);
-
-                    throw new RuntimeException("Proces " + process.getBatch().getId() + " přeplánován.");
-                }
-            }
         };
         return executorService;
     }
@@ -224,8 +208,19 @@ public final class ExportDispatcher {
             } else if (o2 == null) {
                 return 1;
             } else {
-                int priorityO1 = transform(((ExportPriorityFuture) o1).getPriority());
-                int priorityO2 = transform(((ExportPriorityFuture) o2).getPriority());
+
+                ExportPriorityFuture<?> p1 = (ExportPriorityFuture<?>) o1;
+                ExportPriorityFuture<?> p2 = (ExportPriorityFuture<?>) o2;
+
+                boolean workingTime = WorkWindow.isWorkingTime();
+
+                if (workingTime) {
+                    if (p1.isDeferred() && !p2.isDeferred()) return 1;
+                    if (!p1.isDeferred() && p2.isDeferred()) return -1;
+                }
+
+                int priorityO1 = transform(p1.getPriority());
+                int priorityO2 = transform(p2.getPriority());
 
                 // -1 pro to, co ma bezet nejdriv
                 // 0 pokud maji stejnou prioritu --> pote rozhoduje cas vzniku
@@ -285,6 +280,10 @@ public final class ExportDispatcher {
 
         public ExportProcess getProcess() {
             return process;
+        }
+
+        public boolean isDeferred() {
+            return !WorkWindow.isNotAllowed(process.getBatch());
         }
 
         @Override

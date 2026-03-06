@@ -120,6 +120,8 @@ public final class EmpireConfiguration {
             switch (phrase) {
                 case SQL_DATETIME_PATTERN:
                     return "yyyy-MM-dd HH:mm:ss.SSS";
+                case SQL_FUNC_LOWER:
+                    return "lower(?)";
             }
             return super.getSQLPhrase(phrase);
         }

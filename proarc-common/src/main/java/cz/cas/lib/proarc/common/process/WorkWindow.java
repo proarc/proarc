@@ -61,11 +61,12 @@ public class WorkWindow {
         LocalDateTime now = LocalDateTime.now();
 
         LocalDateTime candidate = now.toLocalDate().atTime(windowStart);
-        if (now.isBefore(candidate)) {
-            return Timestamp.valueOf(candidate);
-        } else {
-            return Timestamp.valueOf(candidate.plusDays(1));
-        }
+        return Timestamp.valueOf(candidate);
+//        if (now.isBefore(candidate)) { // pokud uz zacalo okno, tak chci jeho zacatek a ne cekat na dalsi okno
+//            return Timestamp.valueOf(candidate);
+//        } else {
+//            return Timestamp.valueOf(candidate.plusDays(1));
+//        }
     }
 
     private static LocalTime getWindowStart() {
@@ -130,6 +131,32 @@ public class WorkWindow {
 
         BatchManager batchManager = BatchManager.getInstance();
         return batchManager.update(batch);
+    }
+
+    public static boolean isWorkingTime() {
+
+        LocalTime now = LocalTime.now();
+
+        LocalTime nightStart = getWindowStart(); // např. 18:00
+        LocalTime nightEnd = getWindowEnd();   // např. 6:00
+
+        boolean inNightWindow;
+
+        // noční okno nepřesahuje půlnoc (např. 22:00 – 23:00)
+        if (nightStart.isBefore(nightEnd)) {
+            inNightWindow =
+                    !now.isBefore(nightStart)
+                            && now.isBefore(nightEnd);
+
+        } else {
+            // noční okno přes půlnoc (18:00 – 6:00)
+            inNightWindow =
+                    now.isAfter(nightStart)
+                            || now.isBefore(nightEnd);
+        }
+
+        // pracovní doba = mimo noční okno
+        return !inNightWindow;
     }
 
     public static Batch reschedule(Batch batch) {

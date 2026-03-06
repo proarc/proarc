@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.config.Profiles;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.WorkWindow;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.imports.audio.WaveImporter;
 import cz.cas.lib.proarc.common.user.UserManager;
@@ -239,6 +240,20 @@ public final class ImportProcess implements Runnable {
 
     @Override
     public void run() {
+
+        Batch batch = getBatch();
+
+        // Jsme v pracovní době a proces je odložený
+        if (WorkWindow.isWorkingTime() && !WorkWindow.isNotAllowed(batch)) {
+
+            WorkWindow.reschedule(batch);
+
+            // znovu zařadit, ale NEspouštět
+            ImportDispatcher.getDefault().addImport(this);
+
+            return; // HOTOVO, žádná výjimka
+        }
+
         start();
     }
 

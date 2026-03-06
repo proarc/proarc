@@ -173,6 +173,7 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -603,16 +604,21 @@ public class DigitalObjectResourceV1 {
                 if (organization == null) {
                     organization = queryOrganization;
                 }
-                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT);
-                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT);
+                items = search.findAdvancedSearchItems(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, sortField, sort.toString(), startRow, 100);
                 break;
             case DELETED:
-                items = search.findQuery(new SearchViewQuery().setTitle(queryTitle)
-                        .setLabel(queryLabel).setIdentifier(queryIdentifier)
-                        .setOwner(owner).setModel(queryModel), "deleted");
-                ;
-                total = items.size();
-                page = 1;
+                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
+                    items = search.findQuery(new SearchViewQuery().setTitle(queryTitle)
+                            .setLabel(queryLabel).setIdentifier(queryIdentifier)
+                            .setOwner(owner).setModel(queryModel), "deleted");
+                    ;
+                    total = items.size();
+                    page = 1;
+                } else {
+                    total = search.findAdvancedSearchCount(false, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null);
+                    items = search.findAdvancedSearchItems(false, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, sortField, sort.toString(), startRow, 100);
+                }
                 break;
             case ALL:
                 items = search.findAllObjects();
@@ -622,8 +628,8 @@ public class DigitalObjectResourceV1 {
                 if (organization == null) {
                     organization = queryOrganization;
                 }
-                total = search.findAdvancedSearchCount(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null);
-                items = search.findAdvancedSearchItems(queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null);
+                items = search.findAdvancedSearchItems(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, sortField, sort.toString(), startRow, 100);
                 if (sortField == null || sortField.isEmpty() || "label".equals(sortField)) {
                     items = sortItems(items, sort);
                 }
@@ -4879,19 +4885,26 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
     ) throws DigitalObjectException, IOException, FedoraClientException {
 
-        String pageType = "flyleaf";
-
         checkPermission(user, PERMISSION_FUNCTION_UPDATE_MODEL);
 
+        return fixPageType(pid, Arrays.asList("flyleaf", "sheetMusic"));
+    }
+
+    private ProArcResponse<SearchViewItem> fixPageType(String pid, List<String> pageTypes) throws DigitalObjectException, IOException, FedoraClientException {
         Locale locale = session.getLocale(httpHeaders);
         UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
-        List<SearchViewItem> items = upgradeMetadataObjects.findObjectsWithType(pid, MetaModel.MODELS_LEAF, pageType);
+        for (String pageType : pageTypes) {
+            List<SearchViewItem> items = upgradeMetadataObjects.findObjectsWithType(pid, MetaModel.MODELS_LEAF, pageType);
+            if (items.isEmpty()) {
+                continue;
+            }
 
-        if (isLocked(getAsPidList(items))) {
-            return returnValidationError(ERR_IS_LOCKED);
+            if (isLocked(getAsPidList(items))) {
+                return returnValidationError(ERR_IS_LOCKED);
+            }
+
+            upgradeMetadataObjects.fixPageType(items, pageType, pageType); // stara hodnota ignoruje velikost pismen, nova je jiz jen jedna podoba zapisu
         }
-
-        upgradeMetadataObjects.fixPageType(items, pageType, pageType); // stara hodnota ignoruje velikost pismen, nova je jiz jen jedna podoba zapisu
         return returnFunctionSuccess();
     }
 
