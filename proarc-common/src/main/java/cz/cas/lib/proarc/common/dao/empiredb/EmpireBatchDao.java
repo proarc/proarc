@@ -298,6 +298,9 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     }
 
     private String getSortByColumn(String value) {
+        if (value == null) {
+            return null;
+        }
         String sortByColumn = "";
         if (value.startsWith("-")) {
             sortByColumn += "-";
