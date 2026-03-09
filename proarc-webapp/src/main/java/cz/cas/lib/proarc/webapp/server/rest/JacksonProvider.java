@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.cas.lib.proarc.common.info.ApplicationInfo;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse.AnnotatedProArcResponse;
 import jakarta.ws.rs.Consumes;
@@ -45,13 +46,13 @@ public final class JacksonProvider implements ContextResolver<ObjectMapper> {
     public JacksonProvider() {
         mapper = JsonUtils.createJaxbMapper();
 
+        mapper.addMixIn(ApplicationInfo.class, AnnotatedApplicationInfo.class);
         registerAnnotatedSuperclass(AnnotatedAtmItem.class);
         registerAnnotatedSuperclass(AnnotatedBatchView.class);
         registerAnnotatedSuperclass(AnnotatedConfigurationProfile.class);
         registerAnnotatedSuperclass(AnnotatedDescriptionMetadata.class);
         registerAnnotatedSuperclass(AnnotatedDevice.class);
         registerAnnotatedSuperclass(AnnotatedSoftware.class);
-        registerAnnotatedSuperclass(AnnotatedApplicationInfo.class);
         registerAnnotatedSuperclass(AnnotatedDublinCoreRecord.class);
 //        registerAnnotatedSuperclass(AnnotatedMetaModel.class);
         registerAnnotatedSuperclass(AnnotatedPageViewItem.class);

@@ -20,8 +20,8 @@ import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.GroupDao;
 import cz.cas.lib.proarc.common.dao.UserDao;
 import cz.cas.lib.proarc.common.dao.UserSettingDao;
+import java.sql.Connection;
 import java.sql.SQLException;
-import org.apache.empire.db.DBContext;
 
 /**
  *
@@ -54,9 +54,9 @@ public class EmpireDaoFactory implements DaoFactory {
     @Override
     public SqlTransaction createTransaction() {
         try {
-            DBContext context = conf.getContext();
-            context.getConnection().setAutoCommit(false);
-            return new SqlTransaction(context);
+            Connection c = conf.getConnection();
+            c.setAutoCommit(false);
+            return new SqlTransaction(c);
         } catch (SQLException ex) {
             throw new IllegalStateException(ex);
         }

@@ -16,9 +16,11 @@
  */
 package cz.cas.lib.proarc.common.dao.empiredb;
 
+import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.UserDao;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.UserTable;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,10 +29,9 @@ import java.util.List;
 import org.apache.empire.data.Column;
 import org.apache.empire.data.bean.BeanResult;
 import org.apache.empire.db.DBCommand;
-import org.apache.empire.db.DBContext;
-import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
+import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
 
 /**
  * Manages users stored in RDBMS.
@@ -59,11 +60,10 @@ public class EmpireUserDao extends EmpireDao implements UserDao {
 
         deleteConnectiogTableGroupUser(userId);
 
+        Connection c = getConnection();
         DBCommand cmd = db.createCommand();
         cmd.where(db.tableUser.id.is(userId));
-
-        DBContext context = getContext();
-        context.executeDelete(db.tableUser, cmd);
+        db.executeDelete(db.tableUser, cmd, c);
     }
 
     private void deleteConnectiogTableGroupUser(Integer userId) {
@@ -71,52 +71,57 @@ public class EmpireUserDao extends EmpireDao implements UserDao {
             throw new IllegalArgumentException("Unsupported missing userId!");
         }
 
+        Connection c = getConnection();
         DBCommand cmd = db.createCommand();
         cmd.where(db.tableGroupMember.userid.is(userId));
-
-        DBContext context = getContext();
-        context.executeDelete(db.tableGroupMember, cmd);
+        db.executeDelete(db.tableGroupMember, cmd, c);
     }
 
     @Override
     public void update(UserProfile user) {
-        DBContext context = getContext();
-        DBRecord record = new DBRecord(context, table);
-
+        DBRecord dbr = new DBRecord();
         try {
             if (user.getId() == null) {
-                record.create();
+                dbr.create(table);
                 Timestamp now = new Timestamp(System.currentTimeMillis());
-                user.setTimestamp(now);
                 if (user.getCreated() == null) {
                     user.setCreated(now);
                 }
-                record.setBeanProperties(user);
+                user.setTimestamp(now);
+                dbr.setValue(table.timestamp, now);
+                dbr.setBeanValues(user);
             } else {
-                record.read(table.id.is(user.getId()));
-                Collection<Column> ignore = user.getUserPasswordDigest() == null ? Arrays.<Column>asList(table.passwd) : null;
-                record.setBeanProperties(user, ignore);
+                dbr.read(table, new Object[] {user.getId()}, getConnection());
+                // null passwd digest cannot replace existing value; use "" to clear passwd
+                Collection<Column> ignore = user.getUserPasswordDigest() == null
+                        ? Arrays.<Column>asList(table.passwd) : null;
+                dbr.setBeanValues(user, ignore);
             }
 
-            record.update();
+            try {
+                dbr.update(getConnection());
+            } catch (RecordUpdateInvalidException ex) {
+                throw new ConcurrentModificationException(ex);
+            }
+            dbr.getBeanProperties(user);
         } finally {
-            record.close();
+            dbr.close();
         }
-
-        DBCommand cmd = db.createCommand();
-        cmd.select(table.getColumns());
-        cmd.where(table.id.is(user.getId()));
-
-        getBeanProperties(cmd, 1);
     }
 
     @Override
     public UserProfile find(int userId) {
-        DBCommand cmd = db.createCommand();
-        cmd.select(table.getColumns());
-        cmd.where(table.id.is(userId));
-
-        return getBeanProperties(cmd, 1);
+        DBRecord r = new DBRecord();
+        try {
+            r.read(table, userId, getConnection());
+            UserProfile user = new UserProfile();
+            r.getBeanProperties(user);
+            return user;
+        } catch (RecordNotFoundException ex) {
+            return null;
+        } finally {
+            r.close();
+        }
     }
 
     @Override
@@ -139,26 +144,8 @@ public class EmpireUserDao extends EmpireDao implements UserDao {
             cmd.where(table.organization.is(organization));
         }
         cmd.orderBy(table.username);
-        beans.fetch(getContext());
+        beans.fetch(getConnection());
         return Collections.unmodifiableList(beans);
-    }
-
-    private UserProfile getBeanProperties(DBCommand cmd, int limit) {
-        DBContext context = getContext();
-        DBReader reader = new DBReader(context);
-        try {
-            reader.open(cmd);
-            List<UserProfile> userProfiles = reader.getBeanList(UserProfile.class, limit);
-            if (!userProfiles.isEmpty()) {
-                return userProfiles.getFirst();
-            } else {
-                return null;
-            }
-        } catch (RecordNotFoundException ex) {
-            return null;
-        } finally {
-            reader.close();
-        }
     }
 
 }

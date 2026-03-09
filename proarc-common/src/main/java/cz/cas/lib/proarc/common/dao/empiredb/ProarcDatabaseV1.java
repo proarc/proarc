@@ -19,14 +19,15 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireUtils.EnhancedDBTable;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
 import org.apache.empire.data.DataType;
+import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
-import org.apache.empire.db.DBContext;
-import org.apache.empire.db.DBDDLGenerator;
 import org.apache.empire.db.DBDatabase;
+import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRelation;
@@ -35,7 +36,7 @@ import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
 import org.apache.empire.db.exceptions.QueryFailedException;
-import org.apache.empire.dbms.postgresql.DBMSHandlerPostgreSQL;
+import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
 
 /**
  * Database schema version 1.
@@ -66,7 +67,7 @@ public class ProarcDatabaseV1 extends DBDatabase {
     public final DBRelation relTomcatRoleUser2TomcatUserAlias;
 
     public static int upgradeToVersion2(
-            int currentSchemaVersion, DBContext context,
+            int currentSchemaVersion, Connection conn,
             EmpireConfiguration conf) throws SQLException {
 
         if (currentSchemaVersion > VERSION) {
@@ -78,87 +79,93 @@ public class ProarcDatabaseV1 extends DBDatabase {
         ProarcDatabaseV2 schema = new ProarcDatabaseV2();
         ProarcDatabaseV1 schemaV1 = new ProarcDatabaseV1();
         try {
-            schema.open(context);
+            schema.open(conf.getDriver(), conn);
             // the driver instance must be same!
-            schemaV1.open(context);
-            upgradeDdl(schema, schemaV1, context);
+            schemaV1.open(schema.getDriver(), conn);
+            upgradeDdl(schema, schemaV1, conn);
             // copy passwords from tomcat
-//            upgradeUsers(schema, schemaV1, context);
+            upgradeUsers(schema, schemaV1, conn);
             // update user groups to comply with new columns
-            upgradeGroups(schema, schemaV1, context);
+            upgradeGroups(schema, schemaV1, conn);
 
-            int schemaVersion = schema.initVersion(context, VERSION);
+            int schemaVersion = schema.initVersion(conn, VERSION);
 
-            context.commit();
+            conn.commit();
 
+            // drop tomcat tables
+            // do not drop as they may be still be used by tomcat configuration!
+//            script.clear();
+//            driver.getDDLScript(DBCmdType.DROP, schemaV1.tableTomcatUser, script);
+//            driver.getDDLScript(DBCmdType.DROP, schemaV1.tableTomcatRole, script);
+//            conn.setAutoCommit(true);
+//            script.run(driver, conn);
+//            conn.setAutoCommit(false);
             return schemaVersion;
         } finally {
-            schema.close(context);
-            schemaV1.close(context);
+            schema.close(conn);
+            schemaV1.close(conn);
         }
     }
 
-    private static void upgradeDdl(ProarcDatabaseV2 schema, ProarcDatabaseV1 schemaV1, DBContext context) throws SQLException {
+    private static void upgradeDdl(ProarcDatabaseV2 schema, ProarcDatabaseV1 schemaV1, Connection conn) throws SQLException {
         try {
-            context.getConnection().setAutoCommit(true);
-
-            DBSQLScript script = new DBSQLScript(context);
+            conn.setAutoCommit(true);
+            DBDatabaseDriver driver = schema.getDriver();
+            DBSQLScript script = new DBSQLScript();
             // add UserTable columns
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableUser.passwd, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableUser.remoteName, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableUser.remoteType, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableUser.defaultGroup, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableUser.userGroup, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableUser.timestamp, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.passwd, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.remoteName, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.remoteType, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.defaultGroup, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.userGroup, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.timestamp, script);
             // add UserGroupTable columns
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableUserGroup.title, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableUserGroup.remoteName, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableUserGroup.remoteType, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableUserGroup.created, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableUserGroup.timestamp, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUserGroup.title, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUserGroup.remoteName, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUserGroup.remoteType, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUserGroup.created, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableUserGroup.timestamp, script);
             // add GroupPermissionTable columns
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableGroupPermission.type, script);
-            script.executeAll();
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableGroupPermission.type, script);
+            script.run(driver, conn);
             // drop table references
             script.clear();
-            EmpireUtils.dropRelation(schemaV1.relUsername2TomcatUser, context, script);
-            EmpireUtils.dropRelation(schemaV1.relUsername2TomcatUserAlias, context, script);
-            EmpireUtils.dropRelation(schemaV1.relTomcatRoleUser2TomcatUser, context, script);
-            EmpireUtils.dropRelation(schemaV1.relTomcatRoleUser2TomcatUserAlias, context, script);
-
-            script.executeAll();
+            EmpireUtils.dropRelation(schemaV1.relUsername2TomcatUser, schema.getDriver(), script);
+            EmpireUtils.dropRelation(schemaV1.relUsername2TomcatUserAlias, schema.getDriver(), script);
+            EmpireUtils.dropRelation(schemaV1.relTomcatRoleUser2TomcatUser, schema.getDriver(), script);
+            EmpireUtils.dropRelation(schemaV1.relTomcatRoleUser2TomcatUserAlias, schema.getDriver(), script);
+            script.run(driver, conn, true);
         } finally {
-            context.getConnection().setAutoCommit(false);
+            conn.setAutoCommit(false);
         }
     }
 
-    private static void upgradeGroups(ProarcDatabaseV2 schema, ProarcDatabaseV1 schemaV1, DBContext context) {
+    private static void upgradeGroups(ProarcDatabaseV2 schema, ProarcDatabaseV1 schemaV1, Connection conn) {
         DBCommand cmd = schema.createCommand();
         cmd.set(schema.tableUserGroup.groupname.to(UserUtil.toGroupPid("admin")));
         cmd.set(schema.tableUserGroup.title.to("Administrátoři"));
         cmd.where(schema.tableUserGroup.groupname.is("Administrátoři"));
-
-        context.executeUpdate(cmd);
+        schema.executeUpdate(cmd, conn);
     }
 
-//    private static void upgradeUsers(ProarcDatabaseV2 schema, ProarcDatabaseV1 schemaV1, DBContext context) {
-//        DBRecord dbr = new DBRecord(context, schema.tableUser);
-//        DBReader dbReader = new DBReader(context);
-//        DBCommand cmd = schema.createCommand();
-//        cmd.select(schema.tableUser.getColumns());
-//        cmd.select(schemaV1.tableTomcatUser.getColumns());
-//        cmd.join(schema.tableUser.username, schemaV1.tableTomcatUser.username);
-//        try {
-//            dbReader.open(cmd);
-//            while (dbReader.moveNext()) {
-//                dbReader.initRecord(schema.tableUser, dbr);
-//                dbr.setValue(schema.tableUser.passwd, dbReader.getValue(schemaV1.tableTomcatUser.userpass));
-//                dbr.update(conn);
-//            }
-//        } finally {
-//            dbReader.close();
-//        }
-//    }
+    private static void upgradeUsers(ProarcDatabaseV2 schema, ProarcDatabaseV1 schemaV1, Connection conn) {
+        DBRecord dbr = new DBRecord();
+        DBReader dbReader = new DBReader();
+        DBCommand cmd = schema.createCommand();
+        cmd.select(schema.tableUser.getColumns());
+        cmd.select(schemaV1.tableTomcatUser.getColumns());
+        cmd.join(schema.tableUser.username, schemaV1.tableTomcatUser.username);
+        try {
+            dbReader.open(cmd, conn);
+            while (dbReader.moveNext()) {
+                dbReader.initRecord(schema.tableUser, dbr);
+                dbr.setValue(schema.tableUser.passwd, dbReader.getValue(schemaV1.tableTomcatUser.userpass));
+                dbr.update(conn);
+            }
+        } finally {
+            dbReader.close();
+        }
+    }
 
     public static class ProarcVersionTable extends DBTable {
 
@@ -198,16 +205,16 @@ public class ProarcDatabaseV1 extends DBDatabase {
             super("PROARC_BATCH", db);
             id = addSequenceColumn("ID");
             folder = addColumn("FOLDER", DataType.CLOB, 0, true);
-            title = addColumn("TITLE", DataType.VARCHAR, 2000, true);
+            title = addColumn("TITLE", DataType.TEXT, 2000, true);
             userId = addColumn("USER_ID", DataType.INTEGER, 0, true);
-            state = addColumn("STATE", DataType.VARCHAR, 20, true);
+            state = addColumn("STATE", DataType.TEXT, 20, true);
             state.setBeanPropertyName("stateAsString");
-            parentPid = addColumn("PARENT_PID", DataType.VARCHAR, 41, false);
+            parentPid = addColumn("PARENT_PID", DataType.TEXT, 41, false);
             estimateItemNumber = addColumn("ESTIMATE_NUMBER", DataType.INTEGER, 0, false);
             estimateItemNumber.setBeanPropertyName("estimateItemNumber");
             create = addColumn("CREATE", DataType.DATETIME, 0, true);
-            timestamp = addTimestamp("TIMESTAMP");
-            device = addColumn("DEVICE", DataType.VARCHAR, 2000, false);
+            timestamp = addTimestampColumn("TIMESTAMP");
+            device = addColumn("DEVICE", DataType.TEXT, 2000, false);
             generateIndices = addColumn("GENERATE_INDICES", DataType.BOOL, 0, false);
             log = addColumn("LOG", DataType.CLOB, 0, false);
             setPrimaryKey(id);
@@ -234,15 +241,15 @@ public class ProarcDatabaseV1 extends DBDatabase {
             super("PROARC_BATCH_ITEM", db);
             id = addSequenceColumn("ID");
             batchId = addColumn("BATCH_ID", DataType.INTEGER, 0, true);
-            pid = addColumn("PID", DataType.VARCHAR, 41, false);
-            dsId = addColumn("DS_ID", DataType.VARCHAR, 200, false);
-            file = addColumn("FILE", DataType.VARCHAR, 2000, false);
-            state = addColumn("STATE", DataType.VARCHAR, 100, true);
-            type = addColumn("TYPE", DataType.VARCHAR, 100, false);
+            pid = addColumn("PID", DataType.TEXT, 41, false);
+            dsId = addColumn("DS_ID", DataType.TEXT, 200, false);
+            file = addColumn("FILE", DataType.TEXT, 2000, false);
+            state = addColumn("STATE", DataType.TEXT, 100, true);
+            type = addColumn("TYPE", DataType.TEXT, 100, false);
             type.setBeanPropertyName("typeAsString");
             type.setOptions(toOptions(BatchItem.Type.values()));
             log = addColumn("LOG", DataType.CLOB, 0, false);
-            timestamp = addTimestamp("TIMESTAMP");
+            timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
             addIndex(String.format("%s_UNIQ_IDX", getName()), true, new DBColumn[] { batchId, pid, dsId, type });
             addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { batchId, pid, dsId, state, type });
@@ -268,15 +275,15 @@ public class ProarcDatabaseV1 extends DBDatabase {
         public UserTable(DBDatabase db) {
             super("PROARC_USERS", db);
             id = addSequenceColumn("USERID");
-            username = addColumn("USERNAME", DataType.VARCHAR, 255, true);
-            forename = addColumn("FORENAME", DataType.VARCHAR, 100, false);
-            surname = addColumn("SURNAME", DataType.VARCHAR, 255, true);
-            email = addColumn("EMAIL", DataType.VARCHAR, 255, false);
-            state = addColumn("STATUS", DataType.VARCHAR, 20, false);
+            username = addColumn("USERNAME", DataType.TEXT, 255, true);
+            forename = addColumn("FORENAME", DataType.TEXT, 100, false);
+            surname = addColumn("SURNAME", DataType.TEXT, 255, true);
+            email = addColumn("EMAIL", DataType.TEXT, 255, false);
+            state = addColumn("STATUS", DataType.TEXT, 20, false);
             created = addColumn("CREATED", DataType.DATETIME, 0, true, SYSDATE);
             lastLogin = addColumn("LASTLOGIN", DataType.DATETIME, 0, false);
-            home = addColumn("HOME", DataType.VARCHAR, 2000, true);
-//            timestamp = addTimestamp("TIMESTAMP");
+            home = addColumn("HOME", DataType.TEXT, 2000, true);
+//            timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
             addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[] { username });
         }
@@ -292,7 +299,7 @@ public class ProarcDatabaseV1 extends DBDatabase {
         public UserGroupTable(DBDatabase db) {
             super("PROARC_GROUPS", db);
             id = addSequenceColumn("GROUPID");
-            groupname = addColumn("NAME", DataType.VARCHAR, 255, true);
+            groupname = addColumn("NAME", DataType.TEXT, 255, true);
             setPrimaryKey(id);
             // unique group name
             addIndex(String.format("%s_%s_IDX", getName(), groupname.getName()), true, new DBColumn[] { groupname });
@@ -325,8 +332,8 @@ public class ProarcDatabaseV1 extends DBDatabase {
         public GroupPermissionTable(DBDatabase db) {
             super("PROARC_GROUP_PERMISSIONS", db);
             groupid = addColumn("GROUPID", DataType.INTEGER, 0, true);
-            objectid = addColumn("OBJECTID", DataType.VARCHAR, 2000, false);
-            permissionid = addColumn("PERMISSIONID", DataType.VARCHAR, 2000, true);
+            objectid = addColumn("OBJECTID", DataType.TEXT, 2000, false);
+            permissionid = addColumn("PERMISSIONID", DataType.TEXT, 2000, true);
 
         }
 
@@ -340,8 +347,8 @@ public class ProarcDatabaseV1 extends DBDatabase {
 
         public TomcatUserTable(DBDatabase db) {
             super("TOMCAT_USERS", db);
-            username = addColumn("USERNAME", DataType.VARCHAR, 255, true);
-            userpass = addColumn("USERPASS", DataType.VARCHAR, 255, true);
+            username = addColumn("USERNAME", DataType.TEXT, 255, true);
+            userpass = addColumn("USERPASS", DataType.TEXT, 255, true);
             setPrimaryKey(username);
         }
 
@@ -355,8 +362,8 @@ public class ProarcDatabaseV1 extends DBDatabase {
 
         public TomcatRoleTable(DBDatabase db) {
             super("TOMCAT_ROLES", db);
-            username = addColumn("USERNAME", DataType.VARCHAR, 255, true);
-            rolename = addColumn("ROLENAME", DataType.VARCHAR, 255, true);
+            username = addColumn("USERNAME", DataType.TEXT, 255, true);
+            rolename = addColumn("ROLENAME", DataType.TEXT, 255, true);
             setPrimaryKey(username, rolename);
         }
 
@@ -379,59 +386,50 @@ public class ProarcDatabaseV1 extends DBDatabase {
     }
 
     void init(EmpireConfiguration conf) throws SQLException {
-        DBContext context = conf.getContext();
+        DBDatabaseDriver drv = conf.getDriver();
+        Connection conn = conf.getConnection();
+        open(drv, conn);
         try {
-            if (schemaExists(this, context)) {
+            if (schemaExists(this, conn)) {
                 // XXX upgrade
             } else {
-                createSchema(this, context);
+                createSchema(this, conn);
             }
         } finally {
-            context.discard();
+            conn.close();
         }
     }
 
-    static boolean schemaExists(ProarcDatabaseV1 db, DBContext context) {
+    static boolean schemaExists(ProarcDatabaseV1 db, Connection c) {
         try {
             DBCommand cmd = db.createCommand();
-            cmd.select(db.tableProarcVersion.schemaVersion);
-            cmd.orderBy(db.tableProarcVersion.schemaVersion.desc());
-            cmd.limitRows(1);
-
-            DBReader reader = new DBReader(context);
-            reader.open(cmd);
-
-            while (reader.moveNext()) {
-                int version = reader.getInt(db.tableProarcVersion.schemaVersion);
-                return version > 0;
-            }
+            cmd.select(db.tableProarcVersion.count());
+            int count = db.querySingleInt(cmd, -1, c);
+            return count >= 0;
         } catch (QueryFailedException ex) {
             return false;
         }
-        return false;
     }
 
-    private static void createSchema(ProarcDatabaseV1 db, DBContext context) throws SQLException {
-        if (context.getDbms() instanceof DBMSHandlerPostgreSQL) {
-            context.getConnection().setAutoCommit(true);
+    private static void createSchema(ProarcDatabaseV1 db, Connection conn) throws SQLException {
+        if (db.getDriver() instanceof DBDatabaseDriverPostgreSQL) {
+            conn.setAutoCommit(true);
         }
-        DBSQLScript script = new DBSQLScript(context);
-        db.getCreateDDLScript(script);
+        DBSQLScript script = new DBSQLScript();
+        db.getCreateDDLScript(db.getDriver(), script);
         LOG.fine(script.toString());
-
-        script.executeAll();
-        initProarcVersion(db, context);
-
-        context.commit();
-        context.getConnection().setAutoCommit(false);
+        script.run(db.getDriver(), conn);
+        initProarcVersion(db, conn);
+        db.commit(conn);
+        conn.setAutoCommit(false);
     }
 
-    private static void initProarcVersion(ProarcDatabaseV1 db, DBContext context) {
-        DBRecord dbRecord = new DBRecord(context, db.tableProarcVersion);
-        dbRecord.create();
-        dbRecord.set(db.tableProarcVersion.id, 0);
-        dbRecord.set(db.tableProarcVersion.schemaVersion, VERSION);
-        dbRecord.update();
+    private static void initProarcVersion(ProarcDatabaseV1 db, Connection conn) {
+        DBRecord dbRecord = new DBRecord();
+        dbRecord.create(db.tableProarcVersion);
+        dbRecord.setValue(db.tableProarcVersion.id, 0);
+        dbRecord.setValue(db.tableProarcVersion.schemaVersion, VERSION);
+        dbRecord.update(conn);
     }
 
 }

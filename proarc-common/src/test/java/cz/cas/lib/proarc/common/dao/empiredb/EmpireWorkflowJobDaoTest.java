@@ -90,7 +90,7 @@ public class EmpireWorkflowJobDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
 
         Job job = dao.create();
         job.addCreated(dbTimestamp).addFinanced("financed").addLabel("label")
@@ -119,7 +119,7 @@ public class EmpireWorkflowJobDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         Job job = dao.find(BigDecimal.ONE);
@@ -141,7 +141,7 @@ public class EmpireWorkflowJobDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         JobFilter filter = new JobFilter();
@@ -161,7 +161,7 @@ public class EmpireWorkflowJobDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         JobFilter filter = new JobFilter();
@@ -184,7 +184,7 @@ public class EmpireWorkflowJobDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_material.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         JobFilter filter = new JobFilter();

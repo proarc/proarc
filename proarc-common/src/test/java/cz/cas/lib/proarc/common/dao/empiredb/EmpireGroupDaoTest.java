@@ -86,7 +86,7 @@ public class EmpireGroupDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "group.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         Integer id = 1;
@@ -104,7 +104,7 @@ public class EmpireGroupDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "group.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         List<Group> find = dao.find(null, "group:testgrp", null, null);
@@ -129,7 +129,7 @@ public class EmpireGroupDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "group.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         final Integer id = 10;
         support.initSequences(tx, id, (String) schema.tableUserGroup.id.getDefaultValue());
         tx.commit();
@@ -153,7 +153,7 @@ public class EmpireGroupDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "group.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
 
         tx.commit();
         Group group = dao.find(1);

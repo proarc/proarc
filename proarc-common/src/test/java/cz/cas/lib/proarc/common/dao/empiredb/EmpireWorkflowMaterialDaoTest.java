@@ -103,7 +103,7 @@ public class EmpireWorkflowMaterialDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         FolderMaterial m = dao.create(MaterialType.FOLDER);
@@ -131,7 +131,7 @@ public class EmpireWorkflowMaterialDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         DigitalMaterial m = dao.create(MaterialType.DIGITAL_OBJECT);
@@ -160,7 +160,7 @@ public class EmpireWorkflowMaterialDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         PhysicalMaterial m = dao.create(MaterialType.PHYSICAL_DOCUMENT);
@@ -210,7 +210,7 @@ public class EmpireWorkflowMaterialDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_material.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         // view a task's digital material
@@ -309,7 +309,7 @@ public class EmpireWorkflowMaterialDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_material.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         Material m1 = dao.find(BigDecimal.ONE);
@@ -337,7 +337,7 @@ public class EmpireWorkflowMaterialDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_material.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         Material m = new Material();

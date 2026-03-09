@@ -87,7 +87,7 @@ public class EmpireUserDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         Integer userId = 1;
@@ -101,7 +101,7 @@ public class EmpireUserDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         String username = "test";
@@ -120,7 +120,7 @@ public class EmpireUserDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "group.xml"),
                 support.loadFlatXmlDataStream(getClass(), "user.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
         support.initSequences(tx, 10, (String) schema.tableUser.id.getDefaultValue());
 
@@ -173,7 +173,7 @@ public class EmpireUserDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "group.xml"),
                 support.loadFlatXmlDataStream(getClass(), "user.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         UserProfile user = dao.find(1);

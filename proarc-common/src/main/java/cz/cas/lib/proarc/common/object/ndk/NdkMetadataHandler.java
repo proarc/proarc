@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.object.ndk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -466,8 +465,6 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                             }
                             ex.addValidation("mods.identifier", ERR_NDK_DOI_DUPLICITY, true, doi);
                         }
-                    } catch (FedoraClientException ex1) {
-                        throw new DigitalObjectException(fobject.getPid(), ex1);
                     } catch (IOException ex1) {
                         throw new DigitalObjectException(fobject.getPid(), ex1);
                     }

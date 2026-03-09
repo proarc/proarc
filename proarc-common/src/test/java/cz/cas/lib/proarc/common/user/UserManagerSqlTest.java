@@ -29,7 +29,7 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
 import javax.sql.DataSource;
-import org.apache.empire.db.DBContext;
+import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
@@ -90,7 +90,7 @@ public class UserManagerSqlTest {
 
             @Override
             public Connection answer() throws Throwable {
-                return db.getEmireCfg().getContext().getConnection();
+                return db.getEmireCfg().getConnection();
             }
         }).anyTimes();
         IDataSet database = database(
@@ -98,16 +98,18 @@ public class UserManagerSqlTest {
                 db.loadFlatXmlDataStream(EmpireUserDaoTest.class, "user.xml")
 //                db.loadFlatXmlDataStream(getClass(), "group.xml")
         );
-        final DBContext context = db.getEmireCfg().getContext();
+        final IDatabaseConnection con = db.getConnection();
         try {
-            db.cleanInsert(context, database);
-            db.initSequences(context.getConnection(), 10, (String) db.getEmireCfg().getSchema().tableUser.id.getDefaultValue());
-            db.initSequences(context.getConnection(), 10, (String) db.getEmireCfg().getSchema().tableUserGroup.id.getDefaultValue());
-            context.discard();
-            ;
+            db.cleanInsert(con, database);
+            db.initSequences(con.getConnection(), 10, db.getEmireCfg().getSchema().tableUser.id.getSequenceName());
+            db.initSequences(con.getConnection(), 10, db.getEmireCfg().getSchema().tableUserGroup.id.getSequenceName());
+            con.getConnection().commit();
         } finally {
-            context.discard();
+            con.getConnection().close();
         }
+
+        EasyMock.replay(dataSource);
+        manager = new UserManagerSql(configuration, dataSource, tempDir, fedoraStorage, daos);
 
         EasyMock.replay(dataSource);
         manager = new UserManagerSql(configuration, dataSource, tempDir, fedoraStorage, daos);

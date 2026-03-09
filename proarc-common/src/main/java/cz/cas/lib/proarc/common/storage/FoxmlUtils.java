@@ -78,7 +78,11 @@ public final class FoxmlUtils {
 
     static {
         XmlSchema schema = ObjectFactory.class.getPackage().getAnnotation(XmlSchema.class);
-        FOXML_NAMESPACE = schema.namespace();
+        if (schema != null) {
+            FOXML_NAMESPACE = schema.namespace();
+        } else {
+            FOXML_NAMESPACE = "info:fedora/fedora-system:def/foxml#"; // default
+        }
         assert FOXML_NAMESPACE != null;
     }
 

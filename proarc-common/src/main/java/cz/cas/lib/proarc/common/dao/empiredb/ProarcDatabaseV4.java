@@ -23,17 +23,22 @@ import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Logger;
+import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
+import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
-import org.apache.empire.db.DBContext;
-import org.apache.empire.db.DBDDLGenerator;
+import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
+import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
+import org.apache.empire.db.exceptions.QueryFailedException;
+import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
 
 /**
  * Database schema version 4. It adds workflow stuff.
@@ -48,9 +53,7 @@ public class ProarcDatabaseV4 extends DBDatabase {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(ProarcDatabaseV4.class.getName());
-    /**
-     * the schema version
-     */
+    /** the schema version */
     public static final int VERSION = 4;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
@@ -71,10 +74,10 @@ public class ProarcDatabaseV4 extends DBDatabase {
 
     public static int upgradeToVersion5(
             int currentSchemaVersion,
-            DBContext context, EmpireConfiguration conf) throws SQLException {
+            Connection conn, EmpireConfiguration conf) throws SQLException {
 
         if (currentSchemaVersion < VERSION) {
-            currentSchemaVersion = ProarcDatabaseV3.upgradeToVersion4(currentSchemaVersion, context, conf);
+            currentSchemaVersion = ProarcDatabaseV3.upgradeToVersion4(currentSchemaVersion, conn, conf);
         }
         if (currentSchemaVersion > VERSION) {
             // ignore higher versions
@@ -84,44 +87,44 @@ public class ProarcDatabaseV4 extends DBDatabase {
         }
         ProarcDatabaseV5 schema = new ProarcDatabaseV5();
         try {
-            schema.open(context);
-            upgradeDdl(schema, context);
-            int schemaVersion = schema.initVersion(context, VERSION);
+            schema.open(conf.getDriver(), conn);
+            upgradeDdl(schema, conn);
+            int schemaVersion = schema.initVersion(conn, VERSION);
 
-            context.commit();
+            conn.commit();
             return schemaVersion;
         } finally {
-            schema.close(context);
+            schema.close(conn);
         }
     }
 
-    private static void upgradeDdl(ProarcDatabaseV5 schema, DBContext context) throws SQLException {
+    private static void upgradeDdl(ProarcDatabaseV5 schema, Connection conn) throws SQLException {
         try {
-            context.getConnection().setAutoCommit(true);
-
-            DBSQLScript script = new DBSQLScript(context);
+            conn.setAutoCommit(true);
+            DBDatabaseDriver driver = schema.getDriver();
+            DBSQLScript script = new DBSQLScript();
             // add the parentId column to the workflowJob table
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableWorkflowJob.parentId, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.relationWorkflowJob_ParentId_Fk, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowJob.parentId, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.relationWorkflowJob_ParentId_Fk, script);
 
             // add columns to tableWorkflowPhysicalDoc
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableWorkflowPhysicalDoc.detail, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableWorkflowPhysicalDoc.issue, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableWorkflowPhysicalDoc.sigla, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableWorkflowPhysicalDoc.volume, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.tableWorkflowPhysicalDoc.year, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.detail, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.issue, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.sigla, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.volume, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.year, script);
 
             // add missing relations
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.relationWorkflowMaterialInTask_MaterialId_Fk, script);
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.CREATE, schema.relationWorkflowMaterialInTask_TaskId_Fk, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.relationWorkflowMaterialInTask_MaterialId_Fk, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.relationWorkflowMaterialInTask_TaskId_Fk, script);
 
             // issue #519: increase the length of the PID column
-            context.getDbms().getDDLScript(DBDDLGenerator.DDLActionType.ALTER, schema.tableBatchItem.pid, script);
+            driver.getDDLScript(DBCmdType.ALTER, schema.tableBatchItem.pid, script);
 
             LOG.fine(script.toString());
-            script.executeAll();
+            script.run(driver, conn);
         } finally {
-            context.getConnection().setAutoCommit(false);
+            conn.setAutoCommit(false);
         }
     }
 
@@ -163,21 +166,21 @@ public class ProarcDatabaseV4 extends DBDatabase {
             super("PROARC_BATCH", db);
             id = addSequenceColumn("ID");
             folder = addColumn("FOLDER", DataType.CLOB, 0, true);
-            title = addColumn("TITLE", DataType.VARCHAR, 2000, true);
+            title = addColumn("TITLE", DataType.TEXT, 2000, true);
             userId = addColumn("USER_ID", DataType.INTEGER, 0, true);
-            state = addColumn("STATE", DataType.VARCHAR, 20, true);
+            state = addColumn("STATE", DataType.TEXT, 20, true);
             state.setBeanPropertyName("stateAsString");
-            parentPid = addColumn("PARENT_PID", DataType.VARCHAR, 41, false);
+            parentPid = addColumn("PARENT_PID", DataType.TEXT, 41, false);
             estimateItemNumber = addColumn("ESTIMATE_NUMBER", DataType.INTEGER, 0, false);
             estimateItemNumber.setBeanPropertyName("estimateItemNumber");
             create = addColumn("CREATE", DataType.DATETIME, 0, true);
-            timestamp = addTimestamp("TIMESTAMP");
-            device = addColumn("DEVICE", DataType.VARCHAR, 2000, false);
+            timestamp = addTimestampColumn("TIMESTAMP");
+            device = addColumn("DEVICE", DataType.TEXT, 2000, false);
             generateIndices = addColumn("GENERATE_INDICES", DataType.BOOL, 0, false);
             log = addColumn("LOG", DataType.CLOB, 0, false);
-            profileId = addColumn("PROFILE_ID", DataType.VARCHAR, 2000, false);
+            profileId = addColumn("PROFILE_ID", DataType.TEXT, 2000, false);
             setPrimaryKey(id);
-            addIndex(String.format("%s_IDX", getName()), false, new DBColumn[]{create, state, title, userId});
+            addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { create, state, title, userId });
         }
 
     }
@@ -200,18 +203,18 @@ public class ProarcDatabaseV4 extends DBDatabase {
             super("PROARC_BATCH_ITEM", db);
             id = addSequenceColumn("ID");
             batchId = addColumn("BATCH_ID", DataType.INTEGER, 0, true);
-            pid = addColumn("PID", DataType.VARCHAR, 41, false);
-            dsId = addColumn("DS_ID", DataType.VARCHAR, 200, false);
-            file = addColumn("FILE", DataType.VARCHAR, 2000, false);
-            state = addColumn("STATE", DataType.VARCHAR, 100, true);
-            type = addColumn("TYPE", DataType.VARCHAR, 100, false);
+            pid = addColumn("PID", DataType.TEXT, 41, false);
+            dsId = addColumn("DS_ID", DataType.TEXT, 200, false);
+            file = addColumn("FILE", DataType.TEXT, 2000, false);
+            state = addColumn("STATE", DataType.TEXT, 100, true);
+            type = addColumn("TYPE", DataType.TEXT, 100, false);
             type.setBeanPropertyName("typeAsString");
             type.setOptions(toOptions(BatchItem.Type.values()));
             log = addColumn("LOG", DataType.CLOB, 0, false);
-            timestamp = addTimestamp("TIMESTAMP");
+            timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
-            addIndex(String.format("%s_UNIQ_IDX", getName()), true, new DBColumn[]{batchId, pid, dsId, type});
-            addIndex(String.format("%s_IDX", getName()), false, new DBColumn[]{batchId, pid, dsId, state, type});
+            addIndex(String.format("%s_UNIQ_IDX", getName()), true, new DBColumn[] { batchId, pid, dsId, type });
+            addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { batchId, pid, dsId, state, type });
         }
 
     }
@@ -230,21 +233,13 @@ public class ProarcDatabaseV4 extends DBDatabase {
         public final DBTableColumn created;
         public final DBTableColumn lastLogin;
         public final DBTableColumn home;
-        /**
-         * group to use as owner for newly created objects
-         */
+        /** group to use as owner for newly created objects */
         public final DBTableColumn defaultGroup;
-        /**
-         * group that can contain single member; it can hold overridden permissions
-         */
+        /** group that can contain single member; it can hold overridden permissions */
         public final DBTableColumn userGroup;
-        /**
-         * use to identify external user.
-         */
+        /** use to identify external user. */
         public final DBTableColumn remoteName;
-        /**
-         * type of the remote user null(PROARC), LDAP, ...
-         */
+        /** type of the remote user null(PROARC), DESA, LDAP, ... */
         public final DBTableColumn remoteType;
         public final DBTableColumn timestamp;
 
@@ -252,26 +247,26 @@ public class ProarcDatabaseV4 extends DBDatabase {
             super("PROARC_USERS", db);
             id = addSequenceColumn("USERID");
             id.setBeanPropertyName("id");
-            username = addColumn("USERNAME", DataType.VARCHAR, 255, true);
+            username = addColumn("USERNAME", DataType.TEXT, 255, true);
             username.setBeanPropertyName("userName");
-            passwd = addColumn("PASSWD", DataType.VARCHAR, 255, false);
+            passwd = addColumn("PASSWD", DataType.TEXT, 255, false);
             passwd.setBeanPropertyName("userPasswordDigest");
-            forename = addColumn("FORENAME", DataType.VARCHAR, 100, false);
-            surname = addColumn("SURNAME", DataType.VARCHAR, 255, true);
-            email = addColumn("EMAIL", DataType.VARCHAR, 255, false);
-            state = addColumn("STATUS", DataType.VARCHAR, 20, false);
-            created = addColumn("CREATED", DataType.DATETIME, 0, true, SYSDATE);
+            forename = addColumn("FORENAME", DataType.TEXT, 100, false);
+            surname = addColumn("SURNAME", DataType.TEXT, 255, true);
+            email = addColumn("EMAIL", DataType.TEXT, 255, false);
+            state = addColumn("STATUS", DataType.TEXT, 20, false);
+            created = addColumn("CREATED", DataType.DATETIME, 0, DataMode.NotNull, SYSDATE);
             lastLogin = addColumn("LASTLOGIN", DataType.DATETIME, 0, false);
             lastLogin.setBeanPropertyName("lastLogin");
-            home = addColumn("HOME", DataType.VARCHAR, 2000, true);
+            home = addColumn("HOME", DataType.TEXT, 2000, true);
             home.setBeanPropertyName("userHome");
             defaultGroup = addColumn("DEFAULT_GROUP", DataType.INTEGER, 0, false);
             userGroup = addColumn("USER_GROUP", DataType.INTEGER, 0, false);
-            remoteName = addColumn("REMOTE_NAME", DataType.VARCHAR, 255, false);
-            remoteType = addColumn("REMOTE_TYPE", DataType.VARCHAR, 2000, false);
-            timestamp = addTimestamp("TIMESTAMP");
+            remoteName = addColumn("REMOTE_NAME", DataType.TEXT, 255, false);
+            remoteType = addColumn("REMOTE_TYPE", DataType.TEXT, 2000, false);
+            timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
-            addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[]{username});
+            addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[] { username });
         }
 
     }
@@ -285,13 +280,9 @@ public class ProarcDatabaseV4 extends DBDatabase {
          */
         public final DBTableColumn groupname;
         public final DBTableColumn title;
-        /**
-         * use to identify group of external users.
-         */
+        /** use to identify group of external users. */
         public final DBTableColumn remoteName;
-        /**
-         * type of the remote group null(PROARC), LDAP, ...
-         */
+        /** type of the remote group null(PROARC), DESA, LDAP, ... */
         public final DBTableColumn remoteType;
         public final DBTableColumn created;
         public final DBTableColumn timestamp;
@@ -300,15 +291,15 @@ public class ProarcDatabaseV4 extends DBDatabase {
             super("PROARC_GROUPS", db);
             id = addSequenceColumn("GROUPID");
             id.setBeanPropertyName("id");
-            groupname = addColumn("NAME", DataType.VARCHAR, 64, true);
-            title = addColumn("TITLE", DataType.VARCHAR, 255, false);
-            remoteName = addColumn("REMOTE_NAME", DataType.VARCHAR, 255, false);
-            remoteType = addColumn("REMOTE_TYPE", DataType.VARCHAR, 2000, false);
-            created = addColumn("CREATED", DataType.DATETIME, 0, true, SYSDATE);
-            timestamp = addTimestamp("TIMESTAMP");
+            groupname = addColumn("NAME", DataType.TEXT, 64, true);
+            title = addColumn("TITLE", DataType.TEXT, 255, false);
+            remoteName = addColumn("REMOTE_NAME", DataType.TEXT, 255, false);
+            remoteType = addColumn("REMOTE_TYPE", DataType.TEXT, 2000, false);
+            created = addColumn("CREATED", DataType.DATETIME, 0, DataMode.NotNull, SYSDATE);
+            timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
             // unique group name
-            addIndex(String.format("%s_%s_IDX", getName(), groupname.getName()), true, new DBColumn[]{groupname});
+            addIndex(String.format("%s_%s_IDX", getName(), groupname.getName()), true, new DBColumn[] { groupname });
         }
 
     }
@@ -334,17 +325,15 @@ public class ProarcDatabaseV4 extends DBDatabase {
         public final DBTableColumn groupid;
         public final DBTableColumn objectid;
         public final DBTableColumn permissionid;
-        /**
-         * type to override inherited permission in user group. Options: null, disabled, enabled.
-         */
+        /** type to override inherited permission in user group. Options: null, disabled, enabled. */
         public final DBTableColumn type;
 
         public GroupPermissionTable(DBDatabase db) {
             super("PROARC_GROUP_PERMISSIONS", db);
             groupid = addColumn("GROUPID", DataType.INTEGER, 0, true);
-            objectid = addColumn("OBJECTID", DataType.VARCHAR, 2000, false);
-            permissionid = addColumn("PERMISSIONID", DataType.VARCHAR, 2000, true);
-            type = addColumn("TYPE", DataType.VARCHAR, 255, false);
+            objectid = addColumn("OBJECTID", DataType.TEXT, 2000, false);
+            permissionid = addColumn("PERMISSIONID", DataType.TEXT, 2000, true);
+            type = addColumn("TYPE", DataType.TEXT, 255, false);
         }
 
     }
@@ -367,16 +356,16 @@ public class ProarcDatabaseV4 extends DBDatabase {
             super("PROARC_WF_JOB", db);
             id = addSequenceColumn("ID");
             ownerId = addColumn("OWNER_ID", DataType.INTEGER, 0, false);
-            profileName = addColumn("PROFILE_NAME", DataType.VARCHAR, 500, true);
-            state = addColumn("STATE", DataType.VARCHAR, 100, true);
+            profileName = addColumn("PROFILE_NAME", DataType.TEXT, 500, true);
+            state = addColumn("STATE", DataType.TEXT, 100, true);
             state.setOptions(toOptions(Job.State.values()));
             state.setBeanPropertyName("stateAsString");
             priority = addColumn("PRIORITY", DataType.INTEGER, 0, true);
-            label = addColumn("LABEL", DataType.VARCHAR, 2000, true);
-            financed = addColumn("FINANCED", DataType.VARCHAR, 2000, false);
-            note = addColumn("NOTE", DataType.VARCHAR, 2000, false);
+            label = addColumn("LABEL", DataType.TEXT, 2000, true);
+            financed = addColumn("FINANCED", DataType.TEXT, 2000, false);
+            note = addColumn("NOTE", DataType.TEXT, 2000, false);
             created = addColumn("CREATED", DataType.DATETIME, 0, true);
-            timestamp = addTimestamp("TIMESTAMP");
+            timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
 //            addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] {
 //                ownerId, created, timestamp, state, priority, financed });
@@ -394,26 +383,24 @@ public class ProarcDatabaseV4 extends DBDatabase {
         public final DBTableColumn priority;
         //        public final DBTableColumn queueNumber;
         public final DBTableColumn state;
-        /**
-         * The name of a task type in workflow profile.
-         */
+        /** The name of a task type in workflow profile. */
         public final DBTableColumn typeRef;
         public final DBTableColumn timestamp;
 
         public WorkflowTaskTable(DBDatabase db) {
             super("PROARC_WF_TASK", db);
             id = addSequenceColumn("ID");
-            typeRef = addColumn("TYPE_REF", DataType.VARCHAR, 500, true);
+            typeRef = addColumn("TYPE_REF", DataType.TEXT, 500, true);
             jobId = addColumn("JOB_ID", DataType.INTEGER, 0, true);
             ownerId = addColumn("OWNER_ID", DataType.INTEGER, 0, false);
-            state = addColumn("STATE", DataType.VARCHAR, 100, true);
+            state = addColumn("STATE", DataType.TEXT, 100, true);
             state.setOptions(toOptions(Task.State.values()));
             state.setBeanPropertyName("stateAsString");
             priority = addColumn("PRIORITY", DataType.INTEGER, 0, true);
 //            queueNumber = addColumn("QUEUE_NUMBER", DataType.DECIMAL, 0, true);
-            note = addColumn("NOTE", DataType.VARCHAR, 2000, false);
+            note = addColumn("NOTE", DataType.TEXT, 2000, false);
             created = addColumn("CREATED", DataType.DATETIME, 0, true);
-            timestamp = addTimestamp("TIMESTAMP");
+            timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
         }
     }
@@ -423,9 +410,7 @@ public class ProarcDatabaseV4 extends DBDatabase {
         private static final long serialVersionUID = 1L;
 
         public final DBTableColumn taskId;
-        /**
-         * The name of a parameter type in workflow profile.
-         */
+        /** The name of a parameter type in workflow profile. */
         public final DBTableColumn paramRef;
         public final DBTableColumn valueType;
         public final DBTableColumn value;
@@ -435,11 +420,11 @@ public class ProarcDatabaseV4 extends DBDatabase {
         public WorkflowParameterTable(DBDatabase db) {
             super("PROARC_WF_PARAMETER", db);
             taskId = addColumn("TASK_ID", DataType.INTEGER, 0, true);
-            paramRef = addColumn("PARAM_REF", DataType.VARCHAR, 500, true);
-            valueType = addColumn("VALUE_TYPE", DataType.VARCHAR, 20, true);
+            paramRef = addColumn("PARAM_REF", DataType.TEXT, 500, true);
+            valueType = addColumn("VALUE_TYPE", DataType.TEXT, 20, true);
             valueType.setOptions(toOptions(ValueType.values()));
             valueType.setBeanPropertyName("valueTypeAsString");
-            value = addColumn("VALUE_STRING", DataType.VARCHAR, 2000, false);
+            value = addColumn("VALUE_STRING", DataType.TEXT, 2000, false);
             number = addColumn("VALUE_NUMBER", DataType.DECIMAL, 20.9, false);
             dateTime = addColumn("VALUE_DATETIME", DataType.DATETIME, 0, false);
             dateTime.setBeanPropertyName("valueDateTime");
@@ -451,9 +436,7 @@ public class ProarcDatabaseV4 extends DBDatabase {
         private static final long serialVersionUID = 1L;
 
         public final DBTableColumn id;
-        /**
-         * The description of a material's value
-         */
+        /** The description of a material's value */
         public final DBTableColumn label;
         public final DBTableColumn name;
         public final DBTableColumn note;
@@ -463,13 +446,13 @@ public class ProarcDatabaseV4 extends DBDatabase {
         public WorkflowMaterialTable(DBDatabase db) {
             super("PROARC_WF_MATERIAL", db);
             id = addSequenceColumn("ID");
-            type = addColumn("TYPE", DataType.VARCHAR, 100, true);
+            type = addColumn("TYPE", DataType.TEXT, 100, true);
             type.setOptions(toOptions(MaterialType.values()));
             type.setBeanPropertyName("typeAsString");
-            state = addColumn("STATE", DataType.VARCHAR, 100, false);
-            name = addColumn("NAME", DataType.VARCHAR, 500, true);
-            label = addColumn("LABEL", DataType.VARCHAR, 2000, false);
-            note = addColumn("NOTE", DataType.VARCHAR, 2000, false);
+            state = addColumn("STATE", DataType.TEXT, 100, false);
+            name = addColumn("NAME", DataType.TEXT, 500, true);
+            label = addColumn("LABEL", DataType.TEXT, 2000, false);
+            note = addColumn("NOTE", DataType.TEXT, 2000, false);
             setPrimaryKey(id);
         }
     }
@@ -485,7 +468,7 @@ public class ProarcDatabaseV4 extends DBDatabase {
             super("PROARC_WF_FOLDER", db);
             materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
             materialId.setBeanPropertyName("id");
-            path = addColumn("PATH", DataType.VARCHAR, 2000, false);
+            path = addColumn("PATH", DataType.TEXT, 2000, false);
             setPrimaryKey(materialId);
         }
     }
@@ -501,7 +484,7 @@ public class ProarcDatabaseV4 extends DBDatabase {
             super("PROARC_WF_DIGITAL_DOCUMENT", db);
             materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
             materialId.setBeanPropertyName("id");
-            pid = addColumn("PID", DataType.VARCHAR, 100, false);
+            pid = addColumn("PID", DataType.TEXT, 100, false);
             setPrimaryKey(materialId);
         }
     }
@@ -515,13 +498,9 @@ public class ProarcDatabaseV4 extends DBDatabase {
         public final DBTableColumn field001;
         public final DBTableColumn rdczId;
         public final DBTableColumn signature;
-        /**
-         * The URL to a catalog.
-         */
+        /** The URL to a catalog. */
         public final DBTableColumn source;
-        /**
-         * MODS.
-         */
+        /** MODS. */
         public final DBTableColumn metadata;
 
         public WorkflowPhysicalDocTable(DBDatabase db) {
@@ -529,10 +508,10 @@ public class ProarcDatabaseV4 extends DBDatabase {
             materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
             materialId.setBeanPropertyName("id");
             rdczId = addColumn("RDCZ_ID", DataType.INTEGER, 0, false);
-            barcode = addColumn("BARCODE", DataType.VARCHAR, 100, false);
-            field001 = addColumn("FIELD001", DataType.VARCHAR, 100, false);
-            signature = addColumn("SIGNATURE", DataType.VARCHAR, 2000, false);
-            source = addColumn("SOURCE", DataType.VARCHAR, 2000, false);
+            barcode = addColumn("BARCODE", DataType.TEXT, 100, false);
+            field001 = addColumn("FIELD001", DataType.TEXT, 100, false);
+            signature = addColumn("SIGNATURE", DataType.TEXT, 2000, false);
+            source = addColumn("SOURCE", DataType.TEXT, 2000, false);
             metadata = addColumn("METADATA", DataType.CLOB, 0, false);
             setPrimaryKey(materialId);
         }
@@ -550,7 +529,7 @@ public class ProarcDatabaseV4 extends DBDatabase {
             super("PROARC_WF_MATERIAL_IN_TASK", db);
             taskId = addColumn("TASK_ID", DataType.INTEGER, 0, true);
             materialId = addColumn("MATERIAL_ID", DataType.INTEGER, 0, true);
-            way = addColumn("WAY", DataType.VARCHAR, 100, true);
+            way = addColumn("WAY", DataType.TEXT, 100, true);
             way.setBeanPropertyName("wayAsString");
             way.setOptions(toOptions(Way.values()));
             setPrimaryKey(taskId, materialId, way);
@@ -575,18 +554,62 @@ public class ProarcDatabaseV4 extends DBDatabase {
         addRelation(tableWorkflowPhysicalDoc.materialId.referenceOn(tableWorkflowMaterial.id));
     }
 
-    int initVersion(DBContext context, Integer oldVersion) {
+    void init(EmpireConfiguration conf) throws SQLException {
+        DBDatabaseDriver drv = conf.getDriver();
+        Connection conn = conf.getConnection();
+        open(drv, conn);
+        try {
+            int schemaVersion = schemaExists(this, conn);
+            if (schemaVersion > 0) {
+                schemaVersion = ProarcDatabaseV3.upgradeToVersion4(
+                        schemaVersion, conn, conf);
+                if (schemaVersion != VERSION) {
+                    throw new SQLException("Invalid schema version " + schemaVersion);
+                }
+            } else {
+                createSchema(this, conn);
+            }
+        } finally {
+            conn.close();
+        }
+    }
+
+    static int schemaExists(ProarcDatabaseV4 db, Connection c) {
+        try {
+            DBCommand cmd = db.createCommand();
+            cmd.select(db.tableProarcVersion.schemaVersion);
+            int version = db.querySingleInt(cmd, -1, c);
+            return version;
+        } catch (QueryFailedException ex) {
+            return -1;
+        }
+    }
+
+    private static void createSchema(ProarcDatabaseV4 db, Connection conn) throws SQLException {
+        if (db.getDriver() instanceof DBDatabaseDriverPostgreSQL) {
+            conn.setAutoCommit(true);
+        }
+        DBSQLScript script = new DBSQLScript();
+        db.getCreateDDLScript(db.getDriver(), script);
+        LOG.fine(script.toString());
+        script.run(db.getDriver(), conn);
+        db.initVersion(conn, null);
+        db.commit(conn);
+        conn.setAutoCommit(false);
+    }
+
+    int initVersion(Connection conn, Integer oldVersion) {
         ProarcDatabaseV4 db = this;
-        DBRecord dbRecord = new DBRecord(context, db.tableProarcVersion);
+        DBRecord dbRecord = new DBRecord();
         if (oldVersion != null) {
-            dbRecord.read(db.tableProarcVersion.id.is(0));
+            dbRecord.init(db.tableProarcVersion, new Integer[] {0}, false);
         } else {
-            dbRecord.create();
-            dbRecord.set(db.tableProarcVersion.id, 0);
+            dbRecord.create(db.tableProarcVersion);
+            dbRecord.setValue(db.tableProarcVersion.id, 0);
         }
 
-        dbRecord.set(db.tableProarcVersion.schemaVersion, VERSION);
-        dbRecord.update();
+        dbRecord.setValue(db.tableProarcVersion.schemaVersion, VERSION);
+        dbRecord.update(conn);
         return VERSION;
     }
 

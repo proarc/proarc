@@ -22,9 +22,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 import org.apache.empire.db.DBCommand;
-import org.apache.empire.db.DBContext;
 import org.dbunit.DatabaseUnitException;
 import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.DatabaseConnection;
@@ -48,11 +48,13 @@ public class DbUnitSupport {
     private static String dtdSchema;
 
     public DbUnitSupport() {
-        assertNotNull(System.getProperty("proarc-common.DbUnitSupport.jdbc.user"));
+            assertNotNull(System.getProperty("proarc-common.DbUnitSupport.jdbc.user"));
         emireCfg = new EmpireConfiguration(
+                System.getProperty("proarc-common.DbUnitSupport.jdbc.driver"),
                 System.getProperty("proarc-common.DbUnitSupport.jdbc.url"),
                 System.getProperty("proarc-common.DbUnitSupport.jdbc.user"),
                 System.getProperty("proarc-common.DbUnitSupport.jdbc.passwd"),
+                System.getProperty("proarc-common.DbUnitSupport.empiredb.driver"),
                 null
         );
     }
@@ -61,12 +63,20 @@ public class DbUnitSupport {
         return emireCfg;
     }
 
-    public DBContext getContext(Transaction tx) {
-        return ((SqlTransaction) tx).getContext();
+    public IDatabaseConnection getConnection(Transaction tx) throws DatabaseUnitException, SQLException {
+        return getConnection(getSqlConnection(tx));
+    }
+
+    public IDatabaseConnection getConnection() throws DatabaseUnitException, SQLException {
+        return getConnection(emireCfg.getConnection());
+    }
+
+    public IDatabaseConnection getConnection(Connection c) throws DatabaseUnitException, SQLException {
+        return createProgresConnection(c);
     }
 
     public Connection getSqlConnection(Transaction tx) {
-        return ((SqlTransaction) tx).getContext().getConnection();
+        return ((SqlTransaction) tx).getConnection();
     }
 
     private IDatabaseConnection createProgresConnection(Connection c) throws DatabaseUnitException {
@@ -107,21 +117,21 @@ public class DbUnitSupport {
         }
     }
 
-    public void cleanInsert(DBContext context, IDataSet dataset) throws Exception {
-        prepareForDelete(context);
-        DatabaseOperation.CLEAN_INSERT.execute((IDatabaseConnection) context.getConnection(), dataset);
+    public void cleanInsert(IDatabaseConnection c, IDataSet dataset) throws Exception {
+        prepareForDelete(c.getConnection());
+        DatabaseOperation.CLEAN_INSERT.execute(c, dataset);
     }
 
     /**
      * Removes all constrained values that cannot be resolved with proper delete table order.
      */
-    public void prepareForDelete(DBContext context) {
+    public void prepareForDelete(Connection c) {
         ProarcDatabase schema = getEmireCfg().getSchema();
         DBCommand cmd = schema.createCommand();
         cmd.set(schema.tableUser.defaultGroup.to(null));
         cmd.set(schema.tableUser.userGroup.to(null));
 
-        context.executeDelete(schema.tableUser, cmd);
+        schema.executeUpdate(cmd, c);
     }
 
     private InputStream getResourceStream(Class<?> c, String resource) {
@@ -136,16 +146,16 @@ public class DbUnitSupport {
 
     private Reader getDtdSchema(boolean resetDtdSchema) throws Exception {
         if (resetDtdSchema || dtdSchema == null) {
-            DBContext context = getEmireCfg().getContext();
+            Connection c = getEmireCfg().getConnection();
             try {
 
-                IDatabaseConnection dc = createProgresConnection(context.getConnection());
+                IDatabaseConnection dc = createProgresConnection(c);
                 StringWriter sw = new StringWriter();
                 FlatDtdDataSet.write(dc.createDataSet(), sw);
                 dtdSchema = sw.toString();
 //                System.out.println(dtdSchema);
             } finally {
-                context.discard();
+                c.close();
             }
         }
         return new StringReader(dtdSchema);

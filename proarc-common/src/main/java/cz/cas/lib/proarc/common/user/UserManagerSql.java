@@ -243,7 +243,7 @@ final class UserManagerSql implements UserManager {
             profile.setUserGroup(userGroup.getId());
             userDao.update(profile);
             // sql membership
-            groupStorage.addMembership(((SqlTransaction) tx).getContext().getConnection(), profile.getId(), membership);
+            groupStorage.addMembership(((SqlTransaction) tx).getConnection(), profile.getId(), membership);
 
             // filesystem
             UserUtil.createUserSubfolders(userHome);
@@ -300,7 +300,7 @@ final class UserManagerSql implements UserManager {
             }
             groupDao.update(group);
             if (!permissions.isEmpty()) {
-                permissionStorage.set(((SqlTransaction) tx).getContext().getConnection(), group.getId(),
+                permissionStorage.set(((SqlTransaction) tx).getConnection(), group.getId(),
                         permissions.toArray(new Permission[permissions.size()]));
             }
             commit(tx, ftx);

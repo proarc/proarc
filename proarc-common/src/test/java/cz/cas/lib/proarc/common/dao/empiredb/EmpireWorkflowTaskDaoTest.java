@@ -92,7 +92,7 @@ public class EmpireWorkflowTaskDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         Task task = dao.create();
@@ -128,7 +128,7 @@ public class EmpireWorkflowTaskDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
                 support.loadFlatXmlDataStream(getClass(), "wf_task.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         TaskFilter filter = new TaskFilter();

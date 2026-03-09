@@ -23,22 +23,26 @@ import cz.cas.lib.proarc.common.dao.BatchDao;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
+import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.BatchItemTable;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.BatchTable;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.UserTable;
+import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.apache.empire.data.bean.BeanResult;
 import org.apache.empire.db.DBCommand;
-import org.apache.empire.db.DBContext;
 import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
+import org.apache.empire.db.DBRecordData;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
+import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
 import org.apache.empire.db.expr.compare.DBCompareExpr;
 
 /**
@@ -63,37 +67,35 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
 
     @Override
     public void update(Batch batch) {
-        DBContext context = getContext();
-        DBRecord record = new DBRecord(context, table);
-
-        try {
-            if (batch.getId() == null) {
-                record.create();
-                Timestamp now = new Timestamp(System.currentTimeMillis());
-                batch.setTimestamp(now);
-            } else {
-                record.read(table.id.is(batch.getId()));
-            }
-            record.setBeanProperties(batch);
-
-            record.update();
-        } finally {
-            record.close();
+        DBRecord record = new DBRecord();
+        Connection c = getConnection();
+        if (batch.getId() == null) {
+            record.create(table);
+            Timestamp now = new Timestamp(System.currentTimeMillis());
+            batch.setTimestamp(now);
+        } else {
+            record.read(table, batch.getId(), c);
         }
-
-        DBCommand cmd = db.createCommand();
-        cmd.select(table.getColumns());
-        cmd.where(table.id.is(batch.getId()));
-
-        getBeanProperties(cmd, 1);
+        record.setBeanValues(batch);
+        try {
+            record.update(c);
+        } catch (RecordUpdateInvalidException ex) {
+            throw new ConcurrentModificationException(ex);
+        }
+        getBeanProperties(record, batch);
     }
 
     @Override
     public Batch find(int batchId) {
-        DBCommand cmd = db.createCommand();
-        cmd.select(table.getColumns());
-        cmd.where(table.id.is(batchId));
-        return getBeanProperties(cmd, 1);
+        DBRecord record = new DBRecord();
+        try {
+            record.read(table, batchId, getConnection());
+            return getBeanProperties(record);
+        } catch (RecordNotFoundException ex) {
+            return null;
+        } finally {
+            record.close();
+        }
     }
 
     @Override
@@ -105,15 +107,24 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         cmd.where(tableItem.pid.is(pid));
         cmd.where(tableItem.type.is(BatchItem.Type.OBJECT));
         cmd.where(tableItem.dsId.is(null));
-
-        return getBeanProperties(cmd, 1);
+        DBReader reader = new DBReader();
+        try {
+            reader.open(cmd, getConnection());
+            if (reader.moveNext()) {
+                return getBeanProperties(reader);
+            } else {
+                return null;
+            }
+        } finally {
+            reader.close();
+        }
     }
 
     @Override
     public List<Batch> findLoadingBatches() {
         BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
         result.getCommand().where(table.state.is(State.LOADING));
-        result.fetch(getContext());
+        result.fetch(getConnection());
         return Collections.unmodifiableList(result);
     }
 
@@ -121,7 +132,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     public List<Batch> findWaitingImportBatches() {
         BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
         result.getCommand().where(table.state.is(State.IMPORT_PLANNED));
-        result.fetch(getContext());
+        result.fetch(getConnection());
         return Collections.unmodifiableList(result);
     }
 
@@ -129,7 +140,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     public List<Batch> findExportingBatches() {
         BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
         result.getCommand().where(table.state.is(State.EXPORTING));
-        result.fetch(getContext());
+        result.fetch(getConnection());
         return Collections.unmodifiableList(result);
     }
 
@@ -137,7 +148,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     public List<Batch> findWaitingExportBatches() {
         BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
         result.getCommand().where(table.state.is(State.EXPORT_PLANNED));
-        result.fetch(getContext());
+        result.fetch(getConnection());
         return Collections.unmodifiableList(result);
     }
 
@@ -145,7 +156,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     public List<Batch> findUploadingBatches() {
         BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
         result.getCommand().where(table.state.is(State.UPLOADING));
-        result.fetch(getContext());
+        result.fetch(getConnection());
         return Collections.unmodifiableList(result);
     }
 
@@ -153,7 +164,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     public List<Batch> findWaitingInternalBatches() {
         BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
         result.getCommand().where(table.state.is(State.INTERNAL_PLANNED));
-        result.fetch(getContext());
+        result.fetch(getConnection());
         return Collections.unmodifiableList(result);
     }
 
@@ -161,7 +172,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     public List<Batch> findIntenalRunningBatches() {
         BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
         result.getCommand().where(table.state.is(State.INTERNAL_RUNNING));
-        result.fetch(getContext());
+        result.fetch(getConnection());
         return Collections.unmodifiableList(result);
     }
 
@@ -172,8 +183,18 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         result.getCommand().where(table.profileId.is(processProfile));
         result.getCommand().where(table.title.is(pid));
         result.getCommand().orderBy(table.create, true);
-        result.fetch(getContext());
+        result.fetch(getConnection());
         return Collections.unmodifiableList(result);
+    }
+
+    private Batch getBeanProperties(DBRecordData record) {
+        return getBeanProperties(record, null);
+    }
+
+    private Batch getBeanProperties(DBRecordData record, Batch instance) {
+        Batch batch = instance != null ? instance : new Batch();
+        record.getBeanProperties(batch);
+        return batch;
     }
 
     @Override
@@ -278,18 +299,21 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
             cmd.where(table.profileId.in(profileId));
         }
         EmpireUtils.addOrderBy(cmd, getSortByColumn(filter.getSortBy()), table.create, true);
-        DBContext context = getContext();
-        DBReader reader = new DBReader(context);
+        DBReader reader = new DBReader();
         try {
-            reader.open(cmd);
+            reader.open(cmd, getConnection());
             if (!reader.skipRows(filter.getOffset())) {
                 return Collections.emptyList();
             }
-            List<BatchView> viewItems = reader.getBeanList(BatchView.class, filter.getMaxCount());
-            for (BatchView view : viewItems) {
+            ArrayList<BatchView> viewItems = new ArrayList<BatchView>(filter.getMaxCount());
+            for (Iterator<DBRecordData> it = reader.iterator(filter.getMaxCount()); it.hasNext();) {
+                DBRecordData rec = it.next();
+                BatchView view = new BatchView();
+                rec.getBeanProperties(view);
                 if (view.getProfileId() == null) {
                     view.setProfileId(ConfigurationProfile.DEFAULT);
                 }
+                viewItems.add(view);
             }
             return viewItems;
         } finally {
@@ -331,27 +355,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     public void removeBatch(int batchId) {
         DBCommand cmd = db.createCommand();
         cmd.where(table.id.is(batchId));
-
-        DBContext context = getContext();
-        context.executeDelete(table, cmd);
-    }
-
-    private Batch getBeanProperties(DBCommand cmd, int limit) {
-        DBContext context = getContext();
-        DBReader reader = new DBReader(context);
-        try {
-            reader.open(cmd);
-            List<Batch> batches = reader.getBeanList(Batch.class, limit);
-            if (!batches.isEmpty()) {
-                return batches.getFirst();
-            } else {
-                return null;
-            }
-        } catch (RecordNotFoundException ex) {
-            return null;
-        } finally {
-            reader.close();
-        }
+        db.executeDelete(table, cmd, getConnection());
     }
 
 }

@@ -23,18 +23,20 @@ import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
+import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import org.apache.empire.db.DBColumnExpr;
 import org.apache.empire.db.DBCommand;
-import org.apache.empire.db.DBContext;
 import org.apache.empire.db.DBJoinType;
 import org.apache.empire.db.DBQuery;
-import org.apache.empire.db.DBQueryColumn;
 import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
+import org.apache.empire.db.DBRecordData;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
+import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
 
 /**
  *
@@ -42,11 +44,11 @@ import org.apache.empire.db.exceptions.RecordNotFoundException;
  */
 public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao {
 
-    private final WorkflowTaskTable table;
+    private final WorkflowTaskTable tableTask;
 
     public EmpireWorkflowTaskDao(ProarcDatabase db) {
         super(db);
-        table = db.tableWorkflowTask;
+        tableTask = db.tableWorkflowTask;
     }
 
     @Override
@@ -56,29 +58,21 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
 
     @Override
     public void update(Task task) throws ConcurrentModificationException {
-        DBContext context = getContext();
-        DBRecord record = new DBRecord(context, table);
-
-        try {
-            if (task.getId() == null) {
-                record.create();
-                Timestamp now = new Timestamp(System.currentTimeMillis());
-                task.setTimestamp(now);
-            } else {
-                record.read(table.id.is(task.getId()));
-            }
-            record.setBeanProperties(task);
-
-            record.update();
-        } finally {
-            record.close();
+        Connection c = getConnection();
+        DBRecord r = new DBRecord();
+        if (task.getId() == null) {
+            r.create(tableTask);
+        } else {
+            r.read(tableTask, task.getId(), c);
         }
-
-        DBCommand cmd = db.createCommand();
-        cmd.select(table.getColumns());
-        cmd.where(table.id.is(task.getId()));
-
-        getBeanProperties(cmd, 1);
+        r.setBeanValues(task);
+        try {
+            r.setModified(tableTask.state, true);
+            r.update(c);
+        } catch (RecordUpdateInvalidException ex) {
+            throw new ConcurrentModificationException(ex);
+        }
+        r.getBeanProperties(task);
     }
 
     @Override
@@ -86,30 +80,35 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         if (jobId == null) {
             throw new IllegalArgumentException("Unsupported missing jobId!");
         }
-
+        Connection c = getConnection();
         DBCommand cmd = db.createCommand();
         cmd.where(db.tableWorkflowTask.jobId.is(jobId));
-
-        DBContext context = getContext();
-        context.executeDelete(db.tableWorkflowTask, cmd);
+        db.executeDelete(db.tableWorkflowTask, cmd, c);
     }
 
     @Override
     public Task find(BigDecimal id) {
-        DBCommand cmd = db.createCommand();
-        cmd.select(table.getColumns());
-        cmd.where(table.id.is(id));
-        return getBeanProperties(cmd, 1);
+        DBRecord record = new DBRecord();
+        try {
+            record.read(tableTask, id, getConnection());
+            Task task = new Task();
+            record.getBeanProperties(task);
+            return task;
+        } catch (RecordNotFoundException ex) {
+            return null;
+        } finally {
+            record.close();
+        }
     }
 
     @Override
     public List<TaskView> view(TaskFilter filter) {
         DBCommand cmd = db.createCommand();
-        cmd.select(table.getColumns());
+        cmd.select(tableTask.getColumns());
         cmd.select(db.tableWorkflowJob.label.as("JOB_LABEL"));
         cmd.select(db.tableUser.username);
-        cmd.join(table.jobId, db.tableWorkflowJob.id);
-        cmd.join(table.ownerId, db.tableUser.id, DBJoinType.LEFT);
+        cmd.join(tableTask.jobId, db.tableWorkflowJob.id);
+        cmd.join(tableTask.ownerId, db.tableUser.id, DBJoinType.LEFT);
 
         cmd.select(db.tableWorkflowPhysicalDoc.barcode);
         cmd.select(db.tableWorkflowPhysicalDoc.signature);
@@ -124,19 +123,19 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         pmatCmd.groupBy(db.tableWorkflowTask.jobId);
         DBQuery pmatQuery = new DBQuery(pmatCmd);
 
-        DBQueryColumn wmId = pmatQuery.findColumn(pmatMaterialId);
-        DBQueryColumn wjId = pmatQuery.findColumn(db.tableWorkflowTask.jobId);
+        DBQuery.DBQueryColumn wmId = pmatQuery.findQueryColumn(pmatMaterialId);
+        DBQuery.DBQueryColumn wjId = pmatQuery.findQueryColumn(db.tableWorkflowTask.jobId);
         cmd.join(db.tableWorkflowJob.id, wjId, DBJoinType.LEFT);
         // empire db reverse the joint type so that is why RIGHT instead of LEFT
         cmd.join(db.tableWorkflowPhysicalDoc.materialId, wmId, DBJoinType.RIGHT);
 
         if (filter.getIds() != null) {
-            cmd.where(table.id.in(filter.getIds()));
+            cmd.where(tableTask.id.in(filter.getIds()));
         } else if (filter.getId() != null) {
-            cmd.where(table.id.is(filter.getId()));
+            cmd.where(tableTask.id.is(filter.getId()));
         }
         if (filter.getJobId() != null) {
-            cmd.where(table.jobId.is(filter.getJobId()));
+            cmd.where(tableTask.jobId.is(filter.getJobId()));
         }
         if (filter.getJobLabel() != null) {
             String pattern = filter.getJobLabel().trim().replace("%", "\\%");
@@ -145,60 +144,47 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
             }
         }
         if (!filter.getPriority().isEmpty()) {
-            cmd.where(table.priority.in(filter.getPriority()));
+            cmd.where(tableTask.priority.in(filter.getPriority()));
         }
         if (!filter.getProfileName().isEmpty()) {
-            cmd.where(table.typeRef.in(filter.getProfileName()));
+            cmd.where(tableTask.typeRef.in(filter.getProfileName()));
         }
         if (!filter.getState().isEmpty()) {
-            cmd.where(table.state.in(filter.getStateAsString()));
+            cmd.where(tableTask.state.in(filter.getStateAsString()));
         }
         if (!filter.getUserId().isEmpty()) {
-            cmd.where(table.ownerId.in(filter.getUserId()));
+            cmd.where(tableTask.ownerId.in(filter.getUserId()));
         }
         if (filter.getBarcode() != null) {
             cmd.where(db.tableWorkflowPhysicalDoc.barcode.is(filter.getBarcode()));
         }
         if (filter.getOrder() != null) {
-            cmd.where(table.order.in(filter.getOrder()));
+            cmd.where(tableTask.order.in(filter.getOrder()));
         }
         if (filter.getNote() != null) {
-            cmd.where(table.note.like(filter.getNote()));
+            cmd.where(tableTask.note.like(filter.getNote()));
         }
         if (filter.getSignature() != null) {
             cmd.where(db.tableWorkflowPhysicalDoc.signature.is(filter.getSignature()));
         }
-        EmpireUtils.addWhereDate(cmd, table.created, filter.getCreated());
-        EmpireUtils.addWhereDate(cmd, table.timestamp, filter.getModified());
-        EmpireUtils.addOrderBy(cmd, filter.getSortBy(), table.order, false);
+        EmpireUtils.addWhereDate(cmd, tableTask.created, filter.getCreated());
+        EmpireUtils.addWhereDate(cmd, tableTask.timestamp, filter.getModified());
+        EmpireUtils.addOrderBy(cmd, filter.getSortBy(), tableTask.order, false);
 
-        DBContext context = getContext();
-        DBReader reader = new DBReader(context);
+        DBReader reader = new DBReader();
         try {
-            reader.open(cmd);
+            reader.open(cmd, getConnection());
             if (!reader.skipRows(filter.getOffset())) {
                 return Collections.emptyList();
             }
-            List<TaskView> taskViews = reader.getBeanList(TaskView.class, filter.getMaxCount());
-            return taskViews;
-        } finally {
-            reader.close();
-        }
-    }
-
-    private Task getBeanProperties(DBCommand cmd, int limit) {
-        DBContext context = getContext();
-        DBReader reader = new DBReader(context);
-        try {
-            reader.open(cmd);
-            List<Task> tasks = reader.getBeanList(Task.class, limit);
-            if (!tasks.isEmpty()) {
-                return tasks.getFirst();
-            } else {
-                return null;
+            ArrayList<TaskView> viewItems = new ArrayList<TaskView>(filter.getMaxCount());
+            for (Iterator<DBRecordData> it = reader.iterator(filter.getMaxCount()); it.hasNext();) {
+                DBRecordData rec = it.next();
+                TaskView view = new TaskView();
+                rec.getBeanProperties(view);
+                viewItems.add(view);
             }
-        } catch (RecordNotFoundException ex) {
-            return null;
+            return viewItems;
         } finally {
             reader.close();
         }

@@ -52,7 +52,7 @@ import java.util.Map;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.empire.db.DBContext;
+import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.DefaultDataSet;
 import org.dbunit.dataset.DefaultTable;
@@ -150,10 +150,10 @@ public class WorkflowManagerTest {
                 support.loadFlatXmlDataStream(EmpireWorkflowJobDaoTest.class, "user.xml"),
                 emptyBatchSet(schema)
         );
-        final DBContext context = support.getEmireCfg().getContext();
-        support.cleanInsert(context, db);
-        context.commit();
-        context.discard();
+        final IDatabaseConnection dbcon = support.getConnection();
+        support.cleanInsert(dbcon, db);
+        dbcon.getConnection().commit();
+        dbcon.close();
 
         WorkflowManager wm = initWorkflowManager("WorkflowManagerAddProfile.xml");
         WorkflowDefinition workflow = wp.getProfiles();
@@ -222,10 +222,10 @@ public class WorkflowManagerTest {
                 support.loadFlatXmlDataStream(EmpireWorkflowJobDaoTest.class, "user.xml"),
                 support.loadFlatXmlDataStream(WorkflowManagerTest.class, "WorkflowManagerUpdateTaskState.xml")
         );
-        final DBContext context = support.getEmireCfg().getContext();
-        support.cleanInsert(context, db);
-        context.commit();
-        context.discard();
+        final IDatabaseConnection dbcon = support.getConnection();
+        support.cleanInsert(dbcon, db);
+        dbcon.getConnection().commit();
+        dbcon.close();
 
         WorkflowManager wm = initWorkflowManager("WorkflowManagerUpdateTaskStateProfile.xml");
         TaskManager tm = wm.tasks();

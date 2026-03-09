@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.ApplicationResourceApi;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * Helper class to annotate {@link ApplicationInfo} properties.
@@ -31,6 +32,7 @@ import jakarta.xml.bind.annotation.XmlElement;
 public abstract class AnnotatedApplicationInfo extends ApplicationInfo {
 
     @XmlElement(name = ApplicationResourceApi.VERSION)
+    @JsonProperty(ApplicationResourceApi.VERSION)
     @Override
     public String getVersion() {
         return super.getVersion();
@@ -67,36 +69,38 @@ public abstract class AnnotatedApplicationInfo extends ApplicationInfo {
     }
 
     @XmlElement(name = ApplicationResourceApi.STABLE_CONFIG_FILE)
+    @JsonProperty(ApplicationResourceApi.STABLE_CONFIG_FILE)
     @Override
-    public String getStableConfigFile() {return super.getStableConfigFile();}
+    public String getConfigFile() {return super.getConfigFile();}
 
     @XmlElement(name = ApplicationResourceApi.STABLE_CONFIG)
+    @JsonProperty(ApplicationResourceApi.STABLE_CONFIG)
     @Override
-    public Boolean getStableConfig() {return super.getStableConfig();}
+    public Boolean getConfig() {return super.getConfig();}
 
     @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_CS_FILE)
     @Override
-    public String getStableLanguageCsFile() {return super.getStableLanguageCsFile();}
+    public String getLanguageCsFile() {return super.getLanguageCsFile();}
 
     @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_CS)
     @Override
-    public Boolean getStableLanguageCs() {return super.getStableLanguageCs();}
+    public Boolean getLanguageCs() {return super.getLanguageCs();}
 
     @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_CSEN_FILE)
     @Override
-    public String getStableLanguageCsEnFile() {return super.getStableLanguageCsEnFile();}
+    public String getLanguageCsEnFile() {return super.getLanguageCsEnFile();}
 
     @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_CSEN)
     @Override
-    public Boolean getStableLanguageCsEn() {return super.getStableLanguageCsEn();}
+    public Boolean getLanguageCsEn() {return super.getLanguageCsEn();}
 
     @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_EN_FILE)
     @Override
-    public String getStableLanguageEnFile() {return super.getStableLanguageEnFile();}
+    public String getLanguageEnFile() {return super.getLanguageEnFile();}
 
     @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_EN)
     @Override
-    public Boolean getStableLanguageEn() {return super.getStableLanguageEn();}
+    public Boolean getLanguageEn() {return super.getLanguageEn();}
 
     @XmlElement(name = ApplicationResourceApi.ERROR)
     @Override

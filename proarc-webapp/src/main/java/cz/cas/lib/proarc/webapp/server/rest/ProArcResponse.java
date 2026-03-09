@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
 import cz.cas.lib.proarc.webapp.server.rest.JacksonProvider.DefaultAdapter;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
@@ -46,6 +47,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.STATUS_LOCKED;
  * @author Jan Pokorsky
  */
 @XmlRootElement(name="response")
+@JsonRootName("response")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ProArcResponse<T>{
 
@@ -68,7 +70,6 @@ public class ProArcResponse<T>{
     private Integer startRow;
     private Integer endRow;
     private Integer totalRows;
-    @XmlTransient
     private List<T> typedData;
     /** The JAXB mapping for {@link #typedData} and {@link #errdata}. */
     private Object data;
@@ -90,7 +91,7 @@ public class ProArcResponse<T>{
 
     public ProArcResponse(T singletonDataItem) {
         this(STATUS_SUCCESS, 0, 0, 1, singletonDataItem != null
-                ? Collections.singletonList(singletonDataItem)
+                ? Collections.<T>singletonList(singletonDataItem)
                 : Collections.<T>emptyList());
     }
 

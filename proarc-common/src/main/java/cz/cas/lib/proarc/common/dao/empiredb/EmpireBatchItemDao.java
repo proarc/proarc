@@ -24,10 +24,7 @@ import java.util.Collections;
 import java.util.List;
 import org.apache.empire.data.bean.BeanResult;
 import org.apache.empire.db.DBCommand;
-import org.apache.empire.db.DBContext;
-import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
-import org.apache.empire.db.exceptions.RecordNotFoundException;
 
 /**
  *
@@ -49,39 +46,34 @@ public class EmpireBatchItemDao extends EmpireDao implements BatchItemDao {
 
     @Override
     public void update(BatchItem item) {
-        DBContext context = getContext();
-        DBRecord record = new DBRecord(context, table);
-
+        DBRecord dbr = new DBRecord();
         try {
             if (item.getId() == null) {
-                record.create();
+                dbr.create(table);
                 Timestamp now = new Timestamp(System.currentTimeMillis());
                 item.setTimestamp(now);
             } else {
-                record.read(table.id.is(item.getId()));
+                dbr.read(table, item.getId(), getConnection());
             }
-
-            record.setBeanProperties(item);
-            record.update();
+            dbr.setBeanValues(item);
+            dbr.update(getConnection());
+            dbr.getBeanProperties(item);
         } finally {
-            record.close();
+            dbr.close();
         }
-
-        DBCommand cmd = db.createCommand();
-        cmd.select(table.getColumns());
-        cmd.where(table.id.is(item.getId()));
-
-        getBeanProperties(cmd, 1);
     }
 
     @Override
     public BatchItem find(int id) {
-
-        DBCommand cmd = db.createCommand();
-        cmd.select(table.getColumns());
-        cmd.where(table.id.is(id));
-
-        return getBeanProperties(cmd, 1);
+        DBRecord dbr = new DBRecord();
+        try {
+            dbr.read(table, id, getConnection());
+            BatchItem item = new BatchItem();
+            dbr.getBeanProperties(item);
+            return item;
+        } finally {
+            dbr.close();
+        }
     }
 
     @Override
@@ -106,7 +98,7 @@ public class EmpireBatchItemDao extends EmpireDao implements BatchItemDao {
             cmd.where(table.type.is(type));
         }
         cmd.orderBy(table.timestamp);
-        result.fetch(getContext());
+        result.fetch(getConnection());
         return Collections.unmodifiableList(result);
     }
 
@@ -115,8 +107,7 @@ public class EmpireBatchItemDao extends EmpireDao implements BatchItemDao {
         DBCommand cmd = db.createCommand();
         cmd.where(table.batchId.is(batchId));
 
-        DBContext context = getContext();
-        context.executeDelete(table, cmd);
+        db.executeDelete(table, cmd, getConnection());
     }
 
     @Override
@@ -125,26 +116,6 @@ public class EmpireBatchItemDao extends EmpireDao implements BatchItemDao {
         cmd.where(table.batchId.is(batchId));
         cmd.where(table.pid.is(pid));
 
-        DBContext context = getContext();
-        context.executeDelete(table, cmd);
+        db.executeDelete(table, cmd, getConnection());
     }
-
-    private BatchItem getBeanProperties(DBCommand cmd, int limit) {
-        DBContext context = getContext();
-        DBReader reader = new DBReader(context);
-        try {
-            reader.open(cmd);
-            List<BatchItem> batchitems = reader.getBeanList(BatchItem.class, limit);
-            if (!batchitems.isEmpty()) {
-                return batchitems.getFirst();
-            } else {
-                return null;
-            }
-        } catch (RecordNotFoundException ex) {
-            return null;
-        } finally {
-            reader.close();
-        }
-    }
-
 }

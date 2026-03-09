@@ -44,7 +44,6 @@ import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
-import cz.incad.kramerius.utils.conf.KConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -98,7 +97,6 @@ public final class ProarcInitializer {
         AppConfiguration config = initConfig(env);
         AkubraConfiguration akubraConfiguration = null;
         if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
-            KConfiguration.setWorkingDir(config.getConfigHome().getAbsolutePath());
             akubraConfiguration = initAkubraConfig(env, config);
         }
         initProarcModel(config);

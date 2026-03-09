@@ -21,7 +21,6 @@ import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.dao.BatchItem.Type;
 import java.sql.Timestamp;
 import java.util.List;
-import org.apache.empire.db.DBContext;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
@@ -90,8 +89,7 @@ public class EmpireBatchItemDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch.xml")
         );
-        final DBContext context = support.getContext(tx);
-        support.cleanInsert(context, db);
+        support.cleanInsert(support.getConnection(tx), db);
         support.initSequences(tx, 1, (String) schema.tableBatchItem.id.getDefaultValue());
         tx.commit();
 
@@ -118,8 +116,7 @@ public class EmpireBatchItemDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch.xml")
         );
-        final DBContext context = support.getContext(tx);
-        support.cleanInsert(context, db);
+        support.cleanInsert(support.getConnection(tx), db);
         support.initSequences(tx, 1, (String) schema.tableBatchItem.id.getDefaultValue());
         tx.commit();
 
@@ -147,7 +144,7 @@ public class EmpireBatchItemDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "batch.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch_item.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         BatchItem item = dao.find(1);
@@ -169,7 +166,7 @@ public class EmpireBatchItemDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "batch.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch_item.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         BatchItem item = dao.find(1);
@@ -183,7 +180,7 @@ public class EmpireBatchItemDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch_with_items.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         // find objects of the batch
@@ -205,7 +202,7 @@ public class EmpireBatchItemDaoTest {
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),
                 support.loadFlatXmlDataStream(getClass(), "batch_with_items.xml")
         );
-        support.cleanInsert(support.getContext(tx), db);
+        support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
         dao.removeItems(2);

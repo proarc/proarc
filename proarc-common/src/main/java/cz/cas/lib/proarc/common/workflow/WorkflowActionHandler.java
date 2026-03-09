@@ -22,13 +22,13 @@ import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.profile.ActionDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.TaskDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
-import org.apache.commons.beanutils.BeanUtils;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import org.apache.commons.beanutils.PropertyUtils;
 
 /**
  * Workflow action handler
@@ -74,7 +74,8 @@ public class WorkflowActionHandler {
                     List<String> command = new ArrayList<>(Collections.singletonList(actionDefinition.getCommand()));
                     for (String arg : actionDefinition.getArgs()) {
                         try {
-                            command.add(BeanUtils.getProperty(material, arg));
+                            Object value = PropertyUtils.getProperty(material, arg); // vrací Object
+                            command.add(String.valueOf(value)); // pak teprve převeď na String
                         } catch (IllegalAccessException e) {
                             throw new WorkflowException("caller does not have access to the property accessor method");
                         } catch (InvocationTargetException e) {
