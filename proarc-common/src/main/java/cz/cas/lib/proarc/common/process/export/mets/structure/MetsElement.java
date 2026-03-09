@@ -17,7 +17,7 @@
 
 package cz.cas.lib.proarc.common.process.export.mets.structure;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;

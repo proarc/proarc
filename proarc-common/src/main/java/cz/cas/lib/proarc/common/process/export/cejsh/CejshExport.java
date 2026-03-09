@@ -37,7 +37,6 @@ import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -112,9 +111,7 @@ public class CejshExport {
         }
         status.setTargetFolder(output);
         SearchView search = null;
-        if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-            search = FedoraStorage.getInstance(appConfiguration).getSearch();
-        } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
             search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());

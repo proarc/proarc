@@ -16,8 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.actions.AddReference;
 import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
@@ -98,12 +96,9 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.common.storage.akubra.PurgeAkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.SolrSearchView;
 import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
-import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject;
-import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject.PurgeException;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration;
 import cz.cas.lib.proarc.common.urnnbn.UrnNbnConfiguration.ResolverConfiguration;
@@ -129,15 +124,16 @@ import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
 import cz.cas.lib.proarc.urnnbn.ResolverUtils;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.AnnotatedMetaModel;
 import cz.cas.lib.proarc.webapp.server.rest.LocalDateParam;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
-import cz.cas.lib.proarc.webapp.server.rest.RestException;
-import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse.ErrorBuilder;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchSort;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi.SearchType;
@@ -199,7 +195,6 @@ import org.json.JSONException;
 
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExportWithError;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_ADDING_REFERENCE_FAILED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_CHANGING_MODEL_FAILED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_IN_GETTING_CHILDREN;
@@ -413,7 +408,7 @@ public class DigitalObjectResourceV1 {
     }
 
     /**
-     * @see PurgeFedoraObject
+     * @see PurgeAkubraObject
      */
     @DELETE
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
@@ -478,7 +473,7 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.DELETE_RESTORE_PARAM)
             @DefaultValue("false") boolean restore,
             @QueryParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
-    ) throws PurgeException, IOException {
+    ) throws PurgeAkubraObject.PurgeException, IOException {
         if (deleteObjectRequest == null) {
             return deleteObject(pids, hierarchy, purge, restore, isNightOnly);
         } else {
@@ -493,7 +488,7 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_PARAM)
             @DefaultValue("deleted") SearchType type,
             @QueryParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
-    ) throws DigitalObjectException, IOException, FedoraClientException {
+    ) throws DigitalObjectException, IOException {
 
         checkPermission(user, PERMISSION_FUNCTION_DELETE_ACTION);
 
@@ -510,7 +505,7 @@ public class DigitalObjectResourceV1 {
         return new ProArcResponse<>(result);
     }
 
-    public ProArcResponse<SearchViewItem> search(String pid) throws IOException, FedoraClientException {
+    public ProArcResponse<SearchViewItem> search(String pid) throws IOException {
         return search(null, SearchType.PIDS, Collections.singletonList(pid), null, null, null, null, null, null, null, null, null, 0, null, null);
     }
 
@@ -549,14 +544,11 @@ public class DigitalObjectResourceV1 {
             @DefaultValue(SearchSort.DEFAULT_DESC)
             @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_PARAM) SearchSort sort,
             @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_FIELD_PARAM) String sortField
-    ) throws FedoraClientException, IOException {
+    ) throws IOException {
 
         Locale locale = session.getLocale(httpHeaders);
         SearchView search = null;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            FedoraStorage remote = FedoraStorage.getInstance(appConfig);
-            search = remote.getSearch(locale);
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubra = AkubraStorage.getInstance(akubraConfiguration);
             search = akubra.getSearch(locale);
         } else {
@@ -608,17 +600,8 @@ public class DigitalObjectResourceV1 {
                 items = search.findAdvancedSearchItems(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, sortField, sort.toString(), startRow, 100);
                 break;
             case DELETED:
-                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                    items = search.findQuery(new SearchViewQuery().setTitle(queryTitle)
-                            .setLabel(queryLabel).setIdentifier(queryIdentifier)
-                            .setOwner(owner).setModel(queryModel), "deleted");
-                    ;
-                    total = items.size();
-                    page = 1;
-                } else {
-                    total = search.findAdvancedSearchCount(false, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null);
-                    items = search.findAdvancedSearchItems(false, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, sortField, sort.toString(), startRow, 100);
-                }
+                total = search.findAdvancedSearchCount(false, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null);
+                items = search.findAdvancedSearchItems(false, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, sortField, sort.toString(), startRow, 100);
                 break;
             case ALL:
                 items = search.findAllObjects();
@@ -686,7 +669,7 @@ public class DigitalObjectResourceV1 {
     }
 
     private List<SearchViewItem> searchParent(Integer batchId, List<String> pids, SearchView search)
-            throws IOException, FedoraClientException {
+            throws IOException {
 
         if (batchId != null) {
             Batch batch = importManager.get(batchId);
@@ -718,12 +701,10 @@ public class DigitalObjectResourceV1 {
     public ProArcResponse<SearchViewItem> findMembers(
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parent,
             @QueryParam(DigitalObjectResourceApi.MEMBERS_ROOT_PARAM) String root
-    ) throws FedoraClientException, IOException, DigitalObjectException {
+    ) throws IOException, DigitalObjectException {
 
         SearchView search = null;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            search = FedoraStorage.getInstance(appConfig).getSearch(session.getLocale(httpHeaders));
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             search = AkubraStorage.getInstance(akubraConfiguration).getSearch(session.getLocale(httpHeaders));
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
@@ -755,7 +736,7 @@ public class DigitalObjectResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public ProArcResponse<SearchViewItem> setMembers(
             ProArcRequest.SetMemberRequest request
-    ) throws IOException, FedoraClientException, DigitalObjectException {
+    ) throws IOException, DigitalObjectException {
 
         return setMembers(request.parentPid, request.batchId, request.toSetPids);
     }
@@ -778,7 +759,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toSetPids
             // XXX long timestamp
-    ) throws IOException, FedoraClientException, DigitalObjectException {
+    ) throws IOException, DigitalObjectException {
 
 //        LOG.log(Level.INFO, "parentPid: {0}, batchId: {1}, toSetPids: {2}",
 //                new Object[]{parentPid, batchId, toSetPids});
@@ -851,12 +832,9 @@ public class DigitalObjectResourceV1 {
      * @param pids object IDs to search
      * @return the map of found PIDs and descriptions
      */
-    private Map<String, SearchViewItem> loadSearchItems(Set<String> pids) throws IOException, FedoraClientException {
+    private Map<String, SearchViewItem> loadSearchItems(Set<String> pids) throws IOException {
         SearchView search = null;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            FedoraStorage storage = FedoraStorage.getInstance(appConfig);
-            search = storage.getSearch(session.getLocale(httpHeaders));
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
             search = akubraStorage.getSearch(session.getLocale(httpHeaders));
         } else {
@@ -918,7 +896,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT) String parentPid,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> toAddPids,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId
-    ) throws IOException, FedoraClientException, DigitalObjectException {
+    ) throws IOException, DigitalObjectException {
 
         if (parentPid == null) {
             throw RestException.plainNotFound(DigitalObjectResourceApi.MEMBERS_ITEM_PARENT, null);
@@ -1104,7 +1082,7 @@ public class DigitalObjectResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public ProArcResponse<SearchViewItem> moveMembers(
             ProArcRequest.MoveMembersRequest request
-    ) throws IOException, DigitalObjectException, FedoraClientException {
+    ) throws IOException, DigitalObjectException {
 
         return moveMembers(request.srcParentPid, request.dstParentPid, request.batchId, request.pids);
     }
@@ -1127,7 +1105,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID) String dstParentPid,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID) Integer batchId,
             @FormParam(DigitalObjectResourceApi.MEMBERS_ITEM_PID) List<String> movePids
-    ) throws IOException, DigitalObjectException, FedoraClientException {
+    ) throws IOException, DigitalObjectException {
 
         if (srcParentPid == null) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing source PID!");
@@ -1325,10 +1303,7 @@ public class DigitalObjectResourceV1 {
 
         try {
             List<SearchViewItem> parents = new ArrayList<>();
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                FedoraStorage remote = FedoraStorage.getInstance(appConfig);
-                parents = searchParent(batchId, pidToList(pid), remote.getSearch(session.getLocale(httpHeaders)));
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 parents = searchParent(batchId, pidToList(pid), akubraStorage.getSearch(session.getLocale(httpHeaders)));
             } else {
@@ -1373,7 +1348,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PARTNUMBER) String partNumber,
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGNATURA) String signatura,
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGLA) String sigla
-    ) throws DigitalObjectException, IOException, FedoraClientException {
+    ) throws DigitalObjectException, IOException {
 
         LOG.fine(String.format("pids: %s", pids.toArray()));
 
@@ -1428,10 +1403,7 @@ public class DigitalObjectResourceV1 {
 
         try {
             List<SearchViewItem> parents = new ArrayList<>();
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                FedoraStorage remote = FedoraStorage.getInstance(appConfig);
-                parents = searchParent(batchId, pidToList(pid), remote.getSearch(session.getLocale(httpHeaders)));
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 parents = searchParent(batchId, pidToList(pid), akubraStorage.getSearch(session.getLocale(httpHeaders)));
             } else {
@@ -1820,11 +1792,7 @@ public class DigitalObjectResourceV1 {
     private IMetsElement getIMetsElement(String pid, boolean validation) throws MetsExportException, IOException {
         MetsContext metsContext = null;
         ProArcObject object = null;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
-            object = rstorage.find(pid);
-            metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
             object = akubraStorage.find(pid);
             metsContext = buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
@@ -1838,7 +1806,7 @@ public class DigitalObjectResourceV1 {
 
     private MetsElement getMetsElement(ProArcObject fo, MetsContext metsContext, boolean hierarchy, boolean validation) throws MetsExportException {
         metsContext.resetContext();
-        com.yourmediashelf.fedora.generated.foxml.DigitalObject dobj = MetsUtils.readFoXML(metsContext, fo);
+        com.yourmediashelf.fedora.foxml.DigitalObject dobj = MetsUtils.readFoXML(metsContext, fo);
         if (dobj == null) {
             return null;
         }
@@ -2058,7 +2026,7 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @QueryParam(DigitalObjectResourceApi.DISSEMINATION_DATASTREAM) String dsId
-    ) throws DigitalObjectException, IOException, PurgeException {
+    ) throws DigitalObjectException, IOException, PurgeAkubraObject.PurgeException {
 
         String message = session.asFedoraLog();
 
@@ -2231,11 +2199,7 @@ public class DigitalObjectResourceV1 {
         Set<String> pidsToValidate = new LinkedHashSet<>();
         try {
             for (String pid : pids) {
-                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                    FedoraStorage fedoraStorage = FedoraStorage.getInstance();
-                    object = fedoraStorage.find(pid);
-                    metsContext = MetsContext.buildFedoraContext(object, null, null, fedoraStorage, appConfig.getNdkExportOptions());
-                } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                     AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     object = akubraStorage.find(pid);
                     metsContext = MetsContext.buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
@@ -2608,20 +2572,14 @@ public class DigitalObjectResourceV1 {
     public ProArcResponse<AtmItem> getAtm(
             @QueryParam(DigitalObjectResourceApi.ATM_ITEM_PID) String pid,
             @QueryParam(DigitalObjectResourceApi.ATM_ITEM_BATCHID) Integer batchId
-    ) throws IOException, DigitalObjectException, FedoraClientException {
+    ) throws IOException, DigitalObjectException {
 
         if (pid == null) {
             return new ProArcResponse<AtmItem>();
         }
         ProArcObject fobject = findFedoraObject(pid, batchId);
         Locale locale = session.getLocale(httpHeaders);
-        if (fobject instanceof RemoteObject) {
-            FedoraStorage storage = FedoraStorage.getInstance(appConfig);
-            AtmEditor editor = new AtmEditor(fobject, storage.getSearch(locale));
-            AtmItem atm = editor.read();
-            atm.setBatchId(batchId);
-            return new ProArcResponse<AtmItem>(atm);
-        } else if (fobject instanceof AkubraObject) {
+        if (fobject instanceof AkubraObject) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
             AtmEditor editor = new AtmEditor(fobject, akubraStorage.getSearch(locale));
             AtmItem atm = editor.read();
@@ -2656,10 +2614,7 @@ public class DigitalObjectResourceV1 {
         ArrayList<AtmItem> result = new ArrayList<AtmItem>(pids.size());
         Locale locale = session.getLocale(httpHeaders);
         SearchView search = null;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            FedoraStorage storage = FedoraStorage.getInstance(appConfig);
-            search = storage.getSearch(locale);
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
             search = akubraStorage.getSearch(locale);
         } else {
@@ -3045,7 +3000,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pidOld,
             @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
-    ) throws DigitalObjectException, IOException, FedoraClientException {
+    ) throws DigitalObjectException, IOException {
         if (isLocked(pidOld)) {
             return returnValidationError(ERR_IS_LOCKED);
         }
@@ -4768,7 +4723,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
             @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
 
-    ) throws DigitalObjectException, IOException, FedoraClientException {
+    ) throws DigitalObjectException, IOException {
         Batch internalBatch;
         if (batchId != null && batchId > 0) {
             BatchParams params = new BatchParams(Collections.singletonList(batchId.toString()));
@@ -4820,7 +4775,7 @@ public class DigitalObjectResourceV1 {
     public ProArcResponse<SearchViewItem> updateAllObjects(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_MODEL) String modelId
-    ) throws DigitalObjectException, IOException, FedoraClientException {
+    ) throws DigitalObjectException, IOException {
 
         checkPermission(user, PERMISSION_FUNCTION_UPDATE_ALL_OBJECTS);
 
@@ -4883,14 +4838,14 @@ public class DigitalObjectResourceV1 {
     @Produces(MediaType.APPLICATION_JSON)
     public ProArcResponse<SearchViewItem> updateNdkPageObjectsWithSpecificPageType(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid
-    ) throws DigitalObjectException, IOException, FedoraClientException {
+    ) throws DigitalObjectException, IOException {
 
         checkPermission(user, PERMISSION_FUNCTION_UPDATE_MODEL);
 
         return fixPageType(pid, Arrays.asList("flyleaf", "sheetMusic"));
     }
 
-    private ProArcResponse<SearchViewItem> fixPageType(String pid, List<String> pageTypes) throws DigitalObjectException, IOException, FedoraClientException {
+    private ProArcResponse<SearchViewItem> fixPageType(String pid, List<String> pageTypes) throws DigitalObjectException, IOException {
         Locale locale = session.getLocale(httpHeaders);
         UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
         for (String pageType : pageTypes) {
@@ -4991,7 +4946,7 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_OLD) String oldOwner,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_CHANGE_OWNER_NEW) String newOwner,
             @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
-    ) throws IOException, FedoraClientException, DigitalObjectException, WorkflowException {
+    ) throws IOException, DigitalObjectException, WorkflowException {
         Locale locale = session.getLocale(httpHeaders);
         checkPermission(user, PERMISSION_FUNCTION_CHANGE_OBJECTS_OWNER);
 
@@ -5029,10 +4984,7 @@ public class DigitalObjectResourceV1 {
         Batch batch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("Change object owner (" + oldOwner + " --> " + newOwner + ")."), user, Batch.INTERNAL_CHANGE_OBJECTS_OWNERS, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, isNightOnly, params);
 
         SearchView search = null;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            FedoraStorage remote = FedoraStorage.getInstance(appConfig);
-            search = remote.getSearch(locale);
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubra = AkubraStorage.getInstance(akubraConfiguration);
             search = akubra.getSearch(locale);
         } else {
@@ -5276,9 +5228,7 @@ public class DigitalObjectResourceV1 {
             if (pid == null) {
                 throw new NullPointerException("pid");
             }
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                fobject = FedoraStorage.getInstance(appConfig).find(pid);
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+          if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage storage = AkubraStorage.getInstance(akubraConfiguration);
                 fobject = storage.find(pid);
                 SolrSearchView solrSearch = storage.getSearch();
@@ -5367,10 +5317,7 @@ public class DigitalObjectResourceV1 {
         try {
             Locale locale = session.getLocale(httpHeaders);
             SearchView search = null;
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                FedoraStorage remote = FedoraStorage.getInstance(appConfig);
-                search = remote.getSearch(locale);
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 search = akubraStorage.getSearch(locale);
             } else {
@@ -5383,7 +5330,7 @@ public class DigitalObjectResourceV1 {
                 }
             }
             return false;
-        } catch (IOException | FedoraClientException e) {
+        } catch (IOException e) {
             LOG.log(Level.SEVERE, e.getMessage());
             return true;
         }

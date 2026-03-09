@@ -16,16 +16,16 @@
  */
 package cz.cas.lib.proarc.common.storage;
 
-import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-import com.yourmediashelf.fedora.generated.foxml.StateType;
-import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import com.yourmediashelf.fedora.foxml.ContentLocationType;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.PropertyType;
+import com.yourmediashelf.fedora.foxml.StateType;
+import com.yourmediashelf.fedora.foxml.XmlContentType;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils.ControlGroup;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
 import jakarta.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

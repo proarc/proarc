@@ -38,6 +38,9 @@ public final class UserUtil {
 
     public static final String DEFAULT_ADMIN_USER = "proarc";
 
+    public static final String GROUP_PID_PREFIX = "group:";
+    public static final String USER_PID_PREFIX = "user:";
+
     static final String IMPORT_FOLDER_NAME = "import";
     static final String EXPORT_FOLDER_NAME = "export";
     static final String EDIT_FOLDER_NAME = "images";
@@ -50,7 +53,7 @@ public final class UserUtil {
      */
     static final Pattern USERNAME_REPLACE_PATTERN = Pattern.compile("[^a-zA-Z0-9_-]+");
     private static final Pattern GROUP_PATTERN = Pattern.compile(
-            "^" + FedoraGroupDao.PID_PREFIX + "[a-z][a-z0-9_-]{4,}$");
+            "^" + GROUP_PID_PREFIX + "[a-z][a-z0-9_-]{4,}$");
 
     private static UserManager MANGER = null;
 
@@ -127,7 +130,7 @@ public final class UserUtil {
     }
 
     static boolean isValidUserName(String name) {
-        return name != null && name.length() + FedoraUserDao.PID_PREFIX.length() <= 64
+        return name != null && name.length() + USER_PID_PREFIX.length() <= 64
                 && USERNAME_PATTERN.matcher(name).matches();
     }
 
@@ -147,7 +150,7 @@ public final class UserUtil {
         }
         String name = remoteName;
         // fedora PID max length 64
-        int maxLength = 64 - FedoraUserDao.PID_PREFIX.length() - 4;
+        int maxLength = 64 - USER_PID_PREFIX.length() - 4;
         if (remoteName.length() > maxLength) {
             name = remoteName.substring(0, maxLength);
         }
@@ -218,7 +221,7 @@ public final class UserUtil {
     }
 
     public static String toGroupPid(String groupObjectId) {
-        return FedoraGroupDao.PID_PREFIX + groupObjectId;
+        return GROUP_PID_PREFIX + groupObjectId;
     }
 
     public static boolean isValidGroupPid(String pid) {
@@ -226,7 +229,7 @@ public final class UserUtil {
     }
 
     public static String toUserPid(UserProfile user) {
-        return FedoraUserDao.PID_PREFIX + user.getUserName();
+        return USER_PID_PREFIX + user.getUserName();
     }
 
 }

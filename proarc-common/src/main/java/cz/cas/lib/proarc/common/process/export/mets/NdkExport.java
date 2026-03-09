@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.process.export.mets;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
@@ -43,7 +43,6 @@ import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.mets.info.Info;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
@@ -80,20 +79,10 @@ public class NdkExport {
     private static final Logger LOG = Logger.getLogger(NdkExport.class.getName());
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
-    private FedoraStorage fedoraStorage;
-
-    public NdkExport(FedoraStorage fedoraStorage, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
-        this.appConfig = appConfig;
-        this.akubraConfiguration = akubraConfiguration;
-        this.fedoraStorage = fedoraStorage;
-    }
 
     public NdkExport(AppConfiguration config, AkubraConfiguration akubraConfiguration) {
         this.appConfig = config;
         this.akubraConfiguration = akubraConfiguration;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            this.fedoraStorage = FedoraStorage.getInstance();
-        }
     }
 
     /**
@@ -301,9 +290,7 @@ public class NdkExport {
 
 
         try {
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                object = fedoraStorage.find(pid);
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
             } else {
@@ -368,10 +355,7 @@ public class NdkExport {
     public MetsContext buildContext(String pid, File target) {
         ProArcObject object = null;
         try {
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                object = fedoraStorage.find(pid);
-                return MetsContext.buildFedoraContext(object, null, target, fedoraStorage, appConfig.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 return MetsContext.buildAkubraContext(object, null, target, akubraStorage, appConfig.getNdkExportOptions());
@@ -477,10 +461,7 @@ public class NdkExport {
         MetsContext metsContext = null;
         ProArcObject object = null;
         try {
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                object = fedoraStorage.find(pid);
-                metsContext = MetsContext.buildFedoraContext(object, null, target, fedoraStorage, appConfig.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 metsContext = MetsContext.buildAkubraContext(object, null, target, akubraStorage, appConfig.getNdkExportOptions());

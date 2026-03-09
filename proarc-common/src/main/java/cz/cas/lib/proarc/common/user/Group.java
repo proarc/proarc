@@ -18,6 +18,8 @@ package cz.cas.lib.proarc.common.user;
 
 import java.sql.Timestamp;
 
+import static cz.cas.lib.proarc.common.user.UserUtil.GROUP_PID_PREFIX;
+
 /**
  * The user group.
  *
@@ -44,7 +46,7 @@ public final class Group {
             throw new IllegalArgumentException("simpleName");
         }
         Group group = new Group();
-        group.setName(FedoraGroupDao.PID_PREFIX + simpleName);
+        group.setName(GROUP_PID_PREFIX + simpleName);
         group.setTitle(title);
         return group;
     }
@@ -60,7 +62,7 @@ public final class Group {
             throw new IllegalArgumentException("remoteType");
         }
         Group group = new Group();
-        group.setName(FedoraGroupDao.PID_PREFIX + simpleName);
+        group.setName(GROUP_PID_PREFIX + simpleName);
         group.setTitle(title);
         group.setRemoteName(remoteName);
         group.setRemoteType(remoteType);

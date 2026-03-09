@@ -38,8 +38,6 @@ import cz.cas.lib.proarc.common.sql.DbUtils;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorageInitializer;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
@@ -145,11 +143,6 @@ public final class ProarcInitializer {
      * it runs in the same container.
      */
     private void asyncInitialization(Storage storage) {
-
-        if (Storage.FEDORA.equals(storage)) {
-            FedoraStorageInitializer rsi = new FedoraStorageInitializer(FedoraStorage.getInstance());
-            rsi.init();
-        }
         UserUtil.initDefaultAdmin();
     }
 

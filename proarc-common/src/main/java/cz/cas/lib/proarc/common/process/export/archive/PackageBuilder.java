@@ -16,10 +16,10 @@
  */
 package cz.cas.lib.proarc.common.process.export.archive;
 
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.PropertyType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;

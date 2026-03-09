@@ -28,7 +28,6 @@ import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mets.MetsType;
@@ -55,9 +54,7 @@ public class ArchiveProducer {
         this.akubraConfiguration = akubraConfiguration;
         SearchView searchView = null;
         try {
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                searchView = FedoraStorage.getInstance().getSearch();
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 searchView = AkubraStorage.getInstance(akubraConfiguration).getSearch();
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());

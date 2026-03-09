@@ -30,7 +30,6 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.mods.DateDefinition;
@@ -402,9 +401,7 @@ public class ModsDataHandler {
 
     public DigitalObjectCrawler getCrawler() {
         try {
-            if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                return new DigitalObjectCrawler(DigitalObjectManager.getDefault(), FedoraStorage.getInstance().getSearch());
-            } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
                 AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfiguration.getConfigHome());
                 return new DigitalObjectCrawler(DigitalObjectManager.getDefault(), AkubraStorage.getInstance(akubraConfiguration).getSearch());
             } else {

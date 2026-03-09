@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.process.export;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -34,7 +34,6 @@ import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
@@ -314,11 +313,7 @@ public final class ExportUtils {
         for (String pid : pids) {
             MetsContext metsContext = null;
             ProArcObject object = null;
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                FedoraStorage fedoraStorage = FedoraStorage.getInstance();
-                object = fedoraStorage.find(pid);
-                metsContext = MetsContext.buildFedoraContext(object, null, null, fedoraStorage, appConfig.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 metsContext = MetsContext.buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());

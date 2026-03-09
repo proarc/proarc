@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.object;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
@@ -176,8 +175,6 @@ public class DigitalObjectCrawler {
                 return null;
             }
             return items.get(0);
-        } catch (FedoraClientException ex) {
-            throw new DigitalObjectException(pid, ex);
         } catch (IOException ex) {
             throw new DigitalObjectException(pid, ex);
         }
@@ -187,8 +184,6 @@ public class DigitalObjectCrawler {
         try {
             List<SearchViewItem> children = search.findSortedChildren(pid);
             return children;
-        } catch (FedoraClientException ex) {
-            throw new DigitalObjectException(pid, ex);
         } catch (IOException ex) {
             throw new DigitalObjectException(pid, ex);
         }

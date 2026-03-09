@@ -69,10 +69,10 @@ import javax.xml.xpath.XPathFactory;
 import org.aes.audioobject.AudioObject;
 import org.aes.audioobject.AudioObjectType;
 import org.apache.commons.io.FileUtils;
-import org.apache.xerces.dom.DeferredTextImpl;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 
 /**
  * @author Robert Simonovsky
@@ -112,27 +112,26 @@ public class JhoveUtility {
                 (node.getLocalName().startsWith(localName))) {
             //System.out.println(localName);
         }
-        if ((node.getLocalName() != null) &&
-                (node.getLocalName().startsWith(localName)) &&
-                (node.getChildNodes() != null) &&
-                node.getChildNodes().getLength() > 0 &&
-                node.getChildNodes().item(0) != null &&
-                (((DeferredTextImpl) node.getChildNodes().item(0)).getData().startsWith(value))) {
-            return node;
-        } else {
-            NodeList nl = node.getChildNodes();
-            if (nl == null) {
-                return null;
-            }
-            for (int a = 0; a < nl.getLength(); a++) {
-                Node found = getNodeRecursive(nl.item(a), localName, value);
-                if (found != null) {
-                    return found;
-                }
+        if ((node.getLocalName() != null) && (node.getLocalName().startsWith(localName)) && node.getChildNodes() != null && node.getChildNodes().getLength() > 0) {
+
+            Node firstChild = node.getChildNodes().item(0);
+            if (firstChild instanceof Text textNode && textNode.getData().startsWith(value)) {
+                return node;
             }
         }
-        return null;
 
+        NodeList nl = node.getChildNodes();
+        if (nl == null) {
+            return null;
+        }
+        for (int a = 0; a < nl.getLength(); a++) {
+            Node found = getNodeRecursive(nl.item(a), localName, value);
+            if (found != null) {
+                return found;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -329,9 +328,7 @@ public class JhoveUtility {
     }
 
     public static JHoveOutput getMix(IMetsElement metsElement, String streamName, String path, Mix mixDevice, XMLGregorianCalendar rawCreated, String originalFile) throws MetsExportException {
-        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            return getMixFromStorage(metsElement, streamName);
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             return getMixFromStorage(metsElement, streamName);
         } else if (Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             JHoveOutput jHoveOutput = getMix(new File(path), metsElement.getMetsContext(), mixDevice, rawCreated, originalFile);
@@ -345,9 +342,7 @@ public class JhoveUtility {
     }
 
     public static JHoveOutput getCodingHistory(IMetsElement metsElement, String streamName, String path, XMLGregorianCalendar rawCreated, String originalFile) throws MetsExportException {
-        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            return getCodingHistoryFromStorage(metsElement, streamName);
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             return getCodingHistoryFromStorage(metsElement, streamName);
         } else if (Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             JHoveOutput jHoveOutput = getCodingHistory(new File(path), metsElement.getMetsContext(), rawCreated, null);
@@ -374,9 +369,7 @@ public class JhoveUtility {
         JHoveOutput jhoveOutput = new JHoveOutput();
         MixEditor mixEditor;
         ProArcObject proArcObject = null;
-        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            proArcObject = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             proArcObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
         }
         if (MixEditor.RAW_ID.equals(streamName)) {
@@ -415,9 +408,7 @@ public class JhoveUtility {
     }
 
     public static JHoveOutput getAes(IMetsElement metsElement, String streamName, String path, AudioObjectType aes, XMLGregorianCalendar rawCreated, String originalFile) throws MetsExportException {
-        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            return getAesFromStorage(metsElement, streamName);
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             return getAesFromStorage(metsElement, streamName);
         } else if (Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             JHoveOutput jHoveOutput = getAes(new File(path), metsElement.getMetsContext(), aes, rawCreated, originalFile);
@@ -444,9 +435,7 @@ public class JhoveUtility {
         JHoveOutput jhoveOutput = new JHoveOutput();
         AesEditor aesEditor;
         ProArcObject proArcObject = null;
-        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            proArcObject = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             proArcObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
         }
         if (AesEditor.RAW_ID.equals(streamName)) {
@@ -495,9 +484,7 @@ public class JhoveUtility {
         JHoveOutput jhoveOutput = new JHoveOutput();
         CodingHistoryEditor editor;
         ProArcObject proArcObject = null;
-        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            proArcObject = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             proArcObject = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
         }
         if (CodingHistoryEditor.RAW_ID.equals(streamName)) {

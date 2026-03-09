@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.storage;
 
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
 import jakarta.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.InputStream;

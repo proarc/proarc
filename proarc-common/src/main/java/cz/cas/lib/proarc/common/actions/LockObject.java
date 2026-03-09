@@ -1,7 +1,9 @@
 package cz.cas.lib.proarc.common.actions;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
@@ -9,13 +11,10 @@ import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +22,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 
 public class LockObject {
 
@@ -71,11 +69,7 @@ public class LockObject {
         try {
             MetsContext metsContext = null;
             ProArcObject object = null;
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
-                object = rstorage.find(pid);
-                metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 metsContext = buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());

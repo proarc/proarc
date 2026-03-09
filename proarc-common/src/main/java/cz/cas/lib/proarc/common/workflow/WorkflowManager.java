@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.workflow;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
@@ -36,8 +35,6 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -70,7 +67,6 @@ import cz.cas.lib.proarc.common.workflow.profile.WorkerDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.urnnbn.ResolverUtils;
-import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -192,9 +188,7 @@ public class WorkflowManager {
         DeviceRepository devRepo;
         Device retValDevice = null;
         try {
-            if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                devRepo = new DeviceRepository(FedoraStorage.getInstance(appConfiguration));
-            } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
                 AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfiguration.getConfigHome());
                 devRepo = new DeviceRepository(AkubraStorage.getInstance(akubraConfiguration));
             } else {
@@ -249,16 +243,8 @@ public class WorkflowManager {
      */
     public MaterialView createDigitalMaterialFromPhysical(DigitalObjectManager.CreateHandler handler, MaterialView view, boolean createObject, boolean validation) throws ConcurrentModificationException, WorkflowException {
         Transaction tx = daoFactory.createTransaction();
-        FedoraTransaction ftx = null;
 
         try {
-            // fedora
-            if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                FedoraStorage fedoraStorage = FedoraStorage.getInstance();
-                ftx = new FedoraTransaction(fedoraStorage);
-                handler.setTransaction(ftx);
-            }
-
             MaterialFilter filter = new MaterialFilter();
             filter.setLocale(Locale.ENGLISH);
             filter.setJobId(view.getJobId());
@@ -289,15 +275,15 @@ public class WorkflowManager {
             digitalMaterial.setPid(items.getPid());
             updateMaterial(digitalMaterial, tx);
 
-            commit(tx, ftx);
+            commit(tx);
         } catch (ConcurrentModificationException | WorkflowException e) {
-            rollback(tx, ftx);
+            rollback(tx);
             throw e;
         } catch (Throwable t) {
             tx.rollback();
             throw new WorkflowException("Cannot update material: " + view.getId(), t).addUnexpectedError();
         } finally {
-            close(tx, ftx);
+            close(tx);
         }
 
         return view;
@@ -336,7 +322,7 @@ public class WorkflowManager {
 
     }
 
-    private Material updateMaterial(MaterialView view, Transaction tx) throws ConcurrentModificationException, WorkflowException, IOException, FedoraClientException {
+    private Material updateMaterial(MaterialView view, Transaction tx) throws ConcurrentModificationException, WorkflowException {
         WorkflowMaterialDao dao = daoFactory.createWorkflowMaterialDao();
         WorkflowJobDao jobDao = daoFactory.createWorkflowJobDao();
         dao.setTransaction(tx);

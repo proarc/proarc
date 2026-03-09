@@ -20,7 +20,6 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElementVisitor;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import java.io.File;
 
@@ -30,10 +29,6 @@ import java.io.File;
  */
 public class NdkSipExport extends NdkExport {
     private static final float PACKAGE_VERSION = 2.2f;
-
-    public NdkSipExport(FedoraStorage fedoraStorage, AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
-        super(fedoraStorage, appConfiguration, akubraConfiguration);
-    }
 
     public NdkSipExport(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
         super(appConfiguration, akubraConfiguration);

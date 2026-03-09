@@ -1,6 +1,6 @@
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -20,8 +20,8 @@ import cz.cas.lib.proarc.common.storage.akubra.SolrObjectFeeder;
 import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
-import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
+import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.shared.rest.IndexerResourceApi;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.FormParam;

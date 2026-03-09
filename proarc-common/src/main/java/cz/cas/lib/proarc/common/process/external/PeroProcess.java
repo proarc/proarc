@@ -16,9 +16,6 @@
  */
 package cz.cas.lib.proarc.common.process.external;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.client.response.FedoraResponse;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.export.DataStreamExport;
@@ -33,7 +30,6 @@ import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.xml.bind.JAXBException;
 import java.io.File;
@@ -59,9 +55,7 @@ public class PeroProcess {
         this.config = config;
         this.akubraConfiguration = akubraConfiguration;
 
-        if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-            this.search = FedoraStorage.getInstance(config).getSearch();
-        } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             this.search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + config.getTypeOfStorage());
@@ -97,18 +91,12 @@ public class PeroProcess {
         }
     }
 
-    private void generateSingleAlto(List<String> pids, Integer peroOcrEngine) throws JAXBException, IOException, TransformerException, FedoraClientException, InterruptedException, DigitalObjectException {
+    private void generateSingleAlto(List<String> pids, Integer peroOcrEngine) throws JAXBException, IOException, TransformerException, InterruptedException, DigitalObjectException {
         for (String pid : pids) {
             ProArcObject object = null;
             InputStream inputStream = null;
             String dsId = "FULL";
-            if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-                FedoraStorage fedoraStorage = FedoraStorage.getInstance(config);
-                object = fedoraStorage.find(pid);
-                FedoraResponse response = FedoraClient.getDatastreamDissemination(object.getPid(), dsId)
-                        .execute(((FedoraStorage.RemoteObject) object).getClient());
-                inputStream = response.getEntityInputStream();
-            } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 inputStream = AkubraUtils.getDatastreamDissemination((AkubraStorage.AkubraObject) object, dsId);

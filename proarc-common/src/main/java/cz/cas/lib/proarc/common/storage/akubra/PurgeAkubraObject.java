@@ -19,7 +19,6 @@ package cz.cas.lib.proarc.common.storage.akubra;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
-import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject.PurgeException;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -213,5 +212,17 @@ public final class PurgeAkubraObject {
         } catch (DigitalObjectException ex) {
             throw new PurgeException(pid, ex);
         }
+    }
+
+    public static class PurgeException extends Exception {
+
+        public PurgeException(Throwable cause) {
+            super(cause);
+        }
+
+        public PurgeException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
     }
 }

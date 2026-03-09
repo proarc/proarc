@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.process.export;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
@@ -52,7 +52,6 @@ import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -894,11 +893,7 @@ public final class ExportProcess implements Runnable {
         ProArcObject object = null;
 
         try {
-            if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-                FedoraStorage fedoraStorage = FedoraStorage.getInstance();
-                object = fedoraStorage.find(pid);
-                metsContext = MetsContext.buildFedoraContext(object, null, exportFolder, fedoraStorage, config.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 metsContext = MetsContext.buildAkubraContext(object, null, exportFolder, akubraStorage, config.getNdkExportOptions());
@@ -981,11 +976,7 @@ public final class ExportProcess implements Runnable {
         ProArcObject object = null;
 
         try {
-            if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-                FedoraStorage fedoraStorage = FedoraStorage.getInstance();
-                object = fedoraStorage.find(pids.get(0));
-                metsContext = MetsContext.buildFedoraContext(object, null, null, fedoraStorage, config.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pids.get(0));
                 metsContext = MetsContext.buildAkubraContext(object, null, null, akubraStorage, config.getNdkExportOptions());

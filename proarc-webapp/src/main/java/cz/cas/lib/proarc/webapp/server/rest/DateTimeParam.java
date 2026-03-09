@@ -18,28 +18,63 @@ package cz.cas.lib.proarc.webapp.server.rest;
 
 import jakarta.ws.rs.core.Response;
 import java.sql.Timestamp;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 
 /**
  * Parameter reader for ISO Date and Time.
  *
  * @author Jan Pokorsky
- * @see <a href='http://en.wikipedia.org/wiki/ISO_8601'>ISO 8601</a>
+ * @see <a href="http://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a>
  */
 public final class DateTimeParam {
-    
+
     private static final Logger LOG = Logger.getLogger(DateTimeParam.class.getName());
-    private static final DateTimeFormatter FMT = ISODateTimeFormat.dateOptionalTimeParser();
-    private final DateTime dateTime;
+
+    /**
+     * ISO parser supporting:
+     * yyyy-MM-dd
+     * yyyy-MM-ddTHH:mm
+     * yyyy-MM-ddTHH:mm:ss
+     * yyyy-MM-ddTHH:mm:ssZ
+     */
+    private static final DateTimeFormatter FMT = new DateTimeFormatterBuilder()
+            .append(DateTimeFormatter.ISO_LOCAL_DATE)
+            .optionalStart()
+            .appendLiteral('T')
+            .append(DateTimeFormatter.ISO_LOCAL_TIME)
+            .optionalStart()
+            .appendOffsetId()
+            .optionalEnd()
+            .optionalEnd()
+            .toFormatter();
+
+    private final Instant instant;
 
     public DateTimeParam(String txt) {
         try {
-            dateTime = FMT.parseDateTime(txt);
+            TemporalAccessor parsed = FMT.parseBest(
+                    txt,
+                    OffsetDateTime::from,
+                    LocalDateTime::from,
+                    LocalDate::from
+            );
+
+            if (parsed instanceof OffsetDateTime odt) {
+                instant = odt.toInstant();
+            } else if (parsed instanceof LocalDateTime ldt) {
+                instant = ldt.atZone(ZoneId.systemDefault()).toInstant();
+            } else if (parsed instanceof LocalDate ld) {
+                instant = ld.atStartOfDay(ZoneId.systemDefault()).toInstant();
+            } else {
+                throw new IllegalArgumentException("Unsupported date format: " + txt);
+            }
+
         } catch (Exception e) {
             LOG.log(Level.SEVERE, txt, e);
             throw RestException.plainText(Response.Status.BAD_REQUEST, e.getMessage());
@@ -47,11 +82,10 @@ public final class DateTimeParam {
     }
 
     public Date toDate() {
-        return dateTime.toDate();
+        return Date.from(instant);
     }
 
     public Timestamp toTimestamp() {
-        return new Timestamp(dateTime.getMillis());
+        return Timestamp.from(instant);
     }
-
 }

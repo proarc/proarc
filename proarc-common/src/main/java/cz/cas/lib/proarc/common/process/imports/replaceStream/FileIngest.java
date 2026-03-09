@@ -59,9 +59,7 @@ public class FileIngest {
     public void replaceDevice(String pid, ImportProcess.ImportOptions context) {
         try {
             ProArcObject fo = null;
-            if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
-                fo = iSession.getRemotes().find(pid);
-            } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
                 fo = iSession.getAkubraStorage().find(pid);
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + iSession.getTypeOfStorage());
@@ -81,9 +79,7 @@ public class FileIngest {
         String pid = FileReader.getPid(file);
 
         ProArcObject fo = null;
-        if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
-            fo = iSession.getRemotes().find(pid);
-        } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
             fo = iSession.getAkubraStorage().find(pid);
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + iSession.getTypeOfStorage());

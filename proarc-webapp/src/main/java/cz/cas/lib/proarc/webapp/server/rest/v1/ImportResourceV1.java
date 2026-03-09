@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -32,7 +31,6 @@ import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
 import cz.cas.lib.proarc.common.process.InternalExternalProcess;
 import cz.cas.lib.proarc.common.process.export.ExportProcess;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.process.imports.FedoraImport;
 import cz.cas.lib.proarc.common.process.imports.ImportDispatcher;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner.Folder;
@@ -45,7 +43,6 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -593,7 +590,7 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
-            ) throws IOException, FedoraClientException, DigitalObjectException {
+            ) throws IOException, DigitalObjectException {
 
         Batch batch = importManager.get(batchId);
         if (batch == null) {
@@ -610,10 +607,7 @@ public class ImportResourceV1 {
             ImportProcess.ImportOptions options = ImportProcess.ImportOptions.fromBatch(
                     batch, importFolder, true, false, user, appConfig.getImportConfiguration(profile));
             options.setOriginalBatchState(batch.getState());
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                batch = new FedoraImport(appConfig, FedoraStorage.getInstance(appConfig), importManager, user, options)
-                        .importBatch(batch, user.getUserName(), session.asFedoraLog());
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 batch = new AkubraImport(appConfig, akubraConfiguration, importManager, user, options)
                         .importBatch(batch, user.getUserName(), session.asFedoraLog());
             } else {

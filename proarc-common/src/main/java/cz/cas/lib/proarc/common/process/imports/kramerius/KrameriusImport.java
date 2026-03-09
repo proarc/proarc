@@ -22,7 +22,6 @@ import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.imports.FedoraImport;
 import cz.cas.lib.proarc.common.process.imports.ImportHandler;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
@@ -31,7 +30,6 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.File;
@@ -139,10 +137,7 @@ public class KrameriusImport implements ImportHandler {
         BatchManager ibm = BatchManager.getInstance();
         Batch batch = importConfig.getBatch();
         AppConfiguration config = AppConfigurationFactory.getInstance().defaultInstance();
-        if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-            FedoraImport ingest = new FedoraImport(config, FedoraStorage.getInstance(config), ibm, null, importConfig);
-            ingest.importBatch(batch, importConfig.getUsername(), null);
-        } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
             AkubraImport ingest = new AkubraImport(config, akubraConfiguration, ibm, null, importConfig);
 

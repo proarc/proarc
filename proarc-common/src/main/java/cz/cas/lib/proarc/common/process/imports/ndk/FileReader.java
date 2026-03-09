@@ -69,7 +69,6 @@ import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.DivType;
@@ -1309,7 +1308,6 @@ public class FileReader {
         private final DeviceRepository deviceRepository;
         private final Storage typeOfStorage;
         private final AppConfiguration config;
-        private FedoraStorage fedoraStorage;
         private AkubraStorage akubraStorage;
         private String rootPid;
         private String devicePid;
@@ -1317,11 +1315,7 @@ public class FileReader {
         public ImportSession(BatchManager batchManager, ImportProcess.ImportOptions options, AppConfiguration appConfig) throws IOException {
             try {
                 this.typeOfStorage = appConfig.getTypeOfStorage();
-                if (Storage.FEDORA.equals(typeOfStorage)) {
-                    this.fedoraStorage = FedoraStorage.getInstance(appConfig);
-                    this.search = this.fedoraStorage.getSearch();
-                    this.deviceRepository = new DeviceRepository(this.fedoraStorage);
-                } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                if (Storage.AKUBRA.equals(typeOfStorage)) {
                     AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
                     this.akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     this.search = this.akubraStorage.getSearch();
@@ -1340,11 +1334,7 @@ public class FileReader {
         }
 
         public boolean exists(String pid) throws DigitalObjectException {
-            if (Storage.FEDORA.equals(this.typeOfStorage)) {
-                if (this.fedoraStorage.exist(pid)) {
-                    throw new DigitalObjectExistException(pid, null, "Object with PID " + pid + " already exists!", null);
-                }
-            } else if (Storage.AKUBRA.equals(this.typeOfStorage)) {
+            if (Storage.AKUBRA.equals(this.typeOfStorage)) {
                 if (this.akubraStorage.exist(pid)) {
                     throw new DigitalObjectExistException(pid, null, "Object with PID " + pid + " already exists!", null);
                 }
@@ -1364,10 +1354,6 @@ public class FileReader {
 
         public LocalStorage getLocals() {
             return locals;
-        }
-
-        public FedoraStorage getFedoraRemotes() {
-            return fedoraStorage;
         }
 
         public AkubraStorage getAkubraStorage() {

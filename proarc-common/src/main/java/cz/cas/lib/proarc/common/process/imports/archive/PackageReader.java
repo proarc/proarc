@@ -16,10 +16,9 @@
  */
 package cz.cas.lib.proarc.common.process.imports.archive;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.PropertyType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
@@ -58,7 +57,6 @@ import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.Rdf;
 import cz.cas.lib.proarc.common.storage.relation.RdfRelation;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
@@ -238,9 +236,7 @@ public class PackageReader {
             if (lObj == null) {
                 File objFile = new File(targetFolder, getFoxmlFilename("DESCRIPTION", divIndex, pid, DeviceRepository.METAMODEL_ID));
                 ProArcObject object = null;
-                if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
-                    object = iSession.getRemotes().find(pid);
-                } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
                     object = iSession.getAkubraStorage().find(pid);
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + iSession.getTypeOfStorage());
@@ -256,9 +252,7 @@ public class PackageReader {
                 if (dObj == null) { // zkousi najit hlavni pid a s tim pote pracovat
                     String mainPid = getMainPid(pid);
                     if (mainPid != null) {
-                        if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
-                            object = iSession.getRemotes().find(mainPid);
-                        } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
+                        if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
                             object = iSession.getAkubraStorage().find(mainPid);
                         } else {
                             throw new IllegalStateException("Unsupported type of storage: " + iSession.getTypeOfStorage());
@@ -321,9 +315,7 @@ public class PackageReader {
             if (isParentObject) {
                 iSession.setRootPid(pid);
                 ProArcObject object = null;
-                if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
-                    object = iSession.getRemotes().find(pid);
-                } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
                     object = iSession.getAkubraStorage().find(pid);
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + iSession.getTypeOfStorage());
@@ -870,7 +862,6 @@ public class PackageReader {
         private final LocalStorage locals;
         private final SearchView search;
         private final Storage typeOfStorage;
-        private FedoraStorage remotes;
         private AkubraStorage akubraStorage;
         private String rootPid;
         /**
@@ -881,10 +872,7 @@ public class PackageReader {
         public ImportSession(BatchManager ibm, ImportOptions options, AppConfiguration appConfig) throws IOException {
             try {
                 this.typeOfStorage = appConfig.getTypeOfStorage();
-                if (Storage.FEDORA.equals(typeOfStorage)) {
-                    this.remotes = FedoraStorage.getInstance();
-                    this.search = this.remotes.getSearch();
-                } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                if (Storage.AKUBRA.equals(typeOfStorage)) {
                     AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
                     this.akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     this.search = this.akubraStorage.getSearch();
@@ -906,10 +894,6 @@ public class PackageReader {
 
         public LocalStorage getLocals() {
             return locals;
-        }
-
-        public FedoraStorage getRemotes() {
-            return remotes;
         }
 
         public AkubraStorage getAkubraStorage() {
@@ -994,8 +978,6 @@ public class PackageReader {
                     }
                 }
             } catch (IOException ex) {
-                throw new DigitalObjectException(pid, batch.getId(), null, null, ex);
-            } catch (FedoraClientException ex) {
                 throw new DigitalObjectException(pid, batch.getId(), null, null, ex);
             }
         }

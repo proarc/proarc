@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.actions;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
@@ -38,7 +37,6 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -93,12 +91,9 @@ public class UpdateObjects {
         return Arrays.asList(selectedPids);
     }
 
-    public void createListOfPids(List<String> pids) throws IOException, FedoraClientException, DigitalObjectException {
+    public void createListOfPids(List<String> pids) throws IOException, DigitalObjectException {
         SearchView search = null;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            FedoraStorage storage = FedoraStorage.getInstance(appConfig);
-            search = storage.getSearch(locale);
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfig);
             search = akubraStorage.getSearch(locale);
         } else {

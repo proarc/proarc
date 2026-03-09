@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.sql;
 
 import cz.cas.lib.proarc.common.dao.Transaction;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraTransaction;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -95,36 +94,21 @@ public final class DbUtils {
         }
     }
 
-    public static void close(FedoraTransaction fedoraTransaction) {
-        if (fedoraTransaction != null) {
-            fedoraTransaction.close();
-        }
-    }
-
-    public static void close(Transaction transaction, FedoraTransaction fedoraTransaction) {
+    public static void close(Transaction transaction) {
         if (transaction != null) {
             transaction.close();
         }
-        if (fedoraTransaction != null) {
-            fedoraTransaction.close();
-        }
     }
 
-    public static void rollback(Transaction transaction, FedoraTransaction fedoraTransaction) {
+    public static void rollback(Transaction transaction) {
         if (transaction != null) {
             transaction.rollback();
         }
-        if (fedoraTransaction != null) {
-            fedoraTransaction.rollback();
-        }
     }
 
-    public static void commit(Transaction transaction, FedoraTransaction fedoraTransaction) {
+    public static void commit(Transaction transaction) {
         if (transaction != null) {
             transaction.commit();
-        }
-        if (fedoraTransaction != null) {
-            fedoraTransaction.commit();
         }
     }
 }

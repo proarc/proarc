@@ -16,8 +16,7 @@
 
 package cz.cas.lib.proarc.common.process.export.sip;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -28,13 +27,10 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.process.export.mockrepository.MockFedoraClient;
-import cz.cas.lib.proarc.common.process.export.mockrepository.MockSearchView;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.mets.info.Info;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Unmarshaller;
@@ -67,12 +63,7 @@ public class NdkSipExportTest {
     File tempDir;
 
     @Mocked
-    private FedoraClient client;
-
-    @Mocked
     private SearchView searchView;
-
-    private FedoraStorage fedoraStorage;
 
     private final AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
     private AkubraConfiguration akubraConfiguration = null;
@@ -87,10 +78,7 @@ public class NdkSipExportTest {
         } else {
             this.akubraConfiguration = null;
         }
-        new MockFedoraClient();
-        new MockSearchView();
 
-        fedoraStorage = new FedoraStorage(client);
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 appConfig, akubraConfiguration,
                 null,
@@ -109,11 +97,9 @@ public class NdkSipExportTest {
 
     @Test
     public void testCreateMetsElement() throws MetsExportException {
-        DigitalObject dobj = MetsUtils.readFoXML("uuid:b0ebac65-e9fe-417d-a71b-58e74fe707a4", client);
+        DigitalObject dobj = MetsUtils.readFoXML("uuid:b0ebac65-e9fe-417d-a71b-58e74fe707a4");
         MetsContext mc = new MetsContext();
-        mc.setTypeOfStorage(Storage.FEDORA);
-        mc.setFedoraClient(client);
-        mc.setRemoteStorage(fedoraStorage);
+        mc.setTypeOfStorage(Storage.AKUBRA);
 
         MetsElement mElm = MetsElement.getElement(dobj, null, mc, true);
         assertNotNull(mElm.getParent(), () -> "missing parent for " + mElm.getOriginalPid() + " (" + mElm.getElementType() + ")");
@@ -121,7 +107,7 @@ public class NdkSipExportTest {
 
     @Test
     public void exportPeriodical() throws Exception {
-        NdkExport export = new NdkSipExport(fedoraStorage, appConfig, akubraConfiguration);
+        NdkExport export = new NdkSipExport(appConfig, akubraConfiguration);
         String pid = "uuid:8548cc82-3601-45a6-8eb0-df6538db4de6";
 
         List<NdkExport.Result> resultsList = export.export(tempDir, Collections.singletonList(pid),
@@ -159,7 +145,7 @@ public class NdkSipExportTest {
      */
     @Test
     public void exportMultipartMonograph() throws Exception {
-        NdkExport export = new NdkSipExport(fedoraStorage, appConfig, akubraConfiguration);
+        NdkExport export = new NdkSipExport(appConfig, akubraConfiguration);
         String pid = "uuid:26342028-12c8-4446-9217-d3c9f249bd13";
 
         List<NdkExport.Result> resultsList = export.export(tempDir, Collections.singletonList(pid),

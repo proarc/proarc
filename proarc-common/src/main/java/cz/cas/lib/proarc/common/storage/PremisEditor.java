@@ -16,11 +16,9 @@
  */
 package cz.cas.lib.proarc.common.storage;
 
-
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.audiopremis.AudioObjectFactory;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -38,10 +36,10 @@ import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.xml.ProArcPrefixNamespaceMapper;
 import cz.cas.lib.proarc.common.xml.docmd.DocumentMd;
 import cz.cas.lib.proarc.common.xml.ndktech.NdkTechnical;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mets.Mets;
@@ -108,7 +106,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 
 /**
  * Edits technical metadata in Coding history format.
@@ -411,27 +408,7 @@ public class PremisEditor {
         }
 
         for (String streamName : Const.streamMapping.keySet()) {
-            if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-                try {
-                    for (String dataStream : Const.streamMapping.get(streamName)) {
-                        rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), dataStream);
-                        if (rawDS != null) {
-                            FileMD5Info fileMd5Info;
-                            if (md5InfosMap.get(streamName) == null) {
-                                fileMd5Info = new FileMD5Info();
-                                md5InfosMap.put(streamName, fileMd5Info);
-                            } else {
-                                fileMd5Info = md5InfosMap.get(streamName);
-                            }
-                            fileMd5Info.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
-                            fileMd5Info.setMimeType(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
-                            fileMd5Info.setSize(rawDS.getDatastreamVersion().get(0).getSIZE());
-                        }
-                    }
-                } catch (Exception ex) {
-                    throw new DigitalObjectException(metsElement.getOriginalPid(), "Error while getting file datastreams for " + metsElement.getOriginalPid(), ex);
-                }
-            } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage()) || Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage()) || Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
                 List<DatastreamType> datastreams = metsElement.getSourceObject().getDatastream();
                 for (String dataStream : Const.streamMapping.get(streamName)) {
                     for (DatastreamType ds : datastreams) {
@@ -994,11 +971,7 @@ public class PremisEditor {
         MetsContext metsContext = null;
         ProArcObject object = null;
 
-        if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-            FedoraStorage fedoraStorage = FedoraStorage.getInstance(config);
-            object = fedoraStorage.find(pid);
-            metsContext = buildFedoraContext(object, null, null, fedoraStorage, config.getNdkExportOptions());
-        } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
             object = akubraStorage.find(pid);
             metsContext = buildAkubraContext(object, null, null, akubraStorage, config.getNdkExportOptions());

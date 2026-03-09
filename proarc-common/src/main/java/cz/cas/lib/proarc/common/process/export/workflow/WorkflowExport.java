@@ -16,9 +16,9 @@
  */
 package cz.cas.lib.proarc.common.process.export.workflow;
 
-
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
@@ -28,11 +28,9 @@ import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
 import cz.cas.lib.proarc.common.workflow.model.Job;
@@ -129,11 +127,7 @@ public class WorkflowExport {
         ProArcObject object = null;
 
         try {
-            if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                FedoraStorage fedoraStorage = FedoraStorage.getInstance();
-                object = fedoraStorage.find(pid);
-                metsContext = MetsContext.buildFedoraContext(object, null, exportFolder, fedoraStorage, appConfiguration.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 metsContext = MetsContext.buildAkubraContext(object, null, exportFolder, akubraStorage, appConfiguration.getNdkExportOptions());

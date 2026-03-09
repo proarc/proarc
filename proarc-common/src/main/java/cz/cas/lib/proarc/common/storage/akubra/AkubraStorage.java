@@ -1,16 +1,13 @@
 package cz.cas.lib.proarc.common.storage.akubra;
 
-
-import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-import com.yourmediashelf.fedora.generated.foxml.StateType;
-import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
-import com.yourmediashelf.fedora.util.DateUtility;
+import com.yourmediashelf.fedora.foxml.ContentLocationType;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.ObjectPropertiesType;
+import com.yourmediashelf.fedora.foxml.PropertyType;
+import com.yourmediashelf.fedora.foxml.StateType;
+import com.yourmediashelf.fedora.foxml.XmlContentType;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
@@ -25,6 +22,8 @@ import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
+import cz.cas.lib.proarc.foxml.utility.DateUtility;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -209,7 +208,7 @@ public class AkubraStorage {
                 throw new DigitalObjectExistException(object.getPid(), null, "Object with PID " + object.getPid() + " already exists!", null);
             }
 
-            com.yourmediashelf.fedora.generated.foxml.DigitalObject digitalObject = object.getDigitalObject();
+            DigitalObject digitalObject = object.getDigitalObject();
             processStreams(digitalObject);
             updateProperties(digitalObject.getObjectProperties());
             String xml = FoxmlUtils.toXml(digitalObject, false);
@@ -223,10 +222,10 @@ public class AkubraStorage {
         }
     }
 
-    private void processStreams(com.yourmediashelf.fedora.generated.foxml.DigitalObject digitalObject) throws IOException, LowlevelStorageException, URISyntaxException, TransformerException {
-        for (com.yourmediashelf.fedora.generated.foxml.DatastreamType datastream : digitalObject.getDatastream()) {
+    private void processStreams(DigitalObject digitalObject) throws IOException, LowlevelStorageException, URISyntaxException, TransformerException {
+        for (DatastreamType datastream : digitalObject.getDatastream()) {
             if (FoxmlUtils.ControlGroup.MANAGED.toExternal().equals(datastream.getCONTROLGROUP())) {
-                for (com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
+                for (DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
                     if (datastreamVersion.getContentLocation() != null && "URL".equals(datastreamVersion.getContentLocation().getTYPE())) {
                         File inputFile = new File(new URI(datastreamVersion.getContentLocation().getREF()).getPath());
                         if (inputFile.exists()) {
@@ -235,7 +234,7 @@ public class AkubraStorage {
                                 inputStream = new FileInputStream(inputFile);
                                 String ref = digitalObject.getPID() + "+" + datastream.getID() + "+" + datastreamVersion.getID();
                                 this.manager.addOrReplaceDatastream(ref, inputStream);
-                                com.yourmediashelf.fedora.generated.foxml.ContentLocationType contentLocationType = new com.yourmediashelf.fedora.generated.foxml.ContentLocationType();
+                                ContentLocationType contentLocationType = new ContentLocationType();
                                 contentLocationType.setTYPE("INTERNAL_ID");
                                 contentLocationType.setREF(ref);
                                 datastreamVersion.setContentLocation(contentLocationType);
@@ -261,7 +260,7 @@ public class AkubraStorage {
                         InputStream inputStream = new ByteArrayInputStream(elementValue.getBytes(StandardCharsets.UTF_8));
                         String ref = digitalObject.getPID() + "+" + datastream.getID() + "+" + datastreamVersion.getID();
                         this.manager.addOrReplaceDatastream(ref, inputStream);
-                        com.yourmediashelf.fedora.generated.foxml.ContentLocationType contentLocationType = new com.yourmediashelf.fedora.generated.foxml.ContentLocationType();
+                        ContentLocationType contentLocationType = new ContentLocationType();
                         contentLocationType.setTYPE("INTERNAL_ID");
                         contentLocationType.setREF(ref);
                         datastreamVersion.setContentLocation(contentLocationType);
@@ -272,7 +271,7 @@ public class AkubraStorage {
                         InputStream inputStream = new ByteArrayInputStream(datastreamVersion.getBinaryContent());
                         String ref = digitalObject.getPID() + "+" + datastream.getID() + "+" + datastreamVersion.getID();
                         this.manager.addOrReplaceDatastream(ref, inputStream);
-                        com.yourmediashelf.fedora.generated.foxml.ContentLocationType contentLocationType = new com.yourmediashelf.fedora.generated.foxml.ContentLocationType();
+                        ContentLocationType contentLocationType = new ContentLocationType();
                         contentLocationType.setTYPE("INTERNAL_ID");
                         contentLocationType.setREF(ref);
                         datastreamVersion.setContentLocation(contentLocationType);
@@ -283,11 +282,11 @@ public class AkubraStorage {
         }
     }
 
-    public void updateProperties(com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType objectProperties) {
+    public void updateProperties(ObjectPropertiesType objectProperties) {
         boolean updateLastModified = false;
         boolean updateState = false;
         boolean updateCreated = false;
-        for (com.yourmediashelf.fedora.generated.foxml.PropertyType property : objectProperties.getProperty()) {
+        for (PropertyType property : objectProperties.getProperty()) {
             if (PROPERTY_LASTMODIFIED.equals(property.getNAME())) {
                 property.setVALUE(getActualDateAsString());
                 updateLastModified = true;
@@ -310,8 +309,8 @@ public class AkubraStorage {
         }
     }
 
-    private void addProperty(List<com.yourmediashelf.fedora.generated.foxml.PropertyType> properties, String key, String value) {
-        com.yourmediashelf.fedora.generated.foxml.PropertyType property = new com.yourmediashelf.fedora.generated.foxml.PropertyType();
+    private void addProperty(List<PropertyType> properties, String key, String value) {
+        PropertyType property = new PropertyType();
         property.setNAME(key);
         property.setVALUE(value);
         properties.add(property);

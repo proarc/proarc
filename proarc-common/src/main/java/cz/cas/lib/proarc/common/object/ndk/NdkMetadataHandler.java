@@ -57,7 +57,6 @@ import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -442,9 +441,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         }
         SearchView search = null;
         try {
-            if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                search = FedoraStorage.getInstance().getSearch();
-            } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
                 search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
@@ -562,9 +559,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public DigitalObjectCrawler getCrawler() {
         if (crawler == null) {
             try {
-                if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                    crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), FedoraStorage.getInstance().getSearch());
-                } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
                     crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), AkubraStorage.getInstance(akubraConfiguration).getSearch());
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());

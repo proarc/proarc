@@ -16,14 +16,14 @@
  */
 package cz.cas.lib.proarc.common.storage.relation;
 
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.WorkflowStorage;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -509,7 +509,7 @@ public final class RelationEditor {
         }
         Source source = editor.read();
         if (source == null) {
-            if (fobject instanceof RemoteObject) {
+            if (fobject instanceof AkubraStorage.AkubraObject) {
                 // it should never arise; broken Fedora?
                 throw new DigitalObjectException(fobject.getPid(), "missing RELS-EXT!");
             }

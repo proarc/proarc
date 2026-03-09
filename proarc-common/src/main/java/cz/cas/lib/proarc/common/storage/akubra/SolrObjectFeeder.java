@@ -1,8 +1,8 @@
 package cz.cas.lib.proarc.common.storage.akubra;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.ObjectPropertiesType;
+import com.yourmediashelf.fedora.foxml.PropertyType;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
@@ -37,39 +37,7 @@ import static cz.cas.lib.proarc.common.storage.FoxmlUtils.PROPERTY_LABEL;
 import static cz.cas.lib.proarc.common.storage.FoxmlUtils.PROPERTY_LASTMODIFIED;
 import static cz.cas.lib.proarc.common.storage.FoxmlUtils.PROPERTY_OWNER;
 import static cz.cas.lib.proarc.common.storage.FoxmlUtils.PROPERTY_STATE;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_CREATED;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_DESCRIPTION_STANDARD;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_DEVICE;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_EXPORT_ARCHIVE;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_EXPORT_CROSSREF;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_EXPORT_KRAMERIUS;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_EXPORT_NDK;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_GENRE;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_IDENTIFIRES;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_LABEL;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_LOCKED;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_MEMBERS;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_MODEL;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_MODIFIED;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_ORGANIZATION;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_OWNER;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_INDEX;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_NUMBER;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_POSITION;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_TYPE;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PARENT_PID;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PART_NUMBER;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PID;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_SOFTWARE;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_SOURCE;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATE;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_STATUS;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_URNNBN;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_USER;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_VALIDATION_PROCES;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_VALIDATION_STATUS;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.PROPERTY_STATE_DEACTIVE;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.VALIDATION_STATUS_UNKNOWN;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.*;
 
 public class SolrObjectFeeder extends ProcessingIndexFeeder {
 

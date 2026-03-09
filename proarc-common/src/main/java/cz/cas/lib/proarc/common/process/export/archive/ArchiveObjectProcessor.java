@@ -16,33 +16,11 @@
  */
 package cz.cas.lib.proarc.common.process.export.archive;
 
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
-import cz.cas.lib.proarc.common.process.export.mets.Const;
-import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
-import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.storage.AesEditor;
-import cz.cas.lib.proarc.common.storage.BinaryEditor;
-import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.LocalStorage;
-import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
-import cz.cas.lib.proarc.common.storage.MixEditor;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.StringEditor;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
@@ -52,9 +30,30 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ReadonlyDisseminationHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
+import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.storage.AesEditor;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
@@ -126,11 +125,7 @@ public class ArchiveObjectProcessor {
             try {
                 MetsContext metsContext = null;
                 ProArcObject object = null;
-                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                    FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
-                    object = rstorage.find(digitalObjectElement.getPid());
-                    metsContext = MetsContext.buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
-                } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                     AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     object = akubraStorage.find(digitalObjectElement.getPid());
                     metsContext = MetsContext.buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
@@ -267,10 +262,7 @@ public class ArchiveObjectProcessor {
         if (!contains) {
             devicePids.add(devicePid);
             ProArcObject object = null;
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
-                object = rstorage.find(devicePid);
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(devicePid);
             } else {
@@ -291,12 +283,6 @@ public class ArchiveObjectProcessor {
             builder.addStreamAsFile(deviceIdx,
                     FoxmlUtils.findDatastream(dobj, DeviceRepository.DESCRIPTION_DS_ID),
                     devicePid, modelId, new ReadonlyDisseminationHandler(object, DeviceRepository.DESCRIPTION_DS_ID));
-            // write audit
-            if (object instanceof FedoraStorage.RemoteObject) {
-                builder.addStreamAsFile(deviceIdx,
-                        FoxmlUtils.findDatastream(dobj, FoxmlUtils.DS_AUDIT_ID),
-                        devicePid, modelId, null);
-            }
             // write rels-ext
             builder.addStreamAsFile(deviceIdx,
                     FoxmlUtils.findDatastream(dobj, RelationEditor.DATASTREAM_ID),

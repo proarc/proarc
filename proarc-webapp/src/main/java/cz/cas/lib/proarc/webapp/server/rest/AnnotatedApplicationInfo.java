@@ -16,12 +16,12 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.info.ApplicationInfo;
 import cz.cas.lib.proarc.webapp.shared.rest.ApplicationResourceApi;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 /**
  * Helper class to annotate {@link ApplicationInfo} properties.

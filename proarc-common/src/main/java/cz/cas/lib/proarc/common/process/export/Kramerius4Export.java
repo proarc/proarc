@@ -16,15 +16,11 @@
  */
 package cz.cas.lib.proarc.common.process.export;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
-import com.yourmediashelf.fedora.client.response.FedoraResponse;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.PropertyType;
+import com.yourmediashelf.fedora.foxml.XmlContentType;
 import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
@@ -66,8 +62,6 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.storage.relation.RelationResource;
 import cz.cas.lib.proarc.common.storage.relation.Relations;
@@ -77,12 +71,9 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
-import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -101,7 +92,6 @@ import java.util.logging.Logger;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -141,7 +131,6 @@ public final class Kramerius4Export {
 
     public static final String[] ALLOWED_POLICY = {"policy:private", "policy:public"};
 
-    private FedoraStorage rstorage;
     private LocalStorage lstorage = new LocalStorage();
     private DigitalObjectCrawler crawler;
 
@@ -168,21 +157,6 @@ public final class Kramerius4Export {
 
     private String exportPageContext;
 
-    public Kramerius4Export(FedoraStorage rstorage, AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
-        this.appConfig = appConfiguration;
-        this.rstorage = rstorage;
-        this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
-        this.exportParams = appConfiguration.getExportParams();
-        this.search = rstorage.getSearch();
-        this.crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), search);
-        this.license = null;
-        if (Arrays.asList(ALLOWED_POLICY).contains(appConfiguration.getKramerius4Export().getPolicy())) {
-            this.policy = appConfiguration.getKramerius4Export().getPolicy();
-        } else {
-            this.policy = kramerius4ExportOptions.getPolicy();
-        }
-    }
-
     public Kramerius4Export(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration, String policy, String license, boolean isArchive) throws IOException {
         this.appConfig = appConfiguration;
         this.akubraConfiguration = akubraConfiguration;
@@ -190,10 +164,7 @@ public final class Kramerius4Export {
         this.exportParams = appConfiguration.getExportParams();
         this.isArchive = isArchive;
 
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            this.rstorage = FedoraStorage.getInstance(this.appConfig);
-            this.search = this.rstorage.getSearch();
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             this.search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
@@ -379,10 +350,7 @@ public final class Kramerius4Export {
             MetsContext metsContext = null;
             ProArcObject object = null;
 
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                object = rstorage.find(pid);
-                metsContext = MetsContext.buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 metsContext = MetsContext.buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
@@ -403,9 +371,7 @@ public final class Kramerius4Export {
         try {
             List<SearchViewItem> parentsList;
 
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                parentsList = this.search.findReferrers(pid);
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 parentsList = this.search.findReferrers(pid);
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
@@ -415,7 +381,7 @@ public final class Kramerius4Export {
             } else {
                 return parentsList.get(0);
             }
-        } catch (IOException | FedoraClientException ex) {
+        } catch (IOException ex) {
             throw new DigitalObjectException(pid, "K4 export: imposible to find parent.", ex);
         }
     }
@@ -439,13 +405,7 @@ public final class Kramerius4Export {
                 }
                 pidsToExport.add(pid);
                 DigitalObject dobj = null;
-                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                    RemoteObject robject = rstorage.find(pid);
-                    FedoraClient client = robject.getClient();
-                    dobj = FedoraClient.export(pid).context("public")
-                            .format("info:fedora/fedora-system:FOXML-1.1")
-                            .execute(client).getEntity(DigitalObject.class);
-                } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                     AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     AkubraObject object = akubraStorage.find(pid);
                     dobj = AkubraUtils.getDigitalObjectToExport(object.getManager(), pid);
@@ -474,7 +434,7 @@ public final class Kramerius4Export {
                         return true;
                     }
                 }
-            } catch (DigitalObjectException | FedoraClientException | JAXBException | IOException e) {
+            } catch (DigitalObjectException | JAXBException | IOException e) {
                 throw new IllegalStateException(pid, e);
             }
         }
@@ -488,13 +448,7 @@ public final class Kramerius4Export {
             try {
                 pidsToExport.add(pid);
                 DigitalObject dobj = null;
-                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                    RemoteObject robject = rstorage.find(pid);
-                    FedoraClient client = robject.getClient();
-                    dobj = FedoraClient.export(pid).context("public")
-                            .format("info:fedora/fedora-system:FOXML-1.1")
-                            .execute(client).getEntity(DigitalObject.class);
-                } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                     AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     AkubraObject object = akubraStorage.find(pid);
                     dobj = AkubraUtils.getDigitalObjectToExport(object.getManager(), pid);
@@ -511,7 +465,7 @@ public final class Kramerius4Export {
                         return true;
                     }
                 }
-            } catch (FedoraClientException | JAXBException | IOException ex) {
+            } catch (JAXBException | IOException ex) {
                 // replace with ExportException
                 throw new IllegalStateException(pid, ex);
             }
@@ -548,20 +502,7 @@ public final class Kramerius4Export {
             }
             exportedPids.add(object.getPid());
             DigitalObject dobj = null;
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                RemoteObject robject = rstorage.find(object.getPid());
-                RelationEditor editor = new RelationEditor(robject);
-                if (NdkAudioPlugin.MODEL_PAGE.equals(editor.getModel())) {  // ndk audio page se nexportuje ale jeho streamy se priradi k urovni vyse
-                    return;
-                }
-                if (mainObjectModel == null || mainObjectModel.isEmpty()) {
-                    mainObjectModel = editor.getModel();
-                }
-                FedoraClient client = robject.getClient();
-                dobj = FedoraClient.export(object.getPid()).context(exportPageContext == null ? "archive" : exportPageContext)
-                        .format("info:fedora/fedora-system:FOXML-1.1")
-                        .execute(client).getEntity(DigitalObject.class);
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 AkubraObject aobject = akubraStorage.find(object.getPid());
                 RelationEditor editor = new RelationEditor(aobject);
@@ -602,7 +543,7 @@ public final class Kramerius4Export {
             }
             exportDatastreams(local, editor, hasParent, missingObject);
             local.flush();
-        } catch (DigitalObjectException | FedoraClientException | JAXBException | IOException ex) {
+        } catch (DigitalObjectException | JAXBException | IOException ex) {
             throw new IllegalStateException(object.getPid(), ex);
         }
     }
@@ -668,33 +609,7 @@ public final class Kramerius4Export {
         String pid = sourceItem.getPid();
         DigitalObject dobj = null;
         try {
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                RemoteObject robject = rstorage.find(pid);
-                FedoraClient client = robject.getClient();
-                try {
-                    FedoraResponse response = FedoraClient.getObjectXML(pid).execute(client);
-                    JAXBContext jaxbContext = JAXBContext.newInstance(DigitalObject.class);
-                    Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-                    dobj = (DigitalObject) unmarshaller.unmarshal(response.getEntityInputStream());
-                    for (DatastreamType datastream : dobj.getDatastream()) {
-                        for (DatastreamVersionType datastreamVersion : datastream.getDatastreamVersion()) {
-                            if (datastreamVersion.getContentLocation() != null) {
-                                datastreamVersion.setXmlContent(null);
-                                datastreamVersion.setBinaryContent(null);
-                                if (datastreamVersion.getContentLocation() != null) {
-                                    GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(pid, BinaryEditor.NDK_AUDIO_USER_ID);
-                                    InputStream inputStream = dsRaw.execute(client).getEntityInputStream();
-                                    byte[] binaryContent = IOUtils.toByteArray(inputStream);
-                                    datastreamVersion.setBinaryContent(binaryContent);
-                                    datastreamVersion.setContentLocation(null);
-                                }
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    throw new FedoraClientException("Unable to get " + pid + " from Fedora", e);
-                }
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 AkubraObject aobject = akubraStorage.find(pid);
                 dobj = AkubraUtils.getDigitalObjectToExport(aobject.getManager(), pid);
@@ -708,7 +623,7 @@ public final class Kramerius4Export {
                 desctinationObject.getDigitalObject().getDatastream().addAll(datastreamTypes);
             }
             return;
-        } catch (FedoraClientException | JAXBException | IOException ex) {
+        } catch (JAXBException | IOException ex) {
             ex.printStackTrace();
             throw new IllegalStateException(pid, ex);
         }
@@ -818,13 +733,7 @@ public final class Kramerius4Export {
         try {
             exportedPids.add(pid);
             DigitalObject dobj = null;
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                RemoteObject robject = rstorage.find(pid);
-                FedoraClient client = robject.getClient();
-                dobj = FedoraClient.export(pid).context("archive")
-                        .format("info:fedora/fedora-system:FOXML-1.1")
-                        .execute(client).getEntity(DigitalObject.class);
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 AkubraObject object = akubraStorage.find(pid);
                 dobj = AkubraUtils.getDigitalObjectToExport(object.getManager(), pid);
@@ -835,7 +744,7 @@ public final class Kramerius4Export {
             LocalObject local = lstorage.create(foxml, dobj);
             exportParentDatastreams(local, includeChildPids, hasParent(pid));
             local.flush();
-        } catch (DigitalObjectException | FedoraClientException | JAXBException | IOException ex) {
+        } catch (DigitalObjectException | JAXBException | IOException ex) {
             throw new IllegalStateException(pid, ex);
         }
     }
@@ -1105,8 +1014,6 @@ public final class Kramerius4Export {
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } catch (FedoraClientException e) {
-            throw new RuntimeException(e);
         }
 
         try {
@@ -1192,8 +1099,6 @@ public final class Kramerius4Export {
             throw new IllegalStateException(e);
         } catch (IOException e) {
             throw new IllegalStateException(e);
-        } catch (FedoraClientException e) {
-            throw new IllegalStateException(e);
         }
     }
 
@@ -1219,7 +1124,7 @@ public final class Kramerius4Export {
         }
     }
 
-    private List<String> getChildren(String pid) throws DigitalObjectException, IOException, MetsExportException, FedoraClientException {
+    private List<String> getChildren(String pid) throws DigitalObjectException, IOException, MetsExportException {
         ModsDefinition mods = getMods(pid);
         int pageIndexStart = Integer.MIN_VALUE + 1;
         int pageIndexEnd = Integer.MAX_VALUE - 1;
@@ -1315,7 +1220,7 @@ public final class Kramerius4Export {
         return Integer.MIN_VALUE;
     }
 
-    private List<String> getAllChildren(String pid) throws IOException, MetsExportException, FedoraClientException, DigitalObjectException {
+    private List<String> getAllChildren(String pid) throws IOException, MetsExportException, DigitalObjectException {
         String parentPid = getParentPid(pid);
         List<SearchViewItem> allChildrens = new ArrayList<>();
         if (parentPid != null && !parentPid.isEmpty()) {
@@ -1333,11 +1238,7 @@ public final class Kramerius4Export {
     private String getParentPid(String pid) throws IOException, MetsExportException {
         MetsContext metsContext = null;
         ProArcObject object = null;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
-            object = rstorage.find(pid);
-            metsContext = MetsContext.buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
             object = akubraStorage.find(pid);
             metsContext = MetsContext.buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());

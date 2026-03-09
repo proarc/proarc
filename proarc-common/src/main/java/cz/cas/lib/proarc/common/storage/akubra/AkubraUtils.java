@@ -1,14 +1,14 @@
 package cz.cas.lib.proarc.common.storage.akubra;
 
-import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
-import com.yourmediashelf.fedora.util.DateUtility;
+import com.yourmediashelf.fedora.foxml.ContentLocationType;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.PropertyType;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
+import cz.cas.lib.proarc.foxml.utility.DateUtility;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
@@ -59,7 +59,7 @@ public class AkubraUtils {
             JAXBContext jaxbContextKram = JAXBContext.newInstance(new Class[]{DigitalObject.class});
             unmarshallerKram = jaxbContextKram.createUnmarshaller();
             marshallerKram = jaxbContextKram.createMarshaller();
-            JAXBContext jaxbContextPro = JAXBContext.newInstance(new Class[]{com.yourmediashelf.fedora.generated.foxml.DigitalObject.class});
+            JAXBContext jaxbContextPro = JAXBContext.newInstance(new Class[]{DigitalObject.class});
             unmarshallerProArc = jaxbContextPro.createUnmarshaller();
             marshallerProArc = jaxbContextPro.createMarshaller();
         } catch (Exception var8) {
@@ -339,7 +339,7 @@ public class AkubraUtils {
     public static long getLastModified(DigitalObject digitalObject, String dsId) throws IOException {
         DatastreamVersionType stream = AkubraUtils.getLastStreamVersion(digitalObject, dsId);
         if (stream != null) {
-            return DateUtility.parseXSDDateTime(stream.getCREATED().toXMLFormat()).toDate().getTime();
+            return DateUtility.parseXSDDateTime(stream.getCREATED().toXMLFormat()).toInstant().toEpochMilli();
         } else {
             throw new IOException("Cannot find stream '" + dsId + "' for pid '" + digitalObject.getPID() + "'");
         }

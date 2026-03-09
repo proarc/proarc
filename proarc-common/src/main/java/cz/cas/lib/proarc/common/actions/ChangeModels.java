@@ -1,6 +1,6 @@
 package cz.cas.lib.proarc.common.actions;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
@@ -29,7 +29,6 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.DetailDefinition;
@@ -51,7 +50,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 
 
 public class ChangeModels {
@@ -804,11 +802,7 @@ public class ChangeModels {
         try {
             MetsContext metsContext = null;
             ProArcObject object = null;
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
-                object = rstorage.find(pid);
-                metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 metsContext = buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());

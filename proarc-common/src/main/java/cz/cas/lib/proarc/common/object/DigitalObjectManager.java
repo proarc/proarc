@@ -38,8 +38,6 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.WorkflowStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraDao;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.UserManager;
@@ -105,7 +103,6 @@ public class DigitalObjectManager {
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
     private final BatchManager ibm;
-    private FedoraStorage remotes;
     private AkubraStorage akubraStorage;
     private final MetaModelRepository models;
     private final UserManager userManager;
@@ -190,9 +187,7 @@ public class DigitalObjectManager {
             if (pid == null) {
                 throw new NullPointerException("pid");
             }
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                fobject = getRemotes().find(pid);
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 fobject = getAkubraStorage().find(pid);
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
@@ -219,17 +214,6 @@ public class DigitalObjectManager {
         return new CreateHierarchyHandler(model, pid, parentPid, user, xml, message);
     }
 
-    private FedoraStorage getRemotes() {
-        if (remotes == null) {
-            try {
-                remotes = FedoraStorage.getInstance(appConfig);
-            } catch (IOException ex) {
-                throw new IllegalStateException(ex);
-            }
-        }
-        return remotes;
-    }
-
     private AkubraStorage getAkubraStorage() {
         if (akubraStorage == null) {
             try {
@@ -253,7 +237,7 @@ public class DigitalObjectManager {
         }
     }
 
-    public class CreateHandler extends FedoraDao {
+    public class CreateHandler {
 
         private final String modelId;
         private String pid;
@@ -756,9 +740,7 @@ public class DigitalObjectManager {
             doHandler.commit();
 
             if (createObject) {
-                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                    getRemotes().ingest(localObject, user.getUserName(), message);
-                } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                     getAkubraStorage().ingest(localObject, parentPid, user.getUserName(), message);
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
@@ -766,10 +748,6 @@ public class DigitalObjectManager {
                 if (parentHandler != null) {
                     parentHandler.commit();
                 }
-            }
-
-            if (tx != null) {
-                tx.addPid(localObject.getPid());
             }
 
             SearchViewItem item = new SearchViewItem(localObject.getPid());

@@ -16,13 +16,12 @@
  */
 package cz.cas.lib.proarc.common.process.imports.kramerius;
 
-import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-import com.yourmediashelf.fedora.generated.foxml.XmlContentType;
-import com.yourmediashelf.fedora.util.DateUtility;
+import com.yourmediashelf.fedora.foxml.ContentLocationType;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.PropertyType;
+import com.yourmediashelf.fedora.foxml.XmlContentType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
@@ -58,8 +57,8 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
+import cz.cas.lib.proarc.foxml.utility.DateUtility;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -295,9 +294,7 @@ public class FileReader {
         if (lObj == null) {
             File objFile = new File(targetFolder, getFoxmlFilename(index, pid));
             ProArcObject object = null;
-            if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
-                object = iSession.getRemotes().find(pid);
-            } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
                 object = iSession.getAkubraStorage().find(pid);
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + iSession.getTypeOfStorage());
@@ -1065,7 +1062,6 @@ public class FileReader {
         private final LocalStorage locals;
         private final SearchView search;
         private final Storage typeOfStorage;
-        private FedoraStorage remotes;
         private AkubraStorage akubraStorage;
         /**
          * The user cache.
@@ -1075,10 +1071,7 @@ public class FileReader {
         public ImportSession(BatchManager ibm, ImportProcess.ImportOptions options, AppConfiguration config) {
             this.typeOfStorage = config.getTypeOfStorage();
             try {
-                if (Storage.FEDORA.equals(typeOfStorage)) {
-                    this.remotes = FedoraStorage.getInstance();
-                    this.search = this.remotes.getSearch();
-                } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                if (Storage.AKUBRA.equals(typeOfStorage)) {
                     AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
                     this.akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     this.search = this.akubraStorage.getSearch();
@@ -1100,10 +1093,6 @@ public class FileReader {
 
         public LocalStorage getLocals() {
             return locals;
-        }
-
-        public FedoraStorage getRemotes() {
-            return remotes;
         }
 
         public Storage getTypeOfStorage() {

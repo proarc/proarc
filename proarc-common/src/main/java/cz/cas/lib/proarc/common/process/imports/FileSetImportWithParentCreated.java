@@ -38,7 +38,6 @@ import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
@@ -125,9 +124,7 @@ public class FileSetImportWithParentCreated extends FileSetImport {
                         batch.setState(Batch.State.LOADED);
                         batch.setUpdated(new Timestamp(System.currentTimeMillis()));
                         batchManager.update(batch);
-                        if (Storage.FEDORA.equals(configuration.getTypeOfStorage())) {
-                            batch = new FedoraImport(configuration, FedoraStorage.getInstance(configuration), batchManager, importConfig.getUser(), importConfig).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");
-                        } else if (Storage.AKUBRA.equals(configuration.getTypeOfStorage())) {
+                        if (Storage.AKUBRA.equals(configuration.getTypeOfStorage())) {
                             AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(configuration.getConfigHome());
                             batch = new AkubraImport(configuration, akubraConfiguration, batchManager, importConfig.getUser(), importConfig).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");
                         } else {

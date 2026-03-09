@@ -16,8 +16,7 @@
  */
 package cz.cas.lib.proarc.common.storage.akubra;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
@@ -76,7 +75,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.apache.solr.client.solrj.SolrServerException;
 
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
@@ -151,7 +149,7 @@ public final class AkubraImport {
         return batch;
     }
 
-    private void indexParent(ArrayList<String> ingestedPids) throws IOException, FedoraClientException, DigitalObjectException, SolrServerException {
+    private void indexParent(ArrayList<String> ingestedPids) throws IOException, DigitalObjectException, SolrServerException {
         boolean commit = false;
         for (String ingestedPid : ingestedPids) {
             if (ingestedPid.startsWith("uuid")) {
@@ -343,7 +341,7 @@ public final class AkubraImport {
      * was skipped
      * @throws DigitalObjectException failure
      */
-    private BatchItemObject repairItemImpl(BatchItemObject item, String importer) throws DigitalObjectException, IOException, FedoraClientException {
+    private BatchItemObject repairItemImpl(BatchItemObject item, String importer) throws DigitalObjectException, IOException {
         ObjectState state = item.getState();
         if (state == ObjectState.LOADED) {
             // ingest

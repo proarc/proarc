@@ -20,7 +20,6 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
@@ -61,9 +60,7 @@ public class UrnNbnService {
             this.client = appConfig.getUrnNbnConfiguration().getClient(resolverConfig);
         }
         try {
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                search = FedoraStorage.getInstance().getSearch();
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
                 search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
             } else {

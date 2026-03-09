@@ -16,13 +16,7 @@
  */
 package cz.cas.lib.proarc.common.process.export;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.client.response.FedoraResponse;
-import com.yourmediashelf.fedora.client.response.ListDatastreamsResponse;
-import com.yourmediashelf.fedora.generated.access.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
@@ -42,9 +36,8 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
 import jakarta.xml.bind.JAXBException;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -69,8 +62,6 @@ import javax.xml.transform.TransformerException;
 public final class DataStreamExport {
 
     private static final Logger LOG = Logger.getLogger(DataStreamExport.class.getName());
-
-    private FedoraStorage rstorage;
     /**
      * already exported PIDs to prevent loops
      */
@@ -86,15 +77,6 @@ public final class DataStreamExport {
 
     public DataStreamExport(AppConfiguration configuration, AkubraConfiguration akubraConfiguration) throws IOException {
         this.appConfig = configuration;
-        this.akubraConfiguration = akubraConfiguration;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            this.rstorage = FedoraStorage.getInstance(appConfig);
-        }
-    }
-
-    public DataStreamExport(FedoraStorage fedoraStorage, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
-        this.rstorage = fedoraStorage;
-        this.appConfig = appConfig;
         this.akubraConfiguration = akubraConfiguration;
     }
 
@@ -128,11 +110,7 @@ public final class DataStreamExport {
 
         ProArcObject object = null;
         try {
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                object = rstorage.find(pid);
-                extension = getRemoteExtension(dsIds, getDataStreams((RemoteObject) object));
-                dsIds = filterRemoteDataStreams(dsIds, getDataStreams((RemoteObject) object));
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 extension = getAkubraExtension(dsIds, (AkubraObject) object);
@@ -140,7 +118,7 @@ public final class DataStreamExport {
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
-        } catch (DigitalObjectException | IOException | FedoraClientException e) {
+        } catch (DigitalObjectException | IOException e) {
             throw new ExportException(pid, e);
         }
 
@@ -157,16 +135,14 @@ public final class DataStreamExport {
         for (String dsId : dsIds) {
             try {
                 exportPid(target, object, dsId, extension);
-            } catch (TransformerException | JAXBException | DigitalObjectException | IOException |
-                     FedoraClientException |
-                     MetsExportException ex) {
+            } catch (TransformerException | JAXBException | DigitalObjectException | IOException | MetsExportException ex) {
                 throw new ExportException(filename(pid, dsId), ex);
             }
         }
 
     }
 
-    private void exportPid(File target, ProArcObject object, String dsId, String extension) throws FedoraClientException, IOException, MetsExportException, DigitalObjectException, JAXBException, TransformerException {
+    private void exportPid(File target, ProArcObject object, String dsId, String extension) throws IOException, MetsExportException, DigitalObjectException, JAXBException, TransformerException {
         InputStream input = getDataStreamDissemination(object, dsId);
         String filename = filename(object.getPid(), MimeType.getExtension(extension));
         if (Const.RAW_GRP_ID.equals(dsId)) {
@@ -209,10 +185,7 @@ public final class DataStreamExport {
             MetsContext metsContext = null;
             ProArcObject object = null;
 
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                object = rstorage.find(pid);
-                metsContext = MetsContext.buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 metsContext = MetsContext.buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
@@ -229,41 +202,13 @@ public final class DataStreamExport {
         }
     }
 
-    private InputStream getDataStreamDissemination(ProArcObject fo, String dsId) throws FedoraClientException, JAXBException, IOException, TransformerException {
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            FedoraResponse response = FedoraClient.getDatastreamDissemination(fo.getPid(), dsId)
-                    .execute(((RemoteObject) fo).getClient());
-            InputStream input = response.getEntityInputStream();
-            return input;
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+    private InputStream getDataStreamDissemination(ProArcObject fo, String dsId) throws JAXBException, IOException, TransformerException {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             InputStream inputStream = AkubraUtils.getDatastreamDissemination((AkubraObject) fo, dsId);
             return inputStream;
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
         }
-    }
-
-    private List<DatastreamType> getDataStreams(RemoteObject remote) throws FedoraClientException {
-        ListDatastreamsResponse response = FedoraClient.listDatastreams(remote.getPid())
-                .execute(remote.getClient());
-        return response.getDatastreams();
-    }
-
-    /**
-     * FedoraClient.getDatastreamDissemination throws HTTP 404 in case of
-     * undefined streams.
-     */
-    private List<String> filterRemoteDataStreams(List<String> dsIds, List<DatastreamType> streams) {
-        ArrayList<String> result = new ArrayList<String>(dsIds.size());
-        for (DatastreamType stream : streams) {
-            if (dsIds.contains(stream.getDsid())) {
-                result.add(stream.getDsid());
-                if (dsIds.size() == result.size()) {
-                    break;
-                }
-            }
-        }
-        return result;
     }
 
     private List<String> filterAkubraDataStreams(List<String> dsIds, AkubraObject object) throws DigitalObjectException {
@@ -278,15 +223,6 @@ public final class DataStreamExport {
             }
         }
         return result;
-    }
-
-    private String getRemoteExtension(List<String> dsId, List<DatastreamType> streams) {
-        for (DatastreamType stream : streams) {
-            if (dsId.contains(stream.getDsid())) {
-                return stream.getMimeType();
-            }
-        }
-        return "";
     }
 
     private String getAkubraExtension(List<String> dsIds, AkubraObject object) throws DigitalObjectException {

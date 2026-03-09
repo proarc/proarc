@@ -16,12 +16,8 @@
  */
 package cz.cas.lib.proarc.common.storage;
 
-
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.object.technicalMetadata.CodingHistoryMapper;
@@ -39,7 +35,7 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
 import edu.harvard.hul.ois.xml.ns.jhove.Property;
 import edu.harvard.hul.ois.xml.ns.jhove.PropertyType;
 import java.io.File;
@@ -51,7 +47,6 @@ import java.util.logging.Logger;
 import javax.xml.transform.Source;
 
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 
 /**
  * Edits technical metadata in Coding history format.
@@ -183,10 +178,7 @@ public class CodingHistoryEditor {
             DatastreamType ndkArchivalDS = FoxmlUtils.findDatastream(element.getSourceObject(), BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
             if (ndkArchivalDS != null) {
                 InputStream inputStream = null;
-                if (Storage.FEDORA.equals(element.getMetsContext().getTypeOfStorage())) {
-                    GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(element.getOriginalPid(), BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
-                    inputStream = dsRaw.execute(element.getMetsContext().getFedoraClient()).getEntityInputStream();
-                } else if (Storage.AKUBRA.equals(element.getMetsContext().getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(element.getMetsContext().getTypeOfStorage())) {
                     AkubraObject object = element.getMetsContext().getAkubraStorage().find(element.getOriginalPid());
                     inputStream = AkubraUtils.getDatastreamDissemination(object, BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
                 } else {
@@ -241,11 +233,7 @@ public class CodingHistoryEditor {
         MetsContext metsContext = null;
         ProArcObject object = null;
 
-        if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-            FedoraStorage fedoraStorage = FedoraStorage.getInstance(config);
-            object = fedoraStorage.find(pid);
-            metsContext = buildFedoraContext(object, null, null, fedoraStorage, config.getNdkExportOptions());
-        } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
             object = akubraStorage.find(pid);
             metsContext = buildAkubraContext(object, null, null, akubraStorage, config.getNdkExportOptions());

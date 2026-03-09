@@ -29,7 +29,6 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
@@ -96,10 +95,7 @@ public class DeviceResourceV1 {
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
         this.session = SessionContext.from(httpRequest);
         this.user = session.getUser();
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            this.devRepo = new DeviceRepository(FedoraStorage.getInstance(appConfig));
-            this.akubraConfiguration = null;
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
             this.devRepo = new DeviceRepository(AkubraStorage.getInstance(akubraConfiguration));
         } else {

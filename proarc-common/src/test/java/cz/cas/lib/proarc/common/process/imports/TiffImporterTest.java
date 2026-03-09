@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.process.imports;
 
-import com.yourmediashelf.fedora.generated.foxml.ObjectFactory;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
@@ -45,6 +44,7 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.foxml.management.ObjectFactory;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;

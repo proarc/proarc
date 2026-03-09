@@ -16,25 +16,19 @@
 
 package cz.cas.lib.proarc.common.process.export.sip;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveProducer;
-import cz.cas.lib.proarc.common.process.export.mockrepository.MockSearchView;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import mockit.Mock;
-import mockit.MockUp;
-import mockit.Mocked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -45,9 +39,6 @@ public class NdkEbornArchivalTest {
 
     @TempDir
     File tempDir;
-
-    @Mocked
-    private FedoraClient client;
 
     private final AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
     private AkubraConfiguration akubraConfiguration = null;
@@ -62,15 +53,6 @@ public class NdkEbornArchivalTest {
         } else {
             this.akubraConfiguration = null;
         }
-
-        new MockSearchView();
-
-        new MockUp<FedoraStorage>() {
-            @Mock
-            FedoraStorage getInstance() {
-                return new FedoraStorage(client);
-            }
-        };
 
         DigitalObjectManager.setDefault(new DigitalObjectManager(
                 appConfig, akubraConfiguration,

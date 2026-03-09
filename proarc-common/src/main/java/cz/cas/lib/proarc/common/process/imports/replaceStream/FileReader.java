@@ -26,7 +26,6 @@ import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.MixEditor;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.Storage;
@@ -47,7 +46,6 @@ import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
 import cz.incad.imgsupport.ImageMimeType;
 import cz.incad.imgsupport.ImageSupport;
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -83,7 +81,7 @@ public class FileReader {
         }
     }
 
-    private void readImpl(File file, ImportProcess.ImportOptions context) throws IOException, FedoraClientException, AppConfigurationException, MetsExportException {
+    private void readImpl(File file, ImportProcess.ImportOptions context) throws IOException, AppConfigurationException, MetsExportException {
         String pid = getPid(file);
         List<SearchViewItem> items = iSession.getSearch().find(pid);
         if (items == null || items.isEmpty()) {
@@ -360,16 +358,12 @@ public class FileReader {
         private final LocalStorage locals;
         private final SearchView search;
         private final Storage typeOfStorage;
-        private FedoraStorage remotes;
         private AkubraStorage akubraStorage;
 
         public ImportSession(BatchManager ibm, ImportProcess.ImportOptions options, AppConfiguration config) {
             this.typeOfStorage = config.getTypeOfStorage();
             try {
-                if (Storage.FEDORA.equals(typeOfStorage)) {
-                    this.remotes = FedoraStorage.getInstance();
-                    this.search = this.remotes.getSearch();
-                } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                if (Storage.AKUBRA.equals(typeOfStorage)) {
                     AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
                     this.akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     this.search = this.akubraStorage.getSearch();
@@ -391,10 +385,6 @@ public class FileReader {
 
         public LocalStorage getLocals() {
             return locals;
-        }
-
-        public FedoraStorage getRemotes() {
-            return remotes;
         }
 
         public Storage getTypeOfStorage() {

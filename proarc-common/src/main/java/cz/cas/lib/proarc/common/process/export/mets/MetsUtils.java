@@ -17,12 +17,10 @@
 
 package cz.cas.lib.proarc.common.process.export.mets;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.response.FedoraResponse;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.PropertyType;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.object.K4Plugin;
 import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
@@ -530,38 +528,8 @@ public class MetsUtils {
         is.close();
     }
 
-    /**
-     *
-     * Returns the byteArray of the specified datastream from fedora
-     *
-     * @param fedoraClient
-     * @param metsElement
-     * @param streamName
-     * @return
-     * @throws MetsExportException
-     */
-    public static byte[] getBinaryDataStreams(FedoraClient fedoraClient, IMetsElement metsElement, String streamName) throws MetsExportException {
-        try {
-            DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), streamName);
-            if (rawDS != null) {
-                FedoraResponse response = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), streamName).execute(fedoraClient);
-                InputStream is = response.getEntityInputStream();
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                copyStream(is, bos);
-                bos.close();
-                return bos.toByteArray();
-            } else {
-                return null;
-            }
-        } catch (Exception ex) {
-            throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting stream " + streamName + " from " + metsElement.getElementType(), false, ex);
-        }
-    }
-
     public static byte[] getBinaryDataStreams(IMetsElement metsElement, String streamName) throws MetsExportException {
-        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            return getBinaryDataStreams(metsElement.getMetsContext().getFedoraClient(), metsElement, streamName);
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             return getBinaryDataStreams(metsElement.getMetsContext().getAkubraStorage(), metsElement, streamName);
         } else if (Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             return getBinaryDataStreams(metsElement.getSourceObject().getDatastream(), "STRUCT_MAP");
@@ -692,9 +660,7 @@ public class MetsUtils {
         if (pid == null) {
             return null;
         }
-        if (Storage.FEDORA.equals(metsContext.getTypeOfStorage())) {
-            return readFoXML(pid, metsContext.getFedoraClient());
-        } else if (Storage.AKUBRA.equals(metsContext.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsContext.getTypeOfStorage())) {
             AkubraStorage akubraStorage = metsContext.getAkubraStorage();
             AkubraObject object = akubraStorage.find(pid);
             return readFoXML(metsContext, object);
@@ -709,9 +675,7 @@ public class MetsUtils {
         if (object.getPid() == null) {
             return null;
         }
-        if (Storage.FEDORA.equals(metsContext.getTypeOfStorage())) {
-            return readFoXML(object.getPid(), metsContext.getFedoraClient());
-        } else if (Storage.AKUBRA.equals(metsContext.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsContext.getTypeOfStorage())) {
             try {
                 return AkubraUtils.getDigitalObjectProArc(((AkubraObject) object).getManager(), object.getPid());
             } catch (JAXBException e) {
@@ -720,32 +684,6 @@ public class MetsUtils {
         } else {
             return null;
         }
-    }
-
-    /**
-     *
-     * Reads and unmarshalls Digital Object from Fedora
-     *
-     * @return
-     */
-    public static DigitalObject readFoXML(String uuid, FedoraClient client) throws MetsExportException {
-        DigitalObject foXMLObject = null;
-        if (uuid == null) {
-            return null;
-        }
-        if (uuid.startsWith("info:fedora/")) {
-            uuid = uuid.substring(uuid.indexOf("/") + 1);
-        }
-        LOG.log(Level.FINE, "Reading document from Fedora:" + uuid);
-        try {
-            FedoraResponse response = FedoraClient.getObjectXML(uuid).execute(client);
-            JAXBContext jaxbContext = JAXBContext.newInstance(DigitalObject.class);
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-            foXMLObject = (DigitalObject) unmarshaller.unmarshal(response.getEntityInputStream());
-        } catch (Exception e) {
-            throw new MetsExportException("Unable to get " + uuid + " from Fedora", false, e);
-        }
-        return foXMLObject;
     }
 
     /**
@@ -1070,19 +1008,6 @@ public class MetsUtils {
 
     /**
      *
-     * Reads referenced object from Fedora
-     *
-     * @param uuid
-     * @param client
-     * @return
-     */
-    public static DigitalObject readRelatedFoXML(String uuid, FedoraClient client) throws MetsExportException {
-        DigitalObject object = readFoXML(uuid, client);
-        return object;
-    }
-
-    /**
-     *
      * Reads referenced object from file
      *
      * @param path
@@ -1096,9 +1021,7 @@ public class MetsUtils {
     }
 
     public static DigitalObject readRelatedFoXML(String uuid, MetsContext context) throws MetsExportException {
-        if (Storage.FEDORA.equals(context.getTypeOfStorage())) {
-            return readRelatedFoXML(uuid, context.getFedoraClient());
-        } else if (Storage.AKUBRA.equals(context.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(context.getTypeOfStorage())) {
             AkubraStorage akubraStorage = context.getAkubraStorage();
             AkubraObject object = akubraStorage.find(uuid);
             return readFoXML(context, object);
@@ -1172,9 +1095,7 @@ public class MetsUtils {
     public static String getParent(String uuid, MetsContext metsContext) throws MetsExportException {
         List<SearchViewItem> referrers;
         try {
-            if (Storage.FEDORA.equals(metsContext.getTypeOfStorage())) {
-                referrers = metsContext.getRemoteStorage().getSearch().findReferrers(uuid);
-            } else if (Storage.AKUBRA.equals(metsContext.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(metsContext.getTypeOfStorage())) {
                 referrers = metsContext.getAkubraStorage().getSearch().findReferrers(uuid);
             } else if (Storage.LOCAL.equals(metsContext.getTypeOfStorage())) {
                 String parent = getParent(uuid, metsContext.getFsParentMap());

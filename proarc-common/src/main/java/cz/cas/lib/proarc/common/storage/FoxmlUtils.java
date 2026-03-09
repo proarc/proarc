@@ -16,19 +16,17 @@
  */
 package cz.cas.lib.proarc.common.storage;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.ObjectFactory;
-import com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-import com.yourmediashelf.fedora.generated.foxml.StateType;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.ObjectPropertiesType;
+import com.yourmediashelf.fedora.foxml.PropertyType;
+import com.yourmediashelf.fedora.foxml.StateType;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
+import cz.cas.lib.proarc.foxml.management.ObjectFactory;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import jakarta.xml.bind.DataBindingException;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
@@ -279,23 +277,6 @@ public final class FoxmlUtils {
         return profile;
     }
 
-
-    /**
-     * Translates {@link com.yourmediashelf.fedora.generated.access.DatastreamType}
-     * to {@link DatastreamProfile}. It searches
-     * for the newest version.
-     * <p>For now it fills only description!
-     */
-    public static DatastreamProfile toDatastreamProfile(String pid,
-                                                        com.yourmediashelf.fedora.generated.access.DatastreamType datastream) {
-
-        DatastreamProfile profile = new DatastreamProfile();
-        profile.setDsID(datastream.getDsid());
-        profile.setDsLabel(datastream.getLabel());
-        profile.setDsMIME(datastream.getMimeType());
-        return profile;
-    }
-
     /**
      * Dumps FOXML object to XML string.
      */
@@ -520,21 +501,6 @@ public final class FoxmlUtils {
         }
         URI location = new URI(sb.toString());
         return location;
-    }
-
-    /**
-     * Check whether failure stands for a missing requested datastream.
-     */
-    public static boolean missingDatastream(FedoraClientException ex) {
-        if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-            // Missing datastream message:
-            // HTTP 404 Error: No datastream could be found. Either there is no datastream for the digital object "uuid:5c3caa12-1e82-4670-a6aa-3d9ff8a7a3c5" with datastream ID of "TEXT_OCR"  OR  there are no datastreams that match the specified date/time value of "null".
-            // Missing object message:
-            // HTTP 404 Error: uuid:5c3caa12-1e82-4670-a6aa-3d9ff8a7a3c56
-            // To check message see fcrepo-server/src/main/java/org/fcrepo/server/rest/DatastreamResource.java
-            return ex.getMessage().contains("No datastream");
-        }
-        return false;
     }
 
     public static boolean missingDatastream(IOException ex) {

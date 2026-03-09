@@ -1,7 +1,6 @@
 package cz.cas.lib.proarc.common.actions;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
@@ -27,7 +26,6 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -45,7 +43,6 @@ import java.util.logging.Logger;
 import static cz.cas.lib.proarc.common.actions.ChangeModels.fixNdkPageMods;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 
 public class UpgradeMetadataObjects {
 
@@ -71,12 +68,9 @@ public class UpgradeMetadataObjects {
         return pids;
     }
 
-    public List<SearchViewItem> findAllObjects() throws IOException, FedoraClientException {
+    public List<SearchViewItem> findAllObjects() throws IOException {
         SearchView search = null;
-        if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-            FedoraStorage remote = FedoraStorage.getInstance(config);
-            search = remote.getSearch(locale);
-        } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
             search = akubraStorage.getSearch(locale);
         } else {
@@ -141,7 +135,7 @@ public class UpgradeMetadataObjects {
     }
 
 
-    public List<SearchViewItem> findObjectsWithType(String pid, String model, String pageType) throws DigitalObjectException, IOException, FedoraClientException {
+    public List<SearchViewItem> findObjectsWithType(String pid, String model, String pageType) throws DigitalObjectException, IOException {
         if (pid != null) {
             IMetsElement element = getElement(pid);
             if (element == null) {
@@ -152,10 +146,7 @@ public class UpgradeMetadataObjects {
 
         SearchView search = null;
         try {
-            if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-                FedoraStorage rstorage = FedoraStorage.getInstance(config);
-                search = rstorage.getSearch(locale);
-            } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 search = akubraStorage.getSearch(locale);
             } else {
@@ -201,11 +192,7 @@ public class UpgradeMetadataObjects {
         try {
             MetsContext metsContext = null;
             ProArcObject object = null;
-            if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-                FedoraStorage rstorage = FedoraStorage.getInstance(config);
-                object = rstorage.find(pid);
-                metsContext = buildFedoraContext(object, null, null, rstorage, config.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 metsContext = buildAkubraContext(object, null, null, akubraStorage, config.getNdkExportOptions());
