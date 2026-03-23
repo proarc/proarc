@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.storage.PageView.Item;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
@@ -34,54 +35,67 @@ import jakarta.xml.bind.annotation.XmlElement;
 public abstract class AnnotatedPageViewItem extends Item {
 
     @XmlElement(name = ImportResourceApi.BATCHITEM_BATCHID)
+    @JsonProperty(ImportResourceApi.BATCHITEM_BATCHID)
     @Override
     public abstract Integer getBatchId();
 
     @XmlElement(name = ImportResourceApi.BATCHITEM_FILENAME)
+    @JsonProperty(ImportResourceApi.BATCHITEM_FILENAME)
     @Override
     public abstract String getFilename();
 
     @XmlElement(name = ImportResourceApi.BATCHITEM_PID)
+    @JsonProperty(ImportResourceApi.BATCHITEM_PID)
     @Override
     public abstract String getPid();
 
     @XmlElement(name = ImportResourceApi.BATCHITEM_MODEL)
+    @JsonProperty(ImportResourceApi.BATCHITEM_MODEL)
     @Override
     public abstract String getModel();
 
     @XmlElement(name = ImportResourceApi.BATCHITEM_PAGEINDEX)
+    @JsonProperty(ImportResourceApi.BATCHITEM_PAGEINDEX)
     @Override
     public abstract String getPageIndex();
 
     @XmlElement(name = ImportResourceApi.BATCHITEM_PAGENUMBER)
+    @JsonProperty(ImportResourceApi.BATCHITEM_PAGENUMBER)
     @Override
     public abstract String getPageNumber();
 
     @XmlElement(name = ImportResourceApi.BATCHITEM_PAGETYPE)
+    @JsonProperty(ImportResourceApi.BATCHITEM_PAGETYPE)
     @Override
     public abstract String getPageType();
 
     @XmlElement(name = ImportResourceApi.BATCHITEM_PAGETYPELABEL)
+    @JsonProperty(ImportResourceApi.BATCHITEM_PAGETYPELABEL)
     @Override
     public abstract String getPageTypeLabel();
 
     @XmlElement(name = ImportResourceApi.BATCHITEM_TIMESTAMP)
+    @JsonProperty(ImportResourceApi.BATCHITEM_TIMESTAMP)
     @Override
     public abstract long getTimestamp();
 
     @XmlElement(name = ImportResourceApi.BATCHITEM_USER)
+    @JsonProperty(ImportResourceApi.BATCHITEM_USER)
     @Override
     public abstract String getUser();
 
     @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_LABEL)
+    @JsonProperty(DigitalObjectResourceApi.MEMBERS_ITEM_LABEL)
     @Override
     public abstract String getLabel();
 
     @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PAGE_POSITION)
+    @JsonProperty(DigitalObjectResourceApi.MEMBERS_ITEM_PAGE_POSITION)
     @Override
     public abstract String getPagePosition();
 
     @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PAGE_REPRE)
+    @JsonProperty(DigitalObjectResourceApi.MEMBERS_ITEM_PAGE_REPRE)
     @Override
     public abstract String getPageRepre();
 

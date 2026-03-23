@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
 import java.util.logging.Logger;
 
 /**
@@ -68,9 +69,10 @@ public final class JsonUtils {
      */
     public static ObjectMapper createJaxbMapper() {
         ObjectMapper om = createObjectMapper(createObjectMapper());
+        om.registerModule(new JaxbAnnotationModule());
         JaxbAnnotationIntrospector jaxbIntr = new JaxbAnnotationIntrospector(om.getTypeFactory());
         JacksonAnnotationIntrospector jsonIntr = new JacksonAnnotationIntrospector();
-        om.setAnnotationIntrospector(new AnnotationIntrospectorPair(jsonIntr, jaxbIntr));
+        om.setAnnotationIntrospector(new AnnotationIntrospectorPair(jaxbIntr, jsonIntr));
         return om;
     }
 

@@ -48,7 +48,7 @@ public class OldPrintOmnibusVolumeMapper extends RdaNdkMapper {
     private void removeOtherTitleInfo(ModsDefinition mods) {
         TitleInfoDefinition titleInfoDefinition = null;
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            if (titleInfo != null && titleInfo.getType() == null) {
+            if (titleInfo != null && titleInfo.getTypeEnum() == null) {
                 titleInfoDefinition = titleInfo;
             }
         }

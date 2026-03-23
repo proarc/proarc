@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.user.UserSetting;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -34,22 +35,27 @@ import java.sql.Timestamp;
 public abstract class AnnotatedUserSetting extends UserSetting {
 
     @XmlElement(name = UserResourceApi.USER_ID)
+    @JsonProperty(UserResourceApi.USER_ID)
     @Override
     public abstract Integer getUserId();
 
     @XmlElement(name = UserResourceApi.USER_SETTING)
+    @JsonProperty(UserResourceApi.USER_SETTING)
     @Override
     public abstract String getUserSetting();
 
     @XmlElement(name = UserResourceApi.USER_TIMESTAMP)
+    @JsonProperty(UserResourceApi.USER_TIMESTAMP)
     @Override
     public abstract Timestamp getTimestamp();
 
     @XmlElement(name = "id")
+    @JsonProperty("id")
     @Override
     public abstract Integer getId();
 
     @XmlElement(name = "validation")
+    @JsonProperty("validation")
     @Override
     public abstract String getValidation();
 }

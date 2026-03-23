@@ -574,11 +574,11 @@ public class PremisEditor {
             Document document = db.newDocument();
 
             // Marshal the Object to a Document
-            Marshaller marshaller = jc.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-            marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
-            marshaller.marshal(jaxbPremix, document);
+                Marshaller marshaller = jc.createMarshaller();
+                marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+                marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+                marshaller.setProperty("org.glassfish.jaxb.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
+                marshaller.marshal(jaxbPremix, document);
             XPath xpath = XPathFactory.newInstance().newXPath();
             Node premisNode = (Node) xpath.compile("*[local-name()='premis']/*[local-name()='object']").evaluate(document, XPathConstants.NODE);
             return premisNode;

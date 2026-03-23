@@ -458,7 +458,7 @@ public class ModsDataHandler {
     private void fillIssueSeries(ModsDefinition mods, String partNumberVal, String dateIssuedVal, String dateIssuedEndOfRangeVal) {
         if (partNumberVal != null) {
             TitleInfoDefinition titleInfo = mods.getTitleInfo().stream()
-                    .filter(ti -> ti.getType() == null).findFirst().orElse(null);
+                    .filter(ti -> ti.getTypeEnum() == null).findFirst().orElse(null);
             if (titleInfo == null) {
                 mods.getTitleInfo().add(titleInfo = new TitleInfoDefinition());
             }
@@ -560,7 +560,7 @@ public class ModsDataHandler {
 
     public static void inheritTitleInfo(ModsDefinition mods, List<TitleInfoDefinition> tis) {
         for (TitleInfoDefinition ti : tis) {
-            if (ti.getType() == null) {
+            if (ti.getTypeEnum() == null) {
                 ti.getPartNumber().clear();
                 ti.getPartName().clear();
                 ti.getNonSort().clear();
@@ -596,7 +596,7 @@ public class ModsDataHandler {
 
     public static final void inheritSupplementTitleInfo(ModsDefinition mods, List<TitleInfoDefinition> tis) {
         for (TitleInfoDefinition ti : tis) {
-            if (ti.getType() == null) {
+            if (ti.getTypeEnum() == null) {
                 ti.getPartNumber().clear();
                 ti.getPartName().clear();
                 ti.getNonSort().clear();

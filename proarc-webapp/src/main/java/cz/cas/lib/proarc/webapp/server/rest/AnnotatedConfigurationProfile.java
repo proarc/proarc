@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -39,18 +40,22 @@ public abstract class AnnotatedConfigurationProfile extends ConfigurationProfile
     }
 
     @XmlElement(name = ConfigurationProfileResourceApi.PROFILE_ID)
+    @JsonProperty(ConfigurationProfileResourceApi.PROFILE_ID)
     @Override
     public abstract String getId();
 
     @XmlElement(name = ConfigurationProfileResourceApi.PROFILE_LABEL)
+    @JsonProperty(ConfigurationProfileResourceApi.PROFILE_LABEL)
     @Override
     public abstract String getLabel();
 
     @XmlElement(name = ConfigurationProfileResourceApi.PROFILE_DESCRIPTION)
+    @JsonProperty(ConfigurationProfileResourceApi.PROFILE_DESCRIPTION)
     @Override
     public abstract String getDescription();
 
     @XmlElement(name = ConfigurationProfileResourceApi.PROFILE_ERROR)
+    @JsonProperty(ConfigurationProfileResourceApi.PROFILE_ERROR)
     @Override
     public abstract String getError();
 

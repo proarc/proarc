@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.common.process.external;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -108,10 +107,16 @@ public class ExternalProcess implements Runnable {
         if (exec == null) {
             throw new IllegalStateException("Missing 'exec'!");
         }
-        String[] args = conf.getStringArray(PROP_ARG);
+        List<String> args= conf.getList(String.class, PROP_ARG);
         List<String> cmdLine = new ArrayList<String>();
         cmdLine.add(exec);
-        cmdLine.addAll(Arrays.asList(args));
+        for (String arg : args) {
+            if (arg.contains("\\")) {
+                arg = arg.replaceAll("\\\\", "");
+            }
+            cmdLine.add(arg);
+        }
+//        cmdLine.addAll(Arrays.asList(args));
         return cmdLine;
     }
 

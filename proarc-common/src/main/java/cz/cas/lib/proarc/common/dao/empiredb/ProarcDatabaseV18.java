@@ -129,7 +129,7 @@ public class ProarcDatabaseV18 extends DBDatabase {
             driver.getDDLScript(DBCmdType.CREATE, schema.tableUser.sysAdminFunction, script);
 
             LOG.fine(script.toString());
-            script.run(driver, conn);
+            script.executeAll(driver, conn);
 
             Statement statement = conn.createStatement();
             statement.addBatch("UPDATE proarc_users SET change_model_function = FALSE, update_model_function = FALSE, lock_object_function = FALSE, unlock_object_function = FALSE, czidlo_function = FALSE,  import_to_catalog_function = FALSE, change_objects_owner_function = FALSE, device_function = FALSE, change_pages_function = FALSE, wf_create_job_function = FALSE, create_user_function = FALSE, update_user_function = FALSE, delete_user_function = FALSE, solr_function = FALSE, delete_action_function = FALSE, all_objects_function = FALSE, prepare_batch_function = FALSE, sys_admin_function = FALSE, import_to_prod_function = FALSE, wf_delete_job_function = FALSE;");
@@ -687,7 +687,7 @@ public class ProarcDatabaseV18 extends DBDatabase {
         DBSQLScript script = new DBSQLScript();
         db.getCreateDDLScript(db.getDriver(), script);
         LOG.fine(script.toString());
-        script.run(db.getDriver(), conn);
+        script.executeAll(db.getDriver(), conn);
         db.initVersion(conn, null);
         db.commit(conn);
         conn.setAutoCommit(false);

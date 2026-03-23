@@ -171,7 +171,7 @@ public class ProarcDatabaseTest {
 //            System.out.println("### drop script:\n" + script);
             conn.setAutoCommit(true);
             try {
-                script.run(driver, conn, true);
+                script.executeAll(driver, conn, true);
             } finally {
                 conn.setAutoCommit(false);
             }

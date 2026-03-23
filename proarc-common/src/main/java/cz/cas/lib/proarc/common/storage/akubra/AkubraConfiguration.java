@@ -21,6 +21,7 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.ReloadingFileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.reloading.PeriodicReloadingTrigger;
 
@@ -64,6 +65,7 @@ public class AkubraConfiguration {
         try {
             // envConfig contains interpolated properties
             PropertiesConfiguration envConfig = new PropertiesConfiguration();
+            envConfig.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
             envConfig.addProperty(PROPERTY_APP_HOME, configHome.getPath());
             cc.addConfiguration(envConfig);
 
@@ -79,6 +81,10 @@ public class AkubraConfiguration {
                     new PeriodicReloadingTrigger(builder.getReloadingController(), null, 5, TimeUnit.SECONDS);
             trigger.start();
 
+            PropertiesConfiguration userConfig = builder.getConfiguration();
+            userConfig.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
+            cc.addConfiguration(userConfig);
+
             try {
                 // bundled default configurations
                 Enumeration<URL> resources = AppConfiguration.class.getClassLoader()
@@ -87,6 +93,7 @@ public class AkubraConfiguration {
                     URL resource = resources.nextElement();
                     LOG.log(Level.FINE, "classpath config: {0}", resource);
                     PropertiesConfiguration defaults = new PropertiesConfiguration();
+                    defaults.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
 
                     try (Reader reader = new InputStreamReader(resource.openStream(), StandardCharsets.UTF_8)) {
                         defaults.read(reader);

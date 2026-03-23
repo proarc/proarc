@@ -380,7 +380,7 @@ public class ChangeModels {
         if (rootMods != null) {
             TitleInfoDefinition title = null;
             for (TitleInfoDefinition titleInfo : rootMods.getTitleInfo()) {
-                if (titleInfo.getType() == null) {
+                if (titleInfo.getTypeEnum() == null) {
                     title = titleInfo;
                     break;
                 }
@@ -538,7 +538,7 @@ public class ChangeModels {
             }
             TitleInfoDefinition rootTitleInfo = null;
             for (TitleInfoDefinition titleInfo : rootMods.getTitleInfo()) {
-                if (titleInfo.getType() == null) {
+                if (titleInfo.getTypeEnum() == null) {
                     rootTitleInfo = titleInfo;
                     break;
                 }

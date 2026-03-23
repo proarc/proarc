@@ -53,8 +53,10 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.ReloadingFileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.reloading.PeriodicReloadingTrigger;
+import org.apache.commons.configuration2.tree.OverrideCombiner;
 
 import static cz.cas.lib.proarc.common.process.imports.ImportProfile.GENERATE_PDFA_PROCESSOR;
 
@@ -364,8 +366,11 @@ public final class AppConfiguration {
 
     private void buildConfiguration(CombinedConfiguration cc, File cfgFile) {
         try {
+            cc.setNodeCombiner(new OverrideCombiner());
+
             // envConfig contains interpolated properties
             PropertiesConfiguration envConfig = new PropertiesConfiguration();
+            envConfig.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
             envConfig.addProperty(PROPERTY_APP_HOME, configHome.getPath());
             cc.addConfiguration(envConfig);
 
@@ -373,14 +378,16 @@ public final class AppConfiguration {
             Parameters parameters = new Parameters();
             ReloadingFileBasedConfigurationBuilder<PropertiesConfiguration> builder =
                     new ReloadingFileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
-                            .configure(parameters.fileBased().setFile(cfgFile).setEncoding("UTF-8"));
+                            .configure(parameters.fileBased().setFile(cfgFile).setEncoding("UTF-8")
+                                    .setListDelimiterHandler(new DefaultListDelimiterHandler(',')));
 
             // auto reload every 5 seconds
             PeriodicReloadingTrigger trigger =
                     new PeriodicReloadingTrigger(builder.getReloadingController(), null, 5, TimeUnit.SECONDS);
             trigger.start();
 
-            cc.addConfiguration(builder.getConfiguration());
+            PropertiesConfiguration userConfig = builder.getConfiguration();
+            cc.addConfiguration(userConfig);
 
             try {
                 // bundled default configurations
@@ -390,6 +397,7 @@ public final class AppConfiguration {
                     URL resource = resources.nextElement();
                     LOG.log(Level.FINE, "classpath config: {0}", resource);
                     PropertiesConfiguration defaults = new PropertiesConfiguration();
+                    defaults.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
 
                     try (Reader reader = new InputStreamReader(resource.openStream(), StandardCharsets.UTF_8)) {
                         defaults.read(reader);

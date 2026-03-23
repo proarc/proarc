@@ -1365,7 +1365,7 @@ public class MetsUtils {
         if (m == null) {
             m = defaultJaxbContext().createUnmarshaller();
 //            m.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
-//            m.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
+//            m.setProperty("org.glassfish.jaxb.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
             defaultUnmarshaller.set(m);
 
         }
@@ -1378,7 +1378,7 @@ public class MetsUtils {
             // later we could use a pool to minimize Marshaller instances
             m = defaultJaxbContext().createMarshaller();
             m.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-            m.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
+            m.setProperty("org.glassfish.jaxb.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
             defaultMarshaller.set(m);
         }
         m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, indent);

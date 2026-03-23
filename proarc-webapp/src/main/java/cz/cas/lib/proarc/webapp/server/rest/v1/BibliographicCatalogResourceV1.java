@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import cz.cas.lib.proarc.common.catalog.BibliographicCatalog;
 import cz.cas.lib.proarc.common.catalog.MetadataItem;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -154,9 +156,12 @@ public class BibliographicCatalogResourceV1 {
         }
 
         @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_ID)
+        @JsonProperty(BibliographicCatalogResourceApi.CATALOG_ID)
         private String id;
         @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_NAME)
+        @JsonProperty(BibliographicCatalogResourceApi.CATALOG_NAME)
         private String name;
+        @JsonProperty(BibliographicCatalogResourceApi.CATALOG_FIELDS)
         @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_FIELDS)
         private List<FieldDescriptor> fields;
 
@@ -175,7 +180,9 @@ public class BibliographicCatalogResourceV1 {
     public static class FieldDescriptor {
 
         @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_FIELD_ID)
+        @JsonProperty(BibliographicCatalogResourceApi.CATALOG_FIELD_ID)
         private String id;
+        @JsonProperty(BibliographicCatalogResourceApi.CATALOG_FIELD_TITLE)
         @XmlElement(name = BibliographicCatalogResourceApi.CATALOG_FIELD_TITLE)
         private String title;
 
@@ -193,10 +200,12 @@ public class BibliographicCatalogResourceV1 {
      * JAXB helper to list items.
      */
     @XmlRootElement(name = "metadataCatalogEntries")
+    @JsonRootName( "metadataCatalogEntries")
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class MetadataList<E extends MetadataItem> {
 
         @XmlElement(name = "entry")
+        @JsonProperty("entry")
         List<E> list;
 
         public MetadataList() {

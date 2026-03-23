@@ -88,13 +88,13 @@ public final class EmpireGroupDao extends EmpireDao implements GroupDao {
             } else {
                 dbr.read(table, new Object[] {group.getId()}, getConnection());
             }
-            dbr.setBeanValues(group);
+            dbr.setRecordValues(group);
             try {
                 dbr.update(getConnection());
             } catch (RecordUpdateInvalidException ex) {
                 throw new ConcurrentModificationException(ex);
             }
-            dbr.getBeanProperties(group);
+            dbr.setBeanProperties(group);
         } finally {
             dbr.close();
         }
@@ -106,7 +106,7 @@ public final class EmpireGroupDao extends EmpireDao implements GroupDao {
         try {
             dbr.read(table, id, getConnection());
             Group group = new Group();
-            dbr.getBeanProperties(group);
+            dbr.setBeanProperties(group);
             return group;
         } catch (RecordNotFoundException ex) {
             return null;

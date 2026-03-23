@@ -89,13 +89,13 @@ public class EmpireUserDao extends EmpireDao implements UserDao {
                 }
                 user.setTimestamp(now);
                 dbr.setValue(table.timestamp, now);
-                dbr.setBeanValues(user);
+                dbr.setRecordValues(user);
             } else {
                 dbr.read(table, new Object[] {user.getId()}, getConnection());
                 // null passwd digest cannot replace existing value; use "" to clear passwd
                 Collection<Column> ignore = user.getUserPasswordDigest() == null
                         ? Arrays.<Column>asList(table.passwd) : null;
-                dbr.setBeanValues(user, ignore);
+                dbr.setRecordValues(user, ignore);
             }
 
             try {
@@ -103,7 +103,7 @@ public class EmpireUserDao extends EmpireDao implements UserDao {
             } catch (RecordUpdateInvalidException ex) {
                 throw new ConcurrentModificationException(ex);
             }
-            dbr.getBeanProperties(user);
+            dbr.setBeanProperties(user);
         } finally {
             dbr.close();
         }
@@ -115,7 +115,7 @@ public class EmpireUserDao extends EmpireDao implements UserDao {
         try {
             r.read(table, userId, getConnection());
             UserProfile user = new UserProfile();
-            r.getBeanProperties(user);
+            r.setBeanProperties(user);
             return user;
         } catch (RecordNotFoundException ex) {
             return null;

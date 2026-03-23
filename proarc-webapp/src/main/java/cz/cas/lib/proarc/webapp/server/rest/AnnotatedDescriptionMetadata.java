@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.KrameriusResourceApi;
@@ -36,38 +37,47 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 public abstract class AnnotatedDescriptionMetadata extends DescriptionMetadata<Object> {
 
     @XmlElement(name = DigitalObjectResourceApi.BATCHID_PARAM)
+    @JsonProperty(DigitalObjectResourceApi.BATCHID_PARAM)
     @Override
     public abstract Integer getBatchId();
 
     @XmlElement(name = KrameriusResourceApi.KRAMERIUS_INSTANCE)
+    @JsonProperty(KrameriusResourceApi.KRAMERIUS_INSTANCE)
     @Override
     public abstract String getKrameriusInstanceId();
 
     @XmlElement(name = DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA)
+    @JsonProperty(DigitalObjectResourceApi.MODS_CUSTOM_CUSTOMJSONDATA)
     @Override
     public abstract Object getData();
 
     @XmlElement(name = DigitalObjectResourceApi.MODS_CUSTOM_EDITORID)
+    @JsonProperty(DigitalObjectResourceApi.MODS_CUSTOM_EDITORID)
     @Override
     public abstract String getEditor();
 
     @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_PID)
+    @JsonProperty(DigitalObjectResourceApi.DIGITALOBJECT_PID)
     @Override
     public abstract String getPid();
 
     @XmlElement(name = DigitalObjectResourceApi.TIMESTAMP_PARAM)
+    @JsonProperty(DigitalObjectResourceApi.TIMESTAMP_PARAM)
     @Override
     public abstract long getTimestamp();
 
     @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_MODEL)
+    @JsonProperty(DigitalObjectResourceApi.DIGITALOBJECT_MODEL)
     @Override
     public abstract String getModel();
 
     @XmlElement(name = DigitalObjectResourceApi.STRINGRECORD_CONTENT)
+    @JsonProperty(DigitalObjectResourceApi.STRINGRECORD_CONTENT)
     @Override
     public abstract String getContent();
 
     @XmlElement(name = DigitalObjectResourceApi.MODS_CUSTOM_STANDARD)
+    @JsonProperty(DigitalObjectResourceApi.MODS_CUSTOM_STANDARD)
     @Override
     public abstract String getStandard();
 }

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
@@ -43,22 +44,26 @@ public abstract class AnnotatedDublinCoreRecord extends DublinCoreRecord {
     @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_BATCHID,
             namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS,
             nillable = true)
+    @JsonProperty(DigitalObjectResourceApi.DUBLINCORERECORD_BATCHID)
     @Override
     public abstract Integer getBatchId();
 
     @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_DC,
             namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS_OAIDC,
             required = true)
+    @JsonProperty(DigitalObjectResourceApi.DUBLINCORERECORD_DC)
     @Override
     public abstract OaiDcType getDc();
 
     @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_PID,
             namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
+    @JsonProperty(DigitalObjectResourceApi.DUBLINCORERECORD_PID)
     @Override
     public abstract String getPid();
 
     @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_TIMESTAMP,
             namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
+    @JsonProperty(DigitalObjectResourceApi.DUBLINCORERECORD_TIMESTAMP)
     @Override
     public abstract long getTimestamp();
 

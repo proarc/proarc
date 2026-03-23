@@ -71,7 +71,7 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
             record.read(db.tableWorkflowMaterial, id, getConnection());
             MaterialType type = MaterialType.valueOf(record.getString(db.tableWorkflowMaterial.type));
             Material m = create(type);
-            record.getBeanProperties(m);
+            record.setBeanProperties(m);
             return (T) fetchCustom(m);
         } catch (RecordNotFoundException ex) {
             return null;
@@ -94,7 +94,7 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
             for (Iterator<DBRecordData> it = reader.iterator(1); it.hasNext();) {
                 DBRecordData rec = it.next();
                 Job job = new Job();
-                rec.getBeanProperties(job);
+                rec.setBeanProperties(job);
                 return job;
             }
             return null;
@@ -108,7 +108,7 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
         DBRecord record = new DBRecord();
         try {
             record.read(t, m.getId(), getConnection());
-            record.getBeanProperties(m);
+            record.setBeanProperties(m);
             return (T) m;
         } catch (RecordNotFoundException ex) {
             return null;
@@ -177,7 +177,7 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
             for (Iterator<DBRecordData> it = reader.iterator(filter.getMaxCount()); it.hasNext();) {
                 DBRecordData rec = it.next();
                 MaterialView view = new MaterialView();
-                rec.getBeanProperties(view);
+                rec.setBeanProperties(view);
                 viewItems.add(view);
             }
             return viewItems;
@@ -196,9 +196,9 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
         } else {
             r.read(db.tableWorkflowMaterial, m.getId(), c);
         }
-        r.setBeanValues(m);
+        r.setRecordValues(m);
         r.update(c);
-        r.getBeanProperties(m);
+        r.setBeanProperties(m);
         updateCustom(m, isNew, c);
     }
 
@@ -210,7 +210,7 @@ public class EmpireWorkflowMaterialDao extends EmpireDao implements WorkflowMate
         } else {
             r.read(t, m.getId(), c);
         }
-        r.setBeanValues(m);
+        r.setRecordValues(m);
         r.update(c);
     }
 

@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -539,10 +541,13 @@ public class ExportResourceV1 {
         }
 
         @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_ID)
+        @JsonProperty(ExportResourceApi.KRAMERIUS_INSTANCE_ID)
         private String id;
         @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_NAME)
+        @JsonProperty(ExportResourceApi.KRAMERIUS_INSTANCE_NAME)
         private String name;
         @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_LICENSES)
+        @JsonProperty(ExportResourceApi.KRAMERIUS_INSTANCE_LICENSES)
         private List<KrameriusLicenseDescriptor> licenses;
 
         public KrameriusDescriptor(String id, String name, List<KrameriusOptions.KrameriusInstance.KrameriusLicense> licenses) {
@@ -571,10 +576,13 @@ public class ExportResourceV1 {
 
             @XmlTransient
             @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_LICENSE_ID)
+            @JsonProperty(ExportResourceApi.KRAMERIUS_INSTANCE_LICENSE_ID)
             private String id;
             @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_LICENSE_NAME)
+            @JsonProperty(ExportResourceApi.KRAMERIUS_INSTANCE_LICENSE_NAME)
             private String name;
             @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_LICENSE_DESCRIPTION)
+            @JsonProperty(ExportResourceApi.KRAMERIUS_INSTANCE_LICENSE_DESCRIPTION)
             private String description;
 
             public KrameriusLicenseDescriptor(String id, String name, String description) {
@@ -593,24 +601,30 @@ public class ExportResourceV1 {
     public static class ExportResult {
 
         @XmlElement(name = ExportResourceApi.RESULT_ID)
+        @JsonProperty(ExportResourceApi.RESULT_ID)
         private Integer exportId;
 
         @XmlElement(name = ExportResourceApi.RESULT_IDS)
+        @JsonProperty(ExportResourceApi.RESULT_IDS)
         private List<Integer> exportIds;
 
         @XmlElement(name = ExportResourceApi.RESULT_TOKEN)
+        @JsonProperty(ExportResourceApi.RESULT_TOKEN)
         private String token;
 
         /**
          * The target folder path.
          */
         @XmlElement(name = ExportResourceApi.RESULT_TARGET)
+        @JsonProperty(ExportResourceApi.RESULT_TARGET)
         private String target;
 
         @XmlElement(name = ExportResourceApi.RESULT_ERRORS)
+        @JsonProperty(ExportResourceApi.RESULT_ERRORS)
         private List<ExportError> errors;
 
         @XmlElement(name = ExportResourceApi.IGNORE_MISSING_URNNBN)
+        @JsonProperty(ExportResourceApi.IGNORE_MISSING_URNNBN)
         private Boolean ignoreMissingUrnNbn;
 
         public ExportResult() {
@@ -705,21 +719,27 @@ public class ExportResourceV1 {
      * The export error.
      */
     @XmlRootElement(name = ExportResourceApi.RESULT_ERROR)
+    @JsonRootName(ExportResourceApi.RESULT_ERROR)
     public static class ExportError {
 
         @XmlElement(name = ExportResourceApi.RESULT_ERROR_PID)
+        @JsonProperty(ExportResourceApi.RESULT_ERROR_PID)
         private String pid;
 
         @XmlElement(name = ExportResourceApi.RESULT_ERROR_MESSAGE)
+        @JsonProperty(ExportResourceApi.RESULT_ERROR_MESSAGE)
         private String message;
 
         @XmlElement(name = ExportResourceApi.RESULT_ERROR_WARNING)
+        @JsonProperty(ExportResourceApi.RESULT_ERROR_WARNING)
         private boolean warning;
 
         @XmlElement(name = ExportResourceApi.RESULT_ERROR_LOG)
+        @JsonProperty(ExportResourceApi.RESULT_ERROR_LOG)
         private String log;
 
         @XmlElement(name = ExportResourceApi.IGNORE_MISSING_URNNBN)
+        @JsonProperty(ExportResourceApi.IGNORE_MISSING_URNNBN)
         private boolean ignoreMissingUrnNbn;
 
         public ExportError() {

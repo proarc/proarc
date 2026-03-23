@@ -41,6 +41,7 @@ public class BatchView {
     private Integer pageCount;
     private Integer estimateItemNumber;
     private String priority;
+    private String params;
     private String parameters;
     private Boolean nightOnly;
 

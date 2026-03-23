@@ -225,11 +225,11 @@ public class BatchManager {
     }
 
     public BatchView viewBatch(int batchId) {
-        List<BatchView> view = viewBatch(new BatchViewFilter().setBatchIds(Collections.singletonList(batchId)).setOffset(0).setMaxCount(1));
+        List<BatchView> view = viewBatch(new BatchViewFilter().setBatchIds(Collections.singletonList(batchId)).setOffset(0).setMaxCount(1), true);
         return view.get(0);
     }
 
-    public List<BatchView> viewBatch(BatchViewFilter filter) {
+    public List<BatchView> viewBatch(BatchViewFilter filter, boolean fetchAllData) {
         BatchDao dao = daos.createBatch();
         BatchItemDao itemDao = daos.createBatchItem();
         Transaction tx = daos.createTransaction();
@@ -238,10 +238,12 @@ public class BatchManager {
         try {
             List<BatchView> result = dao.view(filter);
             Set<Batch.State> state = filter.getState();
-            for (BatchView bv : result) {
-                Batch batchOriginal = get(bv.getId());
-                BatchParams params = batchOriginal.getParamsAsObject();
-                bv.setParameters(getImportantParams(params, bv.getProfileId()));
+            if (fetchAllData) {
+                for (BatchView bv : result) {
+                    Batch batchOriginal = get(bv.getId());
+                    BatchParams params = batchOriginal.getParamsAsObject();
+                    bv.setParameters(getImportantParams(params, bv.getProfileId()));
+                }
             }
             if (state != null && !state.contains(Batch.State.INGESTING_FAILED)) {
                 return result;

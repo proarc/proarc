@@ -55,9 +55,9 @@ public class EmpireBatchItemDao extends EmpireDao implements BatchItemDao {
             } else {
                 dbr.read(table, item.getId(), getConnection());
             }
-            dbr.setBeanValues(item);
+            dbr.setRecordValues(item);
             dbr.update(getConnection());
-            dbr.getBeanProperties(item);
+            dbr.setBeanProperties(item);
         } finally {
             dbr.close();
         }
@@ -69,7 +69,7 @@ public class EmpireBatchItemDao extends EmpireDao implements BatchItemDao {
         try {
             dbr.read(table, id, getConnection());
             BatchItem item = new BatchItem();
-            dbr.getBeanProperties(item);
+            dbr.setBeanProperties(item);
             return item;
         } finally {
             dbr.close();

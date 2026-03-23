@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import cz.cas.lib.proarc.common.storage.StringEditor.StringRecord;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.KrameriusResourceApi;
@@ -32,38 +34,47 @@ import jakarta.xml.bind.annotation.XmlRootElement;
  * @author Jan Pokorsky
  */
 @XmlRootElement(name = DigitalObjectResourceApi.STRINGRECORD_ELEMENT)
+@JsonRootName(DigitalObjectResourceApi.STRINGRECORD_ELEMENT)
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class AnnotatedStringRecord extends StringRecord {
 
     @XmlElement(name = DigitalObjectResourceApi.BATCHID_PARAM)
+    @JsonProperty(DigitalObjectResourceApi.BATCHID_PARAM)
     @Override
     public abstract Integer getBatchId();
 
     @XmlElement(name = DigitalObjectResourceApi.STRINGRECORD_CONTENT)
+    @JsonProperty(DigitalObjectResourceApi.STRINGRECORD_CONTENT)
     @Override
     public abstract String getContent();
 
     @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_PID)
+    @JsonProperty(DigitalObjectResourceApi.DIGITALOBJECT_PID)
     @Override
     public abstract String getPid();
 
     @XmlElement(name = DigitalObjectResourceApi.TIMESTAMP_PARAM)
+    @JsonProperty(DigitalObjectResourceApi.TIMESTAMP_PARAM)
     @Override
     public abstract long getTimestamp();
 
     @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_MODEL)
+    @JsonProperty(DigitalObjectResourceApi.DIGITALOBJECT_MODEL)
     @Override
     public abstract String getModel();
 
     @XmlElement(name = KrameriusResourceApi.KRAMERIUS_INSTANCE)
+    @JsonProperty(KrameriusResourceApi.KRAMERIUS_INSTANCE)
     @Override
     public abstract String getKrameriusInstanceId();
 
     @XmlElement(name = "data")
+    @JsonProperty("data")
     @Override
     public abstract Object getData();
 
     @XmlElement(name = "status")
+    @JsonProperty("status")
     @Override
     public abstract int getStatus();
 }

@@ -59,13 +59,13 @@ public class GraphicMapperFactory extends NdkMapperFactory {
 
     public static String createObjectLabel(ModsDefinition mods) {
         for (TitleInfoDefinition ti : mods.getTitleInfo()) {
-            if (toValue(ti.getType()) != null) {
+            if (toValue(ti.getTypeEnum()) != null) {
                 continue;
             }
             return createTitleString(ti);
         }
         for (TitleInfoDefinition ti : mods.getTitleInfo()) {
-            if ("abbreviated".equalsIgnoreCase(toValue(ti.getType()))) {
+            if ("abbreviated".equalsIgnoreCase(toValue(ti.getTypeEnum()))) {
                 return createTitleString(ti);
             }
         }

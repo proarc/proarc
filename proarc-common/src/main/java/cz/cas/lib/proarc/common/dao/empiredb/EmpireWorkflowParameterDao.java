@@ -63,7 +63,7 @@ public class EmpireWorkflowParameterDao extends EmpireDao implements WorkflowPar
         for (TaskParameter param : params) {
             param.setTaskId(taskId);
             r.create(tableParams);
-            r.setBeanValues(param);
+            r.setRecordValues(param);
             r.update(c);
         }
     }
@@ -128,7 +128,7 @@ public class EmpireWorkflowParameterDao extends EmpireDao implements WorkflowPar
             for (Iterator<DBRecordData> it = reader.iterator(filter.getMaxCount()); it.hasNext();) {
                 DBRecordData rec = it.next();
                 TaskParameterView view = new TaskParameterView();
-                rec.getBeanProperties(view);
+                rec.setBeanProperties(view);
                 viewItems.add(view);
             }
             return viewItems;

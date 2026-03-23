@@ -17,8 +17,10 @@
 package cz.cas.lib.proarc.common.device;
 
 import cz.cas.lib.proarc.audiopremis.AudioPremisUtils;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mix.Mix;
+import cz.cas.lib.proarc.mix.MixUtils;
 
 /**
  * A device referenced by a digital object.
@@ -31,12 +33,18 @@ public class Device {
     private String label;
     private String model;
     private Mix description;
+    private String descriptionXml;
     private Mets audioDescription;
+    private String audioDescriptionXml;
     private Long audioTimestamp;
     private Long timestamp;
 
     public Mets getAudioDescription() {
         return audioDescription;
+    }
+
+    public String getAudioDescriptionXml() {
+        return audioDescriptionXml;
     }
 
     public void setAudioDescription(Mets audioDescription) {
@@ -49,6 +57,11 @@ public class Device {
             AudioPremisUtils audioPremisUtils = new AudioPremisUtils(id, label, model, audioDescription);
             audioPremisUtils.createAudioDescription(audioDescription);
             this.audioDescription = audioPremisUtils.getMets();
+            if (this.audioDescription != null) {
+                this.audioDescriptionXml = MetsUtils.toXml(this.audioDescription, true);
+            } else {
+                this.audioDescriptionXml = null;
+            }
         } catch (Exception e) {
             throw new DeviceException("Error while generating agent node in premis data", e);
         }
@@ -90,6 +103,15 @@ public class Device {
 
     public void setDescription(Mix description) {
         this.description = description;
+        if (description != null) {
+            this.descriptionXml = MixUtils.toXml(description, false);
+        } else {
+            this.descriptionXml = null;
+        }
+    }
+
+    public String getDescriptionAsXml() {
+        return descriptionXml;
     }
 
     public Long getTimestamp() {

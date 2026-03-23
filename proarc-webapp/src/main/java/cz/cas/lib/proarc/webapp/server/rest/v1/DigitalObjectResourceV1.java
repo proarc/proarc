@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.actions.AddReference;
 import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
@@ -5033,7 +5034,7 @@ public class DigitalObjectResourceV1 {
         }
 
         updated = 0;
-        List<BatchView> batchViewList = batchManager.viewBatch(new BatchViewFilter().setCreatorId(oldUser.getId()).setMaxCount(9999));
+        List<BatchView> batchViewList = batchManager.viewBatch(new BatchViewFilter().setCreatorId(oldUser.getId()).setMaxCount(9999), false);
 
         try {
             for (BatchView batchView : batchViewList) {
@@ -5108,27 +5109,35 @@ public class DigitalObjectResourceV1 {
     public static class UrnNbnResult {
 
         @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_PID)
+        @JsonProperty(DigitalObjectResourceApi.DIGITALOBJECT_PID)
         private String pid;
 
         @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_MODEL)
+        @JsonProperty(DigitalObjectResourceApi.DIGITALOBJECT_MODEL)
         private String modelId;
 
         @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_LABEL)
+        @JsonProperty(DigitalObjectResourceApi.MEMBERS_ITEM_LABEL)
         private String label;
 
         @XmlElement(name = DigitalObjectResourceApi.URNNBN_ITEM_URNNBN)
+        @JsonProperty(DigitalObjectResourceApi.URNNBN_ITEM_URNNBN)
         private String urnnbn;
 
         @XmlElement(name = DigitalObjectResourceApi.URNNBN_ITEM_MESSAGE)
+        @JsonProperty(DigitalObjectResourceApi.URNNBN_ITEM_MESSAGE)
         private String message;
 
         @XmlElement(name = DigitalObjectResourceApi.URNNBN_ITEM_STATUSTYPE)
+        @JsonProperty(DigitalObjectResourceApi.URNNBN_ITEM_STATUSTYPE)
         private String type;
 
         @XmlElement(name = DigitalObjectResourceApi.URNNBN_ITEM_WARNING)
+        @JsonProperty(DigitalObjectResourceApi.URNNBN_ITEM_WARNING)
         private Boolean warning;
 
         @XmlElement(name = DigitalObjectResourceApi.URNNBN_ITEM_LOG)
+        @JsonProperty(DigitalObjectResourceApi.URNNBN_ITEM_LOG)
         private String log;
 
         public UrnNbnResult() {

@@ -35,6 +35,7 @@ import org.apache.empire.db.DBColumnExpr;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBJoinType;
 import org.apache.empire.db.DBQuery;
+import org.apache.empire.db.DBQueryColumn;
 import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRecordData;
@@ -68,7 +69,7 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         } else {
             r.read(tableJob, job.getId(), c);
         }
-        r.setBeanValues(job);
+        r.setRecordValues(job);
         try {
             // this column is "always changed", because we need update timestamp of job (optimistic transactions on materials)
             r.setModified(tableJob.label, true);
@@ -76,7 +77,7 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         } catch (RecordUpdateInvalidException ex) {
             throw new ConcurrentModificationException(ex);
         }
-        r.getBeanProperties(job);
+        r.setBeanProperties(job);
     }
 
     @Override
@@ -85,7 +86,7 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         try {
             record.read(tableJob, id, getConnection());
             Job job = new Job();
-            record.getBeanProperties(job);
+            record.setBeanProperties(job);
             return job;
         } catch (RecordNotFoundException ex) {
             return null;
@@ -113,8 +114,8 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         pmatCmd.groupBy(db.tableWorkflowTask.jobId);
         DBQuery pmatQuery = new DBQuery(pmatCmd);
 
-        DBQuery.DBQueryColumn wmId = pmatQuery.findQueryColumn(pmatMaterialId);
-        DBQuery.DBQueryColumn wjId = pmatQuery.findQueryColumn(db.tableWorkflowTask.jobId);
+        DBQueryColumn wmId = pmatQuery.findQueryColumn(pmatMaterialId);
+        DBQueryColumn wjId = pmatQuery.findQueryColumn(db.tableWorkflowTask.jobId);
         cmd.join(tableJob.id, wjId, DBJoinType.LEFT);
         // empire db reverse the joint type so that is why RIGHT instead of LEFT
         cmd.join(tpd.materialId, wmId, DBJoinType.RIGHT);
@@ -132,8 +133,8 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         digObjCmd.groupBy(db.tableWorkflowTask.jobId);
         DBQuery digObjQuery = new DBQuery(digObjCmd);
 
-        DBQuery.DBQueryColumn doId = digObjQuery.findQueryColumn(digObjMaterialId);
-        DBQuery.DBQueryColumn djId = digObjQuery.findQueryColumn(db.tableWorkflowTask.jobId);
+        DBQueryColumn doId = digObjQuery.findQueryColumn(digObjMaterialId);
+        DBQueryColumn djId = digObjQuery.findQueryColumn(db.tableWorkflowTask.jobId);
         cmd.join(tableJob.id, djId, DBJoinType.LEFT);
         cmd.join(tdo.materialId, doId, DBJoinType.RIGHT);
 
@@ -151,8 +152,8 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         rawCmd.groupBy(db.tableWorkflowTask.jobId);
         DBQuery rawQuery = new DBQuery(rawCmd);
 
-        DBQuery.DBQueryColumn rawId = rawQuery.findQueryColumn(rawMaterialId);
-        DBQuery.DBQueryColumn rawjId = rawQuery.findQueryColumn(db.tableWorkflowTask.jobId);
+        DBQueryColumn rawId = rawQuery.findQueryColumn(rawMaterialId);
+        DBQueryColumn rawjId = rawQuery.findQueryColumn(db.tableWorkflowTask.jobId);
         cmd.join(tableJob.id, rawjId, DBJoinType.LEFT);
         cmd.join(twfR.materialId, rawId, DBJoinType.RIGHT);
 
@@ -170,8 +171,8 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         taskCmd.where(db.tableWorkflowTask.state.is("FINISHED"));
         taskCmd.groupBy(db.tableWorkflowTask.jobId);
         DBQuery taskQuery = new DBQuery(taskCmd);
-        DBQuery.DBQueryColumn taskJobId = taskQuery.findQueryColumn(db.tableWorkflowTask.jobId);
-        DBQuery.DBQueryColumn taskId = taskQuery.findQueryColumn(taskExpression);
+        DBQueryColumn taskJobId = taskQuery.findQueryColumn(db.tableWorkflowTask.jobId);
+        DBQueryColumn taskId = taskQuery.findQueryColumn(taskExpression);
         cmd.join(tableJob.id, taskJobId, DBJoinType.LEFT);
         cmd.join(twTt.id, taskId, DBJoinType.RIGHT);
 
@@ -224,7 +225,7 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
             for (Iterator<DBRecordData> it = reader.iterator(filter.getMaxCount()); it.hasNext();) {
                 DBRecordData rec = it.next();
                 JobView view = new JobView();
-                rec.getBeanProperties(view);
+                rec.setBeanProperties(view);
                 viewItems.add(view);
             }
             return viewItems;

@@ -127,14 +127,14 @@ public class ProarcDatabaseV1 extends DBDatabase {
             driver.getDDLScript(DBCmdType.CREATE, schema.tableUserGroup.timestamp, script);
             // add GroupPermissionTable columns
             driver.getDDLScript(DBCmdType.CREATE, schema.tableGroupPermission.type, script);
-            script.run(driver, conn);
+            script.executeAll(driver, conn);
             // drop table references
             script.clear();
             EmpireUtils.dropRelation(schemaV1.relUsername2TomcatUser, schema.getDriver(), script);
             EmpireUtils.dropRelation(schemaV1.relUsername2TomcatUserAlias, schema.getDriver(), script);
             EmpireUtils.dropRelation(schemaV1.relTomcatRoleUser2TomcatUser, schema.getDriver(), script);
             EmpireUtils.dropRelation(schemaV1.relTomcatRoleUser2TomcatUserAlias, schema.getDriver(), script);
-            script.run(driver, conn, true);
+            script.executeAll(driver, conn, true);
         } finally {
             conn.setAutoCommit(false);
         }
@@ -418,7 +418,7 @@ public class ProarcDatabaseV1 extends DBDatabase {
         DBSQLScript script = new DBSQLScript();
         db.getCreateDDLScript(db.getDriver(), script);
         LOG.fine(script.toString());
-        script.run(db.getDriver(), conn);
+        script.executeAll(db.getDriver(), conn);
         initProarcVersion(db, conn);
         db.commit(conn);
         conn.setAutoCommit(false);

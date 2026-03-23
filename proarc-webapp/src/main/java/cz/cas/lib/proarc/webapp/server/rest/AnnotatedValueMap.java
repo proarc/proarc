@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.webapp.shared.rest.ValueMapResourceApi;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -34,10 +35,12 @@ import java.util.List;
 public abstract class AnnotatedValueMap extends ValueMap {
 
     @XmlElement(name = ValueMapResourceApi.RESULT_MAPID)
+    @JsonProperty(ValueMapResourceApi.RESULT_MAPID)
     @Override
     public abstract String getMapId();
 
     @XmlElement(name = ValueMapResourceApi.RESULT_VALUES)
+    @JsonProperty(ValueMapResourceApi.RESULT_VALUES)
     @Override
     public abstract List getValues();
 

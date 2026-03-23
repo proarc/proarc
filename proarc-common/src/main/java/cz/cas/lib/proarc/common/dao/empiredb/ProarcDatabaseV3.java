@@ -27,7 +27,6 @@ import org.apache.empire.data.DataType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
-import static org.apache.empire.db.DBDatabase.SYSDATE;
 import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBSQLScript;
@@ -101,7 +100,7 @@ public class ProarcDatabaseV3 extends DBDatabase {
             EmpireUtils.addTable(schema.tableWorkflowPhysicalDoc, driver, script);
             EmpireUtils.addTable(schema.tableWorkflowMaterialInTask, driver, script);
             EmpireUtils.addTable(schema.tableWorkflowParameter, driver, script);
-            script.run(driver, conn);
+            script.executeAll(driver, conn);
         } finally {
             conn.setAutoCommit(false);
         }
@@ -366,7 +365,7 @@ public class ProarcDatabaseV3 extends DBDatabase {
         DBSQLScript script = new DBSQLScript();
         db.getCreateDDLScript(db.getDriver(), script);
         LOG.fine(script.toString());
-        script.run(db.getDriver(), conn);
+        script.executeAll(db.getDriver(), conn);
         db.initVersion(conn, null);
         db.commit(conn);
         conn.setAutoCommit(false);

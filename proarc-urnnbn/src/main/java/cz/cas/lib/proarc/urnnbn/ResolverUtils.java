@@ -99,7 +99,7 @@ public class ResolverUtils {
 
     static String getTitle(ModsDefinition mods) {
         for (TitleInfoDefinition ti : mods.getTitleInfo()) {
-            if (ti.getType() != null) {
+            if (ti.getTypeEnum() != null) {
                 continue;
             }
             String value = getStringPlusLanguage(ti.getTitleStringPlusLanguage());
@@ -112,7 +112,7 @@ public class ResolverUtils {
 
     static TitleInfoDefinition getTitleInfo(ModsDefinition mods) {
         for (TitleInfoDefinition ti : mods.getTitleInfo()) {
-            if (ti.getType() != null) {
+            if (ti.getTypeEnum() != null) {
                 continue;
             }
             String value = getStringPlusLanguage(ti.getTitleStringPlusLanguage());

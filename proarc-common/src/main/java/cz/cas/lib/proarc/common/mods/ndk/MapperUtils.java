@@ -548,7 +548,7 @@ public final class MapperUtils {
 
     static String findTitle(ModsDefinition mods) {
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            if (titleInfo.getType() == null || titleInfo.getType().isEmpty()) {
+            if (titleInfo.getTypeEnum() == null || titleInfo.getTypeEnum().isEmpty()) {
                 for (StringPlusLanguage title : titleInfo.getTitleStringPlusLanguage()) {
                     if (title.getValue() != null && !title.getValue().isEmpty()) {
                         return title.getValue();

@@ -39,7 +39,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_2;
  *
  * @author Lukas Sykora
  */
-@Path(URL_API_VERSION_2 + "/" + BibliographicCatalogResourceApi.PATH)
+@Path(URL_API_VERSION_2 + "/" + BibliographicCatalogResourceApi.    PATH)
 public class BibliographicCatalogResource extends BibliographicCatalogResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(BibliographicCatalogResource.class.getName());

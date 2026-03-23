@@ -718,7 +718,7 @@ public class ProarcDatabase extends DBDatabase {
         DBSQLScript script = new DBSQLScript();
         db.getCreateDDLScript(db.getDriver(), script);
         LOG.fine(script.toString());
-        script.run(db.getDriver(), conn);
+        script.executeAll(db.getDriver(), conn);
         db.initVersion(conn, null);
         db.commit(conn);
         conn.setAutoCommit(false);

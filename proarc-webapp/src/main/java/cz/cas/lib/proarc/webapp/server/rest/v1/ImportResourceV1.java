@@ -404,7 +404,7 @@ public class ImportResourceV1 {
                 .setProfile(profileId)
                 .setMaxCount(100000)
                 .setSortBy("id");
-        List<BatchView> batches2Delete = importManager.viewBatch(filterAll);
+        List<BatchView> batches2Delete = importManager.viewBatch(filterAll, false);
 
         for (BatchView batch2Delete : batches2Delete) {
             importManager.deleteBatch(batch2Delete.getId());
@@ -473,7 +473,7 @@ public class ImportResourceV1 {
                     .setPriority(priority)
                     .setMaxCount(100000)
                     .setSortBy(sortBy);
-        List<BatchView> allBatches = importManager.viewBatch(filterAll);
+        List<BatchView> allBatches = importManager.viewBatch(filterAll, false);
 
 
         BatchViewFilter filter = new BatchViewFilter()
@@ -494,7 +494,7 @@ public class ImportResourceV1 {
                 .setOffset(startRow).setMaxCount(size)
                 .setSortBy(sortBy)
                 ;
-        List<BatchView> batches = importManager.viewBatch(filter);
+        List<BatchView> batches = importManager.viewBatch(filter, true);
         int batchSize = batches.size();
         int endRow = startRow + batchSize - 1;
         int total = allBatches.size();

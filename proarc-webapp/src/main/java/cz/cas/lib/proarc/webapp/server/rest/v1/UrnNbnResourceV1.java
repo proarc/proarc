@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -91,8 +92,10 @@ public class UrnNbnResourceV1 {
         }
 
         @XmlElement(name = UrnNbnResourceApi.RESOLVER_ID)
+        @JsonProperty(UrnNbnResourceApi.RESOLVER_ID)
         private String id;
         @XmlElement(name = UrnNbnResourceApi.RESOLVER_NAME)
+        @JsonProperty(UrnNbnResourceApi.RESOLVER_NAME)
         private String name;
 
         public ResolverDescriptor(String id, String name) {

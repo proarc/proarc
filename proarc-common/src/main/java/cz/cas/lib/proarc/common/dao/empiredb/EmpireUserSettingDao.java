@@ -57,13 +57,13 @@ public final class EmpireUserSettingDao extends EmpireDao implements UserSetting
                 dbr.read(table, userSetting.getId(), getConnection());
             }
             dbr.setModified(table.userSetting, true);
-            dbr.setBeanValues(userSetting);
+            dbr.setRecordValues(userSetting);
             try {
                 dbr.update(getConnection());
             } catch (RecordUpdateInvalidException ex) {
                 throw new ConcurrentModificationException(ex);
             }
-            dbr.getBeanProperties(userSetting);
+            dbr.setBeanProperties(userSetting);
         } finally {
             dbr.close();
         }
@@ -75,7 +75,7 @@ public final class EmpireUserSettingDao extends EmpireDao implements UserSetting
         try {
             dbr.read(table, id, getConnection());
             UserSetting userSetting = new UserSetting();
-            dbr.getBeanProperties(userSetting);
+            dbr.setBeanProperties(userSetting);
             return userSetting;
         } catch (RecordNotFoundException ex) {
             return null;

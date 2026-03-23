@@ -16,10 +16,10 @@
  */
 package cz.cas.lib.proarc.common.xml;
 
-import com.sun.xml.internal.bind.marshaller.NamespacePrefixMapper;
 import cz.cas.lib.proarc.common.xml.docmd.DocumentMdUtils;
 import cz.cas.lib.proarc.common.xml.ndktech.NdkTechnicalUtils;
 import cz.cas.lib.proarc.premis.PremisUtils;
+import org.glassfish.jaxb.runtime.marshaller.NamespacePrefixMapper;
 
 
 /**

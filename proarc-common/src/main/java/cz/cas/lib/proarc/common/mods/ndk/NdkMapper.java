@@ -218,7 +218,7 @@ public abstract class NdkMapper {
      */
     public final String toLabel(ModsDefinition mods) {
         String label = createObjectLabel(mods);
-        if (label == null) {
+            if (label == null) {
             label = "?";
         } else {
             label = label.trim();
@@ -304,7 +304,7 @@ public abstract class NdkMapper {
      */
     protected String createObjectLabel(ModsDefinition mods) {
         for (TitleInfoDefinition ti : mods.getTitleInfo()) {
-            if (toValue(ti.getType()) != null) {
+            if (toValue(ti.getTypeEnum()) != null) {
                 continue;
             }
             return createTitleString(ti);

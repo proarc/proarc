@@ -34,6 +34,7 @@ import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
 import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBExpr;
+import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRelation;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
@@ -253,7 +254,7 @@ class EmpireUtils {
          * Adds a timestamp column to the table used for optimistic locking.
          *
          * <p>This implementation creates column that can be modified with
-         * {@link DBRecord#setBeanValues } or {@link DBRecord#setValue } as
+         * {@link DBRecord#setBeanProperties } or {@link DBRecord#setValue } as
          * the column is not read-only or auto generated.
          *
          * @param columnName the column name

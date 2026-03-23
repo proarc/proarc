@@ -76,7 +76,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         } else {
             record.read(table, batch.getId(), c);
         }
-        record.setBeanValues(batch);
+        record.setRecordValues(batch);
         try {
             record.update(c);
         } catch (RecordUpdateInvalidException ex) {
@@ -193,7 +193,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
 
     private Batch getBeanProperties(DBRecordData record, Batch instance) {
         Batch batch = instance != null ? instance : new Batch();
-        record.getBeanProperties(batch);
+        record.setBeanProperties(batch);
         return batch;
     }
 
@@ -309,7 +309,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
             for (Iterator<DBRecordData> it = reader.iterator(filter.getMaxCount()); it.hasNext();) {
                 DBRecordData rec = it.next();
                 BatchView view = new BatchView();
-                rec.getBeanProperties(view);
+                rec.setBeanProperties(view);
                 if (view.getProfileId() == null) {
                     view.setProfileId(ConfigurationProfile.DEFAULT);
                 }

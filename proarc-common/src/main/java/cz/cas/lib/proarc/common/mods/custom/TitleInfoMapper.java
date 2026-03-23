@@ -142,7 +142,7 @@ final class TitleInfoMapper {
             if (foundTitles && foundKeyTitles && foundAlternatives) {
                 break;
             }
-            String type = item.getType();
+            String type = item.getTypeEnum();
             if (type == null) {
                 if (foundTitles) {
                     continue;
