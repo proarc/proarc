@@ -19,6 +19,9 @@ package cz.cas.lib.proarc.common.process.imports.audio;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
+import cz.cas.lib.proarc.common.image.ImageMimeType;
+import cz.cas.lib.proarc.common.image.ImageUtility;
+import cz.cas.lib.proarc.common.image.ImageUtility.ScalingMethod;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
@@ -39,8 +42,6 @@ import cz.cas.lib.proarc.common.storage.PageView.PageViewHandler;
 import cz.cas.lib.proarc.common.storage.PageView.PageViewItem;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.incad.imgsupport.ImageMimeType;
-import cz.incad.imgsupport.ImageSupport;
 import jakarta.ws.rs.core.MediaType;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -53,6 +54,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.stream.FileImageOutputStream;
 
+import static cz.cas.lib.proarc.common.image.ImageUtility.readImage;
+import static cz.cas.lib.proarc.common.image.ImageUtility.writeImageToStream;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 
@@ -395,7 +398,7 @@ public class WaveImporter implements ImageImporter {
             throws IOException, DigitalObjectException, AppConfigurationException {
 
         long start = System.nanoTime();
-        BufferedImage tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+        BufferedImage tiff = readImage(original.toURI().toURL(), ImageMimeType.TIFF);
         long endRead = System.nanoTime() - start;
         ImageMimeType imageType = ImageMimeType.JPEG;
         MediaType mediaType = MediaType.valueOf(imageType.getMimeType());
@@ -457,14 +460,14 @@ public class WaveImporter implements ImageImporter {
         File imgFile = new File(folder, filename);
         FileImageOutputStream fos = new FileImageOutputStream(imgFile);
         try {
-            ImageSupport.writeImageToStream(image, imageType.getDefaultFileExtension(), fos, 1.0f);
+            writeImageToStream(image, imageType.getDefaultFileExtension(), fos, 1.0f);
             return imgFile;
         } finally {
             fos.close();
         }
     }
 
-    private static BufferedImage scale(BufferedImage tiff, ImageSupport.ScalingMethod method,
+    private static BufferedImage scale(BufferedImage tiff, ScalingMethod method,
                                        Integer maxWidth, Integer maxHeight) {
 
         long start = System.nanoTime();
@@ -484,7 +487,7 @@ public class WaveImporter implements ImageImporter {
             targetHeight = (int) (height * scale);
             targetWidth = (int) (width * scale);
         }
-        BufferedImage scaled = ImageSupport.scale(tiff, targetWidth, targetHeight, method, true);
+        BufferedImage scaled = ImageUtility.scale(tiff, targetWidth, targetHeight, method, true);
         LOG.fine(String.format("scaled [%s, %s] to [%s, %s], boundary [%s, %s] [w, h], time: %s ms",
                 width, height, targetWidth, targetHeight, maxWidth, maxHeight, (System.nanoTime() - start) / 1000000));
         return scaled;

@@ -265,8 +265,9 @@ public final class AppConfiguration {
             profileConfig = buildConfiguration(file);
             profileConfigCache.put(cp, profileConfig);
             return profileConfig;
+        } else {
+            return config;
         }
-        throw new IllegalStateException("Unknown profile file: " + cp.toString());
     }
 
     public ImportProfile getImportConfiguration(ConfigurationProfile cp) {

@@ -19,9 +19,18 @@ package cz.cas.lib.proarc.common.process.imports.replaceStream;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.image.ImageMimeType;
+import cz.cas.lib.proarc.common.ocr.AltoDatastream;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.external.ExternalProcess;
+import cz.cas.lib.proarc.common.process.external.KakaduCompress;
+import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess;
+import cz.cas.lib.proarc.common.process.imports.InputUtils;
+import cz.cas.lib.proarc.common.process.imports.TiffImporter;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.LocalStorage;
@@ -34,18 +43,8 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess;
-import cz.cas.lib.proarc.common.process.imports.InputUtils;
-import cz.cas.lib.proarc.common.ocr.AltoDatastream;
-import cz.cas.lib.proarc.common.process.external.ExternalProcess;
-import cz.cas.lib.proarc.common.process.external.KakaduCompress;
-import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
-import cz.cas.lib.proarc.common.process.imports.TiffImporter;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
-import cz.incad.imgsupport.ImageMimeType;
-import cz.incad.imgsupport.ImageSupport;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -56,6 +55,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.apache.commons.configuration2.Configuration;
 
+import static cz.cas.lib.proarc.common.image.ImageUtility.readImage;
 import static cz.cas.lib.proarc.common.process.imports.replaceStream.ReplaceStreamScanner.checkIfFileHasExtension;
 
 /**
@@ -219,7 +219,7 @@ public class FileReader {
                 }
             } else {
                 if (tiff == null) {
-                    tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+                    tiff = readImage(original.toURI().toURL(), ImageMimeType.TIFF);
                 }
                 f = TiffImporter.writeImage(tiff, context.getTargetFolder(), targetName, imageType);
             }
@@ -243,7 +243,7 @@ public class FileReader {
                 }
             } else {
                 if (tiff == null) {
-                    tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+                    tiff = readImage(original.toURI().toURL(), ImageMimeType.TIFF);
                 }
                 f = TiffImporter.writeImage(
                         TiffImporter.scale(tiff, context.getConfig().getPreviewScaling(), previewMaxWidth, previewMaxHeight),
@@ -269,7 +269,7 @@ public class FileReader {
                 }
             } else {
                 if (tiff == null) {
-                    tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+                    tiff = readImage(original.toURI().toURL(), ImageMimeType.TIFF);
                 }
                 f = TiffImporter.writeImage(
                         TiffImporter.scale(tiff, context.getConfig().getThumbnailScaling(), thumbMaxWidth, thumbMaxHeight),

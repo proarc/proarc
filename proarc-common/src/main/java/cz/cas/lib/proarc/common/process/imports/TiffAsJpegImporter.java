@@ -17,11 +17,11 @@
 
 package cz.cas.lib.proarc.common.process.imports;
 
+import cz.cas.lib.proarc.common.image.ImageMimeType;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.external.ExternalProcess;
 import cz.cas.lib.proarc.common.process.external.GhostConvert;
 import cz.cas.lib.proarc.common.process.external.VIPSConvert;
-import cz.incad.imgsupport.ImageMimeType;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;

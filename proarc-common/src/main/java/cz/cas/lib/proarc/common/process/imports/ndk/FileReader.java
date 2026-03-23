@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
+import cz.cas.lib.proarc.common.image.ImageMimeType;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -92,8 +93,6 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.premis.ObjectIdentifierComplexType;
 import cz.cas.lib.proarc.premis.PremisUtils;
 import cz.cas.lib.proarc.urnnbn.ResolverUtils;
-import cz.incad.imgsupport.ImageMimeType;
-import cz.incad.imgsupport.ImageSupport;
 import edu.harvard.hul.ois.xml.ns.jhove.Property;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.xml.bind.JAXB;
@@ -114,6 +113,7 @@ import org.aes.audioobject.AudioObject;
 import org.apache.commons.configuration2.Configuration;
 import org.w3c.dom.Node;
 
+import static cz.cas.lib.proarc.common.image.ImageUtility.readImage;
 import static cz.cas.lib.proarc.common.process.imports.TiffImporter.scale;
 import static cz.cas.lib.proarc.common.process.imports.TiffImporter.writeImage;
 import static cz.cas.lib.proarc.common.process.imports.ndk.StreamFileType.AMD;
@@ -1005,7 +1005,7 @@ public class FileReader {
                 } else {
                     if (tiff == null) {
                         start = System.nanoTime();
-                        tiff = ImageSupport.readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
+                        tiff = readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
                         endRead = System.nanoTime() - start;
                     }
                     file = writeImage(tiff, ctx.getTargetFolder(), targetName, imageType);
@@ -1034,7 +1034,7 @@ public class FileReader {
                 } else {
                     if (tiff == null) {
                         start = System.nanoTime();
-                        tiff = ImageSupport.readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
+                        tiff = readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
                         endRead = System.nanoTime() - start;
                     }
                     file = writeImage(
@@ -1064,7 +1064,7 @@ public class FileReader {
                 } else {
                     if (tiff == null) {
                         start = System.nanoTime();
-                        tiff = ImageSupport.readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
+                        tiff = readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
                         endRead = System.nanoTime() - start;
                     }
                     file = writeImage(

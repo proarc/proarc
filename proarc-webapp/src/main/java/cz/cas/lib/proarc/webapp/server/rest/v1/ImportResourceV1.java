@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2011 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -50,10 +50,10 @@ import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.DateTimeParam;
 import cz.cas.lib.proarc.webapp.server.rest.ImportFolder;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.ProfileStates;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
-import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Consumes;
@@ -99,11 +99,11 @@ import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
  * Resource to handle imports.
+ * <p>
+ * /import/folder/ GET - lists subfolders; POST - import folder; DELETE - delete folder
+ * /import/batch/ GET - lists imported folders; POST - import folder
+ * /import/item/ GET - lists imported objects; POST - import folder
  *
- *      /import/folder/ GET - lists subfolders; POST - import folder; DELETE - delete folder
- *      /import/batch/ GET - lists imported folders; POST - import folder
- *      /import/item/ GET - lists imported objects; POST - import folder
- * 
  * @author Jan Pokorsky
  * @see <a href="http://127.0.0.1:8888/Editor/rest/import">test in dev mode</a>
  * @see <a href="http://127.0.0.1:8888/Editor/rest/application.wadl">WADL in dev mode</a>
@@ -131,7 +131,7 @@ public class ImportResourceV1 {
             @Context UriInfo uriInfo,
             @Context HttpServletRequest httpRequest
             /*UserManager userManager*/
-            ) throws AppConfigurationException {
+    ) throws AppConfigurationException {
 
         this.httpHeaders = httpHeaders;
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
@@ -148,7 +148,7 @@ public class ImportResourceV1 {
     /**
      * Lists subfolders and their import states.
      *
-     * @param parent folder path relative to user's import folder
+     * @param parent    folder path relative to user's import folder
      * @param profileId profile ID
      * @return folder contents (path without initial slash and always terminated with slash: A/, A/B/)
      * @throws FileNotFoundException
@@ -162,7 +162,7 @@ public class ImportResourceV1 {
             @QueryParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @QueryParam(ImportResourceApi.IMPORT_START_ROW_PARAM) @DefaultValue("-1") int startRow
 
-            ) throws IOException, URISyntaxException {
+    ) throws IOException, URISyntaxException {
 
         int endRow = 0;
         int total = 0;
@@ -180,7 +180,7 @@ public class ImportResourceV1 {
                 // URI multi param constructor escapes input unlike single param constructor or URI.create!
                 ? userRoot.resolve(new URI(null, null, parentPath, null))
                 : userRoot;
-        LOG.log(Level.FINE, "parent: {0} used as {1} resolved to {2}", new Object[] {parent, parentPath, path});
+        LOG.log(Level.FINE, "parent: {0} used as {1} resolved to {2}", new Object[]{parent, parentPath, path});
 
         ImportFileScanner scanner = new ImportFileScanner();
         List<Folder> subfolders = scanner.findSubfolders(new File(path), importProfile.createImporter());
@@ -189,7 +189,7 @@ public class ImportResourceV1 {
             result = setResult(result, subfolders, userRoot, parentPath);
             startRow = 0;
             total = subfolders.size();
-            endRow =  startRow + total -1;
+            endRow = startRow + total - 1;
         } else {
             int size = 100;
             List<Folder> selectedSubfolders = new ArrayList<>();
@@ -214,20 +214,63 @@ public class ImportResourceV1 {
 
 
             List<ProfileStates> states = new ArrayList();
-            states.add(new ProfileStates(ConfigurationProfile.DEFAULT, subfolder.getStatusDefault(appConfig).name()));
-            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT, subfolder.getStatusArchive(appConfig).name()));
-            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_NDK_IMPORT, subfolder.getStatusNdk(appConfig).name()));
-            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_NDK_IMPORT, subfolder.getStatusNdk(appConfig).name()));
-            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusK4(appConfig).name()));
-            states.add(new ProfileStates(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkMonograph(appConfig).name()));
-            states.add(new ProfileStates(ConfigurationProfile.NDK_MONOGRAPH_TITLE_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkMonographTitle(appConfig).name()));
-            states.add(new ProfileStates(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkPeriodical(appConfig).name()));
-            states.add(new ProfileStates(ConfigurationProfile.STT_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusStt(appConfig).name()));
-            states.add(new ProfileStates(ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkEMonograph(appConfig).name()));
-            states.add(new ProfileStates(ConfigurationProfile.NDK_EMONOGRAPH_TITLE_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkEMonographTitle(appConfig).name()));
-            states.add(new ProfileStates(ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkEPeriodical(appConfig).name()));
-            states.add(new ProfileStates(ConfigurationProfile.REPLACE_STREAM_IMPORT, subfolder.getStatusReplaceStream(appConfig).name()));
-            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, subfolder.getStatusSoundrecording(appConfig).name()));
+            List<ConfigurationProfile> profiles = appConfig.getProfiles().getProfiles("import.profiles");
+            for (ConfigurationProfile profile : profiles) {
+                switch (profile.getId()) {
+                    case ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT:
+                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusArchive(appConfig).name()));
+                        break;
+                    case ConfigurationProfile.DEFAULT_NDK_IMPORT:
+                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusNdk(appConfig).name()));
+                        break;
+                    case ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT:
+                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusK4(appConfig).name()));
+                        break;
+                    case ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT:
+                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusNdkMonograph(appConfig).name()));
+                        break;
+                    case ConfigurationProfile.NDK_MONOGRAPH_TITLE_KRAMERIUS_IMPORT:
+                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusNdkMonographTitle(appConfig).name()));
+                        break;
+                    case ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT:
+                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusNdkPeriodical(appConfig).name()));
+                        break;
+                    case ConfigurationProfile.STT_KRAMERIUS_IMPORT:
+                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusStt(appConfig).name()));
+                        break;
+                    case ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT:
+                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusNdkEMonograph(appConfig).name()));
+                        break;
+                    case ConfigurationProfile.NDK_EMONOGRAPH_TITLE_KRAMERIUS_IMPORT:
+                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusNdkEMonographTitle(appConfig).name()));
+                        break;
+                    case ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT:
+                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusNdkEPeriodical(appConfig).name()));
+                        break;
+                    case ConfigurationProfile.REPLACE_STREAM_IMPORT:
+                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusReplaceStream(appConfig).name()));
+                        break;
+                    case ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT:
+                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusSoundrecording(appConfig).name()));
+                        break;
+                    default:
+                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusDefault(appConfig).name()));
+                }
+            }
+//            states.add(new ProfileStates(ConfigurationProfile.DEFAULT, subfolder.getStatusDefault(appConfig).name()));
+//            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT, subfolder.getStatusArchive(appConfig).name()));
+//            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_NDK_IMPORT, subfolder.getStatusNdk(appConfig).name()));
+//            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_NDK_IMPORT, subfolder.getStatusNdk(appConfig).name()));
+//            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusK4(appConfig).name()));
+//            states.add(new ProfileStates(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkMonograph(appConfig).name()));
+//            states.add(new ProfileStates(ConfigurationProfile.NDK_MONOGRAPH_TITLE_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkMonographTitle(appConfig).name()));
+//            states.add(new ProfileStates(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkPeriodical(appConfig).name()));
+//            states.add(new ProfileStates(ConfigurationProfile.STT_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusStt(appConfig).name()));
+//            states.add(new ProfileStates(ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkEMonograph(appConfig).name()));
+//            states.add(new ProfileStates(ConfigurationProfile.NDK_EMONOGRAPH_TITLE_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkEMonographTitle(appConfig).name()));
+//            states.add(new ProfileStates(ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkEPeriodical(appConfig).name()));
+//            states.add(new ProfileStates(ConfigurationProfile.REPLACE_STREAM_IMPORT, subfolder.getStatusReplaceStream(appConfig).name()));
+//            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, subfolder.getStatusSoundrecording(appConfig).name()));
             result.add(new ImportFolder(subfolderName, subfolderStatus, parentPath, subfolderPath, states));
         }
         return result;
@@ -247,10 +290,10 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
             @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
-            ) throws URISyntaxException, IOException {
-        
+    ) throws URISyntaxException, IOException {
+
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}, software: {3}",
-                new Object[] {path, indices, device, software});
+                new Object[]{path, indices, device, software});
         String folderPath = validateParentPath(path);
         URI userRoot = user.getImportFolder();
         URI folderUri = (folderPath != null)
@@ -286,7 +329,7 @@ public class ImportResourceV1 {
     public ProArcResponse<BatchView> newBatch(
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path
     ) throws URISyntaxException, IOException {
-        LOG.log(Level.INFO, "generating for path: {0}", new Object[] {path});
+        LOG.log(Level.INFO, "generating for path: {0}", new Object[]{path});
         String folderPath = validateParentPath(path);
         URI userRoot = user.getImportFolder();
         URI folderUri = (folderPath != null)
@@ -303,7 +346,7 @@ public class ImportResourceV1 {
     }
 
 
-        @POST
+    @POST
     @Path(ImportResourceApi.BATCHES_PATH)
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public ProArcResponse<BatchView> newBatches(
@@ -320,12 +363,12 @@ public class ImportResourceV1 {
     ) throws URISyntaxException, IOException {
 
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
-                new Object[] {pathes, indices, device});
+                new Object[]{pathes, indices, device});
 
         List<String> listFolders = createListOfPath(pathes);
         URI userRoot = user.getImportFolder();
         List<Batch> listBatches = new ArrayList<>();
-        List <IOException> listExceptions = new ArrayList<>();
+        List<IOException> listExceptions = new ArrayList<>();
 
         for (String folderPath : listFolders) {
             try {
@@ -375,7 +418,7 @@ public class ImportResourceV1 {
                 value = value.substring(start.length());
             }
             if (value.endsWith(end)) {
-                value = value.substring(0, value.length()-end.length());
+                value = value.substring(0, value.length() - end.length());
             }
         }
         return value;
@@ -417,17 +460,17 @@ public class ImportResourceV1 {
 
     /**
      * Gets list of batch imports. DateTime format is ISO 8601.
-     * 
-     * @param batchId optional batch ID to find
-     * @param batchState optional states to find
-     * @param createFrom optional create dateTime as lower bound of query
-     * @param createTo  optional create dateTime as upper bound of query
+     *
+     * @param batchId      optional batch ID to find
+     * @param batchState   optional states to find
+     * @param createFrom   optional create dateTime as lower bound of query
+     * @param createTo     optional create dateTime as upper bound of query
      * @param modifiedFrom optional modified dateTime as lower bound of query
-     * @param modifiedTo optional modified dateTime as upper bound of query
-     * @param filePattern optional file pattern to match folder or batch item file
-     * @param startRow optional offset of the result
-     * @param sortBy optional {@link BatchView} property name to sort the result. Value syntax: {@code [-]propertyName} where
-     *              {@code '-'} stands for descending sort. Default is {@code sortBy=-create}.
+     * @param modifiedTo   optional modified dateTime as upper bound of query
+     * @param filePattern  optional file pattern to match folder or batch item file
+     * @param startRow     optional offset of the result
+     * @param sortBy       optional {@link BatchView} property name to sort the result. Value syntax: {@code [-]propertyName} where
+     *                     {@code '-'} stands for descending sort. Default is {@code sortBy=-create}.
      * @return the sorted list of batches.
      */
     @GET
@@ -451,28 +494,28 @@ public class ImportResourceV1 {
             @QueryParam("_startRow") int startRow,
             @QueryParam("_size") int size,
             @QueryParam("_sortBy") String sortBy
-            ) throws IOException {
+    ) throws IOException {
 
         if (size == 0 || size < 0 || size > 1000) {
             size = 100;
         }
         BatchViewFilter filterAll = new BatchViewFilter()
-                    .setBatchIds(Collections.singletonList(batchId))
-                    .setCreatorId(creatorId)
-                    .setState(batchState)
-                    .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
-                    .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
-                    .setUpdatedFrom(updatedFrom == null ? null : updatedFrom.toTimestamp())
-                    .setUpdatedTo(updatedTo == null ? null : updatedTo.toTimestamp())
-                    .setItemUpdatedFrom(itemUpdatedFrom == null ? null : itemUpdatedFrom.toTimestamp())
-                    .setItemUpdatedTo(itemUpdatedTo == null ? null : itemUpdatedTo.toTimestamp())
-                    .setModifiedFrom(modifiedFrom == null ? null : modifiedFrom.toTimestamp())
-                    .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
-                    .setFilePattern(filePattern)
-                    .setProfile(profile)
-                    .setPriority(priority)
-                    .setMaxCount(100000)
-                    .setSortBy(sortBy);
+                .setBatchIds(Collections.singletonList(batchId))
+                .setCreatorId(creatorId)
+                .setState(batchState)
+                .setCreatedFrom(createFrom == null ? null : createFrom.toTimestamp())
+                .setCreatedTo(createTo == null ? null : createTo.toTimestamp())
+                .setUpdatedFrom(updatedFrom == null ? null : updatedFrom.toTimestamp())
+                .setUpdatedTo(updatedTo == null ? null : updatedTo.toTimestamp())
+                .setItemUpdatedFrom(itemUpdatedFrom == null ? null : itemUpdatedFrom.toTimestamp())
+                .setItemUpdatedTo(itemUpdatedTo == null ? null : itemUpdatedTo.toTimestamp())
+                .setModifiedFrom(modifiedFrom == null ? null : modifiedFrom.toTimestamp())
+                .setModifiedTo(modifiedTo == null ? null : modifiedTo.toTimestamp())
+                .setFilePattern(filePattern)
+                .setProfile(profile)
+                .setPriority(priority)
+                .setMaxCount(100000)
+                .setSortBy(sortBy);
         List<BatchView> allBatches = importManager.viewBatch(filterAll, false);
 
 
@@ -492,8 +535,7 @@ public class ImportResourceV1 {
                 .setProfile(profile)
                 .setPriority(priority)
                 .setOffset(startRow).setMaxCount(size)
-                .setSortBy(sortBy)
-                ;
+                .setSortBy(sortBy);
         List<BatchView> batches = importManager.viewBatch(filter, true);
         int batchSize = batches.size();
         int endRow = startRow + batchSize - 1;
@@ -590,7 +632,7 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata
-            ) throws IOException, DigitalObjectException {
+    ) throws IOException, DigitalObjectException {
 
         Batch batch = importManager.get(batchId);
         if (batch == null) {
@@ -664,7 +706,7 @@ public class ImportResourceV1 {
             @QueryParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
             @QueryParam(ImportResourceApi.BATCHITEM_PID) String pid,
             @QueryParam("_startRow") int startRow
-            ) throws DigitalObjectException {
+    ) throws DigitalObjectException {
 
         Locale locale = session.getLocale(httpHeaders);
         startRow = Math.max(0, startRow);
@@ -683,7 +725,7 @@ public class ImportResourceV1 {
                 return ProArcResponse.asError(message);
             }
             if (ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT.equals(batch.getProfileId()) || ConfigurationProfile.DEFAULT_NDK_IMPORT.equals(batch.getProfileId())) {
-                String message =ServerMessages.get(locale).ImportResource_Batch_WrongProfileId_Msg();
+                String message = ServerMessages.get(locale).ImportResource_Batch_WrongProfileId_Msg();
                 return ProArcResponse.asError(message);
             }
 
@@ -731,7 +773,7 @@ public class ImportResourceV1 {
             --totalImports;
             imports.subList(0, totalImports);
         }
-        int totalRows = (batch.getState() == Batch.State.LOADING || batch.getState() == Batch.State.IMPORT_PLANNED) ? batch.getEstimateItemNumber(): totalImports;
+        int totalRows = (batch.getState() == Batch.State.LOADING || batch.getState() == Batch.State.IMPORT_PLANNED) ? batch.getEstimateItemNumber() : totalImports;
 
         if (totalImports == 0 || startRow >= totalImports) {
             return new ProArcResponse<Item>(ProArcResponse.STATUS_SUCCESS, startRow, startRow, totalRows, null);
@@ -760,7 +802,7 @@ public class ImportResourceV1 {
     public ProArcResponse<Item> deleteBatchItem(
             @QueryParam(ImportResourceApi.BATCHITEM_BATCHID) Integer batchId,
             @QueryParam(ImportResourceApi.BATCHITEM_PID) Set<String> pids
-            ) {
+    ) {
 
         boolean changed = false;
         if (batchId != null && pids != null && !pids.isEmpty()) {
@@ -813,7 +855,7 @@ public class ImportResourceV1 {
     private ConfigurationProfile findImportProfile(Integer batchId, String profileId) {
         ConfigurationProfile profile = appConfig.getProfiles().getProfile(ImportProfile.PROFILES, profileId);
         if (profile == null) {
-            LOG.log(Level.SEVERE,"Batch {3}: Unknown profile: {0}! Check {1} in proarc.cfg",
+            LOG.log(Level.SEVERE, "Batch {3}: Unknown profile: {0}! Check {1} in proarc.cfg",
                     new Object[]{ImportProfile.PROFILES, profileId, batchId});
             throw RestException.plainText(Status.BAD_REQUEST, "Unknown profile: " + profileId);
         }

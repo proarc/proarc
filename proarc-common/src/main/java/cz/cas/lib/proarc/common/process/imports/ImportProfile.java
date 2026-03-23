@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.process.imports;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.config.Profiles;
+import cz.cas.lib.proarc.common.image.ImageUtility.ScalingMethod;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.process.imports.archive.ArchiveImport;
@@ -27,7 +28,6 @@ import cz.cas.lib.proarc.common.process.imports.kramerius.FileReader;
 import cz.cas.lib.proarc.common.process.imports.kramerius.KrameriusImport;
 import cz.cas.lib.proarc.common.process.imports.ndk.NdkImport;
 import cz.cas.lib.proarc.common.process.imports.replaceStream.ReplaceStreamImport;
-import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import java.util.List;
 import org.apache.commons.configuration2.Configuration;
 

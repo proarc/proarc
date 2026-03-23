@@ -18,6 +18,9 @@ package cz.cas.lib.proarc.common.process.imports;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
+import cz.cas.lib.proarc.common.image.ImageMimeType;
+import cz.cas.lib.proarc.common.image.ImageUtility;
+import cz.cas.lib.proarc.common.image.ImageUtility.ScalingMethod;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
@@ -42,11 +45,8 @@ import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.incad.imgsupport.ImageMimeType;
-import cz.incad.imgsupport.ImageSupport;
-import cz.incad.imgsupport.ImageSupport.ScalingMethod;
 import jakarta.ws.rs.core.MediaType;
-import java.awt.*;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -60,6 +60,8 @@ import javax.imageio.stream.FileImageOutputStream;
 import org.apache.commons.configuration2.Configuration;
 import org.json.JSONException;
 
+import static cz.cas.lib.proarc.common.image.ImageUtility.readImage;
+import static cz.cas.lib.proarc.common.image.ImageUtility.writeImageToStream;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 /**
@@ -455,7 +457,7 @@ public class TiffImporter implements ImageImporter {
             } else {
                 if (tiff == null) {
                     start = System.nanoTime();
-                    tiff = removeAlphaChannel(ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF));
+                    tiff = removeAlphaChannel(readImage(original.toURI().toURL(), ImageMimeType.TIFF));
                     endRead = System.nanoTime() - start;
                 }
                 f = writeImage(tiff, tempBatchFolder, targetName, imageType);
@@ -495,7 +497,7 @@ public class TiffImporter implements ImageImporter {
             } else {
                 if (tiff == null) {
                     start = System.nanoTime();
-                    tiff = removeAlphaChannel(ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF));
+                    tiff = removeAlphaChannel(readImage(original.toURI().toURL(), ImageMimeType.TIFF));
                     endRead = System.nanoTime() - start;
                 }
                 f = writeImage(
@@ -539,7 +541,7 @@ public class TiffImporter implements ImageImporter {
             } else {
                 if (tiff == null) {
                     start = System.nanoTime();
-                    tiff = removeAlphaChannel(ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF));
+                    tiff = removeAlphaChannel(readImage(original.toURI().toURL(), ImageMimeType.TIFF));
                     endRead = System.nanoTime() - start;
                 }
                 f = createThumbnail(tempBatchFolder, originalFilename, original, tiff, config);
@@ -606,7 +608,7 @@ public class TiffImporter implements ImageImporter {
         File imgFile = new File(folder, filename);
         FileImageOutputStream fos = new FileImageOutputStream(imgFile);
         try {
-            ImageSupport.writeImageToStream(image, imageType.getDefaultFileExtension(), fos, 1.0f);
+            writeImageToStream(image, imageType.getDefaultFileExtension(), fos, 1.0f);
             return imgFile;
         } finally {
             fos.close();
@@ -633,7 +635,7 @@ public class TiffImporter implements ImageImporter {
             targetHeight = (int) (height * scale);
             targetWidth = (int) (width * scale);
         }
-        BufferedImage scaled = ImageSupport.scale(tiff, targetWidth, targetHeight, method, true);
+        BufferedImage scaled = ImageUtility.scale(tiff, targetWidth, targetHeight, method, true);
         LOG.fine(String.format("scaled [%s, %s] to [%s, %s], boundary [%s, %s] [w, h], time: %s ms",
                 width, height, targetWidth, targetHeight, maxWidth, maxHeight, (System.nanoTime() - start) / 1000000));
         return scaled;

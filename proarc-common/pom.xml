@@ -29,8 +29,12 @@
     <dependencies>
 
         <dependency>
-            <groupId>cz.incad</groupId>
-            <artifactId>img-support</artifactId>
+            <groupId>com.twelvemonkeys.imageio</groupId>
+            <artifactId>imageio-tiff</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.twelvemonkeys.imageio</groupId>
+            <artifactId>imageio-core</artifactId>
         </dependency>
         <dependency>
             <groupId>net.lingala.zip4j</groupId>
