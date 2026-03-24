@@ -171,7 +171,7 @@ public class UserResourceV1 {
                         .build();
             }
             BatchManager batchManager = BatchManager.getInstance();
-            List<BatchView> batchViewList = batchManager.viewBatch(new BatchViewFilter().setCreatorId(user2Delete.getId()).setMaxCount(9999));
+            List<BatchView> batchViewList = batchManager.viewBatch(new BatchViewFilter().setCreatorId(user2Delete.getId()).setMaxCount(9999), true);
             count = batchViewList.size();
             if (count != 0) {
                 return SmartGwtResponse.<UserProfile>asError()
