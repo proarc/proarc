@@ -16,7 +16,10 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -55,8 +58,10 @@ import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import static cz.cas.lib.proarc.common.device.DeviceRepository.getModelLabel;
@@ -202,6 +207,7 @@ public class DeviceResourceV1 {
         update.setLabel(label);
         update.setModel(model);
         if (description != null && !description.isEmpty()) {
+            description = normalizeDescription(description);
             ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
             Mix mix = jsMapper.readValue(description, Mix.class);
             update.setDescription(mix);
@@ -218,6 +224,73 @@ public class DeviceResourceV1 {
         } catch (DeviceException ex) {
             throw new WebApplicationException(ex);
         }
+    }
+
+    private String normalizeDescription(String description) {
+        ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
+        try {
+            JsonNode root = jsMapper.readTree(description);
+            JsonNode cleaned = normalize(root);
+            String normalizedJson = cleaned == null ? "{}" : cleaned.toString();
+            return normalizedJson;
+        } catch (IOException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    private JsonNode normalize(JsonNode node) {
+        if (node == null) {
+            return null;
+        }
+
+        if (node.isObject()) {
+            ObjectNode obj = (ObjectNode) node;
+            Iterator<Map.Entry<String, JsonNode>> fields = obj.fields();
+
+            List<String> toRemove = new ArrayList<String>();
+
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> entry = fields.next();
+                JsonNode child = normalize(entry.getValue());
+
+                if (child == null ||
+                        child.isNull() ||
+                        (child.isObject() && child.size() == 0) ||
+                        (child.isArray() && child.size() == 0) ||
+                        (child.isTextual() && child.asText().isBlank())) {
+
+                    toRemove.add(entry.getKey());
+                } else {
+                    obj.set(entry.getKey(), child);
+                }
+            }
+
+            // Java 8 safe
+            for (String key : toRemove) {
+                obj.remove(key);
+            }
+
+            return obj.size() == 0 ? null : obj;
+        }
+
+        if (node.isArray()) {
+            ArrayNode arr = (ArrayNode) node;
+            ArrayNode newArr = arr.arrayNode();
+
+            for (JsonNode item : arr) {
+                JsonNode c = normalize(item);
+
+                if (c != null &&
+                        !(c.isObject() && c.size() == 0)) {
+
+                    newArr.add(c);
+                }
+            }
+
+            return newArr.size() == 0 ? null : newArr;
+        }
+
+        return node;
     }
 
     protected String returnLocalizedMessage(String key, Object... arguments) {
