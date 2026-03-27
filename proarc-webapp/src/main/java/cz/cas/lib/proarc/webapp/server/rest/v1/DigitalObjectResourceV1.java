@@ -5073,7 +5073,7 @@ public class DigitalObjectResourceV1 {
         }
 
         updated = 0;
-        List<BatchView> batchViewList = batchManager.viewBatch(new BatchViewFilter().setCreatorId(oldUser.getId()).setMaxCount(9999));
+        List<BatchView> batchViewList = batchManager.viewBatch(new BatchViewFilter().setCreatorId(oldUser.getId()).setMaxCount(9999), false);
 
         try {
             for (BatchView batchView : batchViewList) {
