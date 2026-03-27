@@ -16,7 +16,10 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -24,12 +27,12 @@ import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceNotFoundException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.json.JsonUtils;
+import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
@@ -41,8 +44,10 @@ import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.DeviceResourceApi;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DELETE;
@@ -89,7 +94,7 @@ public class DeviceResourceV1 {
             @Context HttpHeaders httpHeaders,
             @Context UriInfo uriInfo,
             @Context HttpServletRequest httpRequest
-            ) throws AppConfigurationException, IOException {
+    ) throws AppConfigurationException, IOException {
 
         this.httpRequest = request;
         this.httpHeaders = httpHeaders;
@@ -111,7 +116,7 @@ public class DeviceResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Device> deleteDevice(
             @QueryParam(DeviceResourceApi.DEVICE_ITEM_ID) String id
-            ) throws DeviceException {
+    ) throws DeviceException {
 
         checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
 
@@ -142,7 +147,7 @@ public class DeviceResourceV1 {
     public SmartGwtResponse<Device> getDevices(
             @QueryParam(DeviceResourceApi.DEVICE_ITEM_ID) String id,
             @QueryParam(DeviceResourceApi.DEVICE_START_ROW_PARAM) int startRow
-            ) throws DeviceException, IOException {
+    ) throws DeviceException, IOException {
 
         int total = 0;
         boolean fetchDescription = id != null && !id.isEmpty();
@@ -160,7 +165,6 @@ public class DeviceResourceV1 {
     }
 
 
-
     @POST
     @Produces({MediaType.APPLICATION_JSON})
     public SmartGwtResponse<Device> newDevice(
@@ -171,7 +175,7 @@ public class DeviceResourceV1 {
             @FormParam(DeviceResourceApi.DEVICE_ITEM_PREMIS) String premis,
             @FormParam(DeviceResourceApi.DEVICE_ITEM_TIMESTAMP) Long timestamp,
             @FormParam(DeviceResourceApi.DEVICE_ITEM_AUDIO_TIMESTAMP) Long audiotimestamp
-            ) {
+    ) {
 
         checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
 
@@ -194,7 +198,7 @@ public class DeviceResourceV1 {
             @FormParam(DeviceResourceApi.DEVICE_ITEM_PREMIS) String premis,
             @FormParam(DeviceResourceApi.DEVICE_ITEM_TIMESTAMP) Long timestamp,
             @FormParam(DeviceResourceApi.DEVICE_ITEM_AUDIO_TIMESTAMP) Long audiotimestamp
-            ) throws IOException, DeviceException {
+    ) throws IOException, DeviceException {
 
         checkPermission(user, UserRole.PERMISSION_FUNCTION_DEVICE);
 
@@ -206,6 +210,7 @@ public class DeviceResourceV1 {
         update.setLabel(label);
         update.setModel(model);
         if (description != null && !description.isEmpty()) {
+            description = normalizeDescription(description);
             ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
             Mix mix = jsMapper.readValue(description, Mix.class);
             update.setDescription(mix);
@@ -222,6 +227,77 @@ public class DeviceResourceV1 {
         } catch (DeviceException ex) {
             throw new WebApplicationException(ex);
         }
+    }
+
+    private String normalizeDescription(String description) {
+        ObjectMapper jsMapper = JsonUtils.defaultObjectMapper();
+        try {
+            JsonNode root = jsMapper.readTree(description);
+            JsonNode cleaned = normalize(root);
+            String normalizedJson = cleaned == null ? "{}" : cleaned.toString();
+            return normalizedJson;
+        } catch (IOException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
+
+    private JsonNode normalize(JsonNode node) {
+        if (node == null) {
+            return null;
+        }
+
+        if (node.isObject()) {
+            ObjectNode obj = (ObjectNode) node;
+            Iterator<Map.Entry<String, JsonNode>> fields = obj.fields();
+
+            List<String> toRemove = new ArrayList<String>();
+
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> entry = fields.next();
+                JsonNode child = normalize(entry.getValue());
+
+                if (child == null ||
+                        child.isNull() ||
+                        (child.isObject() && child.size() == 0) ||
+                        (child.isArray() && child.size() == 0) ||
+                        (child.isTextual() && isBlank(child.asText()))) {
+
+                    toRemove.add(entry.getKey());
+                } else {
+                    obj.set(entry.getKey(), child);
+                }
+            }
+
+            // Java 8 safe
+            for (String key : toRemove) {
+                obj.remove(key);
+            }
+
+            return obj.size() == 0 ? null : obj;
+        }
+
+        if (node.isArray()) {
+            ArrayNode arr = (ArrayNode) node;
+            ArrayNode newArr = arr.arrayNode();
+
+            for (JsonNode item : arr) {
+                JsonNode c = normalize(item);
+
+                if (c != null &&
+                        !(c.isObject() && c.size() == 0)) {
+
+                    newArr.add(c);
+                }
+            }
+
+            return newArr.size() == 0 ? null : newArr;
+        }
+
+        return node;
+    }
+
+    private static boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
     }
 
     protected String returnLocalizedMessage(String key, Object... arguments) {
