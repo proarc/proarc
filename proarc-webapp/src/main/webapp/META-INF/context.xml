@@ -8,7 +8,7 @@ Tomcat configuration helper.
     <Resource name="jdbc/proarc" auth="Container"
               type="javax.sql.DataSource" initialSize="3"
               maxActive="100" maxIdle="30" maxWait="10000"
-              username="proarcAdmin" password="proarc"
+              username="proarcAdmin" password="FIXME"
               driverClassName="org.postgresql.Driver"
               url="jdbc:postgresql://localhost/proarc"/>
 
