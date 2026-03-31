@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
 import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.json.JsonUtils;
 import cz.cas.lib.proarc.common.storage.DigitalObjectConcurrentModificationException;
@@ -95,6 +96,7 @@ public class RestException extends WebApplicationException {
     }
 
     @XmlRootElement(name = "response")
+    @JsonRootName("response")
     @XmlAccessorType(XmlAccessType.FIELD)
     private static class ErrorResponse {
 

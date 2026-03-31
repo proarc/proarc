@@ -200,7 +200,7 @@ public class BibliographicCatalogResourceV1 {
      * JAXB helper to list items.
      */
     @XmlRootElement(name = "metadataCatalogEntries")
-    @JsonRootName( "metadataCatalogEntries")
+    @JsonRootName("metadataCatalogEntries")
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class MetadataList<E extends MetadataItem> {
 

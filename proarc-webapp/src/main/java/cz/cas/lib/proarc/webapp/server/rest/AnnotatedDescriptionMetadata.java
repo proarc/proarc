@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.KrameriusResourceApi;
@@ -33,6 +34,7 @@ import jakarta.xml.bind.annotation.XmlRootElement;
  * @author Jan Pokorsky
  */
 @XmlRootElement(name = DigitalObjectResourceApi.CUSTOMMODS_ELEMENT)
+@JsonRootName(DigitalObjectResourceApi.CUSTOMMODS_ELEMENT)
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class AnnotatedDescriptionMetadata extends DescriptionMetadata<Object> {
 

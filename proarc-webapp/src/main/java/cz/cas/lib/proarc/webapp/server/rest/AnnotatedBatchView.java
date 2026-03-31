@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
@@ -35,6 +36,7 @@ import java.sql.Timestamp;
  * @author Jan Pokorsky
  */
 @XmlRootElement(name = ImportResourceApi.IMPORT_BATCH_ELEMENT)
+@JsonRootName(ImportResourceApi.IMPORT_BATCH_ELEMENT)
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class AnnotatedBatchView extends BatchView {
 

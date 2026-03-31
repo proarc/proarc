@@ -1817,12 +1817,16 @@ public class DigitalObjectResourceV1 {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class DatastreamResult {
         @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_ID)
+        @JsonProperty(DigitalObjectResourceApi.STREAMPROFILE_ID)
         private String id;
         @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_MIME)
+        @JsonProperty(DigitalObjectResourceApi.STREAMPROFILE_MIME)
         private String mime;
         @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_HEIGHT)
+        @JsonProperty(DigitalObjectResourceApi.STREAMPROFILE_HEIGHT)
         private Integer height;
         @XmlElement(name = DigitalObjectResourceApi.STREAMPROFILE_WIDTH)
+        @JsonProperty(DigitalObjectResourceApi.STREAMPROFILE_WIDTH)
         private Integer width;
 
         public static DatastreamResult from(DatastreamProfile profile) {
@@ -5272,8 +5276,10 @@ public class DigitalObjectResourceV1 {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class DigitalObject {
         @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_PID)
+        @JsonProperty(DigitalObjectResourceApi.DIGITALOBJECT_PID)
         private String pid;
         @XmlElement(name = DigitalObjectResourceApi.DIGITALOBJECT_MODEL)
+        @JsonProperty(DigitalObjectResourceApi.DIGITALOBJECT_MODEL)
         private String model;
 
         public DigitalObject(String pid, String model) {
@@ -5360,9 +5366,11 @@ public class DigitalObjectResourceV1 {
     public static class InternalExternalProcessResult {
 
         @XmlElement(name = DigitalObjectResourceApi.RESULT_ID)
+        @JsonProperty(DigitalObjectResourceApi.RESULT_ID)
         private Integer processId;
 
         @XmlElement(name = DigitalObjectResourceApi.RESULT_MSG)
+        @JsonProperty(DigitalObjectResourceApi.RESULT_MSG)
         private String msg;
 
         public InternalExternalProcessResult() {

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -165,6 +166,7 @@ public class WorkflowResourceV1 {
             @QueryParam(WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID) String pid,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_RAW_PATH) String rawPath,
             @QueryParam(WorkflowModelConsts.JOB_DEVICE_ID) String deviceId,
+            @QueryParam(WorkflowModelConsts.JOB_MODEL) String model,
             @QueryParam(WorkflowModelConsts.JOB_NOTE) String note
     ) {
         int pageSize = 100;
@@ -198,6 +200,7 @@ public class WorkflowResourceV1 {
         filter.setTaskUser(taskUser);
         filter.setRawPath(rawPath);
         filter.setDeviceId(deviceId);
+        filter.setModel(model);
         filter.setPid(pid);
         filter.setNote(note);
 
@@ -602,6 +605,7 @@ public class WorkflowResourceV1 {
     @XmlAccessorType(XmlAccessType.NONE)
     public static class TaskUpdate extends Task {
         @XmlElement(name = WorkflowModelConsts.TASK_PARAMETERS)
+        @JsonProperty(WorkflowModelConsts.TASK_PARAMETERS)
         public Map<String, Object> params;
     }
 
@@ -678,14 +682,19 @@ public class WorkflowResourceV1 {
     @XmlAccessorType(XmlAccessType.NONE)
     public static class TasksUpdate {
         @XmlElement(name = WorkflowModelConsts.TASK_IDS)
+        @JsonProperty(WorkflowModelConsts.TASK_IDS)
         public List<BigDecimal> ids;
         @XmlElement(name = WorkflowModelConsts.TASK_STATE)
+        @JsonProperty(WorkflowModelConsts.TASK_STATE)
         public Task.State state;
         @XmlElement(name = WorkflowModelConsts.TASK_OWNERID)
+        @JsonProperty(WorkflowModelConsts.TASK_OWNERID)
         public BigDecimal ownerId;
         @XmlElement(name = WorkflowModelConsts.TASK_PRIORITY)
+        @JsonProperty(WorkflowModelConsts.TASK_PRIORITY)
         public Integer priority;
         @XmlElement(name = WorkflowModelConsts.TASK_PARAMETERS)
+        @JsonProperty(WorkflowModelConsts.TASK_PARAMETERS)
         public Map<String, Object> params;
 
         public List<BigDecimal> getIds() {

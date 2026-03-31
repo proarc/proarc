@@ -38,5 +38,7 @@ public interface WorkflowJobDao extends Dao {
 
     String getDevice(BigDecimal id);
 
+    List<BigDecimal> getJobIdFromDevice(String deviceId);
+
     void delete(BigDecimal id);
 }

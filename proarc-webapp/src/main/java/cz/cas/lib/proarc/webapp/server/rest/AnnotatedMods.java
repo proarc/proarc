@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
 import cz.cas.lib.proarc.mods.AbstractDefinition;
 import cz.cas.lib.proarc.mods.AccessConditionDefinition;
 import cz.cas.lib.proarc.mods.CopyInformationDefinition;
@@ -49,6 +50,7 @@ import jakarta.xml.bind.annotation.XmlRootElement;
  * @author Jan Pokorsky
  */
 @XmlRootElement(name = "mods")
+@JsonRootName("mods")
 public class AnnotatedMods extends ModsDefinition {
 
     public static class AnnotatedAbstractDefinition extends AbstractDefinition {

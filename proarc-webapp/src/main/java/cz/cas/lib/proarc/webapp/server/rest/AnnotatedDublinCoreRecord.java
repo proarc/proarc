@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
@@ -37,6 +38,7 @@ import jakarta.xml.bind.annotation.XmlType;
  */
 @XmlRootElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_ELEMENT,
         namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
+@JsonRootName(DigitalObjectResourceApi.DUBLINCORERECORD_ELEMENT)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
 public abstract class AnnotatedDublinCoreRecord extends DublinCoreRecord {

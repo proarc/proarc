@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
@@ -129,10 +130,13 @@ public class LocalizationResourceV1 {
     public static class Item {
 
         @XmlElement(name = LocalizationResourceApi.ITEM_KEY)
+        @JsonProperty(LocalizationResourceApi.ITEM_KEY)
         private String key;
         @XmlElement(name = LocalizationResourceApi.ITEM_VALUE)
+        @JsonProperty(LocalizationResourceApi.ITEM_VALUE)
         private String value;
         @XmlElement(name = LocalizationResourceApi.ITEM_BUNDLENAME)
+        @JsonProperty(LocalizationResourceApi.ITEM_BUNDLENAME)
         private String bundleName;
 
         public Item(String key, String value, String bundleName) {
