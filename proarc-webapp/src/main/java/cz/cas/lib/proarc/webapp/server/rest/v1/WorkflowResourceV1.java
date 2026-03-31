@@ -164,6 +164,7 @@ public class WorkflowResourceV1 {
             @QueryParam(WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID) String pid,
             @QueryParam(WorkflowModelConsts.JOB_FILTER_RAW_PATH) String rawPath,
             @QueryParam(WorkflowModelConsts.JOB_DEVICE_ID) String deviceId,
+            @QueryParam(WorkflowModelConsts.JOB_MODEL) String model,
             @QueryParam(WorkflowModelConsts.JOB_NOTE) String note
     ) {
         int pageSize = 100;

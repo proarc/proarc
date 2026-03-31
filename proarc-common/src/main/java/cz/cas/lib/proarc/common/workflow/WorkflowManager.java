@@ -75,6 +75,7 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -136,6 +137,19 @@ public class WorkflowManager {
         jobDao.setTransaction(tx);
         try {
             String lang = filter.getLocale().getLanguage();
+            if (filter.getDeviceId() != null && !filter.getDeviceId().isEmpty()) {
+                List<Device> devices = getDeviceList(filter.getDeviceId());
+                if (devices != null && !devices.isEmpty()) {
+                    List<BigDecimal> jobIds = jobDao.getJobIdFromDevice(devices.get(0).getLabel());
+                    if (jobIds != null && !jobIds.isEmpty()) {
+                        if (filter.getIds() == null) {
+                            filter.setIds(jobIds);
+                        } else {
+                            filter.setIds(mergeIds(jobIds, filter.getIds()));
+                        }
+                    }
+                }
+            }
             List<JobView> jobs = jobDao.view(filter);
             for (JobView job : jobs) {
                 job.setUserName(getUser(job.getOwnerId()));
@@ -167,6 +181,16 @@ public class WorkflowManager {
         } finally {
             tx.close();
         }
+    }
+
+    private List<BigDecimal> mergeIds(List<BigDecimal> jobIds, List<BigDecimal> ids) {
+        List<BigDecimal> mergedIds = new ArrayList<>();
+        for (BigDecimal id : jobIds) {
+            if (ids.contains(id)) {
+                mergedIds.add(id);
+            }
+        }
+        return mergedIds;
     }
 
     private String getUser(BigDecimal ownerId) {
@@ -212,6 +236,26 @@ public class WorkflowManager {
         } finally {
             return retValDevice;
         }
+    }
+
+    private List<Device> getDeviceList(String deviceId) {
+        if (deviceId == null || deviceId.isEmpty()) {
+            return null;
+        }
+        DeviceRepository devRepo;
+        try {
+            if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+                AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfiguration.getConfigHome());
+                devRepo = new DeviceRepository(AkubraStorage.getInstance(akubraConfiguration));
+            } else {
+                throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
+            }
+            List<Device> devices = devRepo.find(appConfiguration, deviceId);
+            return devices;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return Collections.emptyList();
     }
 
     public List<MaterialView> findMaterial(MaterialFilter filter) {

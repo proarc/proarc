@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.WorkflowJobDao;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.WorkflowJobTable;
+import cz.cas.lib.proarc.common.sql.DbUtils;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
@@ -202,6 +203,7 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         EmpireUtils.addWhereIs(cmd, tableJob.state, filter.getState() == null ? null : filter.getState().name());
         EmpireUtils.addWhereIs(cmd, tableJob.ownerId, filter.getUserId());
         EmpireUtils.addWhereIs(cmd, tableJob.priority, filter.getPriority());
+        EmpireUtils.addWhereLike(cmd, tableJob.model, filter.getModel());
         EmpireUtils.addWhereLike(cmd, taskName, filter.getTaskName());
         EmpireUtils.addWhereDate(cmd, db.tableWorkflowJob.timestamp, filter.getTaskDate());
         EmpireUtils.addWhereIs(cmd, taskUserId, filter.getTaskUser());
@@ -247,6 +249,29 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
             e.printStackTrace();
         } finally {
             return device;
+        }
+    }
+
+    @Override
+    public List<BigDecimal> getJobIdFromDevice(String deviceId) {
+        if (deviceId == null || deviceId.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<BigDecimal> jobIds = new ArrayList<>();
+        PreparedStatement SCANNER = null;
+        try {
+            Connection connection = getConnection();
+            SCANNER = connection.prepareStatement("select j1.id as jobId from proarc_wf_job j1 left join proarc_wf_task t1 on j1.id = t1.job_id left join proarc_wf_parameter p1 on t1.id = p1.task_id where t1.type_ref='task.scan' and p1.param_ref='param.scan.scannerNew' and p1.value_string = '" + deviceId + "'");
+            final ResultSet resultSet = SCANNER.executeQuery();
+            while(resultSet.next()) {
+                jobIds.add(resultSet.getBigDecimal("jobId"));
+            }
+            DbUtils.close(resultSet);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            DbUtils.close(SCANNER);
+            return jobIds;
         }
     }
 
