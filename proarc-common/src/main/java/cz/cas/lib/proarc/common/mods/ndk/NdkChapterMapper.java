@@ -75,13 +75,13 @@ public class NdkChapterMapper extends RdaNdkMapper {
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);
         //  mods/physicalDescription/form@type="code"
-        for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
-            for (FormDefinition form : pd.getForm()) {
-                if (form.getType() == null) {
-                    form.setType("code");
-                }
-            }
-        }
+//        for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
+//            for (FormDefinition form : pd.getForm()) {
+//                if (form.getType() == null) {
+//                    form.setType("code");
+//                }
+//            }
+//        }
         //  mods/classification@authority="udc"
         List<ClassificationDefinition> classifications = mods.getClassification();
         for (ClassificationDefinition classification : classifications) {
