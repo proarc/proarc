@@ -54,8 +54,14 @@ public class NdkEArticleMapper extends NdkArticleMapper {
                 }
                 if ("bez média".equals(form.getValue())) {
                     setFormDefinition(form, newFormDefinition, "svazek");
+                } else if ("svazek".equals(form.getValue())) {
+                    form.setType("carrier");
+                    form.setAuthority("rdacarrier");
                 } else if ("počítač".equals(form.getValue())) {
                     setFormDefinition(form, newFormDefinition, "online zdroj");
+                } else if ("online zdroj".equals(form.getValue())) {
+                    form.setType("carrier");
+                    form.setAuthority("rdacarrier");
                 } else if ("jiný".equals(form.getValue()) && (form.getAuthority() == null || "rdamedia".equals(form.getAuthority()))) {
                     setFormDefinition(form, newFormDefinition, "jiný");
                 } else {
