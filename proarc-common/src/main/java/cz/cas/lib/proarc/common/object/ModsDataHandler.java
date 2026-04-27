@@ -439,7 +439,7 @@ public class ModsDataHandler {
             return;
         }
         for (IdentifierDefinition identifier : identifiers) {
-            if (key.equals(identifier.getTypeString())) {
+            if (key.equals(identifier.getType())) {
                 relatedItem.getIdentifier().add(identifier);
             }
         }
@@ -458,7 +458,7 @@ public class ModsDataHandler {
     private void fillIssueSeries(ModsDefinition mods, String partNumberVal, String dateIssuedVal, String dateIssuedEndOfRangeVal) {
         if (partNumberVal != null) {
             TitleInfoDefinition titleInfo = mods.getTitleInfo().stream()
-                    .filter(ti -> ti.getTypeEnum() == null).findFirst().orElse(null);
+                    .filter(ti -> ti.getType() == null).findFirst().orElse(null);
             if (titleInfo == null) {
                 mods.getTitleInfo().add(titleInfo = new TitleInfoDefinition());
             }
@@ -489,7 +489,7 @@ public class ModsDataHandler {
 
     public static final void inheritIdentifier(ModsDefinition mods, List<IdentifierDefinition> ids, String... includeIdTypes) {
         for (IdentifierDefinition id : ids) {
-            String type = id.getTypeString();
+            String type = id.getType();
             if (includeIdTypes == null) {
                 mods.getIdentifier().add(id);
             } else {
@@ -504,7 +504,7 @@ public class ModsDataHandler {
 
     public static final void inheritIdentifierExclude(ModsDefinition mods, List<IdentifierDefinition> ids, String... excludeIdTypes) {
         for (IdentifierDefinition id : ids) {
-            String type = id.getTypeString();
+            String type = id.getType();
             if (excludeIdTypes == null) {
                 mods.getIdentifier().add(id);
             } else {
@@ -560,7 +560,7 @@ public class ModsDataHandler {
 
     public static void inheritTitleInfo(ModsDefinition mods, List<TitleInfoDefinition> tis) {
         for (TitleInfoDefinition ti : tis) {
-            if (ti.getTypeEnum() == null) {
+            if (ti.getType() == null) {
                 ti.getPartNumber().clear();
                 ti.getPartName().clear();
                 ti.getNonSort().clear();
@@ -596,7 +596,7 @@ public class ModsDataHandler {
 
     public static final void inheritSupplementTitleInfo(ModsDefinition mods, List<TitleInfoDefinition> tis) {
         for (TitleInfoDefinition ti : tis) {
-            if (ti.getTypeEnum() == null) {
+            if (ti.getType() == null) {
                 ti.getPartNumber().clear();
                 ti.getPartName().clear();
                 ti.getNonSort().clear();

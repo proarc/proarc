@@ -468,7 +468,7 @@ public class FileReader {
         String DEFAULT_NAME = "Nový model (imporován " + getTimestamp() + ").";
         boolean emptyTitle = true;
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            if (!titleInfo.getTitleStringPlusLanguage().isEmpty()) {
+            if (!titleInfo.getTitle().isEmpty()) {
                 emptyTitle = false;
                 break;
             }
@@ -962,8 +962,8 @@ public class FileReader {
 
     private void repairModsIdentifier(List<IdentifierDefinition> identifiers) {
         for (IdentifierDefinition identifier : identifiers) {
-            if ("urn".equalsIgnoreCase(identifier.getTypeString())) {
-                identifier.setTypeString("uuid");
+            if ("urn".equalsIgnoreCase(identifier.getType())) {
+                identifier.setType("uuid");
             }
         }
     }

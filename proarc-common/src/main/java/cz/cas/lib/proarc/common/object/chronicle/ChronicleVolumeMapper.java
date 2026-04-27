@@ -48,7 +48,7 @@ public class ChronicleVolumeMapper extends NdkMonographVolumeMapper {
     private void checkUuidIdentifier(ModsDefinition mods, String pid) {
         String uuid = FoxmlUtils.pidAsUuid(pid);
         for (IdentifierDefinition id : mods.getIdentifier()) {
-            if ("uuid".equals(id.getTypeString()) && !uuid.equals(id.getValue())) {
+            if ("uuid".equals(id.getType()) && !uuid.equals(id.getValue())) {
                 id.setInvalid("yes");
             }
         }
@@ -113,7 +113,7 @@ public class ChronicleVolumeMapper extends NdkMonographVolumeMapper {
         List<IdentifierDefinition> identifiers = new ArrayList<>();
         List<IdentifierDefinition> relatedItemIdentifiers = new ArrayList<>();
         for (IdentifierDefinition identifier : mods.getIdentifier()) {
-            if (ALLOW_IDENTIFIER_TYPE.contains(identifier.getTypeString())) {
+            if (ALLOW_IDENTIFIER_TYPE.contains(identifier.getType())) {
                 relatedItemIdentifiers.add(identifier);
             } else {
                 identifiers.add(identifier);

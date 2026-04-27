@@ -380,7 +380,7 @@ public class ChangeModels {
         if (rootMods != null) {
             TitleInfoDefinition title = null;
             for (TitleInfoDefinition titleInfo : rootMods.getTitleInfo()) {
-                if (titleInfo.getTypeEnum() == null) {
+                if (titleInfo.getType() == null) {
                     title = titleInfo;
                     break;
                 }
@@ -538,14 +538,14 @@ public class ChangeModels {
             }
             TitleInfoDefinition rootTitleInfo = null;
             for (TitleInfoDefinition titleInfo : rootMods.getTitleInfo()) {
-                if (titleInfo.getTypeEnum() == null) {
+                if (titleInfo.getType() == null) {
                     rootTitleInfo = titleInfo;
                     break;
                 }
             }
             if (rootTitleInfo != null && title != null) {
-                if (title.getTitleStringPlusLanguage().isEmpty() && !rootTitleInfo.getTitleStringPlusLanguage().isEmpty()) {
-                    title.getTitleStringPlusLanguage().addAll(rootTitleInfo.getTitleStringPlusLanguage());
+                if (title.getTitle().isEmpty() && !rootTitleInfo.getTitle().isEmpty()) {
+                    title.getTitle().addAll(rootTitleInfo.getTitle());
                 }
                 if (title.getSubTitle().isEmpty() && !rootTitleInfo.getSubTitle().isEmpty()) {
                     title.getSubTitle().addAll(rootTitleInfo.getSubTitle());
@@ -564,8 +564,8 @@ public class ChangeModels {
 
     private void fixCollectionOfClippingsVolumeMods(ModsDefinition mods, String parentPid) throws DigitalObjectException {
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            titleInfo.getTitleStringPlusLanguage().clear();
-            titleInfo.getTitleStringPlusLanguage().addAll(titleInfo.getPartName());
+            titleInfo.getTitle().clear();
+            titleInfo.getTitle().addAll(titleInfo.getPartName());
             titleInfo.getPartName().clear();
         }
     }
@@ -595,18 +595,18 @@ public class ChangeModels {
 
     private void fixTitleInfo(String titleValue, ModsDefinition mods) {
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            titleInfo.getPartName().addAll(titleInfo.getTitleStringPlusLanguage());
-            titleInfo.getTitleStringPlusLanguage().clear();
+            titleInfo.getPartName().addAll(titleInfo.getTitle());
+            titleInfo.getTitle().clear();
             StringPlusLanguage title = new StringPlusLanguage();
             title.setValue(titleValue);
-            titleInfo.getTitleStringPlusLanguage().add(title);
+            titleInfo.getTitle().add(title);
         }
     }
 
     private String getTitle(ModsDefinition mods) {
         if (mods != null) {
             for (TitleInfoDefinition title : mods.getTitleInfo()) {
-                for (StringPlusLanguage titleInfo : title.getTitleStringPlusLanguage()) {
+                for (StringPlusLanguage titleInfo : title.getTitle()) {
                     return titleInfo.getValue();
                 }
             }
@@ -757,7 +757,7 @@ public class ChangeModels {
             mods.getGenre().add(genre);
         }
         if (mods.getGenre().size() > 0) {
-            mods.getGenre().get(0).setTypeString(pageType);
+            mods.getGenre().get(0).setType(pageType);
         }
         return mods;
     }

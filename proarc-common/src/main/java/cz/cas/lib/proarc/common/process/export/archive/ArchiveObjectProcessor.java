@@ -245,7 +245,7 @@ public class ArchiveObjectProcessor {
 
     public static boolean containUrnNbn(List<IdentifierDefinition> identifiers) {
         for (IdentifierDefinition identifier : identifiers) {
-            if (Const.URNNBN.equals(identifier.getTypeString())) {
+            if (Const.URNNBN.equals(identifier.getType())) {
                 if (identifier.getInvalid() == null || "false".equals(identifier.getInvalid())) {
                     return true;
                 }

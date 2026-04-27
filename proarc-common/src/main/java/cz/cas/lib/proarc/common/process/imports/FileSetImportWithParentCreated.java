@@ -245,7 +245,7 @@ public class FileSetImportWithParentCreated extends FileSetImport {
 
     private void setIdentifier(MetadataCatalog metadataCatalog, ModsDefinition mods) {
         IdentifierDefinition identifierLocalId = new IdentifierDefinition();
-        identifierLocalId.setTypeString("localId");
+        identifierLocalId.setType("localId");
         identifierLocalId.setValue(metadataCatalog.getLocalId());
         mods.getIdentifier().add(identifierLocalId);
     }
@@ -259,10 +259,10 @@ public class FileSetImportWithParentCreated extends FileSetImport {
 
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
             if (metadataCatalog.getTitle() != null) {
-                if (titleInfo.getTitleStringPlusLanguage().isEmpty()) {
-                    titleInfo.getTitleStringPlusLanguage().add(new StringPlusLanguage());
+                if (titleInfo.getTitle().isEmpty()) {
+                    titleInfo.getTitle().add(new StringPlusLanguage());
                 }
-                for (StringPlusLanguage title : titleInfo.getTitleStringPlusLanguage()) {
+                for (StringPlusLanguage title : titleInfo.getTitle()) {
                     if (title.getValue() == null || title.getValue().isEmpty()) {
                         title.setValue(metadataCatalog.getTitle());
                         break;

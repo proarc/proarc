@@ -64,7 +64,7 @@ public class NdkPeriodicalIssueMapper extends RdaNdkMapper {
         // name/role/roleTerm@type="CODE"
         // name/role/roleTerm@authority="marcrelator"
         for (NameDefinition name : mods.getName()) {
-            for (RoleDefinition role : name.getRoleDefinition()) {
+            for (RoleDefinition role : name.getRole()) {
                 for (RoleTermDefinition roleTerm : role.getRoleTerm()) {
                     if (roleTerm.getAuthority() == null) {
                         roleTerm.setAuthority("marcrelator");
@@ -77,8 +77,8 @@ public class NdkPeriodicalIssueMapper extends RdaNdkMapper {
         }
         GenreDefinition genre = addGenre(mods);
         // genre@type="normal" if null
-        if (genre.getTypeString() == null) {
-            genre.setTypeString("normal");
+        if (genre.getType() == null) {
+            genre.setType("normal");
         }
         // mods/language/languageTerm @type=code, @authority="iso639‐2b"
         fillLanguage(mods);

@@ -126,7 +126,7 @@ public class NdkNewPageMapper extends NdkMapper {
             mods.getGenre().add(new GenreDefinition());
         }
         GenreDefinition genre = mods.getGenre().get(0);
-        genre.setTypeString(type);
+        genre.setType(type);
         if (genre.getValue() == null || genre.getValue().isEmpty()) {
             genre.setValue("page");
         }

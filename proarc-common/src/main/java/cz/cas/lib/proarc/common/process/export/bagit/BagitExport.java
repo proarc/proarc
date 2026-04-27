@@ -310,8 +310,8 @@ public class BagitExport {
     private String getTitle(ModsDefinition mods) {
         StringBuilder builder = new StringBuilder();
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            if (titleInfo.getTitleStringPlusLanguage().size() > 0) {
-                builder.append(titleInfo.getTitleStringPlusLanguage().get(0).getValue());
+            if (titleInfo.getTitle().size() > 0) {
+                builder.append(titleInfo.getTitle().get(0).getValue());
             }
             if (titleInfo.getSubTitle().size() > 0) {
                 builder.append(": ");
@@ -331,7 +331,7 @@ public class BagitExport {
 
     private String getUrnNbn(ModsDefinition mods) {
         for (IdentifierDefinition identifier : mods.getIdentifier()) {
-            if ("urnnbn".equals(identifier.getTypeString()) && (identifier.getInvalid() == null || "".equals(identifier.getInvalid()) || "false".equals(identifier.getInvalid()))) {
+            if ("urnnbn".equals(identifier.getType()) && (identifier.getInvalid() == null || "".equals(identifier.getInvalid()) || "false".equals(identifier.getInvalid()))) {
                 return identifier.getValue();
             }
         }

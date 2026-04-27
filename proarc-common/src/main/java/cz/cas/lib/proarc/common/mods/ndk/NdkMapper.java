@@ -156,7 +156,7 @@ public abstract class NdkMapper {
     private void checkUuidIdentifier(ModsDefinition mods, String pid) {
         String uuid = FoxmlUtils.pidAsUuid(pid);
         for (IdentifierDefinition id : mods.getIdentifier()) {
-            if ("uuid".equals(id.getTypeString()) && !uuid.equals(id.getValue())) {
+            if ("uuid".equals(id.getType()) && !uuid.equals(id.getValue())) {
                 id.setInvalid("yes");
             }
         }
@@ -204,7 +204,7 @@ public abstract class NdkMapper {
             if (idVal == null) {
                 continue;
             }
-            String idType = toValue(identifier.getTypeString());
+            String idType = toValue(identifier.getType());
             if (idType != null) {
                 idVal = idType + ':' + idVal;
             }
@@ -304,7 +304,7 @@ public abstract class NdkMapper {
      */
     protected String createObjectLabel(ModsDefinition mods) {
         for (TitleInfoDefinition ti : mods.getTitleInfo()) {
-            if (toValue(ti.getTypeEnum()) != null) {
+            if (toValue(ti.getType()) != null) {
                 continue;
             }
             return createTitleString(ti);
@@ -409,7 +409,7 @@ public abstract class NdkMapper {
         if (page.getTitle() != null) {
             StringPlusLanguage title = new StringPlusLanguage();
             title.setValue(page.getTitle());
-            titleInfo.getTitleStringPlusLanguage().add(title);
+            titleInfo.getTitle().add(title);
         }
     }
 
@@ -422,7 +422,7 @@ public abstract class NdkMapper {
             String iiValue = MapperUtils.toValue(ii.getValue());
             if (iiValue != null) {
                 IdentifierDefinition id = new IdentifierDefinition();
-                id.setTypeString(ii.getType());
+                id.setType(ii.getType());
                 id.setValue(iiValue);
                 ids.add(id);
             }

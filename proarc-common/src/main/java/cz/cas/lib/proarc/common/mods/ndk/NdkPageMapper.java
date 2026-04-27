@@ -181,7 +181,7 @@ public class NdkPageMapper extends NdkMapper {
     private String getTitleDefinitionValue(TitleInfoDefinition titleInfo, String value) {
         switch (value) {
             case "title":
-                return !titleInfo.getTitleStringPlusLanguage().isEmpty() ? titleInfo.getTitleStringPlusLanguage().get(0).getValue() : "";
+                return !titleInfo.getTitle().isEmpty() ? titleInfo.getTitle().get(0).getValue() : "";
             case "subtitle":
                 return !titleInfo.getSubTitle().isEmpty() ? titleInfo.getSubTitle().get(0).getValue() : "";
             default:
@@ -314,7 +314,7 @@ public class NdkPageMapper extends NdkMapper {
     protected List<IdentifierItem> getIdentifierItems(List<IdentifierDefinition> ids) {
         List<IdentifierItem> iis = new ArrayList<>(ids.size());
         for (IdentifierDefinition id : ids) {
-            iis.add(new IdentifierItem(id.getTypeString(), id.getValue()));
+            iis.add(new IdentifierItem(id.getType(), id.getValue()));
         }
         return iis;
     }

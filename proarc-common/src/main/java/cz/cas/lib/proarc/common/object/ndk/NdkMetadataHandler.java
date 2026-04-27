@@ -409,10 +409,10 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         // check URN:NBN
         for (IdentifierDefinition oldId : oldIds) {
             if (!skipUrnNbnValidation) {
-                if ("urnnbn".equals(oldId.getTypeString()) && oldId.getValue() != null && !oldId.getValue().trim().isEmpty() && (oldId.getInvalid() == null || "no".equals(oldId.getInvalid()))) {
+                if ("urnnbn".equals(oldId.getType()) && oldId.getValue() != null && !oldId.getValue().trim().isEmpty() && (oldId.getInvalid() == null || "no".equals(oldId.getInvalid()))) {
                     boolean missingId = true;
                     for (IdentifierDefinition id : mods.getIdentifier()) {
-                        if (oldId.getTypeString().equals(id.getTypeString()) && oldId.getValue().equals(id.getValue())) {
+                        if (oldId.getType().equals(id.getType()) && oldId.getValue().equals(id.getValue())) {
                             missingId = false;
                             break;
                         }
@@ -450,7 +450,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             throw new IllegalStateException(ioException);
         }
         for (IdentifierDefinition idDef : mods.getIdentifier()) {
-            if ("doi".equals(idDef.getTypeString()) && idDef.getValue() != null) {
+            if ("doi".equals(idDef.getType()) && idDef.getValue() != null) {
                 String doi = idDef.getValue();
                 if (doi != null && !doi.isEmpty()) {
                     try {

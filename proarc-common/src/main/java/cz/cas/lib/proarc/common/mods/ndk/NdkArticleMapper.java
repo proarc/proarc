@@ -59,7 +59,7 @@ public class NdkArticleMapper extends NdkMapper {
         // name/role/roleTerm@type="CODE"
         // name/role/roleTerm@authority="marcrelator"
         for (NameDefinition name : mods.getName()) {
-            for (RoleDefinition role : name.getRoleDefinition()) {
+            for (RoleDefinition role : name.getRole()) {
                 for (RoleTermDefinition roleTerm : role.getRoleTerm()) {
                     if (roleTerm.getAuthority() == null) {
                         roleTerm.setAuthority("marcrelator");
@@ -75,13 +75,13 @@ public class NdkArticleMapper extends NdkMapper {
         fillLanguage(mods);
         addNameWithEtal(mods);
         //  mods/physicalDescription/form@type="code"
-        for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
-            for (FormDefinition form : pd.getForm()) {
-                if (form.getType() == null) {
-                    form.setType("code");
-                }
-            }
-        }
+//        for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
+//            for (FormDefinition form : pd.getForm()) {
+//                if (form.getType() == null) {
+//                    form.setType("code");
+//                }
+//            }
+//        }
         //  mods/classification@authority="udc"
         List<ClassificationDefinition> classifications = mods.getClassification();
         for (ClassificationDefinition classification : classifications) {

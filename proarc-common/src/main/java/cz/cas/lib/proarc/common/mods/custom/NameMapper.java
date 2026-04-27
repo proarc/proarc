@@ -124,7 +124,7 @@ final class NameMapper {
             int familyCount = 0;
             int givenCount = 0;
 
-            for (RoleDefinition role : source.getRoleDefinition()) {
+            for (RoleDefinition role : source.getRole()) {
                 if (result.getRole() != null && result.getRole() != NameRole.OTHER) {
                     continue;
                 }
@@ -201,7 +201,7 @@ final class NameMapper {
             roleTerm.setType(CodeOrText.TEXT);
             roleTerm.setValue(role.getText());
             roleType.getRoleTerm().add(roleTerm);
-            name.getRoleDefinition().add(roleType);
+            name.getRole().add(roleType);
         }
 
     }

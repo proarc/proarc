@@ -80,7 +80,7 @@ public class IdentifierMapperTest {
 
     private static IdentifierDefinition create(String type, String value) {
         IdentifierDefinition ident = new IdentifierDefinition();
-        ident.setTypeString(type);
+        ident.setType(type);
         ident.setValue(value);
         return ident;
     }
@@ -145,14 +145,14 @@ public class IdentifierMapperTest {
         if (!equals(i1.getValue(), i2.getValue())) {
             return false;
         }
-        if (!equals(i1.getTypeString(), i2.getTypeString())) {
+        if (!equals(i1.getType(), i2.getType())) {
             return false;
         }
         return true;
     }
 
     private static String toString(IdentifierDefinition i) {
-        return i == null ? null : String.format("IdentifierDefinition[%s, %s]", i.getTypeString(), i.getValue());
+        return i == null ? null : String.format("IdentifierDefinition[%s, %s]", i.getType(), i.getValue());
     }
 
 }

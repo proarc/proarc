@@ -53,7 +53,7 @@ public class ModsStreamEditorTest {
         assertNotNull(result);
         assertEquals(ModsUtils.VERSION, result.getVersion());
         IdentifierDefinition resultUuid = result.getIdentifier().get(0);
-        assertEquals("uuid", resultUuid.getTypeString());
+        assertEquals("uuid", resultUuid.getType());
         assertEquals(uuid, resultUuid.getValue());
     }
 

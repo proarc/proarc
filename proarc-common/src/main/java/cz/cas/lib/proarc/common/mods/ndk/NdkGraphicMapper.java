@@ -64,7 +64,7 @@ public final class NdkGraphicMapper extends RdaNdkMapper {
         // name/role/roleTerm@type="CODE"
         // name/role/roleTerm@authority="marcrelator"
         for (NameDefinition name : mods.getName()) {
-            for (RoleDefinition role : name.getRoleDefinition()) {
+            for (RoleDefinition role : name.getRole()) {
                 for (RoleTermDefinition roleTerm : role.getRoleTerm()) {
                     if (roleTerm.getAuthority() == null) {
                         roleTerm.setAuthority("marcrelator");

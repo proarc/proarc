@@ -128,7 +128,7 @@ public class AddReference {
                 TitleInfoDefinition titleInfo = new TitleInfoDefinition();
                 relatedItem.getTitleInfo().add(titleInfo);
                 StringPlusLanguage title = new StringPlusLanguage();
-                titleInfo.getTitleStringPlusLanguage().add(title);
+                titleInfo.getTitle().add(title);
                 title.setValue(citation.getArticle_title());
             }
 
@@ -154,14 +154,14 @@ public class AddReference {
             if (hasValue(citation.getDoi())) {
                 IdentifierDefinition identifier = new IdentifierDefinition();
                 relatedItem.getIdentifier().add(identifier);
-                identifier.setTypeString("doi");
+                identifier.setType("doi");
                 identifier.setValue(citation.getDoi());
             }
 
             if (hasValue(citation.getIsbn())) {
                 IdentifierDefinition identifier = new IdentifierDefinition();
                 relatedItem.getIdentifier().add(identifier);
-                identifier.setTypeString("isbn");
+                identifier.setType("isbn");
                 identifier.setValue(citation.getIsbn());
             }
 
@@ -191,7 +191,7 @@ public class AddReference {
                     relatedItem2.getTitleInfo().add(titleInfo);
                     titleInfo.setOtherType("title");
                     StringPlusLanguage title = new StringPlusLanguage();
-                    titleInfo.getTitleStringPlusLanguage().add(title);
+                    titleInfo.getTitle().add(title);
                     title.setValue(citation.getJournal_title());
                 }
                 if (hasValue(citation.getVolume_title())) {
@@ -199,7 +199,7 @@ public class AddReference {
                     relatedItem2.getTitleInfo().add(titleInfo);
                     titleInfo.setOtherType("volume");
                     StringPlusLanguage title = new StringPlusLanguage();
-                    titleInfo.getTitleStringPlusLanguage().add(title);
+                    titleInfo.getTitle().add(title);
                     title.setValue(citation.getVolume_title());
                 }
                 if (hasValue(citation.getVolume()) || hasValue(citation.getIssue())) {
@@ -233,7 +233,7 @@ public class AddReference {
                 if (hasValue(citation.getIssn())) {
                     IdentifierDefinition identifier = new IdentifierDefinition();
                     relatedItem2.getIdentifier().add(identifier);
-                    identifier.setTypeString("issn");
+                    identifier.setType("issn");
                     identifier.setValue(citation.getIssn());
                 }
             }

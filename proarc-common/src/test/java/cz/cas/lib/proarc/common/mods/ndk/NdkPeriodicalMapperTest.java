@@ -71,7 +71,7 @@ public class NdkPeriodicalMapperTest {
         List<IdentifierDefinition> identifiersResult = mods.getIdentifier();
         assertEquals(1, identifiersResult.size());
         IdentifierDefinition idResult = identifiersResult.get(0);
-        assertEquals("uuid", idResult.getTypeString());
+        assertEquals("uuid", idResult.getType());
         assertEquals("testId", idResult.getValue());
 
         assertEquals(1, mods.getTypeOfResource().size());
@@ -106,7 +106,7 @@ public class NdkPeriodicalMapperTest {
         List<IdentifierDefinition> identifiersResult = mods.getIdentifier();
         assertEquals(1, identifiersResult.size());
         IdentifierDefinition idResult = identifiersResult.get(0);
-        assertEquals("uuid", idResult.getTypeString());
+        assertEquals("uuid", idResult.getType());
         assertEquals("testId", idResult.getValue());
 
         assertEquals(1, mods.getTypeOfResource().size());

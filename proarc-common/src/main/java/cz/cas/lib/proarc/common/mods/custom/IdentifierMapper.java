@@ -50,7 +50,7 @@ public final class IdentifierMapper {
 
         @Override
         public IdentifierItem map(IdentifierDefinition source) {
-            return new IdentifierItem(source.getTypeString(), source.getValue());
+            return new IdentifierItem(source.getType(), source.getValue());
         }
 
         @Override
@@ -59,7 +59,7 @@ public final class IdentifierMapper {
                 origin = new IdentifierDefinition();
             }
             origin.setValue(item.getValue());
-            origin.setTypeString(item.getType()) ;
+            origin.setType(item.getType()) ;
             return origin;
         }
 

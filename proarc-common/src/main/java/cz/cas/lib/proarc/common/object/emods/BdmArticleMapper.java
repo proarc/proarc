@@ -112,7 +112,7 @@ public class BdmArticleMapper extends NdkArticleMapper {
         for (GenreDefinition genre : mods.getGenre()) {
             if (Const.GENRE_ARTICLE.equals(genre.getValue())) {
                 countArticle++;
-                if (genre.getTypeString() == null) {
+                if (genre.getType() == null) {
                     isEmpty = true;
                 }
             }
@@ -122,7 +122,7 @@ public class BdmArticleMapper extends NdkArticleMapper {
             Iterator<GenreDefinition> iterator = mods.getGenre().iterator();
             while (iterator.hasNext()) {
                 GenreDefinition genre = iterator.next();
-                if (Const.GENRE_ARTICLE.equals(genre.getValue()) && genre.getTypeString() == null) {
+                if (Const.GENRE_ARTICLE.equals(genre.getValue()) && genre.getType() == null) {
                     iterator.remove();
                 }
             }
@@ -201,7 +201,7 @@ public class BdmArticleMapper extends NdkArticleMapper {
         mw.setMods(mods);
         GenreDefinition rGenre = null;
         for (GenreDefinition genre : mods.getGenre()) {
-            if (GENRE_ARTICLE_VALUE.equals(genre.getValue()) && GENRE_PEER_REVIEWED_TYPE.equals(genre.getTypeString())) {
+            if (GENRE_ARTICLE_VALUE.equals(genre.getValue()) && GENRE_PEER_REVIEWED_TYPE.equals(genre.getType())) {
                 rGenre = genre;
                 break;
             }
@@ -233,7 +233,7 @@ public class BdmArticleMapper extends NdkArticleMapper {
         if (wrapper.getReviewed() != null && wrapper.getReviewed()) {
             GenreDefinition reviewed = new GenreDefinition();
             reviewed.setValue(GENRE_ARTICLE_VALUE);
-            reviewed.setTypeString(GENRE_PEER_REVIEWED_TYPE);
+            reviewed.setType(GENRE_PEER_REVIEWED_TYPE);
             mods.getGenre().add(0, reviewed);
         }
         StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();

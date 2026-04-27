@@ -9,7 +9,7 @@
     <parent>
         <groupId>cz.cas.lib.proarc</groupId>
         <artifactId>proarc</artifactId>
-        <version>5.0.2</version>
+        <version>5.0.3</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -53,12 +53,10 @@
                                 <schemaInclude>mods-jaxb.xsd</schemaInclude>
                             </schemaIncludes>
                             <catalog>src/main/resources/cz/cas/lib/proarc/mods/catalog.cat</catalog>
+                            <strict>true</strict>
                             <generatePackage>cz.cas.lib.proarc.mods</generatePackage>
                             <generateDirectory>${project.build.directory}/generated-sources/xjcMods</generateDirectory>
                             <bindingDirectory>src/main/resources/cz/cas/lib/proarc/mods</bindingDirectory>
-                            <bindingIncludes>
-                                <bindingInclude>mods-jaxb-bindings.xjb</bindingInclude>
-                            </bindingIncludes>
                         </configuration>
                     </execution>
                 </executions>

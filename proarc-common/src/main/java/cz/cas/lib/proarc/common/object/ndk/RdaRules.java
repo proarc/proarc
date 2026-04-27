@@ -115,7 +115,7 @@ public class RdaRules {
 
     private boolean hasDateOtherPublication(List<DateOtherDefinition> dateOthers) {
         for (DateOtherDefinition dateOther : dateOthers) {
-            if ("publication".equals(dateOther.getTypeString())) {
+            if ("publication".equals(dateOther.getType())) {
                 return true;
             }
         }
@@ -142,7 +142,7 @@ public class RdaRules {
     private void checkDateOtherNull4Publication(List dates, String event, String element, boolean mustBeFill) {
         for (Object date : dates) {
             Object dateValue = ((DateOtherDefinition) date).getValue();
-            String dateType = ((DateOtherDefinition) date).getTypeString();
+            String dateType = ((DateOtherDefinition) date).getType();
             if (!"publication".equals(dateType)) {
                 if (mustBeFill && dateValue == null) {
                     exception.addValidation("RDA rules", ERR_NDK_RDA_FILLVALUE, true);

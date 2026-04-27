@@ -73,9 +73,9 @@ public class OldPrintPageMapperTest {
         assertEquals("note", mapper.getPhysicalDescription(mods));
         List<IdentifierDefinition> identifiers = mapper.getIdentifiers(mods);
         assertEquals(2, identifiers.size());
-        assertEquals("issn", identifiers.get(0).getTypeString());
+        assertEquals("issn", identifiers.get(0).getType());
         assertEquals("issn value", identifiers.get(0).getValue());
-        assertEquals("uuid", identifiers.get(1).getTypeString());
+        assertEquals("uuid", identifiers.get(1).getType());
         assertEquals("1", identifiers.get(1).getValue());
     }
 
@@ -91,9 +91,9 @@ public class OldPrintPageMapperTest {
         assertEquals("note", mapper.getPhysicalDescription(mods));
         List<IdentifierDefinition> identifiers = mapper.getIdentifiers(mods);
         assertEquals(2, identifiers.size());
-        assertEquals("issn", identifiers.get(0).getTypeString());
+        assertEquals("issn", identifiers.get(0).getType());
         assertEquals("issn value", identifiers.get(0).getValue());
-        assertEquals("uuid", identifiers.get(1).getTypeString());
+        assertEquals("uuid", identifiers.get(1).getType());
         assertEquals("1", identifiers.get(1).getValue());
     }
 
@@ -121,7 +121,7 @@ public class OldPrintPageMapperTest {
         assertEquals(page.getType(), mapper.getType(mods));
         assertEquals(page.getPhysicalDescription(), mapper.getPhysicalDescription(mods));
         IdentifierDefinition idenfier = new IdentifierDefinition();
-        idenfier.setTypeString("uuid");
+        idenfier.setType("uuid");
         idenfier.setValue("1");
         assertEquals(Arrays.asList(idenfier), mapper.getIdentifiers(mods));
     }

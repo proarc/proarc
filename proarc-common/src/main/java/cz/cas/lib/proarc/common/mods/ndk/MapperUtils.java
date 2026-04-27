@@ -63,13 +63,13 @@ public final class MapperUtils {
     public static ModsDefinition addPid(ModsDefinition mods, String pid) {
         String uuid = FoxmlUtils.pidAsUuid(pid);
         for (IdentifierDefinition id : mods.getIdentifier()) {
-            if (uuid.equals(id.getValue()) && "uuid".equals(id.getTypeString())) {
+            if (uuid.equals(id.getValue()) && "uuid".equals(id.getType())) {
                 return mods;
             }
         }
         IdentifierDefinition id = new IdentifierDefinition();
         id.setValue(uuid);
-        id.setTypeString("uuid");
+        id.setType("uuid");
         mods.getIdentifier().add(0, id);
         return mods;
     }
@@ -156,7 +156,7 @@ public final class MapperUtils {
     }
 
     static StringBuilder addTitle(StringBuilder title, TitleInfoDefinition ti) {
-        return addTitlePart(title, ti.getTitleStringPlusLanguage(), " ");
+        return addTitlePart(title, ti.getTitle(), " ");
     }
 
     static StringBuilder addSubTitle(StringBuilder title, TitleInfoDefinition ti) {
@@ -548,8 +548,8 @@ public final class MapperUtils {
 
     static String findTitle(ModsDefinition mods) {
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            if (titleInfo.getTypeEnum() == null || titleInfo.getTypeEnum().isEmpty()) {
-                for (StringPlusLanguage title : titleInfo.getTitleStringPlusLanguage()) {
+            if (titleInfo.getType() == null || titleInfo.getType().isEmpty()) {
+                for (StringPlusLanguage title : titleInfo.getTitle()) {
                     if (title.getValue() != null && !title.getValue().isEmpty()) {
                         return title.getValue();
                     }

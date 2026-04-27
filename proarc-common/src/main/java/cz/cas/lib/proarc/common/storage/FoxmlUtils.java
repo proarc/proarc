@@ -353,7 +353,7 @@ public final class FoxmlUtils {
     }
 
     public static String identifierAsPid(IdentifierDefinition identifier) {
-        return identifier == null ? null : (identifier.getTypeString() + ":" + identifier.getValue());
+        return identifier == null ? null : (identifier.getType() + ":" + identifier.getValue());
     }
 
     /**

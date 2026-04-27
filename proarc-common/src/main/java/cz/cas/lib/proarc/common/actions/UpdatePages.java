@@ -364,7 +364,7 @@ public class UpdatePages {
             }
             if (setGenre) {
                 for (GenreDefinition genre : mods.getGenre()) {
-                    genre.setTypeString(this.pageType);
+                    genre.setType(this.pageType);
                 }
             }
         }

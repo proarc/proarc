@@ -277,7 +277,7 @@ public class UpdatePagesMetadata {
             }
             if (setGenre) {
                 for (GenreDefinition genre : mods.getGenre()) {
-                    genre.setTypeString(sourceModsInfo.getPageType());
+                    genre.setType(sourceModsInfo.getPageType());
                 }
             }
         }

@@ -54,7 +54,7 @@ public class NdkSoundPartMapper extends RdaNdkMapper {
         addGenre(mods, "sound part");
         for (GenreDefinition genre : mods.getGenre()) {
             if ("sound part".equals(genre.getValue())) {
-                genre.setTypeString("model");
+                genre.setType("model");
             }
         }
 

@@ -102,7 +102,7 @@ final class TitleInfoMapper {
     }
 
     private void updateTitles(TitleInfoDefinition node, List<String> titles) {
-        List<StringPlusLanguage> oldies = node.getTitleStringPlusLanguage();
+        List<StringPlusLanguage> oldies = node.getTitle();
         oldies.clear();
         oldies.addAll(MapperUtils.toStringPlusLanguage(titles));
     }
@@ -142,7 +142,7 @@ final class TitleInfoMapper {
             if (foundTitles && foundKeyTitles && foundAlternatives) {
                 break;
             }
-            String type = item.getTypeEnum();
+            String type = item.getType();
             if (type == null) {
                 if (foundTitles) {
                     continue;
@@ -168,10 +168,10 @@ final class TitleInfoMapper {
 
     private void readValues() {
         assert searched;
-        titles = toTitles(titleNode, ti -> ti.getTitleStringPlusLanguage());
+        titles = toTitles(titleNode, ti -> ti.getTitle());
         subtitles = toTitles(titleNode, ti -> ti.getSubTitle());
-        keyTitles = toTitles(keyTitleNode, ti -> ti.getTitleStringPlusLanguage());
-        alternativeTitles = toTitles(alternativeTitleNode, ti -> ti.getTitleStringPlusLanguage());
+        keyTitles = toTitles(keyTitleNode, ti -> ti.getTitle());
+        alternativeTitles = toTitles(alternativeTitleNode, ti -> ti.getTitle());
     }
 
     private static List<String> toTitles(TitleInfoDefinition node, Function<TitleInfoDefinition, List<StringPlusLanguage>> f) {

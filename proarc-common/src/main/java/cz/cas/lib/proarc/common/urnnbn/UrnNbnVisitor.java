@@ -2039,7 +2039,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         }
         try {
             IdentifierDefinition urnNbnId = new IdentifierDefinition();
-            urnNbnId.setTypeString("urnnbn");
+            urnNbnId.setType("urnnbn");
             urnNbnId.setValue(urnnbn);
             DigitalObjectHandler objectHandler = elm.getHandler();
             elmMods.getIdentifier().add(urnNbnId);
@@ -2069,7 +2069,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         }
         try {
             IdentifierDefinition urnNbnId = new IdentifierDefinition();
-            urnNbnId.setTypeString("urnnbn");
+            urnNbnId.setType("urnnbn");
             urnNbnId.setValue(urnnbn);
             elmMods.getIdentifier().add(urnNbnId);
 

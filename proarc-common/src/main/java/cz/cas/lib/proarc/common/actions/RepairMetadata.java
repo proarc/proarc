@@ -137,18 +137,18 @@ public class RepairMetadata {
 
     private void fixTitleInfo(String titleValue, ModsDefinition mods) {
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            titleInfo.getPartName().addAll(titleInfo.getTitleStringPlusLanguage());
-            titleInfo.getTitleStringPlusLanguage().clear();
+            titleInfo.getPartName().addAll(titleInfo.getTitle());
+            titleInfo.getTitle().clear();
             StringPlusLanguage title = new StringPlusLanguage();
             title.setValue(titleValue);
-            titleInfo.getTitleStringPlusLanguage().add(title);
+            titleInfo.getTitle().add(title);
         }
     }
 
     private String getTitle(ModsDefinition mods) {
         if (mods != null) {
             for (TitleInfoDefinition title : mods.getTitleInfo()) {
-                for (StringPlusLanguage titleInfo : title.getTitleStringPlusLanguage()) {
+                for (StringPlusLanguage titleInfo : title.getTitle()) {
                     return titleInfo.getValue();
                 }
             }
@@ -291,7 +291,7 @@ public class RepairMetadata {
             mods.getGenre().add(genre);
         }
         if (mods.getGenre().size() > 0) {
-            mods.getGenre().get(0).setTypeString(pageType);
+            mods.getGenre().get(0).setType(pageType);
         }
     }
 

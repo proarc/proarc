@@ -80,7 +80,7 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
         // name/role/roleTerm@type="CODE"
         // name/role/roleTerm@authority="marcrelator"
         for (NameDefinition name : mods.getName()) {
-            for (RoleDefinition role : name.getRoleDefinition()) {
+            for (RoleDefinition role : name.getRole()) {
                 for (RoleTermDefinition roleTerm : role.getRoleTerm()) {
                     if (roleTerm.getAuthority() == null) {
                         roleTerm.setAuthority("marcrelator");
@@ -121,7 +121,7 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
             }
             // sets type in element dateOther
             for (DateOtherDefinition dateOther : oi.getDateOther()) {
-                dateOther.setTypeString(oi.getEventType());
+                dateOther.setType(oi.getEventType());
             }
             oi.getIssuance().clear();
             oi.getIssuance().add(IssuanceDefinition.SINGLE_UNIT);

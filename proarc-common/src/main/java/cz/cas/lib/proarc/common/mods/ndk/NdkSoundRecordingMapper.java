@@ -57,7 +57,7 @@ public class NdkSoundRecordingMapper extends RdaNdkMapper {
         addGenre(mods, "sound recording");
         for (GenreDefinition genre : mods.getGenre()) {
             if ("soundrecording".equals(genre.getValue())) {
-                genre.setTypeString("model");
+                genre.setType("model");
             }
         }
         fillLanguage(mods);

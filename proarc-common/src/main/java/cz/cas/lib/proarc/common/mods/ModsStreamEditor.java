@@ -94,7 +94,7 @@ public final class ModsStreamEditor {
         ModsDefinition mods = new ModsDefinition();
         mods.setVersion(ModsUtils.VERSION);
         IdentifierDefinition identifierType = new IdentifierDefinition();
-        identifierType.setTypeString("uuid");
+        identifierType.setType("uuid");
         String uuid = FoxmlUtils.pidAsUuid(pid);
         identifierType.setValue(uuid);
         mods.getIdentifier().add(identifierType);
@@ -111,13 +111,13 @@ public final class ModsStreamEditor {
     public static ModsDefinition addPid(ModsDefinition mods, String pid) {
         String uuid = FoxmlUtils.pidAsUuid(pid);
         for (IdentifierDefinition id : mods.getIdentifier()) {
-            if ("uuid".equals(id.getTypeString()) && uuid.equals(id.getValue())) {
+            if ("uuid".equals(id.getType()) && uuid.equals(id.getValue())) {
                 return mods;
             }
         }
         IdentifierDefinition id = new IdentifierDefinition();
         id.setValue(uuid);
-        id.setTypeString("uuid");
+        id.setType("uuid");
         mods.getIdentifier().add(0, id);
         return mods;
     }

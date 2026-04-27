@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- METS XLink Schema, v. 2, Nov. 15, 2004 -->
 <schema targetNamespace="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" elementFormDefault="qualified"
-        xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="2.0">
+        xmlns:jxb="https://jakarta.ee/xml/ns/jaxb" jxb:version="3.0">
   <!--  global attributes  --> 
   <attribute name="href"  type="anyURI"/>
   <attribute name="role" type="string"/>

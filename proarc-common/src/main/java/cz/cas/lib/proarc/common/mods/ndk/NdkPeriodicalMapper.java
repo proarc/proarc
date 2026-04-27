@@ -114,7 +114,7 @@ public class NdkPeriodicalMapper extends RdaNdkMapper {
             }
             // sets type in element dateOther
             for (DateOtherDefinition dateOther : oi.getDateOther()) {
-                dateOther.setTypeString(oi.getEventType());
+                dateOther.setType(oi.getEventType());
             }
         }
 //        if (reqOriginInfo == null) {

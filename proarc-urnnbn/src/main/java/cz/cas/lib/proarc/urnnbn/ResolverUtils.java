@@ -52,7 +52,7 @@ public class ResolverUtils {
 
     public static IdentifierDefinition getIdentifier(String type, ModsDefinition mods) {
         for (IdentifierDefinition identifierDefinition : mods.getIdentifier()) {
-            if (type.equals(identifierDefinition.getTypeString()) && isValid(identifierDefinition)) {
+            if (type.equals(identifierDefinition.getType()) && isValid(identifierDefinition)) {
                 return identifierDefinition;
             }
         }
@@ -61,7 +61,7 @@ public class ResolverUtils {
 
     public static IdentifierDefinition getIdentifierWithValue(String type, String value, ModsDefinition mods) {
         for (IdentifierDefinition identifierDefinition : mods.getIdentifier()) {
-            if (type.equals(identifierDefinition.getTypeString()) && value.equals(identifierDefinition.getValue()) && isValid(identifierDefinition)) {
+            if (type.equals(identifierDefinition.getType()) && value.equals(identifierDefinition.getValue()) && isValid(identifierDefinition)) {
                 return identifierDefinition;
             }
         }
@@ -99,10 +99,10 @@ public class ResolverUtils {
 
     static String getTitle(ModsDefinition mods) {
         for (TitleInfoDefinition ti : mods.getTitleInfo()) {
-            if (ti.getTypeEnum() != null) {
+            if (ti.getType() != null) {
                 continue;
             }
-            String value = getStringPlusLanguage(ti.getTitleStringPlusLanguage());
+            String value = getStringPlusLanguage(ti.getTitle());
             if (value != null) {
                 return value;
             }
@@ -112,10 +112,10 @@ public class ResolverUtils {
 
     static TitleInfoDefinition getTitleInfo(ModsDefinition mods) {
         for (TitleInfoDefinition ti : mods.getTitleInfo()) {
-            if (ti.getTypeEnum() != null) {
+            if (ti.getType() != null) {
                 continue;
             }
-            String value = getStringPlusLanguage(ti.getTitleStringPlusLanguage());
+            String value = getStringPlusLanguage(ti.getTitle());
             if (value != null) {
                 return ti;
             }

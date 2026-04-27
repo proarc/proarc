@@ -48,13 +48,13 @@ public class OldPrintOmnibusVolumeMapper extends RdaNdkMapper {
     private void removeOtherTitleInfo(ModsDefinition mods) {
         TitleInfoDefinition titleInfoDefinition = null;
         for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            if (titleInfo != null && titleInfo.getTypeEnum() == null) {
+            if (titleInfo != null && titleInfo.getType() == null) {
                 titleInfoDefinition = titleInfo;
             }
         }
         if (titleInfoDefinition != null) {
-            if (titleInfoDefinition.getTitleStringPlusLanguage() != null && titleInfoDefinition.getTitleStringPlusLanguage().size() > 0) {
-                StringPlusLanguage title = titleInfoDefinition.getTitleStringPlusLanguage().get(0);
+            if (titleInfoDefinition.getTitle() != null && titleInfoDefinition.getTitle().size() > 0) {
+                StringPlusLanguage title = titleInfoDefinition.getTitle().get(0);
                 if (title != null && title.getValue() != null && !title.getValue().startsWith("Konvolut začínající dílem:")) {
                     title.setValue("Konvolut začínající dílem: " + title.getValue());
                 }

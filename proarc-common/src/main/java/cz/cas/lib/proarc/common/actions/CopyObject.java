@@ -187,12 +187,12 @@ public class CopyObject {
     private void repairIdentifiers(ModsDefinition mods) {
         List<IdentifierDefinition> identifiers = new ArrayList<>();
         for (IdentifierDefinition identifier : mods.getIdentifier()) {
-            if (!"urnnbn".equals(identifier.getTypeString()) && !"uuid".equals(identifier.getTypeString())) {
+            if (!"urnnbn".equals(identifier.getType()) && !"uuid".equals(identifier.getType())) {
                 identifiers.add(identifier);
             }
         }
         IdentifierDefinition identifierNew = new IdentifierDefinition();
-        identifierNew.setTypeString("uuid");
+        identifierNew.setType("uuid");
         identifierNew.setValue(getUuid());
         identifiers.add(identifierNew);
 

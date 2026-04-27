@@ -159,14 +159,14 @@ public class ModsRules {
                 for (GenreDefinition genre : mods.getGenre()) {
                     if (expectedType == null) {
                         continue; // nenalezen expected type
-                    } else if (!expectedType.equals(genre.getTypeString())) {
-                        exception.addValidation("MODS rules", ERR_NDK_SUPPLEMENT_GENRE_TYPE, false, expectedType, genre.getTypeString());
+                    } else if (!expectedType.equals(genre.getType())) {
+                        exception.addValidation("MODS rules", ERR_NDK_SUPPLEMENT_GENRE_TYPE, false, expectedType, genre.getType());
                     }
                 }
             }
         } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId) || NdkPlugin.MODEL_ARTICLE.equals(modelId) || NdkPlugin.MODEL_PICTURE.equals(modelId)) {
             for (GenreDefinition genre : mods.getGenre()) {
-                String genreType = genre.getTypeString();
+                String genreType = genre.getType();
                 if (genreType != null && !genreType.isEmpty()) {
                     if (NdkPlugin.MODEL_CHAPTER.equals(modelId)) {
                         if (!CHAPTER_GENRE_MAP.contains(genreType)) {

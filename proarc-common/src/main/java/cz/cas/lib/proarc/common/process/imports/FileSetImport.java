@@ -202,16 +202,16 @@ public class FileSetImport implements ImportHandler {
         StringPlusLanguage title = new StringPlusLanguage();
         title.setValue(chronicle.getNazev());
         TitleInfoDefinition titleInfo = new TitleInfoDefinition();
-        titleInfo.getTitleStringPlusLanguage().add(title);
+        titleInfo.getTitle().add(title);
         mods.getTitleInfo().add(titleInfo);
 
         IdentifierDefinition identifierLocalId = new IdentifierDefinition();
-        identifierLocalId.setTypeString("localId");
+        identifierLocalId.setType("localId");
         identifierLocalId.setValue(chronicle.getLocalId());
         mods.getIdentifier().add(identifierLocalId);
 
         IdentifierDefinition identifierId = new IdentifierDefinition();
-        identifierId.setTypeString("id");
+        identifierId.setType("id");
         identifierId.setValue(chronicle.getId());
         mods.getIdentifier().add(identifierId);
 

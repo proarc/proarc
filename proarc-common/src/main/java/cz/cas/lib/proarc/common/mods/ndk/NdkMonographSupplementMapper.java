@@ -70,7 +70,7 @@ public class NdkMonographSupplementMapper extends RdaNdkMapper {
         for (OriginInfoDefinition oi : mods.getOriginInfo()) {
             // sets type in element dateOther
             for (DateOtherDefinition dateOther : oi.getDateOther()) {
-                dateOther.setTypeString(oi.getEventType());
+                dateOther.setType(oi.getEventType());
             }
         }
         for (PhysicalDescriptionDefinition pd : mods.getPhysicalDescription()) {
