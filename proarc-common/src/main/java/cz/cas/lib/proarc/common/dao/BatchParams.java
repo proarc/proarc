@@ -285,7 +285,7 @@ public class BatchParams {
 
     @XmlElement(name = "peroOcrEngine")
     public Integer getPeroOcrEngine() {
-        return (peroOcrEngine == null || peroOcrEngine < 1) ? 1 : peroOcrEngine;
+        return this.peroOcrEngine;
     }
 
     public void setPeroOcrEngine(Integer peroOcrEngine) {

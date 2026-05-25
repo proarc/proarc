@@ -43,7 +43,7 @@ public class NdkEMonographSupplementMapper extends NdkMonographSupplementMapper 
     @Override
     protected void addGenre(ModsDefinition mods) {
         //  mods/genre="electronic_volume"
-        MapperUtils.addGenre(mods, Const.GENRE_ESUPPLEMENT);
+        MapperUtils.addGenre(mods, Const.GENRE_SUPPLEMENT);
     }
 
     @Override

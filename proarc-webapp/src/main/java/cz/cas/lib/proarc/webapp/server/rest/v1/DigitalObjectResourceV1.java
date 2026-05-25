@@ -4847,7 +4847,7 @@ public class DigitalObjectResourceV1 {
 
         checkPermission(user, PERMISSION_FUNCTION_UPDATE_MODEL);
 
-        return fixPageType(pid, Arrays.asList("flyleaf", "sheetMusic"));
+        return fixPageType(pid, Arrays.asList("flyleaf", "sheetMusic", "frontCover", "backCover", "normalPage", "blank", "frontEndSheet", "backEndSheet", "titlePage", "tableOfContents", "index", "table"));
     }
 
     private ProArcResponse<SearchViewItem> fixPageType(String pid, List<String> pageTypes) throws DigitalObjectException, IOException {
