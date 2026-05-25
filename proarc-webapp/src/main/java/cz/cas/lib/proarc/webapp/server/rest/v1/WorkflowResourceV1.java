@@ -199,6 +199,7 @@ public class WorkflowResourceV1 {
         filter.setRawPath(rawPath);
         filter.setDeviceId(deviceId);
         filter.setPid(pid);
+        filter.setModel(model);
         filter.setNote(note);
 
         try {
