@@ -91,6 +91,21 @@ public final class InternalExternalProcess implements Runnable {
 
     @Override
     public void run() {
+
+
+        Batch batch = getBatch();
+
+        // Jsme v pracovní době a proces je odložený
+        if (WorkWindow.isWorkingTime() && !WorkWindow.isNotAllowed(batch)) {
+
+            WorkWindow.reschedule(batch);
+
+            // znovu zařadit, ale NEspouštět
+            InternalExternalDispatcher.getDefault().addInternalExternalProcess(this);
+
+            return; // HOTOVO, žádná výjimka
+        }
+
         start();
     }
 
