@@ -256,6 +256,9 @@ public class TiffImporter implements ImageImporter {
         Integer peroOcrEngine = null;
         try {
             peroOcrEngine = options.getBatch().getParamsAsObject().getPeroOcrEngine();
+            if (peroOcrEngine == null || peroOcrEngine < 0) {
+                peroOcrEngine = 1;
+            }
         } catch (NullPointerException e) {
             peroOcrEngine = 1;
         }

@@ -78,6 +78,9 @@ public class GeneratorAltoOcr implements ImportHandler {
             Integer peroOcrEngine = null;
             try {
                 peroOcrEngine = importConfig.getBatch().getParamsAsObject().getPeroOcrEngine();
+                if (peroOcrEngine == null || peroOcrEngine < 0) {
+                    peroOcrEngine = 1;
+                }
             } catch (NullPointerException e) {
                 peroOcrEngine = 1;
             }

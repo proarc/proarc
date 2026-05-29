@@ -2987,10 +2987,6 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
         </xsl:for-each>
 
         <recordInfo>
-            <xsl:for-each select="marc:leader[substring($leader,19,1)='a']">
-                <descriptionStandard>aacr</descriptionStandard>
-            </xsl:for-each>
-
             <xsl:for-each select="marc:datafield[@tag=040]">
                 <xsl:if test="marc:subfield[@code='e']">
                     <descriptionStandard>
@@ -3001,6 +2997,11 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     <xsl:value-of select="marc:subfield[@code='a']"/>
                 </recordContentSource>
             </xsl:for-each>
+            <xsl:if test="not(marc:datafield[@tag=040]/marc:subfield[@code='e'])">
+                <xsl:for-each select="marc:leader[substring($leader,19,1)='a']">
+                    <descriptionStandard>aacr</descriptionStandard>
+                </xsl:for-each>
+            </xsl:if>
             <xsl:for-each select="marc:controlfield[@tag=008]">
                 <recordCreationDate encoding="marc">
                     <xsl:value-of select="substring(.,1,6)"/>
