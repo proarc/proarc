@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.device.Device;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
@@ -128,6 +129,7 @@ public class JobView extends Job {
      * Use this instead of {@link #getTimestamp() } for updates.
      */
     @XmlElement(name = WorkflowModelConsts.JOB_TIMESTAMP)
+    @JsonProperty(WorkflowModelConsts.JOB_TIMESTAMP)
     public long getTimestampAsLong() {
         return getTimestamp().getTime();
     }
