@@ -601,6 +601,14 @@ public class ImportResourceV1 {
             ExportProcess.cancelPlannedBatch(batch, importManager, appConfig, akubraConfiguration);
             BatchView batchView = importManager.viewBatch(batch.getId());
             return new ProArcResponse<BatchView>(batchView);
+        } else if (Batch.State.INTERNAL_PLANNED.equals(batch.getState())) {
+            if (!(isBatchOwner(batch))) {
+                LOG.info("User " + user + " (id:" + user.getId() + ") - cannot stop batch");
+                return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+            }
+            InternalExternalProcess.cancelPlannedBatch(batch, importManager, appConfig, akubraConfiguration);
+            BatchView batchView = importManager.viewBatch(batch.getId());
+            return new ProArcResponse<BatchView>(batchView);
         } else {
             return ProArcResponse.asError(returnLocalizedMessage(ERR_BATCH_CANNOT_BE_STOPED));
         }

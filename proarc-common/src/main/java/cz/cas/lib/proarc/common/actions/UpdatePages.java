@@ -28,6 +28,7 @@ import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.LocalStorage;
@@ -297,7 +298,10 @@ public class UpdatePages {
 
     private void setPagePosition(ModsDefinition mods) {
         String pagePosition = getPagePosition();
-        if (pagePosition != null) {
+        if ("".equals(pagePosition)) {
+            mods.getNote().clear();
+            pagePositionIndex ++;
+        } else if (pagePosition != null && pagePosition.length() > 0) {
             NoteDefinition noteDefinition = null;
             for (NoteDefinition note : mods.getNote()) {
                 if (ModsConstants.VALUE_PAGE_NOTE_LEFT.equals(note.getValue()) || ModsConstants.VALUE_PAGE_NOTE_RIGHT.equals(note.getValue()) || ModsConstants.VALUE_PAGE_NOTE_SINGLE_PAGE.equals(note.getValue())) {
@@ -337,6 +341,8 @@ public class UpdatePages {
                 } else {
                     return ModsConstants.VALUE_PAGE_NOTE_LEFT;
                 }
+            case Const.EMPTY_VALUE:
+                return "";
             default:
                 return null;
         }
