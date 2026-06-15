@@ -453,12 +453,14 @@ public class ValidationProcess {
     private void validatePage(SearchViewItem item, Result result) {
         if (item.getPageIndex() == null || item.getPageIndex().isEmpty()) {
             result.getValidationResults().add(new ValidationResult(item.getPid(), "Není vyplněný index strany.", Level.SEVERE));
+            indexPageValue++;
         } else {
             String pageIndex = item.getPageIndex();
             if (String.valueOf(indexPageValue).equals(pageIndex)) {
                 indexPageValue++;
             } else {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), "Neočekávaný index=" + pageIndex + ", očekávaná hodnota=" + String.valueOf(indexPageValue) + ".", Level.SEVERE));
+                indexPageValue++;
             }
         }
         if (item.getPageNumber() == null || item.getPageNumber().isEmpty()) {
