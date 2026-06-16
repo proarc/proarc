@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 Lukas Sykora
+ * Copyright (C) 2025 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,11 +25,13 @@ import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
+import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
-import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
 import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBRecord;
@@ -37,8 +39,6 @@ import org.apache.empire.db.DBRelation;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
-import org.apache.empire.db.exceptions.QueryFailedException;
-import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
 
 /**
  * Database schema version 20. It adds scheduled batch.
@@ -48,12 +48,13 @@ import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
  *
  * @author Lukas Sykora
  */
-public class ProarcDatabase extends DBDatabase {
+@Deprecated
+public class ProarcDatabaseV20 extends DBDatabase {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
+    private static final Logger LOG = Logger.getLogger(ProarcDatabaseV20.class.getName());
     /** the schema version */
-    public static final int VERSION = 21;
+    public static final int VERSION = 20;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -77,49 +78,62 @@ public class ProarcDatabase extends DBDatabase {
     public final DBRelation relationWorkflowMaterialInTask_MaterialId_Fk;
     public final DBRelation relationWorkflowMaterialInTask_TaskId_Fk;
 
-//    public static int upgradeToVersionXX(
-//            int currentSchemaVersion, ProarcDatabase schema,
-//            Connection conn, EmpireConfiguration conf) throws SQLException {
-//
-//        if (currentSchemaVersion < VERSION) {
-//            LOG.log(Level.INFO, "Upgrading ProArc schema from version " + currentSchemaVersion + ".");
-//            currentSchemaVersion = ProarcDatabaseVXX.upgradeToVersionXX+1(currentSchemaVersion, context, conf);
-//        }
-//        if (currentSchemaVersion > VERSION) {
-//            // ignore higher versions
-//            return currentSchemaVersion;
-//        } else if (currentSchemaVersion != VERSION) {
-//            throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
-//        }
-////        ProarcDatabaseVXX schema = new ProarcDatabaseVXX();
-//        try {
-//            schema.open(context);
-//            upgradeDdl(schema, context);
-//            LOG.log(Level.INFO, "Upgrading ProArc schema from version " + currentSchemaVersion + ".");
-//            int schemaVersion = schema.initVersion(context, VERSION);
-//
-//            context.commit();
-//            return schemaVersion;
-//        } finally {
+    public static int upgradeToVersion21(
+            int currentSchemaVersion, ProarcDatabase schema,
+            Connection conn, EmpireConfiguration conf) throws SQLException {
 
-    /// /            schema.close(context);
-//        }
-//    }
-//
-//    private static void upgradeDdl(ProarcDatabase schema, DBContext context) throws SQLException {
-//        try {
-//            context.getConnection().setAutoCommit(true);
-//            DBDatabaseDriver driver = schema.getDriver();
-//            DBSQLScript script = new DBSQLScript(context);
-//
-//            // TO-DO
-//
-//            LOG.fine(script.toString());
-//            script.executeAll();
-//        } finally {
-//            context.getConnection().setAutoCommit(false);
-//        }
-//    }
+        if (currentSchemaVersion < VERSION) {
+            LOG.log(Level.INFO, "Upgrading ProArc schema from version " + currentSchemaVersion + ".");
+            currentSchemaVersion = ProarcDatabaseV19.upgradeToVersion20(currentSchemaVersion, conn, conf);
+        }
+        if (currentSchemaVersion > VERSION) {
+            // ignore higher versions
+            return currentSchemaVersion;
+        } else if (currentSchemaVersion != VERSION) {
+            throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
+        }
+//        ProarcDatabaseVXX schema = new ProarcDatabaseVXX();
+        try {
+            schema.open(conf.getDriver(), conn);
+            upgradeDdl(schema, conn);
+            LOG.log(Level.INFO, "Upgrading ProArc schema from version " + currentSchemaVersion + ".");
+            int schemaVersion = schema.initVersion(conn, VERSION);
+
+            conn.commit();
+            return schemaVersion;
+        } finally {
+//            schema.close(conn);
+        }
+    }
+
+    private static void upgradeDdl(ProarcDatabase schema, Connection conn) throws SQLException {
+        try {
+            conn.setAutoCommit(true);
+            DBDatabaseDriver driver = schema.getDriver();
+            DBSQLScript script = new DBSQLScript();
+
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.issueInt, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.volumeInt, script);
+
+            LOG.fine(script.toString());
+            script.executeAll(driver, conn);
+
+            Statement statement = conn.createStatement();
+            statement.addBatch("UPDATE PROARC_WF_PHYSICAL_DOCUMENT SET ISSUE_INT = CASE WHEN ISSUE ~ '^[0-9]+$' THEN ISSUE::bigint ELSE NULL END;");
+            statement.addBatch("CREATE OR REPLACE FUNCTION fce_wf_pd_issue_num() RETURNS trigger AS $$ BEGIN NEW.issue_int := CASE WHEN NEW.issue ~ '^[0-9]+$' THEN NEW.issue::bigint ELSE NULL END; RETURN NEW; END; $$ LANGUAGE plpgsql;");
+            statement.addBatch("CREATE TRIGGER trg_wf_pd_issue_num BEFORE INSERT OR UPDATE OF issue ON PROARC_WF_PHYSICAL_DOCUMENT FOR EACH ROW EXECUTE FUNCTION fce_wf_pd_issue_num();");
+
+            statement.addBatch("UPDATE PROARC_WF_PHYSICAL_DOCUMENT SET VOLUME_INT = CASE WHEN VOLUME ~ '^[0-9]+$' THEN VOLUME::bigint ELSE NULL END;");
+            statement.addBatch("CREATE OR REPLACE FUNCTION fce_wf_pd_volume_num() RETURNS trigger AS $$ BEGIN NEW.volume_int := CASE WHEN NEW.volume ~ '^[0-9]+$' THEN NEW.volume::bigint ELSE NULL END; RETURN NEW; END; $$ LANGUAGE plpgsql;");
+            statement.addBatch("CREATE TRIGGER trg_wf_pd_volume_num BEFORE INSERT OR UPDATE OF volume ON PROARC_WF_PHYSICAL_DOCUMENT FOR EACH ROW EXECUTE FUNCTION fce_wf_pd_volume_num();");
+
+            LOG.fine(statement.toString());
+            statement.executeBatch();
+
+        } finally {
+            conn.setAutoCommit(false);
+        }
+    }
 
     public static class ProarcVersionTable extends DBTable {
 
@@ -188,7 +202,7 @@ public class ProarcDatabase extends DBDatabase {
             nightOnly = addColumn("NIGHT_ONLY", DataType.BOOL, 0, false);
 
             setPrimaryKey(id);
-            addIndex(String.format("%s_IDX", getName()), false, new DBColumn[]{create, state, title, userId});
+            addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { create, state, title, userId });
         }
 
     }
@@ -221,8 +235,8 @@ public class ProarcDatabase extends DBDatabase {
             log = addColumn("LOG", DataType.CLOB, 0, false);
             timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
-            addIndex(String.format("%s_UNIQ_IDX", getName()), true, new DBColumn[]{batchId, pid, dsId, type});
-            addIndex(String.format("%s_IDX", getName()), false, new DBColumn[]{batchId, pid, dsId, state, type});
+            addIndex(String.format("%s_UNIQ_IDX", getName()), true, new DBColumn[] { batchId, pid, dsId, type });
+            addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { batchId, pid, dsId, state, type });
         }
 
     }
@@ -242,21 +256,13 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn lastLogin;
         public final DBTableColumn home;
         public final DBTableColumn organization;
-        /**
-         * group to use as owner for newly created objects
-         */
+        /** group to use as owner for newly created objects */
         public final DBTableColumn defaultGroup;
-        /**
-         * group that can contain single member; it can hold overridden permissions
-         */
+        /** group that can contain single member; it can hold overridden permissions */
         public final DBTableColumn userGroup;
-        /**
-         * use to identify external user.
-         */
+        /** use to identify external user. */
         public final DBTableColumn remoteName;
-        /**
-         * type of the remote user null(PROARC), LDAP, ...
-         */
+        /** type of the remote user null(PROARC), DESA, LDAP, ... */
         public final DBTableColumn remoteType;
         public final DBTableColumn timestamp;
         public final DBTableColumn changeModelFunction;
@@ -292,7 +298,7 @@ public class ProarcDatabase extends DBDatabase {
             surname = addColumn("SURNAME", DataType.TEXT, 255, true);
             email = addColumn("EMAIL", DataType.TEXT, 255, false);
             state = addColumn("STATUS", DataType.TEXT, 20, false);
-            created = addColumn("CREATED", DataType.DATETIME, 0, true, SYSDATE);
+            created = addColumn("CREATED", DataType.DATETIME, 0, DataMode.NotNull, SYSDATE);
             lastLogin = addColumn("LASTLOGIN", DataType.DATETIME, 0, false);
             lastLogin.setBeanPropertyName("lastLogin");
             home = addColumn("HOME", DataType.TEXT, 2000, true);
@@ -324,7 +330,7 @@ public class ProarcDatabase extends DBDatabase {
             prepareBatchFunction = addColumn("PREPARE_BATCH_FUNCTION", DataType.BOOL, 0, false);
             sysAdminFunction = addColumn("SYS_ADMIN_FUNCTION", DataType.BOOL, 0, false);
             setPrimaryKey(id);
-            addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[]{username});
+            addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[] { username });
         }
 
     }
@@ -338,13 +344,9 @@ public class ProarcDatabase extends DBDatabase {
          */
         public final DBTableColumn groupname;
         public final DBTableColumn title;
-        /**
-         * use to identify group of external users.
-         */
+        /** use to identify group of external users. */
         public final DBTableColumn remoteName;
-        /**
-         * type of the remote group null(PROARC), LDAP, ...
-         */
+        /** type of the remote group null(PROARC), DESA, LDAP, ... */
         public final DBTableColumn remoteType;
         public final DBTableColumn created;
         public final DBTableColumn timestamp;
@@ -357,11 +359,11 @@ public class ProarcDatabase extends DBDatabase {
             title = addColumn("TITLE", DataType.TEXT, 255, false);
             remoteName = addColumn("REMOTE_NAME", DataType.TEXT, 255, false);
             remoteType = addColumn("REMOTE_TYPE", DataType.TEXT, 2000, false);
-            created = addColumn("CREATED", DataType.DATETIME, 0, true, SYSDATE);
+            created = addColumn("CREATED", DataType.DATETIME, 0, DataMode.NotNull, SYSDATE);
             timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
             // unique group name
-            addIndex(String.format("%s_%s_IDX", getName(), groupname.getName()), true, new DBColumn[]{groupname});
+            addIndex(String.format("%s_%s_IDX", getName(), groupname.getName()), true, new DBColumn[] { groupname });
         }
 
     }
@@ -383,7 +385,7 @@ public class ProarcDatabase extends DBDatabase {
             timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
             // unique group name
-            addIndex(String.format("%s_%s_IDX", getName(), userId.getName()), true, new DBColumn[]{userId});
+            addIndex(String.format("%s_%s_IDX", getName(), userId.getName()), true, new DBColumn[] { userId });
         }
 
     }
@@ -409,9 +411,7 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn groupid;
         public final DBTableColumn objectid;
         public final DBTableColumn permissionid;
-        /**
-         * type to override inherited permission in user group. Options: null, disabled, enabled.
-         */
+        /** type to override inherited permission in user group. Options: null, disabled, enabled. */
         public final DBTableColumn type;
 
         public GroupPermissionTable(DBDatabase db) {
@@ -471,11 +471,9 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn note;
         public final DBTableColumn ownerId;
         public final DBTableColumn priority;
-        //        public final DBTableColumn queueNumber;
+//        public final DBTableColumn queueNumber;
         public final DBTableColumn state;
-        /**
-         * The name of a task type in workflow profile.
-         */
+        /** The name of a task type in workflow profile. */
         public final DBTableColumn typeRef;
         public final DBTableColumn timestamp;
         public final DBTableColumn order;
@@ -504,9 +502,7 @@ public class ProarcDatabase extends DBDatabase {
         private static final long serialVersionUID = 1L;
 
         public final DBTableColumn taskId;
-        /**
-         * The name of a parameter type in workflow profile.
-         */
+        /** The name of a parameter type in workflow profile. */
         public final DBTableColumn paramRef;
         public final DBTableColumn valueType;
         public final DBTableColumn value;
@@ -532,9 +528,7 @@ public class ProarcDatabase extends DBDatabase {
         private static final long serialVersionUID = 1L;
 
         public final DBTableColumn id;
-        /**
-         * The description of a material's value
-         */
+        /** The description of a material's value */
         public final DBTableColumn label;
         public final DBTableColumn name;
         public final DBTableColumn note;
@@ -596,23 +590,15 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn field001;
         public final DBTableColumn rdczId;
         public final DBTableColumn signature;
-        /**
-         * The URL to a catalog.
-         */
+        /** The URL to a catalog. */
         public final DBTableColumn source;
-        /**
-         * MODS.
-         */
+        /** MODS. */
         public final DBTableColumn metadata;
         public final DBTableColumn detail;
         public final DBTableColumn issue;
-        public final DBTableColumn issueInt;
-        /**
-         * The sigla format {@code [A-Z][A-Z][A-Z][0-9][0-9][0-9]}.
-         */
+        /** The sigla format {@code [A-Z][A-Z][A-Z][0-9][0-9][0-9]}. */
         public final DBTableColumn sigla;
         public final DBTableColumn volume;
-        public final DBTableColumn volumeInt;
         public final DBTableColumn year;
         public final DBTableColumn edition;
 
@@ -628,10 +614,8 @@ public class ProarcDatabase extends DBDatabase {
             metadata = addColumn("METADATA", DataType.CLOB, 0, false);
             detail = addColumn("DETAIL", DataType.TEXT, 200, false);
             issue = addColumn("ISSUE", DataType.TEXT, 100, false);
-            issueInt = addColumn("ISSUE_INT", DataType.INTEGER, 10, false);
             sigla = addColumn("SIGLA", DataType.TEXT, 6, false);
             volume = addColumn("VOLUME", DataType.TEXT, 100, false);
-            volumeInt = addColumn("VOLUME_INT", DataType.INTEGER, 10, false);
             year = addColumn("YEAR", DataType.TEXT, 100, false);
             edition = addColumn("EDITION", DataType.TEXT, 2000, false);
             setPrimaryKey(materialId);
@@ -657,7 +641,7 @@ public class ProarcDatabase extends DBDatabase {
         }
     }
 
-    public ProarcDatabase() {
+    public ProarcDatabaseV20() {
         addRelation(tableBatch.userId.referenceOn(tableUser.id));
         addRelation(tableBatchItem.batchId.referenceOn(tableBatch.id));
         // users
@@ -681,53 +665,8 @@ public class ProarcDatabase extends DBDatabase {
                 addRelation(tableWorkflowMaterialInTask.taskId.referenceOn(tableWorkflowTask.id));
     }
 
-    void init(EmpireConfiguration conf) throws SQLException {
-        DBDatabaseDriver drv = conf.getDriver();
-        Connection conn = conf.getConnection();
-        open(drv, conn);
-        try {
-            int schemaVersion = schemaExists(this, conn);
-            if (schemaVersion > 0) {
-                LOG.log(Level.INFO, "Upgrading ProArc schema from version " + schemaVersion + ".");
-                schemaVersion = ProarcDatabaseV20.upgradeToVersion21(
-                        schemaVersion, this, conn, conf);
-                if (schemaVersion != VERSION) {
-                    throw new SQLException("Invalid schema version " + schemaVersion);
-                }
-            } else {
-                createSchema(this, conn);
-            }
-        } finally {
-            conn.close();
-        }
-    }
-
-    static int schemaExists(ProarcDatabase db, Connection c) {
-        try {
-            DBCommand cmd = db.createCommand();
-            cmd.select(db.tableProarcVersion.schemaVersion);
-            int version = db.querySingleInt(cmd, -1, c);
-            return version;
-        } catch (QueryFailedException ex) {
-            return -1;
-        }
-    }
-
-    private static void createSchema(ProarcDatabase db, Connection conn) throws SQLException {
-        if (db.getDriver() instanceof DBDatabaseDriverPostgreSQL) {
-            conn.setAutoCommit(true);
-        }
-        DBSQLScript script = new DBSQLScript();
-        db.getCreateDDLScript(db.getDriver(), script);
-        LOG.fine(script.toString());
-        script.executeAll(db.getDriver(), conn);
-        db.initVersion(conn, null);
-        db.commit(conn);
-        conn.setAutoCommit(false);
-    }
-
     int initVersion(Connection conn, Integer oldVersion) {
-        ProarcDatabase db = this;
+        ProarcDatabaseV20 db = this;
         DBRecord dbRecord = new DBRecord();
         if (oldVersion != null) {
             dbRecord.init(db.tableProarcVersion, new Integer[] {0}, false);

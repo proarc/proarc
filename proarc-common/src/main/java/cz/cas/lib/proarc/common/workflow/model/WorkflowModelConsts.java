@@ -154,11 +154,13 @@ public final class WorkflowModelConsts {
     public static final String MATERIAL_DETAIL = "detail";
     public static final String MATERIAL_FIELD001 = "field001";
     public static final String MATERIAL_ISSUE = "issue";
+    public static final String MATERIAL_ISSUE_INT = "issueInt";
     public static final String MATERIAL_METADATA = "metadata";
     public static final String MATERIAL_SIGLA = "sigla";
     public static final String MATERIAL_SIGNATURE = "signature";
     public static final String MATERIAL_RDCZID = "rdczId";
     public static final String MATERIAL_VOLUME = "volume";
+    public static final String MATERIAL_VOLUME_INT = "volumeInt";
     public static final String MATERIAL_YEAR = "year";
     public static final String MATERIAL_YEARNUMBER = "yearNumber";
     public static final String MATERIAL_EDITION = "edition";

@@ -38,8 +38,10 @@ public class PhysicalMaterial extends Material {
     private String metadata;
     private String detail;
     private String issue;
+    private String issueInt;
     private String sigla;
     private String volume;
+    private String volumeInt;
     private String year;
     private String edition;
 
@@ -141,5 +143,21 @@ public class PhysicalMaterial extends Material {
 
     public void setEdition(String edition) {
         this.edition = edition;
+    }
+
+    public String getIssueInt() {
+        return issueInt;
+    }
+
+    public void setIssueInt(String issueInt) {
+        this.issueInt = issueInt;
+    }
+
+    public String getVolumeInt() {
+        return volumeInt;
+    }
+
+    public void setVolumeInt(String volumeInt) {
+        this.volumeInt = volumeInt;
     }
 }
