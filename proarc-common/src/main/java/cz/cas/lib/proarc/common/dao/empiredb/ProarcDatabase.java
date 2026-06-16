@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Lukas Sykora
+ * Copyright (C) 2026 Lukas Sykora
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ public class ProarcDatabase extends DBDatabase {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
     /** the schema version */
-    public static final int VERSION = 20;
+    public static final int VERSION = 21;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -582,9 +582,11 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn metadata;
         public final DBTableColumn detail;
         public final DBTableColumn issue;
+        public final DBTableColumn issueInt;
         /** The sigla format {@code [A-Z][A-Z][A-Z][0-9][0-9][0-9]}. */
         public final DBTableColumn sigla;
         public final DBTableColumn volume;
+        public final DBTableColumn volumeInt;
         public final DBTableColumn year;
         public final DBTableColumn edition;
 
@@ -600,8 +602,10 @@ public class ProarcDatabase extends DBDatabase {
             metadata = addColumn("METADATA", DataType.CLOB, 0, false);
             detail = addColumn("DETAIL", DataType.TEXT, 200, false);
             issue = addColumn("ISSUE", DataType.TEXT, 100, false);
+            issueInt = addColumn("ISSUE_INT", DataType.INTEGER, 10, false);
             sigla = addColumn("SIGLA", DataType.TEXT, 6, false);
             volume = addColumn("VOLUME", DataType.TEXT, 100, false);
+            volumeInt = addColumn("VOLUME_INT", DataType.INTEGER, 10, false);
             year = addColumn("YEAR", DataType.TEXT, 100, false);
             edition = addColumn("EDITION", DataType.TEXT, 2000, false);
             setPrimaryKey(materialId);
@@ -659,7 +663,7 @@ public class ProarcDatabase extends DBDatabase {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
                 LOG.log(Level.INFO, "Upgrading ProArc schema from version " + schemaVersion + ".");
-                schemaVersion = ProarcDatabaseV19.upgradeToVersion20(
+                schemaVersion = ProarcDatabaseV20.upgradeToVersion21(
                         schemaVersion, this, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);

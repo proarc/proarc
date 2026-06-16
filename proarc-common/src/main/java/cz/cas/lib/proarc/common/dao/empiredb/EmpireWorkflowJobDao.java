@@ -29,6 +29,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -39,8 +40,10 @@ import org.apache.empire.db.DBQuery;
 import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRecordData;
+import org.apache.empire.db.DBTableColumn;
 import org.apache.empire.db.exceptions.RecordNotFoundException;
 import org.apache.empire.db.exceptions.RecordUpdateInvalidException;
+import org.apache.empire.db.expr.order.DBOrderByExpr;
 
 /**
  *
@@ -214,7 +217,7 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         EmpireUtils.addWhereDate(cmd, tableJob.created, filter.getCreated());
         EmpireUtils.addWhereDate(cmd, tableJob.timestamp, filter.getModified());
 
-        EmpireUtils.addOrderBy(cmd, filter.getSortBy(), tableJob.timestamp, true);
+        addOrderBy(cmd, filter.getSortBy(), tableJob.timestamp, true);
 
         DBReader reader = new DBReader();
         try {
@@ -284,5 +287,37 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
         DBCommand cmd = db.createCommand();
         cmd.where(db.tableWorkflowJob.id.is(jobId));
         db.executeDelete(db.tableWorkflowJob, cmd, c);
+    }
+
+    private void addOrderBy(DBCommand cmd,
+                                  String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
+                                  boolean defaultDescending
+    ) {
+        DBColumnExpr[] selectExprList = cmd.getSelectExprList();
+        List<? extends DBColumnExpr> selections = Arrays.asList(selectExprList);
+        addOrderBy(cmd, selections, columnBeanPropertyName, defaultSortByColumn, defaultDescending);
+    }
+
+    private void addOrderBy(DBCommand cmd, List<? extends DBColumnExpr> selections,
+                                   String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
+                                   boolean defaultDescending
+    ) {
+        DBColumnExpr sortByCol = EmpireUtils.findSelection(selections, columnBeanPropertyName);
+        boolean descending;
+        if (sortByCol != null) {
+            descending = EmpireUtils.isDescendingSort(columnBeanPropertyName);
+        } else if (defaultSortByColumn != null) {
+            sortByCol = defaultSortByColumn;
+            descending = defaultDescending;
+        } else {
+            return ;
+        }
+        if (db.tableWorkflowPhysicalDoc.volume.getBeanPropertyName().equals(sortByCol.getBeanPropertyName())) {
+            cmd.orderBy(new DBOrderByExpr(db.tableWorkflowPhysicalDoc.volumeInt, descending), new DBOrderByExpr(sortByCol, descending));
+        } else if (db.tableWorkflowPhysicalDoc.issue.getBeanPropertyName().equals(sortByCol.getBeanPropertyName())) {
+            cmd.orderBy(new DBOrderByExpr(db.tableWorkflowPhysicalDoc.issueInt, descending), new DBOrderByExpr(sortByCol, descending));
+        } else {
+            cmd.orderBy(sortByCol, descending);
+        }
     }
 }
