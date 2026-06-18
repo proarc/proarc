@@ -19,10 +19,13 @@ package cz.cas.lib.proarc.common.process.export;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import java.util.Arrays;
 import java.util.HashSet;
-import org.apache.commons.configuration.BaseConfiguration;
-import org.apache.commons.configuration.Configuration;
-import static org.junit.Assert.*;
-import org.junit.Test;
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *

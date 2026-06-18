@@ -8,16 +8,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
+import org.apache.commons.configuration2.CompositeConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.ReloadingFileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.reloading.PeriodicReloadingTrigger;
 
 import static cz.cas.lib.proarc.common.config.AppConfiguration.initConfigFolder;
 
@@ -59,23 +65,40 @@ public class AkubraConfiguration {
         try {
             // envConfig contains interpolated properties
             PropertiesConfiguration envConfig = new PropertiesConfiguration();
+            envConfig.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
             envConfig.addProperty(PROPERTY_APP_HOME, configHome.getPath());
             cc.addConfiguration(envConfig);
+
             // external configuration editable by users; UTF-8 expected
             PropertiesConfiguration external = new PropertiesConfiguration();
-            external.setEncoding("UTF-8");
-            FileChangedReloadingStrategy reloading = new FileChangedReloadingStrategy();
-            external.setReloadingStrategy(reloading);
-            external.setFile(cfgFile);
-            cc.addConfiguration(external);
+            Parameters parameters = new Parameters();
+            ReloadingFileBasedConfigurationBuilder<PropertiesConfiguration> builder =
+                    new ReloadingFileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+                            .configure(parameters.fileBased().setFile(cfgFile).setEncoding("UTF-8"));
+
+            // auto reload every 5 seconds
+            PeriodicReloadingTrigger trigger =
+                    new PeriodicReloadingTrigger(builder.getReloadingController(), null, 5, TimeUnit.SECONDS);
+            trigger.start();
+
+            PropertiesConfiguration userConfig = builder.getConfiguration();
+            userConfig.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
+            cc.addConfiguration(userConfig);
+
             try {
                 // bundled default configurations
                 Enumeration<URL> resources = AppConfiguration.class.getClassLoader()
                         .getResources(DEFAULT_PROPERTIES_RESOURCE);
-                for (URL resource; resources.hasMoreElements(); ) {
-                    resource = resources.nextElement();
+                while (resources.hasMoreElements()) {
+                    URL resource = resources.nextElement();
                     LOG.log(Level.FINE, "classpath config: {0}", resource);
-                    cc.addConfiguration(new PropertiesConfiguration(resource));
+                    PropertiesConfiguration defaults = new PropertiesConfiguration();
+                    defaults.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
+
+                    try (Reader reader = new InputStreamReader(resource.openStream(), StandardCharsets.UTF_8)) {
+                        defaults.read(reader);
+                    }
+                    cc.addConfiguration(defaults);
                 }
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, null, ex);
@@ -120,7 +143,7 @@ public class AkubraConfiguration {
                 // we need platform dependent line separator => PrintWriter
                 PrintWriter writer = new PrintWriter(cfgFile, "UTF-8");
                 try {
-                    for (String line; (line = reader.readLine()) != null;) {
+                    for (String line; (line = reader.readLine()) != null; ) {
                         writer.println(line);
                     }
                     writer.println();

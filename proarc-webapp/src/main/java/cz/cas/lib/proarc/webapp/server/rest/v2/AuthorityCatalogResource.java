@@ -17,19 +17,20 @@
 package cz.cas.lib.proarc.webapp.server.rest.v2;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.AuthorityCatalogResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.AuthorityCatalogResourceApi;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
+
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_2;
 
 /**
  * The resource to list available authorities catalogs like Aleph
@@ -37,7 +38,7 @@ import javax.ws.rs.core.MediaType;
  *
  * @author Lukáš Sýkora
  */
-@Path(RestConfig.URL_API_VERSION_2 + "/" + AuthorityCatalogResourceApi.PATH)
+@Path(URL_API_VERSION_2 + "/" + AuthorityCatalogResourceApi.PATH)
 public class AuthorityCatalogResource extends AuthorityCatalogResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(AuthorityCatalogResource.class.getName());
@@ -50,13 +51,13 @@ public class AuthorityCatalogResource extends AuthorityCatalogResourceV1 {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public SmartGwtResponse<CatalogDescriptor> findAuthorityCatalog(
+    public ProArcResponse<CatalogDescriptor> findAuthorityCatalog(
             @QueryParam(AuthorityCatalogResourceApi.CATALOG_ID) String id) {
         try {
             return super.findAuthorityCatalog(id);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 

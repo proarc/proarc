@@ -18,10 +18,10 @@ package cz.cas.lib.proarc.common.workflow.profile;
 
 import cz.cas.lib.proarc.common.i18n.BundleValue;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlIDREF;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlIDREF;
 
 /**
  *
@@ -62,7 +62,9 @@ public class ParamDefinition extends DisplayableType<ParamDefinition> {
         return datasource;
     }
 
-    /** See {@link cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles#getValueMap}. */
+    /**
+     * See {@link cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles#getValueMap}.
+     */
     public String getOptionValueField() {
         if (optionValueField == null && datasource != null
                 && datasource.getSource() == ValueMapSource.INTERNAL) {
@@ -75,7 +77,9 @@ public class ParamDefinition extends DisplayableType<ParamDefinition> {
         this.optionValueField = optionValueField;
     }
 
-    /** See {@link cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles#getValueMap}. */
+    /**
+     * See {@link cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles#getValueMap}.
+     */
     public String getOptionDisplayField() {
         if (optionDisplayField == null && datasource != null
                 && datasource.getSource() == ValueMapSource.INTERNAL) {

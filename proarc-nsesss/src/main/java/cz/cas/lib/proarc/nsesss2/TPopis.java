@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro věcný popis entit nebo objektů.
- * 
+ *
  * <p>Java class for tPopis complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tPopis">
  *   &lt;complexContent>
@@ -34,14 +34,14 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tPopis", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "nazev",
-    "komentar",
-    "klicovaSlova"
+        "nazev",
+        "komentar",
+        "klicovaSlova"
 })
 public class TPopis {
 
@@ -54,11 +54,10 @@ public class TPopis {
 
     /**
      * Gets the value of the nazev property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getNazev() {
         return nazev;
@@ -66,11 +65,10 @@ public class TPopis {
 
     /**
      * Sets the value of the nazev property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setNazev(String value) {
         this.nazev = value;
@@ -78,11 +76,10 @@ public class TPopis {
 
     /**
      * Gets the value of the komentar property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getKomentar() {
         return komentar;
@@ -90,11 +87,10 @@ public class TPopis {
 
     /**
      * Sets the value of the komentar property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setKomentar(String value) {
         this.komentar = value;
@@ -102,11 +98,10 @@ public class TPopis {
 
     /**
      * Gets the value of the klicovaSlova property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TKlicovaSlova }
-     *     
+     *
+     * @return possible object is
+     * {@link TKlicovaSlova }
+     *
      */
     public TKlicovaSlova getKlicovaSlova() {
         return klicovaSlova;
@@ -114,11 +109,10 @@ public class TPopis {
 
     /**
      * Sets the value of the klicovaSlova property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TKlicovaSlova }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TKlicovaSlova }
+     *
      */
     public void setKlicovaSlova(TKlicovaSlova value) {
         this.klicovaSlova = value;

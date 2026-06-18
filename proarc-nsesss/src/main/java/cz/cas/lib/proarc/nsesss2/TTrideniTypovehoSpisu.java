@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro zatřídění typového spisu do hierarchie spisového plánu.
- * 
+ *
  * <p>Java class for tTrideniTypovehoSpisu complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tTrideniTypovehoSpisu">
  *   &lt;complexContent>
@@ -32,27 +32,25 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tTrideniTypovehoSpisu", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "materskaEntita"
+        "materskaEntita"
 })
 public class TTrideniTypovehoSpisu
-    extends TTrideni
-{
+        extends TTrideni {
 
     @XmlElement(name = "MaterskaEntita", namespace = "http://www.mvcr.cz/nsesss/v2", required = true)
     protected TMaterskaEntitaTypovehoSpisu materskaEntita;
 
     /**
      * Gets the value of the materskaEntita property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TMaterskaEntitaTypovehoSpisu }
-     *     
+     *
+     * @return possible object is
+     * {@link TMaterskaEntitaTypovehoSpisu }
+     *
      */
     public TMaterskaEntitaTypovehoSpisu getMaterskaEntita() {
         return materskaEntita;
@@ -60,11 +58,10 @@ public class TTrideniTypovehoSpisu
 
     /**
      * Sets the value of the materskaEntita property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TMaterskaEntitaTypovehoSpisu }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TMaterskaEntitaTypovehoSpisu }
+     *
      */
     public void setMaterskaEntita(TMaterskaEntitaTypovehoSpisu value) {
         this.materskaEntita = value;

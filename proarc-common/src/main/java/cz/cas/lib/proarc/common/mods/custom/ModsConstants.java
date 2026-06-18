@@ -23,7 +23,9 @@ package cz.cas.lib.proarc.common.mods.custom;
  */
 public interface ModsConstants {
 
-    /** Namespace {@code "http://www.loc.gov/mods/v3"}. */
+    /**
+     * Namespace {@code "http://www.loc.gov/mods/v3"}.
+     */
     public static final String NS = "http://www.loc.gov/mods/v3";
 
     // identifier
@@ -99,8 +101,8 @@ public interface ModsConstants {
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_RDACARRIER = "rdacarrier";
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_CARRIER = "carrier";
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_MARCFORM = "marcform";
-    public static final String VALUE_PHYSICALDESCRIPTION_FORM_MARCCATEGORY= "marccategory";
-    public static final String VALUE_PHYSICALDESCRIPTION_FORM_MARCSMD= "marcsmd";
+    public static final String VALUE_PHYSICALDESCRIPTION_FORM_MARCCATEGORY = "marccategory";
+    public static final String VALUE_PHYSICALDESCRIPTION_FORM_MARCSMD = "marcsmd";
     public static final String VALUE_PHYSICALDESCRIPTION_FORM_GMD = "gmd";
 
     public static final String VALUE_DESCRIPTIONSTANDARD_RDA = "rda";

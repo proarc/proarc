@@ -55,7 +55,7 @@ public final class EmpireConfiguration {
             String jdbcPwd,
             String empireDBDriverClass,
             String databaseName
-            ) {
+    ) {
 
         this(databaseName, empireDBDriverClass);
         this.jdbcClass = jdbcClass;
@@ -78,7 +78,7 @@ public final class EmpireConfiguration {
     public ProarcDatabase getSchema() {
         return schema;
     }
-    
+
     public DBDatabaseDriver getDriver() {
         if (DBDatabaseDriverPostgreSQL.class.getName().equals(empireDBDriverClass)) {
             if (databaseName == null || databaseName.isEmpty()) {
@@ -115,7 +115,7 @@ public final class EmpireConfiguration {
     public static EmpireConfiguration postgres(DataSource ds) {
         return new EmpireConfiguration(null, DBDatabaseDriverPostgreSQL.class.getName(), ds);
     }
-    
+
     @Override
     public String toString() {
         return "EmpireConfiguration{"
@@ -150,8 +150,6 @@ public final class EmpireConfiguration {
                 // see http://empire-db.15390.n3.nabble.com/DBSequence-Table-and-PostGre-td925674.html
                 case SQL_DATETIME_PATTERN :
                     return "yyyy-MM-dd HH:mm:ss.SSS";
-                case SQL_FUNC_LOWER:
-                    return "lower(?)";
             }
             return super.getSQLPhrase(phrase); //To change body of generated methods, choose Tools | Templates.
         }

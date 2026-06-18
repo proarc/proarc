@@ -34,7 +34,9 @@ import java.util.logging.Logger;
  */
 public class NdkAudioPageMapper extends NdkPageMapper {
 
-    /** {@code /mods/part@type} */
+    /**
+     * {@code /mods/part@type}
+     */
     public static final String AUDIO_TYPE_NORMAL = "audio";
 
     private static final Logger LOG = Logger.getLogger(NdkAudioPageMapper.class.getName());
@@ -48,7 +50,7 @@ public class NdkAudioPageMapper extends NdkPageMapper {
     }
 
     public static String getPageTypeLabel(String pageType, Locale locale) {
-        if (pageType == null || pageType.isEmpty())  {
+        if (pageType == null || pageType.isEmpty()) {
             return AUDIO_TYPE_NORMAL;
         }
         try {

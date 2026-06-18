@@ -14,13 +14,14 @@ It stops with error message when an OAI error or an unexpected metadata format o
 
     <!-- copy metadata subtree -->
     <xsl:template match="marc:record">
-        <xsl:copy-of select="." />
+        <xsl:copy-of select="."/>
     </xsl:template>
 
     <!--stop on OAI result error-->
     <xsl:template match="error">
         <xsl:message terminate="yes">
-            <xsl:value-of select="@code"/>: <xsl:value-of select="."/>
+            <xsl:value-of select="@code"/>:
+            <xsl:value-of select="."/>
         </xsl:message>
     </xsl:template>
 

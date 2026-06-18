@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro indikaci nezbytných dokumentů a dokumentů v analogové podobě. Prvek obsahuje volitelnou identifikaci externího subjektu, který zajišťuje správu dokumentů (například dodavatele hostovaného řešení digitálního úložiště nebo komerční spisovnu dokumentů v analogové podobě).
- * 
+ *
  * <p>Java class for tManipulaceDokumentu complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tManipulaceDokumentu">
  *   &lt;complexContent>
@@ -33,17 +33,16 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tManipulaceDokumentu", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "spravceSpisovny",
-    "ukladaciJednotka"
+        "spravceSpisovny",
+        "ukladaciJednotka"
 })
 public class TManipulaceDokumentu
-    extends TManipulace
-{
+        extends TManipulace {
 
     @XmlElement(name = "SpravceSpisovny", namespace = "http://www.mvcr.cz/nsesss/v2")
     protected TOsobyExterni spravceSpisovny;
@@ -52,11 +51,10 @@ public class TManipulaceDokumentu
 
     /**
      * Gets the value of the spravceSpisovny property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobyExterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobyExterni }
+     *
      */
     public TOsobyExterni getSpravceSpisovny() {
         return spravceSpisovny;
@@ -64,11 +62,10 @@ public class TManipulaceDokumentu
 
     /**
      * Sets the value of the spravceSpisovny property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobyExterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobyExterni }
+     *
      */
     public void setSpravceSpisovny(TOsobyExterni value) {
         this.spravceSpisovny = value;
@@ -76,11 +73,10 @@ public class TManipulaceDokumentu
 
     /**
      * Gets the value of the ukladaciJednotka property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getUkladaciJednotka() {
         return ukladaciJednotka;
@@ -88,11 +84,10 @@ public class TManipulaceDokumentu
 
     /**
      * Sets the value of the ukladaciJednotka property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setUkladaciJednotka(String value) {
         this.ukladaciJednotka = value;

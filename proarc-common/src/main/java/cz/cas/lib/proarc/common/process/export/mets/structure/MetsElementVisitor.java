@@ -17,12 +17,9 @@
 
 package cz.cas.lib.proarc.common.process.export.mets.structure;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.device.Device;
 import cz.cas.lib.proarc.common.device.DeviceException;
@@ -92,6 +89,9 @@ import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.premis.PremisComplexType;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -115,9 +115,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -350,7 +347,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 Marshaller marshaller = jaxbContext.createMarshaller();
                 marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
                 marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-                marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
+                marshaller.setProperty("org.glassfish.jaxb.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
                 // marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
                 // "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/mods.xsd http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd");
                 marshaller.marshal(mets, outputFile);
@@ -1033,44 +1030,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             }
         }
         for (String streamName : Const.streamMapping.keySet()) {
-            if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-                try {
-                    // GetDatastreamsResponse streams =
-                    // FedoraClient.getDatastreams(metsElement.getOriginalPid()).execute(metsElement.getMetsContext().getFedoraClient());
-                    // List<DatastreamProfile> profiles =
-                    // streams.getDatastreamProfiles();
-                    // for (DatastreamProfile profile : profiles) {
-                    // if (profile.getDsID().contains(streamName)) {
-                    for (String dataStream : Const.streamMapping.get(streamName)) {
-                        DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), dataStream);
-                        if (rawDS != null) {
-                            FileMD5Info fileMd5Info;
-                            if (md5InfosMap.get(streamName) == null) {
-                                fileMd5Info = new FileMD5Info();
-                                md5InfosMap.put(streamName, fileMd5Info);
-                            } else {
-                                fileMd5Info = md5InfosMap.get(streamName);
-                            }
-                            fileMd5Info.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
-
-                            GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), dataStream);
-                            createDates.put(streamName, rawDS.getDatastreamVersion().get(0).getCREATED());
-                            try {
-                                InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                                fileNames.put(streamName, is);
-                            } catch (FedoraClientException e) {
-                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
-                            }
-                            // mimeTypes.put(streamName, profile.getDsMIME());
-                            mimeTypes.put(streamName, rawDS.getDatastreamVersion().get(0).getMIMETYPE());
-                            break;
-                            //
-                        }
-                    }
-                } catch (Exception ex) {
-                    throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting file datastreams for " + metsElement.getOriginalPid(), false, ex);
-                }
-            } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
                 List<DatastreamType> datastreams = metsElement.getSourceObject().getDatastream();
                 AkubraStorage akubraStorage = metsElement.getMetsContext().getAkubraStorage();
                 AkubraObject akubraObject = akubraStorage.find(metsElement.getOriginalPid());
@@ -1166,18 +1126,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         InputStream is = null;
         DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
         if (rawDS != null) {
-            if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-                try {
-                    GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
-                    try {
-                        is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                    } catch (FedoraClientException e) {
-                        throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
-                    }
-                } catch (Exception ex) {
-                    throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting file datastreams for " + metsElement.getOriginalPid(), false, ex);
-                }
-            } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
                 AkubraStorage akubraStorage = metsElement.getMetsContext().getAkubraStorage();
                 AkubraObject akubraObject = akubraStorage.find(metsElement.getOriginalPid());
                 try {
@@ -1217,7 +1166,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @throws MetsExportException
      */
     private Mix getScannerMix(IMetsElement metsElement) throws MetsExportException {
-        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage()) || Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             Device device = getDevice(metsElement);
             if ((device.getDescription() == null) || (device.getDescription().getImageCaptureMetadata() == null)) {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Scanner device does not have the description/imageCaptureMetadata set", false, null);
@@ -1236,7 +1185,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @throws MetsExportException
      */
     public static Mets getScannerMets(IMetsElement metsElement) throws MetsExportException {
-        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage()) || Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             Device device = getDevice(metsElement);
             if ((device.getAudioDescription() == null) || device.getAudioDescription().getAmdSec() == null) {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Scanner device does not have the audiodescription/Premis set", false, null);
@@ -1254,7 +1203,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @throws MetsExportException
      */
     public static Mets getSoftwareMets(IMetsElement metsElement) throws MetsExportException {
-        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage()) || Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             Software software = getSoftware(metsElement);
             if (software == null) {
                 return null;
@@ -1284,9 +1233,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             return null;
         }
         DeviceRepository deviceRepository = null;
-        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            deviceRepository = new DeviceRepository(metsElement.getMetsContext().getRemoteStorage());
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             deviceRepository = new DeviceRepository(metsElement.getMetsContext().getAkubraStorage());
         }
         String deviceId = attrNode.getNodeValue().replaceAll("info:fedora/", "");
@@ -1319,9 +1266,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             return null;
         }
         SoftwareRepository softwareRepository = null;
-        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            softwareRepository = new SoftwareRepository(metsElement.getMetsContext().getRemoteStorage());
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             softwareRepository = new SoftwareRepository(metsElement.getMetsContext().getAkubraStorage());
         }
         String softwareId = attrNode.getNodeValue().replaceAll("info:fedora/", "");
@@ -1453,39 +1398,14 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             JHoveOutput jhoveOutputMcCodingHistory = null;
 
             if (!Const.SOUND_PAGE.equals(metsElement.getElementType())) {
-                if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage()) || Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
                     toGenerate.put(Const.MIX001, "RAW");
 
                     jHoveOutputRaw = JhoveUtility.getMix(metsElement, MixEditor.RAW_ID, null, null, null, null);
 
                     // If not present, then generate new
                     if (jHoveOutputRaw == null) {
-                        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-                            DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
-                            if (rawDS != null) {
-                                GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
-                                try {
-                                    rawCreated = rawDS.getDatastreamVersion().get(0).getCREATED();
-                                    InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                                    String rawExtendsion = MimeType.getExtension(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
-                                    rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "raw" + "." + rawExtendsion);
-                                    FileMD5Info rawinfo;
-                                    try {
-                                        rawinfo = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
-                                    } catch (NoSuchAlgorithmException | IOException e) {
-                                        throw new MetsExportException(metsElement.getOriginalPid(), "Unable to copy RAW image and get digest", false, e);
-                                    }
-                                    rawinfo.setMimeType(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
-                                    rawinfo.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
-                                    md5InfosMap.put("RAW", rawinfo);
-                                    outputFileNames.put("RAW", rawFile.getAbsolutePath());
-                                } catch (FedoraClientException e) {
-                                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
-                                }
-                            } else {
-                                throw new MetsExportException(metsElement.getOriginalPid(), "Missing RAW datastream for PID " + metsElement.getOriginalPid() + ".", false, null);
-                            }
-                        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                        if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
                             DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
                             if (rawDS != null) {
                                 AkubraStorage akubraStorage = metsElement.getMetsContext().getAkubraStorage();
@@ -1553,71 +1473,40 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     }
                 }
             } else {
-                if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage()) || Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-                    if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-                        DatastreamType rawDsAes = FoxmlUtils.findDatastream(metsElement.getSourceObject(), BinaryEditor.RAW_AUDIO_ID);
-                        if (rawDsAes != null) {
-                            GetDatastreamDissemination dsRawAes = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), BinaryEditor.RAW_AUDIO_ID);
-                            try {
-                                rawCreated = rawDsAes.getDatastreamVersion().get(0).getCREATED();
-                                InputStream is = dsRawAes.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                                String rawExtendsion = MimeType.getExtension(rawDsAes.getDatastreamVersion().get(0).getMIMETYPE());
-                                rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "rawAes" + "." + rawExtendsion);
-                                FileMD5Info rawinfo;
-                                try {
-                                    rawinfo = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
-                                } catch (NoSuchAlgorithmException | IOException e) {
-                                    throw new MetsExportException(metsElement.getOriginalPid(), "Unable to copy RAW image and get digest", false, e);
-                                }
-                                rawinfo.setMimeType(rawDsAes.getDatastreamVersion().get(0).getMIMETYPE());
-                                rawinfo.setCreated(rawDsAes.getDatastreamVersion().get(0).getCREATED());
-                                md5InfosMap.put("RAW", rawinfo);
-                                outputFileNames.put("RAW", rawFile.getAbsolutePath());
-                                toGenerate.put(Const.AES001, "RAW");
-                                toGenerate.put(Const.CODINGHISTORY001, "RAW");
-
-                                jHoveOutputRawAes = JhoveUtility.getAes(metsElement, AesEditor.RAW_ID, rawFile.getAbsolutePath(), null, rawCreated, null);
-                                jhoveOutputRawCodingHistory = JhoveUtility.getCodingHistory(metsElement, CodingHistoryEditor.RAW_ID, rawFile.getAbsolutePath(), rawCreated, null);
-
-                            } catch (FedoraClientException e) {
-                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
-                            }
-                        }
-                    } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-                        DatastreamType rawDsAes = FoxmlUtils.findDatastream(metsElement.getSourceObject(), BinaryEditor.RAW_AUDIO_ID);
-                        if (rawDsAes != null) {
-                            AkubraStorage akubraStorage = metsElement.getMetsContext().getAkubraStorage();
-                            AkubraObject akubraObject = akubraStorage.find(metsElement.getOriginalPid());
-                            try {
-                                DigitalObject digitalObject = AkubraUtils.getDigitalObject(akubraObject.getManager(), akubraObject.getPid());
-                                for (DatastreamType datastreamType : digitalObject.getDatastream()) {
-                                    if (BinaryEditor.RAW_AUDIO_ID.equals(datastreamType.getID())) {
-                                        if (datastreamType.getDatastreamVersion() != null && !datastreamType.getDatastreamVersion().isEmpty()) {
-                                            DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
-                                            InputStream is = AkubraUtils.getStreamContent(datastreamVersionType, akubraObject.getManager());
-                                            String rawExtendsion = MimeType.getExtension(datastreamVersionType.getMIMETYPE());
-                                            rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "rawAes" + "." + rawExtendsion);
-                                            FileMD5Info rawinfo;
-                                            try {
-                                                rawinfo = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
-                                            } catch (NoSuchAlgorithmException | IOException e) {
-                                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to copy RAW image and get digest", false, e);
-                                            }
-                                            rawinfo.setMimeType(datastreamVersionType.getMIMETYPE());
-                                            rawinfo.setCreated(datastreamVersionType.getCREATED());
-                                            md5InfosMap.put("RAW", rawinfo);
-                                            outputFileNames.put("RAW", rawFile.getAbsolutePath());
-                                            toGenerate.put(Const.AES001, "RAW");
-                                            toGenerate.put(Const.CODINGHISTORY001, "RAW");
-
-                                            jHoveOutputRawAes = JhoveUtility.getAes(metsElement, AesEditor.RAW_ID, rawFile.getAbsolutePath(), null, rawCreated, null);
-                                            jhoveOutputRawCodingHistory = JhoveUtility.getCodingHistory(metsElement, CodingHistoryEditor.RAW_ID, rawFile.getAbsolutePath(), rawCreated, null);
+                if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                    DatastreamType rawDsAes = FoxmlUtils.findDatastream(metsElement.getSourceObject(), BinaryEditor.RAW_AUDIO_ID);
+                    if (rawDsAes != null) {
+                        AkubraStorage akubraStorage = metsElement.getMetsContext().getAkubraStorage();
+                        AkubraObject akubraObject = akubraStorage.find(metsElement.getOriginalPid());
+                        try {
+                            DigitalObject digitalObject = AkubraUtils.getDigitalObject(akubraObject.getManager(), akubraObject.getPid());
+                            for (DatastreamType datastreamType : digitalObject.getDatastream()) {
+                                if (BinaryEditor.RAW_AUDIO_ID.equals(datastreamType.getID())) {
+                                    if (datastreamType.getDatastreamVersion() != null && !datastreamType.getDatastreamVersion().isEmpty()) {
+                                        DatastreamVersionType datastreamVersionType = datastreamType.getDatastreamVersion().get(0);
+                                        InputStream is = AkubraUtils.getStreamContent(datastreamVersionType, akubraObject.getManager());
+                                        String rawExtendsion = MimeType.getExtension(datastreamVersionType.getMIMETYPE());
+                                        rawFile = new File(metsElement.getMetsContext().getOutputPath() + File.separator + metsElement.getMetsContext().getPackageID() + File.separator + "rawAes" + "." + rawExtendsion);
+                                        FileMD5Info rawinfo;
+                                        try {
+                                            rawinfo = MetsUtils.getDigestAndCopy(is, new FileOutputStream(rawFile));
+                                        } catch (NoSuchAlgorithmException | IOException e) {
+                                            throw new MetsExportException(metsElement.getOriginalPid(), "Unable to copy RAW image and get digest", false, e);
                                         }
+                                        rawinfo.setMimeType(datastreamVersionType.getMIMETYPE());
+                                        rawinfo.setCreated(datastreamVersionType.getCREATED());
+                                        md5InfosMap.put("RAW", rawinfo);
+                                        outputFileNames.put("RAW", rawFile.getAbsolutePath());
+                                        toGenerate.put(Const.AES001, "RAW");
+                                        toGenerate.put(Const.CODINGHISTORY001, "RAW");
+
+                                        jHoveOutputRawAes = JhoveUtility.getAes(metsElement, AesEditor.RAW_ID, rawFile.getAbsolutePath(), null, rawCreated, null);
+                                        jhoveOutputRawCodingHistory = JhoveUtility.getCodingHistory(metsElement, CodingHistoryEditor.RAW_ID, rawFile.getAbsolutePath(), rawCreated, null);
                                     }
                                 }
-                            } catch (JAXBException | TransformerException | IOException e) {
-                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                             }
+                        } catch (JAXBException | TransformerException | IOException e) {
+                            throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                         }
                     }
                 }
@@ -1892,7 +1781,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             Marshaller marshaller = jaxbContext.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-            marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
+            marshaller.setProperty("org.glassfish.jaxb.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
             // marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
             // "http://www.w3.org/2001/XMLSchema-instance http://www.w3.org/2001/XMLSchema.xsd http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/MIX/ http://www.loc.gov/mix/v20");
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -2261,7 +2150,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             } else if (Const.PICTURE.equals(element.getElementType())) {
                 insertPicture(divType, physicalDiv, element);
             } else if (Const.ARTICLE.equals(element.getElementType())) {
-                    continue;
+                continue;
             } else {
                 throw new MetsExportException(element.getOriginalPid(), "Expected Page or Picture, got:" + element.getElementType(), false, null);
             }
@@ -2368,7 +2257,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param metsElement
      * @throws MetsExportException
      */
-        protected void insertMonograph(IMetsElement metsElement) throws MetsExportException {
+    protected void insertMonograph(IMetsElement metsElement) throws MetsExportException {
         mets.setTYPE("Monograph");
         DivType logicalDiv = new DivType();
         logicalStruct.setDiv(logicalDiv);
@@ -2882,38 +2771,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
     private void processAudioPageFiles(IMetsElement metsElement, HashMap<String, Object> fileNames, HashMap<String, String> mimeTypes, HashMap<String, XMLGregorianCalendar> createDates, HashMap<String, FileMD5Info> md5InfosMap) throws MetsExportException {
         for (String streamName : Const.audioStremMapping.keySet()) {
-            if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-                try {
-                    for (String dataStream : Const.audioStremMapping.get(streamName)) {
-                        DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), dataStream);
-                        if (rawDS != null) {
-                            FileMD5Info fileMd5Info;
-                            if (md5InfosMap.get(streamName) == null) {
-                                fileMd5Info = new FileMD5Info();
-                                md5InfosMap.put(streamName, fileMd5Info);
-                            } else {
-                                fileMd5Info = md5InfosMap.get(streamName);
-                            }
-                            fileMd5Info.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
-
-                            GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), dataStream);
-                            createDates.put(streamName, rawDS.getDatastreamVersion().get(0).getCREATED());
-                            try {
-                                InputStream is = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                                fileNames.put(streamName, is);
-                            } catch (FedoraClientException e) {
-                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
-                            }
-                            // mimeTypes.put(streamName, profile.getDsMIME());
-                            mimeTypes.put(streamName, rawDS.getDatastreamVersion().get(0).getMIMETYPE());
-                            break;
-                            //
-                        }
-                    }
-                } catch (Exception ex) {
-                    throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting file datastreams for " + metsElement.getOriginalPid(), false, ex);
-                }
-            } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
                 try {
                     for (String dataStream : Const.audioStremMapping.get(streamName)) {
                         DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), dataStream);
@@ -2944,7 +2802,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                         }
                                     }
                                 }
-                            } catch (JAXBException | IOException | TransformerException e) {
+                            } catch (IOException e) {
                                 throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                             }
                         }

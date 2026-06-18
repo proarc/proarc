@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,6 +20,10 @@ import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogQueryField;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.xml.Transformers;
+import jakarta.xml.bind.JAXB;
+import jakarta.xml.bind.annotation.XmlAnyElement;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -38,10 +42,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXB;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMSource;
@@ -137,7 +137,7 @@ public final class AlephXServer implements BibliographicCatalog {
 //            fixedOaiMarc = (StreamSource) transformers.dump(fixedOaiMarc, sb);
 //            String toString = sb.toString();
 //            fixedOaiMarc = (StreamSource) transformers.dump2Temp(fixedOaiMarc, "1AlephOaiMarcFix.xml");
-            
+
             DetailResponse details = JAXB.unmarshal(fixedOaiMarc.getInputStream(), DetailResponse.class);
             if (details == null) {
                 return Collections.emptyList();
@@ -216,7 +216,7 @@ public final class AlephXServer implements BibliographicCatalog {
                 continue;
             }
 
-            mods = mods.substring(0,pos) + "\n<identifier type=\"barcode\">" + barcode + "</identifier>" + mods.substring(pos);
+            mods = mods.substring(0, pos) + "\n<identifier type=\"barcode\">" + barcode + "</identifier>" + mods.substring(pos);
         }
 
         return new MetadataItem(item.getId(), item.getRdczId(), mods, item.getPreview(), item.getTitle());
@@ -233,7 +233,7 @@ public final class AlephXServer implements BibliographicCatalog {
             }
         }
     }
-    
+
     private MetadataItem createResponse(int entryIdx, Source source, Locale locale)
             throws TransformerException, UnsupportedEncodingException {
 
@@ -241,7 +241,7 @@ public final class AlephXServer implements BibliographicCatalog {
 //        source = transformers.dump(source, sb);
 //        String toString = sb.toString();
 //        source = transformers.dump2Temp(source, "2AlephOaiMarcFixedElement.xml");
-        
+
 
         Source marcxmlSrc = transformers.transform(source, Transformers.Format.OaimarcAsMarc21slim);
 //        marcxmlSrc = transformers.dump2Temp(marcxmlSrc, "3OaimarcAsMarc21slim.xml");
@@ -304,7 +304,7 @@ public final class AlephXServer implements BibliographicCatalog {
         String query = u.getQuery();
         query = (query == null || !add) ? newQuery : query + '&' + newQuery;
         try {
-            return  new URI(u.getScheme(), u.getUserInfo(), u.getHost(),
+            return new URI(u.getScheme(), u.getUserInfo(), u.getHost(),
                     u.getPort(), u.getPath(), query, u.getFragment());
         } catch (URISyntaxException ex) {
             MalformedURLException mex = new MalformedURLException(ex.getMessage());
@@ -318,7 +318,7 @@ public final class AlephXServer implements BibliographicCatalog {
         private final Map<String, String> values = new HashMap<>();
 
         public Criteria getCriteria(String fieldName, String value) {
-            if (value == null  || value.trim().length() == 0) {
+            if (value == null || value.trim().length() == 0) {
                 return null;
             }
 
@@ -398,7 +398,7 @@ public final class AlephXServer implements BibliographicCatalog {
             @XmlElement(name = "record_header")
             private Header header;
 
-            @XmlElement(name= "doc_number")
+            @XmlElement(name = "doc_number")
             private int docNumber;
 
             @XmlElement
@@ -443,8 +443,8 @@ public final class AlephXServer implements BibliographicCatalog {
 
         public static class Metadata {
 
-//            @XmlElement(name = "oai_marc")
-            @XmlAnyElement(lax=false)
+            //            @XmlElement(name = "oai_marc")
+            @XmlAnyElement(lax = false)
             private Element oaiMarc;
 
             public Metadata() {

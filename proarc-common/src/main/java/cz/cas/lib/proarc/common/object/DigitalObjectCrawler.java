@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.object;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
@@ -40,9 +39,13 @@ public class DigitalObjectCrawler {
 
     private final DigitalObjectManager dom;
     private final SearchView search;
-    /** Maps PIDs to their parent elements. */
+    /**
+     * Maps PIDs to their parent elements.
+     */
     private final Map<String, DigitalObjectElement> parents;
-    /** Maps PIDs to elements. */
+    /**
+     * Maps PIDs to elements.
+     */
     private final Map<String, DigitalObjectElement> cache;
     private final DigitalObjectElement.Factory elmFactory;
 
@@ -90,6 +93,7 @@ public class DigitalObjectCrawler {
 
     /**
      * Gets parent.
+     *
      * @param pid child ID
      * @return the parent element or {@link DigitalObjectElement#NULL} in case of root.
      * @throws DigitalObjectNotFoundException failure
@@ -138,6 +142,7 @@ public class DigitalObjectCrawler {
 
     /**
      * Gets list of parents up to the root.
+     *
      * @param pid object ID to search parents
      * @return the list
      */
@@ -170,8 +175,6 @@ public class DigitalObjectCrawler {
                 return null;
             }
             return items.get(0);
-        } catch (FedoraClientException ex) {
-            throw new DigitalObjectException(pid, ex);
         } catch (IOException ex) {
             throw new DigitalObjectException(pid, ex);
         }
@@ -181,8 +184,6 @@ public class DigitalObjectCrawler {
         try {
             List<SearchViewItem> children = search.findSortedChildren(pid);
             return children;
-        } catch (FedoraClientException ex) {
-            throw new DigitalObjectException(pid, ex);
         } catch (IOException ex) {
             throw new DigitalObjectException(pid, ex);
         }

@@ -17,15 +17,14 @@
 
 package cz.cas.lib.proarc.common.process.export.mets;
 
-import cz.cas.lib.proarc.common.process.export.mets.MetsLSResolver;
-
-import static org.junit.Assert.assertNotNull;
-
 import java.io.InputStream;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.ls.LSInput;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 public class MetsLSResolverTest {
+
     @Test
     public void checkLSResolvers() {
         MetsLSResolver metsLSResolver = MetsLSResolver.getInstance();

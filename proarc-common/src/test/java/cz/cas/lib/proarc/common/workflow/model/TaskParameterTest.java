@@ -18,14 +18,17 @@ package cz.cas.lib.proarc.common.workflow.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.json.JsonUtils;
+import jakarta.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.JAXB;
 import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Calendar;
-import javax.xml.bind.DatatypeConverter;
-import javax.xml.bind.JAXB;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -58,7 +61,7 @@ public class TaskParameterTest {
         tp = new TaskParameter().addValue(ValueType.NUMBER, "0E-9");
         assertEquals(0, BigDecimal.ZERO.compareTo(tp.getValueNumber()));
         assertEquals("0", tp.getValue());
-}
+    }
 
     @Test
     public void testBooleanTrue() throws Exception {
@@ -86,15 +89,15 @@ public class TaskParameterTest {
 //                .addValueString("aha")
 //                .addValueNumber(BigDecimal.ONE)
                 .addValueDateTime(new Timestamp(c.getTimeInMillis()))
-                ;
+        ;
         tp.setJobId(BigDecimal.ZERO);
         String json = om.writeValueAsString(tp);
-        assertTrue(json, json.contains("\"value\":\"" + expectedTimestamp));
+        assertTrue(json.contains("\"value\":\"" + expectedTimestamp), () -> json);
 
         StringWriter stringWriter = new StringWriter();
         JAXB.marshal(tp, stringWriter);
         String xml = stringWriter.toString();
-        assertTrue(xml, xml.contains(expectedTimestamp));
+        assertTrue(xml.contains(expectedTimestamp), () -> xml);
     }
 
 }

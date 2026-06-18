@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -24,7 +24,6 @@ import cz.cas.lib.proarc.common.mods.custom.PeriodicalIssueMapper.PeriodicalIssu
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalMapper.Periodical;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalVolumeMapper.PeriodicalVolume;
 import cz.cas.lib.proarc.mods.ModsDefinition;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +36,7 @@ import java.util.Map;
 public final class Mapping {
 
     private static final Map<String, MapperItem<?>> MAPPERS = new HashMap<String, MapperItem<?>>();
-    
+
     static {
         addModel(ModsCutomEditorType.EDITOR_PAGE, new PageMapper(), Page.class);
         addModel(ModsCutomEditorType.EDITOR_PERIODICAL, new PeriodicalMapper(), Periodical.class);
@@ -106,6 +105,7 @@ public final class Mapping {
     public interface Mapper<T> {
         /**
          * Implement this to map required properties from MODS to custom object
+         *
          * @param mods
          * @return
          */
@@ -114,7 +114,7 @@ public final class Mapping {
         /**
          * Implement this to update passed {@code mods} with values from custom object.
          *
-         * @param mods full MODS to update
+         * @param mods  full MODS to update
          * @param value properties for update
          * @return modified MODS
          */

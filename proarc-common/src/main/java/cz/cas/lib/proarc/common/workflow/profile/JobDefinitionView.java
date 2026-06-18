@@ -16,12 +16,13 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  *
@@ -38,6 +39,7 @@ public class JobDefinitionView extends WorkflowItemView {
     }
 
     @XmlElement(name = WorkflowProfileConsts.JOBVIEW_TASK)
+    @JsonProperty(WorkflowProfileConsts.JOBVIEW_TASK)
     public List<WorkflowItemView> getTasks() {
         ArrayList<WorkflowItemView> tasks = new ArrayList<>();
         for (StepDefinition step : item.getSteps()) {
@@ -50,6 +52,7 @@ public class JobDefinitionView extends WorkflowItemView {
     }
 
     @XmlElement(name = WorkflowProfileConsts.JOBVIEW_SUBJOB)
+    @JsonProperty(WorkflowProfileConsts.JOBVIEW_SUBJOB)
     public List<WorkflowItemView> getSubjobs() {
         return item.getSubjobs().stream()
                 .filter(sj -> !sj.getJob().isDisabled() && !item.getName().equals(sj.getJob().getName()))
@@ -61,7 +64,7 @@ public class JobDefinitionView extends WorkflowItemView {
     public List<WorkflowItemView> getModels() {
         return item.getModel().stream()
                 .map(modelDefinition ->
-                    new WorkflowItemView(modelDefinition, lang))
+                        new WorkflowItemView(modelDefinition, lang))
                 .collect(Collectors.toList());
     }
 

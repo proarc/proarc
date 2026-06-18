@@ -28,7 +28,6 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.user.Group;
 import cz.cas.lib.proarc.common.user.Permission;
 import cz.cas.lib.proarc.common.user.UserManager;
@@ -42,13 +41,25 @@ import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
-import cz.cas.lib.proarc.webapp.client.ds.RestConfig;
-import cz.cas.lib.proarc.webapp.client.widget.UserRole;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.SecurityContext;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,23 +68,13 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.SecurityContext;
 
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_UNKNOWN_USER;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_CREATE_USER;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_DELETE_USER;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UPDATE_USER;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
@@ -82,7 +83,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
  * @author Jan Pokorsky
  */
 @Deprecated
-@Path(RestConfig.URL_API_VERSION_1 + "/" + UserResourceApi.PATH)
+@Path(URL_API_VERSION_1 + "/" + UserResourceApi.PATH)
 public class UserResourceV1 {
 
     private static final Logger LOG = Logger.getLogger(UserResourceV1.class.getName());
@@ -112,11 +113,11 @@ public class UserResourceV1 {
 
     @DELETE
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<UserProfile> deleteUser(
+    public ProArcResponse<UserProfile> deleteUser(
             @QueryParam(UserResourceApi.USER_ID) Integer userId
     ) {
 
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_DELETE_USER);
+        checkPermission(user, PERMISSION_FUNCTION_DELETE_USER);
         Locale locale = session.getLocale(httpHeaders);
 
         if (userId == null) {
@@ -127,7 +128,7 @@ public class UserResourceV1 {
             UserProfile user2Delete = userManager.find(userId);
 
             if (user2Delete == null) {
-                return SmartGwtResponse.<UserProfile>asError()
+                return ProArcResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_UserId_NotFound"))
                         .build();
             }
@@ -135,22 +136,19 @@ public class UserResourceV1 {
             SearchView search = null;
 
             if (UserUtil.DEFAULT_ADMIN_USER.equals(user2Delete.getUserName())) {
-                return SmartGwtResponse.<UserProfile>asError()
+                return ProArcResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_cant_be_deleted", user2Delete.getUserName()))
                         .build();
             }
 
 
             if (user.getUserName().equals(user2Delete.getUserName())) {
-                return SmartGwtResponse.<UserProfile>asError()
+                return ProArcResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_cant_be_deleted", user2Delete.getUserName()))
                         .build();
             }
 
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                FedoraStorage remote = FedoraStorage.getInstance(appConfig);
-                search = remote.getSearch(locale);
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubra = AkubraStorage.getInstance(akubraConfiguration);
                 search = akubra.getSearch(locale);
             } else {
@@ -159,22 +157,22 @@ public class UserResourceV1 {
 
             int count = search.countByOwner(user2Delete.getUserName());
             if (count != 0) {
-                return SmartGwtResponse.<UserProfile>asError()
+                return ProArcResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_has_objects", user2Delete.getUserName(), count))
                         .build();
             }
             List<SearchViewItem> items = search.findByProcessor(user2Delete.getUserName());
             count = items.size();
             if (count != 0) {
-                return SmartGwtResponse.<UserProfile>asError()
+                return ProArcResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_has_objects", user2Delete.getUserName(), count))
                         .build();
             }
             BatchManager batchManager = BatchManager.getInstance();
-            List<BatchView> batchViewList = batchManager.viewBatch(new BatchViewFilter().setCreatorId(user2Delete.getId()).setMaxCount(9999), true);
+            List<BatchView> batchViewList = batchManager.viewBatch(new BatchViewFilter().setCreatorId(user2Delete.getId()).setMaxCount(9999), false);
             count = batchViewList.size();
             if (count != 0) {
-                return SmartGwtResponse.<UserProfile>asError()
+                return ProArcResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_has_objects", user2Delete.getUserName(), count))
                         .build();
             }
@@ -189,7 +187,7 @@ public class UserResourceV1 {
             List<JobView> jobViewList = workflowManager.findJob(jobFilter);
             count = jobViewList.size();
             if (count != 0) {
-                return SmartGwtResponse.<UserProfile>asError()
+                return ProArcResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_has_objects", user2Delete.getUserName(), count))
                         .build();
             }
@@ -201,23 +199,23 @@ public class UserResourceV1 {
             List<TaskView> taskViewList = workflowManager.tasks().findTask(taskFilter, workflow);
             count = taskViewList.size();
             if (count != 0) {
-                return SmartGwtResponse.<UserProfile>asError()
+                return ProArcResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_User_has_objects", user2Delete.getUserName(), count))
                         .build();
             }
 
             userManager.deleteUser(userId);
             UserProfile found = userManager.find(userId);
-            return new SmartGwtResponse<UserProfile>(SmartGwtResponse.STATUS_OBJECT_SUCCESFULLY_DELETED, 0, 0, 1, found != null ? Collections.singletonList(found) : Collections.emptyList());
+            return new ProArcResponse<UserProfile>(ProArcResponse.STATUS_OBJECT_SUCCESFULLY_DELETED, 0, 0, 1, found != null ? Collections.singletonList(found) : Collections.emptyList());
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return SmartGwtResponse.asError(t);
+            return ProArcResponse.asError(t);
         }
     }
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<UserProfile> find(
+    public ProArcResponse<UserProfile> find(
             @QueryParam(UserResourceApi.USER_ID) Integer userId,
             @QueryParam(UserResourceApi.USER_NAME) String userName,
             @QueryParam(UserResourceApi.USER_WHOAMI_PARAM) Boolean whoAmI,
@@ -230,10 +228,10 @@ public class UserResourceV1 {
         }
         if (userId != null) {
             UserProfile found = userManager.find(userId);
-            return new SmartGwtResponse<UserProfile>(found);
+            return new ProArcResponse<UserProfile>(found);
         } else if (userName != null && !userName.isEmpty()) {
             UserProfile found = userManager.find(userName);
-            return new SmartGwtResponse<UserProfile>(found);
+            return new ProArcResponse<UserProfile>(found);
         }
         UserProfile user = session.getUser();
         boolean allowAllOrganization = user.hasSysAdminFunction();
@@ -252,7 +250,7 @@ public class UserResourceV1 {
             }
             int endRow = startRow + selectedUsers.size() - 1;
             int total = findAll.size();
-            return new SmartGwtResponse<UserProfile>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, selectedUsers);
+            return new ProArcResponse<UserProfile>(ProArcResponse.STATUS_SUCCESS, startRow, endRow, total, selectedUsers);
 
         } else {
             List<UserProfile> findAll = userManager.findAll();
@@ -269,13 +267,13 @@ public class UserResourceV1 {
             }
             int endRow = startRow + selectedUsers.size() - 1;
             int total = findAll.size();
-            return new SmartGwtResponse<UserProfile>(SmartGwtResponse.STATUS_SUCCESS, startRow, endRow, total, selectedUsers);
+            return new ProArcResponse<UserProfile>(ProArcResponse.STATUS_SUCCESS, startRow, endRow, total, selectedUsers);
         }
     }
 
     @POST
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<UserProfile> add(
+    public ProArcResponse<UserProfile> add(
             @FormParam(UserResourceApi.USER_NAME) String userName,
             @FormParam(UserResourceApi.USER_PASSWORD) String passwd,
             @FormParam(UserResourceApi.USER_SURNAME) String surname,
@@ -304,15 +302,15 @@ public class UserResourceV1 {
             @FormParam(UserResourceApi.FUNCTION_SYS_ADMIN) Boolean sysAdminFunction
             ) {
         Locale locale = session.getLocale(httpHeaders);
-        checkPermission(user, UserRole.PERMISSION_FUNCTION_CREATE_USER);
+        checkPermission(user, PERMISSION_FUNCTION_CREATE_USER);
         if (userName == null) {
-            return SmartGwtResponse.<UserProfile>asError()
+            return ProArcResponse.<UserProfile>asError()
                     .error(UserResourceApi.PATH,  ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_Required"))
                     .build();
         }
         UserProfile found = userManager.find(userName);
         if (found != null) {
-            return SmartGwtResponse.<UserProfile>asError()
+            return ProArcResponse.<UserProfile>asError()
                     .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_Username_Existing"))
                     .build();
         }
@@ -353,16 +351,16 @@ public class UserResourceV1 {
             } else if (ex.getMessage().startsWith("Invalid password")) {
                 message = ServerMessages.get(locale).getFormattedMessage("UserResouce_Password_Invalid");
             }
-            return SmartGwtResponse.<UserProfile>asError()
+            return ProArcResponse.<UserProfile>asError()
                     .error(UserResourceApi.PATH, message)
                     .build();
         }
-        return new SmartGwtResponse<UserProfile>(newProfile);
+        return new ProArcResponse<UserProfile>(newProfile);
     }
 
     @PUT
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<UserProfile> update(
+    public ProArcResponse<UserProfile> update(
             @FormParam(UserResourceApi.USER_ID) Integer userId,
             @FormParam(UserResourceApi.USER_PASSWORD) String passwd,
             @FormParam(UserResourceApi.USER_SURNAME) String surname,
@@ -397,12 +395,12 @@ public class UserResourceV1 {
         UserProfile update = userId == null ? null : userManager.find(userId);
         boolean fullUpdate = false;
         if (update != null) {
-            if (hasPermission(user, UserRole.PERMISSION_FUNCTION_UPDATE_USER)) {
+            if (hasPermission(user, PERMISSION_FUNCTION_UPDATE_USER)) {
                 fullUpdate = true;
             }
         }
         if (update == null) {
-            return SmartGwtResponse.<UserProfile>asError()
+            return ProArcResponse.<UserProfile>asError()
                     .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_UserId_NotFound")).build();
         }
         if (passwd != null && update.getRemoteType() == null) {
@@ -433,20 +431,20 @@ public class UserResourceV1 {
             update.setPrepareBatchFunction(prepareBatchFunction);
             update.setSysAdminFunction(sysAdminFunction);
             if (surname == null || surname.isEmpty()) {
-                return SmartGwtResponse.<UserProfile>asError()
+                return ProArcResponse.<UserProfile>asError()
                         .error(UserResourceApi.PATH, ServerMessages.get(locale).getFormattedMessage("UserResouce_Surname_Required")).build();
             }
             update.setSurname(surname);
         }
 
         userManager.update(update, sessionUser.getUserName(), session.asFedoraLog());
-        return new SmartGwtResponse<UserProfile>(update);
+        return new ProArcResponse<UserProfile>(update);
     }
 
     @Path("permissions")
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<Permission> findPermissions(
+    public ProArcResponse<Permission> findPermissions(
             @QueryParam("userId") Integer userId
             ) {
 
@@ -458,13 +456,13 @@ public class UserResourceV1 {
             Set<Permission> permissions = userManager.findUserPermissions(userId);
             result = new ArrayList<Permission>(permissions);
         }
-        return new SmartGwtResponse<Permission>(result);
+        return new ProArcResponse<Permission>(result);
     }
 
     @GET
     @Path(UserResourceApi.PATH_USER_SETTING)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<UserSetting> getUserSetting(
+    public ProArcResponse<UserSetting> getUserSetting(
 //            @QueryParam(UserResourceApi.USER_ID) Integer userId
     ) {
         Integer userId = session.getUser().getId();
@@ -472,17 +470,17 @@ public class UserResourceV1 {
         if (userId == null) {
             UserSetting userSetting = new UserSetting();
             userSetting.setValidation(returnLocalizedMessage(ERR_UNKNOWN_USER));
-            return new SmartGwtResponse<>(Collections.singletonList(userSetting));
+            return new ProArcResponse<>(Collections.singletonList(userSetting));
         }
 
         List<UserSetting> userSetting = userManager.getUserSetting(userId);
-        return new SmartGwtResponse<>(userSetting);
+        return new ProArcResponse<>(userSetting);
     }
 
     @POST
     @Path(UserResourceApi.PATH_USER_SETTING)
     @Produces({MediaType.APPLICATION_JSON})
-    public SmartGwtResponse<UserSetting> updateUserSetting(
+    public ProArcResponse<UserSetting> updateUserSetting(
 //            @FormParam(UserResourceApi.USER_ID) Integer userId,
             @FormParam(UserResourceApi.USER_SETTING) String settingJson
     ) {
@@ -490,13 +488,13 @@ public class UserResourceV1 {
         if (userId == null) {
             UserSetting userSetting = new UserSetting();
             userSetting.setValidation(returnLocalizedMessage(ERR_UNKNOWN_USER));
-            return new SmartGwtResponse<>(Collections.singletonList(userSetting));
+            return new ProArcResponse<>(Collections.singletonList(userSetting));
         }
 
         if (settingJson == null || settingJson.isEmpty()) {
             UserSetting userSetting = new UserSetting();
             userSetting.setValidation(returnLocalizedMessage(ERR_MISSING_PARAMETER, UserResourceApi.USER_SETTING));
-            return new SmartGwtResponse<>(Collections.singletonList(userSetting));
+            return new ProArcResponse<>(Collections.singletonList(userSetting));
         }
 
         List<UserSetting> settings = userManager.getUserSetting(userId);
@@ -513,7 +511,7 @@ public class UserResourceV1 {
         }
 
         settings = userManager.getUserSetting(userId);
-        return new SmartGwtResponse<UserSetting>(settings);
+        return new ProArcResponse<UserSetting>(settings);
     }
 
     protected String returnLocalizedMessage(String key, Object... arguments) {

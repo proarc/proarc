@@ -16,13 +16,17 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlSchemaType;
 import java.sql.Timestamp;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSchemaType;
 
 /**
  * Helper class to annotate {@link BatchView} properties.
@@ -31,82 +35,100 @@ import javax.xml.bind.annotation.XmlSchemaType;
  *
  * @author Jan Pokorsky
  */
-@javax.xml.bind.annotation.XmlRootElement(name = ImportResourceApi.IMPORT_BATCH_ELEMENT)
-@javax.xml.bind.annotation.XmlAccessorType(XmlAccessType.NONE)
+@XmlRootElement(name = ImportResourceApi.IMPORT_BATCH_ELEMENT)
+@JsonRootName(ImportResourceApi.IMPORT_BATCH_ELEMENT)
+@XmlAccessorType(XmlAccessType.NONE)
 public abstract class AnnotatedBatchView extends BatchView {
 
     @XmlElement(required = true, name = ImportResourceApi.IMPORT_BATCH_ID)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_ID)
     @Override
     public Integer getId() {
         return super.getId();
     }
 
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_FOLDER)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_FOLDER)
     @Override
     public abstract String getFolder();
 
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_DESCRIPTION)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_DESCRIPTION)
     @Override
     public abstract String getTitle();
 
     @XmlSchemaType(name = "dateTime")
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_CREATE)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_CREATE)
     @Override
     public abstract Timestamp getCreate();
 
 
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_FAILURE)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_FAILURE)
     @Override
     public abstract String getLog();
 
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_STATE)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_STATE)
     @Override
     public abstract String getState();
 
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_USERID)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_USERID)
     @Override
     public abstract Integer getUserId();
 
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_USER)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_USER)
     @Override
     public abstract String getUserName();
 
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_PARENTPID)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_PARENTPID)
     @Override
     public abstract String getParentPid();
 
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_PROFILE)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_PROFILE)
     @Override
     public abstract String getProfileId();
 
     @XmlSchemaType(name = "dateTime")
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_TIMESTAMP)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_TIMESTAMP)
     @Override
     public abstract Timestamp getTimestamp();
 
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_PAGECOUNT)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_PAGECOUNT)
     @Override
     public abstract Integer getPageCount();
 
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_PRIORITY)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_PRIORITY)
     @Override
     public abstract String getPriority();
 
     @XmlSchemaType(name = "dateTime")
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_ITEM_UPDATED)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_ITEM_UPDATED)
     @Override
     public abstract Timestamp getItemUpdated();
 
     @XmlSchemaType(name = "dateTime")
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_UPDATED)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_UPDATED)
     @Override
     public abstract Timestamp getUpdated();
 
     @XmlElement(name = DigitalObjectResourceApi.BATCH_NIGHT_ONLY)
+    @JsonProperty(DigitalObjectResourceApi.BATCH_NIGHT_ONLY)
     @Override
     public abstract Boolean isNightOnly();
 
     @XmlElement(name = ImportResourceApi.IMPORT_BATCH_PARAMETERS)
+    @JsonProperty(ImportResourceApi.IMPORT_BATCH_PARAMETERS)
     @Override
     public abstract String getParameters();
 }

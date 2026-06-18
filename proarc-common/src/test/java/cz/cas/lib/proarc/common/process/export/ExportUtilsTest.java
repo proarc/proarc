@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.process.export;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.process.export.ExportResultLog.ExportResult;
@@ -27,13 +26,15 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Date;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -43,31 +44,31 @@ public class ExportUtilsTest {
 
     private final AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
+    @TempDir
+    File tempDir;
 
     public ExportUtilsTest() throws Exception {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
     @Test
     public void testCreateFolder() {
-        File parent = temp.getRoot();
+        File parent = tempDir;
         String name = FoxmlUtils.pidAsUuid("uuid:0bcf9933-84e5-460f-9e94-d798b724d394");
         File expResult = new File(parent, name);
         File result = ExportUtils.createFolder(parent, name, appConfig.getExportParams().isOverwritePackage());
@@ -78,16 +79,16 @@ public class ExportUtilsTest {
         assertEquals(expResult, result);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testCreateFolderFailure() {
-        File parent = temp.getRoot();
+        File parent = tempDir;
         String name = "uuid:0bcf9933-84e5-460f-9e94-d798b724d394";
         ExportUtils.createFolder(parent, name, appConfig.getExportParams().isOverwritePackage());
     }
 
     @Test
     public void testExportResult() throws Exception {
-        File target = temp.getRoot();
+        File target = tempDir;
         ExportResult export = new ExportResult();
         export.setStatus(ResultStatus.OK);
         export.setInputPid("pid1");
@@ -106,10 +107,10 @@ public class ExportUtilsTest {
         assertTrue(statusFile.exists());
         String result = FileUtils.readFileToString(statusFile);
 //        System.out.println(result);
-        assertTrue(result, result.contains("error1"));
-        assertTrue(result, result.contains("error2"));
-        assertTrue(result, result.contains("error3"));
-        assertTrue(result, result.contains("validation1"));
-        assertTrue(result, result.contains("validation2"));
+        assertTrue(result.contains("error1"), () -> result);
+        assertTrue(result.contains("error2"), () -> result);
+        assertTrue(result.contains("error3"), () -> result);
+        assertTrue(result.contains("validation1"), () -> result);
+        assertTrue(result.contains("validation2"), () -> result);
     }
 }

@@ -220,12 +220,12 @@
                         <xsl:choose>
                             <xsl:when test="contains($ascii,$first-char)">
                                 <xsl:value-of
-                                    select="string-length(substring-before($ascii,$first-char)) + 32"
+                                        select="string-length(substring-before($ascii,$first-char)) + 32"
                                 />
                             </xsl:when>
                             <xsl:when test="contains($latin1,$first-char)">
                                 <xsl:value-of
-                                    select="string-length(substring-before($latin1,$first-char)) + 160"/>
+                                        select="string-length(substring-before($latin1,$first-char)) + 160"/>
                                 <!-- was 160 -->
                             </xsl:when>
                             <xsl:otherwise>
@@ -237,7 +237,7 @@
                         </xsl:choose>
                     </xsl:variable>
                     <xsl:variable name="hex-digit1"
-                                                      select="substring($hex,floor($codepoint div 16) + 1,1)"/>
+                                  select="substring($hex,floor($codepoint div 16) + 1,1)"/>
                     <xsl:variable name="hex-digit2" select="substring($hex,$codepoint mod 16 + 1,1)"/>
                     <!-- <xsl:value-of select="concat('%',$hex-digit2)"/> -->
                     <xsl:value-of select="concat('%',$hex-digit1,$hex-digit2)"/>
@@ -251,8 +251,8 @@
         </xsl:if>
     </xsl:template>
 </xsl:stylesheet>
-<!-- Stylus Studio meta-information - (c)1998-2002 eXcelon Corp.
-<metaInformation>
-<scenarios/><MapperInfo srcSchemaPath="" srcSchemaRoot="" srcSchemaPathIsRelative="yes" srcSchemaInterpretAsXML="no" destSchemaPath="" destSchemaRoot="" destSchemaPathIsRelative="yes" destSchemaInterpretAsXML="no"/>
-</metaInformation>
--->
+        <!-- Stylus Studio meta-information - (c)1998-2002 eXcelon Corp.
+        <metaInformation>
+        <scenarios/><MapperInfo srcSchemaPath="" srcSchemaRoot="" srcSchemaPathIsRelative="yes" srcSchemaInterpretAsXML="no" destSchemaPath="" destSchemaRoot="" destSchemaPathIsRelative="yes" destSchemaInterpretAsXML="no"/>
+        </metaInformation>
+        -->

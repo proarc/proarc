@@ -20,7 +20,6 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
@@ -61,9 +60,7 @@ public class UrnNbnService {
             this.client = appConfig.getUrnNbnConfiguration().getClient(resolverConfig);
         }
         try {
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                search = FedoraStorage.getInstance().getSearch();
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
                 search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
             } else {
@@ -208,7 +205,8 @@ public class UrnNbnService {
         }
 
         try {
-            cz.cas.lib.proarc.urnnbn.model.response.Response response = ctx.getClient().deactivateUrnNbnValue(urnNbnValue);;
+            cz.cas.lib.proarc.urnnbn.model.response.Response response = ctx.getClient().deactivateUrnNbnValue(urnNbnValue);
+            ;
             ErrorType error = response.getError();
             if (error != null) {
                 // remote deactivation failed
@@ -225,7 +223,7 @@ public class UrnNbnService {
                 return statusHandler;
             }
             UrnNbn urnNbn = response.getUrnNbn();
-            if (urnNbn == null || urnNbn.getValue() == null) {
+            if (urnNbn == null || urnNbn.getUrnNbnElementValue() == null) {
                 statusHandler.error(urnNbnValue, Status.EXCEPTION,
                         "The resolver returns no URN:NBN value! Check the server configuration.");
             } else {
@@ -246,7 +244,7 @@ public class UrnNbnService {
                         statusHandler.ok(registrarScopeIdentifier.getType() + ":" + registrarScopeIdentifier.getValue(), "Deactivated " + urnNbnValue);
                     }
                 } else {
-                    statusHandler.error(urnNbnValue, Status.EXCEPTION, urnNbn.getStatus() + ":" + urnNbn.getValue());
+                    statusHandler.error(urnNbnValue, Status.EXCEPTION, urnNbn.getStatus() + ":" + urnNbn.getUrnNbnElementValue());
                 }
             }
         } catch (Exception ex) {

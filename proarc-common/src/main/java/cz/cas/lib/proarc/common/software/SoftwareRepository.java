@@ -16,8 +16,6 @@
  */
 package cz.cas.lib.proarc.common.software;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
@@ -37,10 +35,9 @@ import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mets.Mets;
@@ -56,6 +53,7 @@ import cz.cas.lib.proarc.premis.ObjectComplexType;
 import cz.cas.lib.proarc.premis.PremisUtils;
 import cz.cas.lib.proarc.premis.RelatedEventIdentificationComplexType;
 import cz.cas.lib.proarc.premis.RelationshipComplexType;
+import jakarta.xml.bind.JAXBElement;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -67,8 +65,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBElement;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
@@ -107,19 +103,10 @@ public final class SoftwareRepository {
     public static final String METAMODEL_SET_ID = "proarc:softwareset";
     public static final String SOFTWARE_ID_PREFIX = "software:";
 
-    private FedoraStorage fedoraStorage;
     private final Storage typeOfStorage;
     private AkubraStorage akubraStorage;
 
     private final Logger LOG = Logger.getLogger(SoftwareRepository.class.getName());
-
-    public SoftwareRepository(FedoraStorage fedoraStorage) {
-        if (fedoraStorage == null) {
-            throw new NullPointerException("remoteStorage");
-        }
-        this.fedoraStorage = fedoraStorage;
-        this.typeOfStorage = Storage.FEDORA;
-    }
 
     public SoftwareRepository(AkubraStorage akubraStorage) {
         if (akubraStorage == null) {
@@ -134,7 +121,7 @@ public final class SoftwareRepository {
      *
      * @param owner owner of the object
      * @param label software label
-     * @param log log message
+     * @param log   log message
      * @return the software
      * @throws SoftwareException failure
      */
@@ -172,15 +159,7 @@ public final class SoftwareRepository {
         try {
             // check fedora usages
             // software may be still used by any import item
-            if (Storage.FEDORA.equals(typeOfStorage)) {
-                RemoteObject object = fedoraStorage.find(id);
-                if (fedoraStorage.getSearch().isSoftwareInUse(id)) {
-                    return false;
-                } else {
-                    object.purge(log);
-                    return true;
-                }
-            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            if (Storage.AKUBRA.equals(typeOfStorage)) {
                 AkubraObject object = akubraStorage.find(id);
                 if (akubraStorage.getSearch().isSoftwareInUse(id)) {
                     return false;
@@ -193,12 +172,6 @@ public final class SoftwareRepository {
             }
         } catch (DigitalObjectNotFoundException ex) {
             throw new SoftwareNotFoundException(null, ex, id);
-        } catch (FedoraClientException ex) {
-            if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                throw new SoftwareNotFoundException(null, ex, id);
-            } else {
-                throw new SoftwareException(id, ex);
-            }
         } catch (DigitalObjectException | IOException ex) {
             throw new SoftwareException(id, ex);
         }
@@ -218,7 +191,7 @@ public final class SoftwareRepository {
     /**
      * Finds a software.
      *
-     * @param id software PID or {@code null} for all software.
+     * @param id               software PID or {@code null} for all software.
      * @param fetchDescription whether to include software descriptions in response
      * @return list of software
      * @throws SoftwareException failure
@@ -240,8 +213,6 @@ public final class SoftwareRepository {
             return software;
         } catch (IOException ex) {
             throw new SoftwareException(id, ex);
-        } catch (FedoraClientException ex) {
-            throw new SoftwareException(id, ex);
         }
     }
 
@@ -255,8 +226,6 @@ public final class SoftwareRepository {
             fetchSoftwarePreview(software);
             return software;
         } catch (IOException ex) {
-            throw new SoftwareException(id, ex);
-        } catch (FedoraClientException ex) {
             throw new SoftwareException(id, ex);
         }
     }
@@ -293,9 +262,7 @@ public final class SoftwareRepository {
         String id = software.getId();
         try {
             ProArcObject object = null;
-            if (Storage.FEDORA.equals(typeOfStorage)) {
-                object = fedoraStorage.find(id);
-            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            if (Storage.AKUBRA.equals(typeOfStorage)) {
                 object = akubraStorage.find(id);
             }
             object.setModel(software.getModel());
@@ -383,9 +350,7 @@ public final class SoftwareRepository {
         HashMap<String, SoftwareMets> metsList = new HashMap<>();
         try {
             ProArcObject object = null;
-            if (Storage.FEDORA.equals(typeOfStorage)) {
-                object = fedoraStorage.find(pid);
-            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            if (Storage.AKUBRA.equals(typeOfStorage)) {
                 object = akubraStorage.find(pid);
             }
             XmlStreamEditor editor = getMetsDescriptionEditor(object);
@@ -496,9 +461,7 @@ public final class SoftwareRepository {
     private String getNodeValue(String pid, String expression) throws SoftwareException {
         try {
             ProArcObject object = null;
-            if (Storage.FEDORA.equals(typeOfStorage)) {
-                object = fedoraStorage.find(pid);
-            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            if (Storage.AKUBRA.equals(typeOfStorage)) {
                 object = akubraStorage.find(pid);
             }
             XmlStreamEditor editor = getMetsDescriptionEditor(object);
@@ -544,9 +507,7 @@ public final class SoftwareRepository {
         checkSoftwareId(id);
         try {
             ProArcObject object = null;
-            if (Storage.FEDORA.equals(typeOfStorage)) {
-                object = fedoraStorage.find(id);
-            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            if (Storage.AKUBRA.equals(typeOfStorage)) {
                 object = akubraStorage.find(id);
             }
             object.setModel(update.getModel());
@@ -606,9 +567,7 @@ public final class SoftwareRepository {
         lobject.flush();
         lobject.setModel(model);
 
-        if (Storage.FEDORA.equals(typeOfStorage)) {
-            fedoraStorage.ingest(lobject, owner);
-        } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+        if (Storage.AKUBRA.equals(typeOfStorage)) {
             akubraStorage.ingest(lobject, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, owner);
         }
         Software software = new Software();
@@ -620,13 +579,11 @@ public final class SoftwareRepository {
         List<SearchViewItem> items = new ArrayList<>();
         try {
             SearchView searchView = null;
-            if (Storage.FEDORA.equals(typeOfStorage)) {
-                searchView = fedoraStorage.getSearch();
-            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            if (Storage.AKUBRA.equals(typeOfStorage)) {
                 searchView = akubraStorage.getSearch().setAllowDevicesAndSoftware(true);
             }
             items = searchView.findByModels(offset, METAMODEL_AGENT_ID, METAMODEL_EVENT_ID, METAMODEL_OBJECT_ID, METAMODEL_SET_ID);
-        } catch (IOException | FedoraClientException ex) {
+        } catch (IOException ex) {
             throw new SoftwareException(ex.getMessage());
         }
         return objectAsSoftware(config, items, null);
@@ -636,23 +593,19 @@ public final class SoftwareRepository {
         List<SearchViewItem> items = new ArrayList<>();
         try {
             SearchView searchView = null;
-            if (Storage.FEDORA.equals(typeOfStorage)) {
-                searchView = fedoraStorage.getSearch();
-            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            if (Storage.AKUBRA.equals(typeOfStorage)) {
                 searchView = akubraStorage.getSearch().setAllowDevicesAndSoftware(true);
             }
             items = searchView.findByModel(offset, model);
-        } catch (IOException | FedoraClientException ex) {
+        } catch (IOException ex) {
             throw new SoftwareException(ex.getMessage());
         }
         return objectAsSoftware(config, items, null);
     }
 
-    private List<Software> findSoftware(AppConfiguration config, String... pids) throws IOException, FedoraClientException {
+    private List<Software> findSoftware(AppConfiguration config, String... pids) throws IOException {
         SearchView searchView = null;
-        if (Storage.FEDORA.equals(typeOfStorage)) {
-            searchView = fedoraStorage.getSearch();
-        } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+        if (Storage.AKUBRA.equals(typeOfStorage)) {
             searchView = akubraStorage.getSearch().setAllowDevicesAndSoftware(true);
         }
 
@@ -770,13 +723,11 @@ public final class SoftwareRepository {
         List<SearchViewItem> items = new ArrayList<>();
         try {
             SearchView searchView = null;
-            if (Storage.FEDORA.equals(typeOfStorage)) {
-                searchView = fedoraStorage.getSearch();
-            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            if (Storage.AKUBRA.equals(typeOfStorage)) {
                 searchView = akubraStorage.getSearch().setAllowDevicesAndSoftware(true);
             }
             items = searchView.find(setOfIds);
-        } catch (IOException | FedoraClientException ex) {
+        } catch (IOException ex) {
             throw new SoftwareException(ex.getMessage());
         }
 

@@ -18,13 +18,11 @@ package cz.cas.lib.proarc.common.process.imports.ndk;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
 import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.imports.FedoraImport;
 import cz.cas.lib.proarc.common.process.imports.ImportHandler;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.process.imports.ndk.FileReader.ImportSession;
@@ -76,10 +74,7 @@ public class NdkImport implements ImportHandler {
     private void ingest(ImportOptions importConfig, AppConfiguration config) throws Exception {
         BatchManager bm = BatchManager.getInstance();
         Batch batch = importConfig.getBatch();
-        if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-            FedoraImport ingest = new FedoraImport(config, FedoraStorage.getInstance(config), bm, null, importConfig);
-            ingest.importBatch(batch, importConfig.getUsername(), null);
-        } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
             AkubraImport ingest = new AkubraImport(config, akubraConfiguration, bm, null, importConfig);
             ingest.importBatch(batch, importConfig.getUsername(), null);

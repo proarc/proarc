@@ -16,28 +16,33 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 /**
  *
  * @author Jan Pokorsky
  */
 @XmlRootElement(name = ImportResourceApi.IMPORT_FOLDER_ELEMENT)
+@JsonRootName(ImportResourceApi.IMPORT_FOLDER_ELEMENT)
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ImportFolder {
 
     private transient String name;
     @XmlElement(name = ImportResourceApi.IMPORT_FOLDER_STATE)
+    @JsonProperty(ImportResourceApi.IMPORT_FOLDER_STATE)
     private String state;
     private transient String parent;
     @XmlElement(name = ImportResourceApi.IMPORT_FOLDER_PATH)
+    @JsonProperty(ImportResourceApi.IMPORT_FOLDER_PATH)
     private String path;
     @XmlElement(name = "states")
+    @JsonProperty("states")
     private List<ProfileStates> states;
 
 

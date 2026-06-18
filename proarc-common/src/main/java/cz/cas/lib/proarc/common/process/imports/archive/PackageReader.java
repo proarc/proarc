@@ -16,10 +16,9 @@
  */
 package cz.cas.lib.proarc.common.process.imports.archive;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.PropertyType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
@@ -58,7 +57,6 @@ import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.Rdf;
 import cz.cas.lib.proarc.common.storage.relation.RdfRelation;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
@@ -77,18 +75,17 @@ import cz.cas.lib.proarc.mets.MetsType.FileSec.FileGrp;
 import cz.cas.lib.proarc.mets.StructMapType;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.xml.bind.JAXB;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXB;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Node;
@@ -180,7 +177,7 @@ public class PackageReader {
             int index = 0;
             if (NdkAudioPlugin.MODEL_PAGE.equals(div.getTYPE())) {
                 index = childIndexAudio++;
-            } else if (NdkPlugin.MODEL_PAGE.equals(div.getTYPE()) || NdkPlugin.MODEL_NDK_PAGE.equals(div.getTYPE()) || OldPrintPlugin.MODEL_PAGE.equals(div.getTYPE())){
+            } else if (NdkPlugin.MODEL_PAGE.equals(div.getTYPE()) || NdkPlugin.MODEL_NDK_PAGE.equals(div.getTYPE()) || OldPrintPlugin.MODEL_PAGE.equals(div.getTYPE())) {
                 index = childIndexPage++;
             } else {
                 index = childIndex++;
@@ -239,9 +236,7 @@ public class PackageReader {
             if (lObj == null) {
                 File objFile = new File(targetFolder, getFoxmlFilename("DESCRIPTION", divIndex, pid, DeviceRepository.METAMODEL_ID));
                 ProArcObject object = null;
-                if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
-                    object = iSession.getRemotes().find(pid);
-                } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
                     object = iSession.getAkubraStorage().find(pid);
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + iSession.getTypeOfStorage());
@@ -257,9 +252,7 @@ public class PackageReader {
                 if (dObj == null) { // zkousi najit hlavni pid a s tim pote pracovat
                     String mainPid = getMainPid(pid);
                     if (mainPid != null) {
-                        if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
-                            object = iSession.getRemotes().find(mainPid);
-                        } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
+                        if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
                             object = iSession.getAkubraStorage().find(mainPid);
                         } else {
                             throw new IllegalStateException("Unsupported type of storage: " + iSession.getTypeOfStorage());
@@ -322,9 +315,7 @@ public class PackageReader {
             if (isParentObject) {
                 iSession.setRootPid(pid);
                 ProArcObject object = null;
-                if (Storage.FEDORA.equals(iSession.getTypeOfStorage())) {
-                    object = iSession.getRemotes().find(pid);
-                } else if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(iSession.getTypeOfStorage())) {
                     object = iSession.getAkubraStorage().find(pid);
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + iSession.getTypeOfStorage());
@@ -400,10 +391,11 @@ public class PackageReader {
     /**
      * It is supposed to merge an imported data stream to the local object.
      * For now it supports only RELS-EXT.
-     * @param lObj the local dig. object
-     * @param fileType the imported data stream as an external file
+     *
+     * @param lObj      the local dig. object
+     * @param fileType  the imported data stream as an external file
      * @param childPids the list of child PIDs declared in this package
-     *      that should be merged to the existing list of members in RELS-EXT
+     *                  that should be merged to the existing list of members in RELS-EXT
      * @throws DigitalObjectException
      */
     private void mergeDatastream(LocalObject lObj, FileType fileType, List<String> childPids) throws DigitalObjectException {
@@ -551,7 +543,7 @@ public class PackageReader {
                     editor = new BinaryEditor(lObj, FoxmlUtils.managedProfile(BinaryEditor.NDK_AUDIO_USER_ID, mime, BinaryEditor.NDK_AUDIO_USER_LABEL));
                 }
                 editor.write(file, editor.getLastModified(), null);
-            }else if (BinaryEditor.NDK_AUDIO_USER_OGG_ID.equals(dsId)) {
+            } else if (BinaryEditor.NDK_AUDIO_USER_OGG_ID.equals(dsId)) {
                 MediaType mime = MediaType.valueOf("audio/ogg");
                 BinaryEditor editor = BinaryEditor.dissemination(lObj, dsId, mime);
                 if (editor == null) {
@@ -564,7 +556,6 @@ public class PackageReader {
         }
 
     }
-
 
 
     private void createDatastream(LocalObject lObj, MdSecType dmdSec) throws DigitalObjectException {
@@ -607,7 +598,7 @@ public class PackageReader {
             }
 
             String modelId = relationEditor.getModel();
-            MetaModel model = modelId == null ? null: MetaModelRepository.getInstance().find(modelId);
+            MetaModel model = modelId == null ? null : MetaModelRepository.getInstance().find(modelId);
             if (model == null && !(DeviceRepository.METAMODEL_ID.equals(modelId) || DeviceRepository.METAMODEL_AUDIODEVICE_ID.equals(modelId))) {
                 throw new DigitalObjectException(lObj.getPid(), null, dsId, "Unsupported modelId: " + modelId + ", see " + dsFile, null);
             }
@@ -675,7 +666,7 @@ public class PackageReader {
                         int predecessorIdx = findIndex(predecessor, newMembers);
                         if (predecessorIdx >= 0) {
                             newMembers.add(predecessorIdx + 1, memberPid);
-                            return ;
+                            return;
                         }
                     }
                 }
@@ -685,7 +676,7 @@ public class PackageReader {
                         int successorIdx = findIndex(successor, newMembers);
                         if (successorIdx >= 0) {
                             newMembers.add(successorIdx, memberPid);
-                            return ;
+                            return;
                         }
                     }
                 }
@@ -871,19 +862,17 @@ public class PackageReader {
         private final LocalStorage locals;
         private final SearchView search;
         private final Storage typeOfStorage;
-        private FedoraStorage remotes;
         private AkubraStorage akubraStorage;
         private String rootPid;
-        /** The user cache. */
+        /**
+         * The user cache.
+         */
         private final Map<String, String> external2internalUserMap = new HashMap<String, String>();
 
         public ImportSession(BatchManager ibm, ImportOptions options, AppConfiguration appConfig) throws IOException {
             try {
                 this.typeOfStorage = appConfig.getTypeOfStorage();
-                if (Storage.FEDORA.equals(typeOfStorage)) {
-                    this.remotes = FedoraStorage.getInstance();
-                    this.search = this.remotes.getSearch();
-                } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                if (Storage.AKUBRA.equals(typeOfStorage)) {
                     AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
                     this.akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     this.search = this.akubraStorage.getSearch();
@@ -905,10 +894,6 @@ public class PackageReader {
 
         public LocalStorage getLocals() {
             return locals;
-        }
-
-        public FedoraStorage getRemotes() {
-            return remotes;
         }
 
         public AkubraStorage getAkubraStorage() {
@@ -961,10 +946,10 @@ public class PackageReader {
 //                if (state == StateType.D) {
 //                    // XXX schedule a purge
 //                } else {
-                    String msg = String.format(
-                            "The repository already contains the archived object pid:%s, model:%s, state:%s, %s",
-                            item.getPid(), item.getModel(), state, item.getLabel());
-                    throw new DigitalObjectException(item.getPid(), batch.getId(), null, msg, null);
+                String msg = String.format(
+                        "The repository already contains the archived object pid:%s, model:%s, state:%s, %s",
+                        item.getPid(), item.getModel(), state, item.getLabel());
+                throw new DigitalObjectException(item.getPid(), batch.getId(), null, msg, null);
 //                }
             }
         }
@@ -981,7 +966,7 @@ public class PackageReader {
                                 pid, toItemString(referrers));
                         throw new DigitalObjectException(pid, batch.getId(), null, msg, null);
                     } else {
-                        return ;
+                        return;
                     }
                 }
                 for (SearchViewItem referrer : referrers) {
@@ -993,8 +978,6 @@ public class PackageReader {
                     }
                 }
             } catch (IOException ex) {
-                throw new DigitalObjectException(pid, batch.getId(), null, null, ex);
-            } catch (FedoraClientException ex) {
                 throw new DigitalObjectException(pid, batch.getId(), null, null, ex);
             }
         }

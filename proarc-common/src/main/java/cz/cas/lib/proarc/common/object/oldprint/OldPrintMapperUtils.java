@@ -28,7 +28,8 @@ public class OldPrintMapperUtils {
 
     /**
      * Adds {@code mods/typeOfResource[@manuscript="yes"]="text"}
-     * @param mods 
+     *
+     * @param mods
      */
     public static void addTypeOfResource(ModsDefinition mods) {
         List<TypeOfResourceDefinition> typeOfResources = mods.getTypeOfResource();

@@ -20,18 +20,6 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -39,6 +27,17 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.FoxmlUtils;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
@@ -49,6 +48,7 @@ import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import jakarta.xml.bind.JAXBException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -60,7 +60,6 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
 
 /**
  * Imports files grouped to {@link FileSet file sets}.
@@ -116,7 +115,7 @@ public class FileSetImportWithParentCreated extends FileSetImport {
             importConfig.setJhoveContext(JhoveUtility.createContext());
             try {
                 consumeFileSets(batch, fileSets, importConfig);
-                if(batch.getState().equals(Batch.State.LOADING)
+                if (batch.getState().equals(Batch.State.LOADING)
                         && ConfigurationProfile.IMPORT_WITH_CREATION_PARENT.equals(importConfig.getConfig().getProfileId())) {
                     String pid = createObject(fileSets, batch, importConfig);
 
@@ -125,9 +124,7 @@ public class FileSetImportWithParentCreated extends FileSetImport {
                         batch.setState(Batch.State.LOADED);
                         batch.setUpdated(new Timestamp(System.currentTimeMillis()));
                         batchManager.update(batch);
-                        if (Storage.FEDORA.equals(configuration.getTypeOfStorage())) {
-                            batch = new FedoraImport(configuration, FedoraStorage.getInstance(configuration), batchManager, importConfig.getUser(), importConfig).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");
-                        } else if (Storage.AKUBRA.equals(configuration.getTypeOfStorage())) {
+                        if (Storage.AKUBRA.equals(configuration.getTypeOfStorage())) {
                             AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(configuration.getConfigHome());
                             batch = new AkubraImport(configuration, akubraConfiguration, batchManager, importConfig.getUser(), importConfig).importBatch(batch, importConfig.getUser().getUserName(), "Importing new object from import");
                         } else {
@@ -148,7 +145,7 @@ public class FileSetImportWithParentCreated extends FileSetImport {
         }
 
         String pid = FoxmlUtils.createPid();
-        DigitalObjectManager dom  = DigitalObjectManager.getDefault();
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
         DigitalObjectManager.CreateHandler handler = dom.create(catalog.getModel(), pid, catalog.getParent(), importConfig.getUser(), null, "create new object with pid: " + pid);
         handler.create();
 

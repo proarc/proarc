@@ -8,17 +8,17 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * <p>Java class for tCertifikat complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tCertifikat">
  *   &lt;complexContent>
@@ -33,15 +33,15 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tCertifikat", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "serioveCislo",
-    "vydavatel",
-    "dr\u017eitel",
-    "platnost"
+        "serioveCislo",
+        "vydavatel",
+        "dr\u017eitel",
+        "platnost"
 })
 public class TCertifikat {
 
@@ -56,11 +56,10 @@ public class TCertifikat {
 
     /**
      * Gets the value of the serioveCislo property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @return possible object is
+     * {@link TIdentifikator }
+     *
      */
     public TIdentifikator getSerioveCislo() {
         return serioveCislo;
@@ -68,11 +67,10 @@ public class TCertifikat {
 
     /**
      * Sets the value of the serioveCislo property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TIdentifikator }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TIdentifikator }
+     *
      */
     public void setSerioveCislo(TIdentifikator value) {
         this.serioveCislo = value;
@@ -80,11 +78,10 @@ public class TCertifikat {
 
     /**
      * Gets the value of the vydavatel property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobaExterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobaExterni }
+     *
      */
     public TOsobaExterni getVydavatel() {
         return vydavatel;
@@ -92,11 +89,10 @@ public class TCertifikat {
 
     /**
      * Sets the value of the vydavatel property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobaExterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobaExterni }
+     *
      */
     public void setVydavatel(TOsobaExterni value) {
         this.vydavatel = value;
@@ -104,11 +100,10 @@ public class TCertifikat {
 
     /**
      * Gets the value of the držitel property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobaExterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobaExterni }
+     *
      */
     public TOsobaExterni getDržitel() {
         return držitel;
@@ -116,11 +111,10 @@ public class TCertifikat {
 
     /**
      * Sets the value of the držitel property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobaExterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobaExterni }
+     *
      */
     public void setDržitel(TOsobaExterni value) {
         this.držitel = value;
@@ -128,11 +122,10 @@ public class TCertifikat {
 
     /**
      * Gets the value of the platnost property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TPlatnost }
-     *     
+     *
+     * @return possible object is
+     * {@link TPlatnost }
+     *
      */
     public TPlatnost getPlatnost() {
         return platnost;
@@ -140,11 +133,10 @@ public class TCertifikat {
 
     /**
      * Sets the value of the platnost property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TPlatnost }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TPlatnost }
+     *
      */
     public void setPlatnost(TPlatnost value) {
         this.platnost = value;

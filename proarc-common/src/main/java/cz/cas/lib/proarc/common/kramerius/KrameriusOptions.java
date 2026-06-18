@@ -22,7 +22,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 public class KrameriusOptions {
 
@@ -140,7 +140,7 @@ public class KrameriusOptions {
             warning(conf, KrameriusInstance.PROPERTY_PASSWORD);
             ok = false;
         }
-        if (conf.getUsername()== null) {
+        if (conf.getUsername() == null) {
             warning(conf, KrameriusInstance.PROPERTY_USERNAME);
             ok = false;
         }
@@ -216,7 +216,7 @@ public class KrameriusOptions {
         static final String PROPERTY_USERNAME = "username";
         static final String PROPERTY_PASSWORD = "passwd";
         static final String PROPERTY_CLIENT_ID = "clientId";
-        static final String PROPERTY_CLIENT_SECRET="clientSecret";
+        static final String PROPERTY_CLIENT_SECRET = "clientSecret";
         static final String PROPERTY_GRANT_TYPE = "grantType";
         static final String PROPERTY_TYPE = "type";
         static final String PROPERTY_EXPORT_FOXML_FOLDER = "exportFoxmlFolder";
@@ -340,7 +340,7 @@ public class KrameriusOptions {
             return config.getString(PROPERTY_KRAMERIUS_CONVERT_NDK_FOLDER);
         }
 
-        public String getKrameriusTargetConvertedFolder () {
+        public String getKrameriusTargetConvertedFolder() {
             return config.getString(PROPERTY_KRAMERIUS_TARGET_CONVERTED_FOLDER);
         }
 

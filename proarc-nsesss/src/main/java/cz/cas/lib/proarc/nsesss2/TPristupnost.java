@@ -10,19 +10,19 @@ package cz.cas.lib.proarc.nsesss2;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro popis pravidel určujících podmínky přístupu k entitě.
- * 
+ *
  * <p>Java class for tPristupnost complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tPristupnost">
  *   &lt;complexContent>
@@ -35,13 +35,13 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tPristupnost", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "bezpecnostniKategorie",
-    "jineOmezeni"
+        "bezpecnostniKategorie",
+        "jineOmezeni"
 })
 public class TPristupnost {
 
@@ -52,25 +52,25 @@ public class TPristupnost {
 
     /**
      * Gets the value of the bezpecnostniKategorie property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the bezpecnostniKategorie property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getBezpecnostniKategorie().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link TBezpecnostniKategorie }
-     * 
-     * 
+     *
+     *
      */
     public List<TBezpecnostniKategorie> getBezpecnostniKategorie() {
         if (bezpecnostniKategorie == null) {
@@ -81,11 +81,10 @@ public class TPristupnost {
 
     /**
      * Gets the value of the jineOmezeni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getJineOmezeni() {
         return jineOmezeni;
@@ -93,11 +92,10 @@ public class TPristupnost {
 
     /**
      * Sets the value of the jineOmezeni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setJineOmezeni(String value) {
         this.jineOmezeni = value;

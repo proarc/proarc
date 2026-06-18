@@ -37,8 +37,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
     <!-- job profile -->
     <xs:complexType name="jobDefinition">
         <xs:sequence>
-            <xs:element name="worker" type="tns:workerDefinition" minOccurs="0" />
-            <xs:element name="model" type="tns:modelDefinition" minOccurs="0" maxOccurs="unbounded" />
+            <xs:element name="worker" type="tns:workerDefinition" minOccurs="0"/>
+            <xs:element name="model" type="tns:modelDefinition" minOccurs="0" maxOccurs="unbounded"/>
             <xs:choice minOccurs="0" maxOccurs="unbounded">
                 <!--
                 The name reference to a job that can be added as a subjob of this job.
@@ -96,7 +96,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
             <xs:element name="param" type="tns:paramDefinition"/>
             <xs:element name="hint" type="tns:i18NString"/>
             <xs:element name="title" type="tns:i18NString"/>
-            <xs:element name="action" type="tns:actionDefinition" />
+            <xs:element name="action" type="tns:actionDefinition"/>
         </xs:choice>
         <xs:attribute name="name" type="xs:ID" use="required"/>
         <xs:attribute name="disabled" type="xs:boolean"/>
@@ -183,9 +183,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
     <xs:complexType name="actionDefinition">
         <xs:choice minOccurs="0" maxOccurs="unbounded">
-            <xs:element name="arg" type="tns:actionArgTypeDefinition" />
+            <xs:element name="arg" type="tns:actionArgTypeDefinition"/>
         </xs:choice>
-        <xs:attribute name="command" type="xs:string" />
+        <xs:attribute name="command" type="xs:string"/>
     </xs:complexType>
 
     <xs:simpleType name="actionArgTypeDefinition">
@@ -234,7 +234,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
             <xs:element name="value" type="tns:valueMapItemDefinition" minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
         <xs:attribute name="name" type="xs:ID" use="required"/>
-        <xs:attribute name="source" type="tns:valueMapSourceType" default="INTERNAL" />
+        <xs:attribute name="source" type="tns:valueMapSourceType" default="INTERNAL"/>
     </xs:complexType>
 
     <xs:simpleType name="valueMapSourceType">

@@ -3,7 +3,7 @@ package cz.cas.lib.proarc.common.process.export.bagit;
 import cz.cas.lib.proarc.common.process.external.ExternalProcess;
 import java.io.File;
 import java.util.List;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 public class BagitProcess extends ExternalProcess {
 

@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 public class BagitExternalProcess {
 
@@ -29,7 +29,7 @@ public class BagitExternalProcess {
 //        this.exitCode = 0;
     }
 
-    public void run() throws IOException{
+    public void run() throws IOException {
         if (exportFolder == null) {
             throw new IllegalStateException("Unknown export folder :" + exportFolder);
         }

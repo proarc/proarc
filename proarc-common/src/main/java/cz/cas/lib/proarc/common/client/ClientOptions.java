@@ -14,7 +14,8 @@ package cz.cas.lib.proarc.common.client;/*
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-import org.apache.commons.configuration.Configuration;
+
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * Settings for Client

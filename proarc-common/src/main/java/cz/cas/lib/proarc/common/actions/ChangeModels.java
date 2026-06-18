@@ -1,6 +1,6 @@
 package cz.cas.lib.proarc.common.actions;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
@@ -29,7 +29,6 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.DetailDefinition;
@@ -51,7 +50,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 
 
 public class ChangeModels {
@@ -122,7 +120,7 @@ public class ChangeModels {
             }
             return null;
         } catch (DigitalObjectException ex) {
-            LOG.log(Level.SEVERE, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + " items.") ;
+            LOG.log(Level.SEVERE, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + " items.");
             return new ChangeModelResult(updatedPid, new DigitalObjectException(pid, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + " items."));
         }
     }
@@ -182,10 +180,10 @@ public class ChangeModels {
                 case NdkPlugin.MODEL_NDK_PAGE:
                     mods = fixNdkPageMods(mods);
                     break;
-               case NdkPlugin.MODEL_MONOGRAPHVOLUME:
+                case NdkPlugin.MODEL_MONOGRAPHVOLUME:
                     fixNdkMonographVolumeMods(mods, parentPid);
                     break;
-               case NdkPlugin.MODEL_MONOGRAPHTITLE:
+                case NdkPlugin.MODEL_MONOGRAPHTITLE:
                     fixNdkMonographVolumeMods(mods, parentPid);
                     break;
                 default:
@@ -804,11 +802,7 @@ public class ChangeModels {
         try {
             MetsContext metsContext = null;
             ProArcObject object = null;
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
-                object = rstorage.find(pid);
-                metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 metsContext = buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());

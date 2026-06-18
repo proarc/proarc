@@ -16,12 +16,13 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.software.Software;
 import cz.cas.lib.proarc.webapp.shared.rest.SoftwareResourceApi;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  * Helper class to annotate {@link cz.cas.lib.proarc.common.software.Software} properties.
@@ -33,36 +34,42 @@ import javax.xml.bind.annotation.XmlElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class AnnotatedSoftware extends Software {
 
+    @JsonProperty(SoftwareResourceApi.SOFTWARE_ITEM_ID)
     @XmlElement(name = SoftwareResourceApi.SOFTWARE_ITEM_ID)
     @Override
     public String getId() {
         return super.getId();
     }
 
+    @JsonProperty(SoftwareResourceApi.SOFTWARE_ITEM_LABEL)
     @XmlElement(name = SoftwareResourceApi.SOFTWARE_ITEM_LABEL)
     @Override
     public String getLabel() {
         return super.getLabel();
     }
 
+    @JsonProperty(SoftwareResourceApi.SOFTWARE_ITEM_MODEL)
     @XmlElement(name = SoftwareResourceApi.SOFTWARE_ITEM_MODEL)
     @Override
     public String getModel() {
         return super.getModel();
     }
 
+    @JsonProperty(SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION)
     @XmlElement(name = SoftwareResourceApi.SOFTWARE_ITEM_DESCRIPTION)
     @Override
     public String getDescriptionAsXml() {
         return super.getDescriptionAsXml();
     }
 
+    @JsonProperty(SoftwareResourceApi.SOFTWARE_ITEM_MEMBERS)
     @XmlElement(name = SoftwareResourceApi.SOFTWARE_ITEM_MEMBERS)
     @Override
     public List<String> getSetOfLinkedIds() {
         return super.getSetOfLinkedIds();
     }
 
+    @JsonProperty(SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP)
     @XmlElement(name = SoftwareResourceApi.SOFTWARE_ITEM_TIMESTAMP)
     @Override
     public Long getTimestamp() {

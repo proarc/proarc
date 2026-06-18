@@ -7,12 +7,12 @@
 
 <xsl:stylesheet version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                >
+>
     <xsl:output encoding="UTF-8" indent="no" method="xml"/>
 
     <xsl:template match="oai_marc">
         <oai_marc xmlns="http://www.openarchives.org/OAI/1.1/oai_marc">
-            <xsl:apply-templates select="*" />
+            <xsl:apply-templates select="*"/>
         </oai_marc>
     </xsl:template>
 

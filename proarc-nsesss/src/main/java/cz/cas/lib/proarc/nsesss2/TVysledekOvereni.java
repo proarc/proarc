@@ -8,14 +8,14 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlEnum;
-import javax.xml.bind.annotation.XmlEnumValue;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlEnum;
+import jakarta.xml.bind.annotation.XmlEnumValue;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * <p>Java class for tVysledekOvereni.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
@@ -27,7 +27,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/restriction>
  * &lt;/simpleType>
  * </pre>
- * 
+ *
  */
 @XmlType(name = "tVysledekOvereni", namespace = "http://www.mvcr.cz/nsesss/v2")
 @XmlEnum
@@ -50,7 +50,7 @@ public enum TVysledekOvereni {
     }
 
     public static TVysledekOvereni fromValue(String v) {
-        for (TVysledekOvereni c: TVysledekOvereni.values()) {
+        for (TVysledekOvereni c : TVysledekOvereni.values()) {
             if (c.value.equals(v)) {
                 return c;
             }

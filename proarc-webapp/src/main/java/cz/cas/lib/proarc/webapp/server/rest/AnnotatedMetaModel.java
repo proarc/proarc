@@ -16,14 +16,15 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.object.model.DatastreamEditorType;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.util.Locale;
 import java.util.Set;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  * Helper class to annotate {@link MetaModel} properties.
@@ -44,36 +45,43 @@ public class AnnotatedMetaModel {
     }
 
     @XmlElement(name = DigitalObjectResourceApi.METAMODEL_DISPLAYNAME_PARAM)
+    @JsonProperty(DigitalObjectResourceApi.METAMODEL_DISPLAYNAME_PARAM)
     public String getDisplayName() {
         return model.getDisplayName(l.getLanguage());
     }
 
     @XmlElement(name = DigitalObjectResourceApi.METAMODEL_LEAF_PARAM)
+    @JsonProperty(DigitalObjectResourceApi.METAMODEL_LEAF_PARAM)
     public Boolean isLeaf() {
         return model.isLeaf();
     }
 
     @XmlElement(name = DigitalObjectResourceApi.METAMODEL_PID_PARAM, required = true)
+    @JsonProperty(DigitalObjectResourceApi.METAMODEL_PID_PARAM)
     public String getPid() {
         return model.getPid();
     }
 
     @XmlElement(name = DigitalObjectResourceApi.METAMODEL_ROOT_PARAM)
+    @JsonProperty(DigitalObjectResourceApi.METAMODEL_ROOT_PARAM)
     public Boolean isRoot() {
         return model.isRoot();
     }
 
     @XmlElement(name = DigitalObjectResourceApi.METAMODEL_METADATAFORMAT_PARAM)
+    @JsonProperty(DigitalObjectResourceApi.METAMODEL_METADATAFORMAT_PARAM)
     public String getMetadataFormat() {
         return model.getMetadataFormat();
     }
 
     @XmlElement(name = DigitalObjectResourceApi.METAMODEL_MODSCUSTOMEDITORID_PARAM)
+    @JsonProperty(DigitalObjectResourceApi.METAMODEL_MODSCUSTOMEDITORID_PARAM)
     public String getModsCustomEditor() {
         return model.getModsCustomEditor();
     }
 
     @XmlElement(name = DigitalObjectResourceApi.METAMODEL_DATASTREAMEDITOR_PARAM)
+    @JsonProperty(DigitalObjectResourceApi.METAMODEL_DATASTREAMEDITOR_PARAM)
     public Set<DatastreamEditorType> getDataStreamEditors() {
         return model.getDataStreamEditors();
     }

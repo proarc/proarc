@@ -16,15 +16,16 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.webapp.shared.rest.UserResourceApi;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlTransient;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.Date;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * Helper class to annotate {@link UserProfile} properties.
@@ -37,142 +38,177 @@ import javax.xml.bind.annotation.XmlTransient;
 public abstract class AnnotatedUser extends UserProfile {
 
     @XmlElement(name = UserResourceApi.USER_ID)
+    @JsonProperty(UserResourceApi.USER_ID)
     @Override
     public abstract Integer getId();
 
     @XmlElement(name = UserResourceApi.USER_HOME)
+    @JsonProperty(UserResourceApi.USER_HOME)
     @Override
     public abstract String getUserHome();
 
     @XmlElement(name = UserResourceApi.USER_NAME)
+    @JsonProperty(UserResourceApi.USER_NAME)
     @Override
     public abstract String getUserName();
 
     @XmlElement(name = UserResourceApi.USER_REMOTENAME)
+    @JsonProperty(UserResourceApi.USER_REMOTENAME)
     @Override
     public abstract String getRemoteName();
 
     @XmlElement(name = UserResourceApi.USER_REMOTETYPE)
+    @JsonProperty(UserResourceApi.USER_REMOTETYPE)
     @Override
     public abstract String getRemoteType();
 
     @XmlElement(name = UserResourceApi.USER_CREATED)
+    @JsonProperty(UserResourceApi.USER_CREATED)
     @Override
     public abstract Date getCreated();
 
     @XmlElement(name = UserResourceApi.USER_EMAIL)
+    @JsonProperty(UserResourceApi.USER_EMAIL)
     @Override
     public abstract String getEmail();
 
     @XmlElement(name = UserResourceApi.USER_FORENAME)
+    @JsonProperty(UserResourceApi.USER_FORENAME)
     @Override
     public abstract String getForename();
 
     @XmlElement(name = UserResourceApi.USER_ORGANIZATION)
+    @JsonProperty(UserResourceApi.USER_ORGANIZATION)
     @Override
     public abstract String getOrganization();
 
     @XmlElement(name = UserResourceApi.USER_SURNAME)
+    @JsonProperty(UserResourceApi.USER_SURNAME)
     @Override
     public abstract String getSurname();
 
     @XmlElement(name = UserResourceApi.USER_LASTLOGIN)
+    @JsonProperty(UserResourceApi.USER_LASTLOGIN)
     @Override
     public abstract Date getLastLogin();
 
     @XmlElement(name = UserResourceApi.USER_STATUS)
+    @JsonProperty(UserResourceApi.USER_STATUS)
     @Override
     public abstract String getStatus();
 
     @XmlElement(name = UserResourceApi.USER_DEFAULTGROUP)
+    @JsonProperty(UserResourceApi.USER_DEFAULTGROUP)
     @Override
     public abstract Integer getDefaultGroup();
 
     @XmlElement(name = UserResourceApi.USER_USERGROUP)
+    @JsonProperty(UserResourceApi.USER_USERGROUP)
     @Override
     public abstract Integer getUserGroup();
 
     @XmlElement(name = UserResourceApi.USER_TIMESTAMP)
+    @JsonProperty(UserResourceApi.USER_TIMESTAMP)
     @Override
     public abstract Timestamp getTimestamp();
 
     @XmlElement(name = UserResourceApi.FUNCTION_CHANGE_MODEL)
+    @JsonProperty(UserResourceApi.FUNCTION_CHANGE_MODEL)
     @Override
     public abstract Boolean getChangeModelFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_UPDATE_MODEL)
+    @JsonProperty(UserResourceApi.FUNCTION_UPDATE_MODEL)
     @Override
     public abstract Boolean getUpdateModelFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_LOCK_OBJECT)
+    @JsonProperty(UserResourceApi.FUNCTION_LOCK_OBJECT)
     @Override
     public abstract Boolean getLockObjectFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_UNLOCK_OBJECT)
+    @JsonProperty(UserResourceApi.FUNCTION_UNLOCK_OBJECT)
     @Override
     public abstract Boolean getUnlockObjectFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_IMPORT_TO_PROD)
+    @JsonProperty(UserResourceApi.FUNCTION_IMPORT_TO_PROD)
     @Override
     public abstract Boolean getImportToProdFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_CZIDLO)
+    @JsonProperty(UserResourceApi.FUNCTION_CZIDLO)
     @Override
     public abstract Boolean getCzidloFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_WF_DELETE_JOB)
+    @JsonProperty(UserResourceApi.FUNCTION_WF_DELETE_JOB)
     @Override
     public abstract Boolean getWfDeleteJobFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_IMPORT_TO_CATALOG)
+    @JsonProperty(UserResourceApi.FUNCTION_IMPORT_TO_CATALOG)
     @Override
     public abstract Boolean getImportToCatalogFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_CHANGE_OBJECTS_OWNER)
+    @JsonProperty(UserResourceApi.FUNCTION_CHANGE_OBJECTS_OWNER)
     @Override
     public abstract Boolean getChangeObjectsOwnerFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_CHANGE_PAGES)
+    @JsonProperty(UserResourceApi.FUNCTION_CHANGE_PAGES)
     @Override
     public abstract Boolean getChangePagesFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_DEVICE)
+    @JsonProperty(UserResourceApi.FUNCTION_DEVICE)
     @Override
     public abstract Boolean getDeviceFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_WF_CREATE_JOB)
+    @JsonProperty(UserResourceApi.FUNCTION_WF_CREATE_JOB)
     @Override
     public abstract Boolean getWfCreateJobFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_CREATE_USER)
+    @JsonProperty(UserResourceApi.FUNCTION_CREATE_USER)
     @Override
     public abstract Boolean getCreateUserFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_UPDATE_USER)
+    @JsonProperty(UserResourceApi.FUNCTION_UPDATE_USER)
     @Override
     public abstract Boolean getUpdateUserFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_DELETE_USER)
+    @JsonProperty(UserResourceApi.FUNCTION_DELETE_USER)
     @Override
     public abstract Boolean getDeleteUserFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_SOLR)
+    @JsonProperty(UserResourceApi.FUNCTION_SOLR)
     @Override
     public abstract Boolean getSolrFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_DELETE_ACTION)
+    @JsonProperty(UserResourceApi.FUNCTION_DELETE_ACTION)
     @Override
     public abstract Boolean getDeleteActionFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_ALL_OBJECTS)
+    @JsonProperty(UserResourceApi.FUNCTION_ALL_OBJECTS)
     @Override
     public abstract Boolean getAllObjectsFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_PREPARE_BATCH)
+    @JsonProperty(UserResourceApi.FUNCTION_PREPARE_BATCH)
     @Override
     public abstract Boolean getPrepareBatchFunction();
 
     @XmlElement(name = UserResourceApi.FUNCTION_SYS_ADMIN)
+    @JsonProperty(UserResourceApi.FUNCTION_SYS_ADMIN)
     @Override
     public abstract Boolean getSysAdminFunction();
 

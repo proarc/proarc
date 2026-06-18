@@ -32,7 +32,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * Settings for Kramerius4 export.
@@ -40,7 +40,7 @@ import org.apache.commons.configuration.Configuration;
  * @author Jan Pokorsky
  */
 public final class Kramerius4ExportOptions {
-    
+
     static final String PROP_EXCLUDE_DATASTREAM_ID = "export.kramerius4.excludeDatastreamId";
     static final String PROP_POLICY = "export.kramerius4.policy";
     static final String PROP_RENAME_PREFIX = "export.kramerius4.rename";
@@ -57,7 +57,7 @@ public final class Kramerius4ExportOptions {
         HashMap<String, String> dsIdMap = new HashMap<String, String>();
         // use RAW if FULL ds is not available
         dsIdMap.put(BinaryEditor.RAW_ID, "IMG_FULL");
-        for (Iterator<String> it = renames.getKeys(); it.hasNext();) {
+        for (Iterator<String> it = renames.getKeys(); it.hasNext(); ) {
             String dsId = it.next();
             String newDsId = renames.getString(dsId);
             dsIdMap.put(dsId, newDsId);
@@ -169,7 +169,7 @@ public final class Kramerius4ExportOptions {
             put(NdkAudioPlugin.MODEL_SONG, "model:soundunit");
             put(NdkAudioPlugin.MODEL_TRACK, "model:track");
             put(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, "model:clippingcollection");
-            put(NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY,  "model:clippingdirectory");
+            put(NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, "model:clippingdirectory");
             put(NdkClippingPlugin.MODEL_CLIPPING_UNIT, "model:clipping");
         }
     };

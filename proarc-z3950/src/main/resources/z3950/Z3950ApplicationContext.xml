@@ -7,39 +7,50 @@
            http://www.springframework.org/schema/context
            http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
-  <context:component-scan base-package="org.jzkit.search.provider">
-    <context:include-filter type="regex" expression=".*PluginMetadata.*"/>
-  </context:component-scan>
+    <context:component-scan base-package="org.jzkit.search.provider">
+        <context:include-filter type="regex" expression=".*PluginMetadata.*"/>
+    </context:component-scan>
 
-  <bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-    <property name="location"><value>/z3950/Z3950Context.properties</value></property>
-  </bean>
+    <bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location">
+            <value>/z3950/Z3950Context.properties</value>
+        </property>
+    </bean>
 
-  <!-- ========================= GENERAL DEFINITIONS ========================= -->
+    <!-- ========================= GENERAL DEFINITIONS ========================= -->
 
-  <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
-    <property name="basename"><value>messages</value></property>
-  </bean>
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basename">
+            <value>messages</value>
+        </property>
+    </bean>
 
 
-  <!-- ========================= PERSISTENCE DEFINITIONS ========================= -->
+    <!-- ========================= PERSISTENCE DEFINITIONS ========================= -->
 
-  <!-- ========================= BUSINESS DEFINITIONS ========================= -->
+    <!-- ========================= BUSINESS DEFINITIONS ========================= -->
 
-  <bean id="OIDRegister" class="org.jzkit.a2j.codec.util.OIDRegister">
-    <constructor-arg index="0"><value>/a2j.properties</value></constructor-arg>
-  </bean>
+    <bean id="OIDRegister" class="org.jzkit.a2j.codec.util.OIDRegister">
+        <constructor-arg index="0">
+            <value>/a2j.properties</value>
+        </constructor-arg>
+    </bean>
 
-  <!-- conversion rules -->
-  <bean id="RPNToInternalRules" class="org.jzkit.util.PropsHolder">
-    <constructor-arg index="0"><value>/z3950/InternalAttrTypes.properties</value></constructor-arg>
-  </bean>
+    <!-- conversion rules -->
+    <bean id="RPNToInternalRules" class="org.jzkit.util.PropsHolder">
+        <constructor-arg index="0">
+            <value>/z3950/InternalAttrTypes.properties</value>
+        </constructor-arg>
+    </bean>
 
-  <bean id="InternalToType1ConversionRules" class="org.jzkit.z3950.QueryModel.PropsBasedInternalToType1ConversionRules">
-    <constructor-arg index="0"><value>/z3950/InternalToType1Rules.properties</value></constructor-arg>
-  </bean>
+    <bean id="InternalToType1ConversionRules"
+          class="org.jzkit.z3950.QueryModel.PropsBasedInternalToType1ConversionRules">
+        <constructor-arg index="0">
+            <value>/z3950/InternalToType1Rules.properties</value>
+        </constructor-arg>
+    </bean>
 
-  <bean id="SearchableFactory" class="org.jzkit.search.provider.iface.SearchableFactory" init-method="init">
-  </bean>
+    <bean id="SearchableFactory" class="org.jzkit.search.provider.iface.SearchableFactory" init-method="init">
+    </bean>
 
 </beans>

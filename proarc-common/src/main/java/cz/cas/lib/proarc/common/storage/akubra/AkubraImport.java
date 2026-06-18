@@ -1,23 +1,22 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.cas.lib.proarc.common.storage.akubra;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
@@ -76,7 +75,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import org.apache.solr.client.solrj.SolrServerException;
 
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
@@ -151,7 +149,7 @@ public final class AkubraImport {
         return batch;
     }
 
-    private void indexParent(ArrayList<String> ingestedPids) throws IOException, FedoraClientException, DigitalObjectException, SolrServerException {
+    private void indexParent(ArrayList<String> ingestedPids) throws IOException, DigitalObjectException, SolrServerException {
         boolean commit = false;
         for (String ingestedPid : ingestedPids) {
             if (ingestedPid.startsWith("uuid")) {
@@ -252,7 +250,7 @@ public final class AkubraImport {
         if (importProfile.getDeletePackageImport()) {
             File target = getTargetFolder(resolveBatchFile(batch.getFolder()), importProfile);
             //File file = new File(config.getDefaultUsersHome(), batch.getFolder() + "/" + ImportProcess.TMP_DIR_NAME);
-            LOG.log(Level.INFO, "Smazani importni slozky "+ target.getName());
+            LOG.log(Level.INFO, "Smazani importni slozky " + target.getName());
             //MetsUtils.deleteFolder(file);
             MetsUtils.deleteFolder(target);
         }
@@ -306,11 +304,12 @@ public final class AkubraImport {
 
     /**
      * Fedora ingest of an import item.
-     * @param item item to import
+     *
+     * @param item     item to import
      * @param importer who imports
-     * @param repair {@code true} if the item is from the failed ingest.
+     * @param repair   {@code true} if the item is from the failed ingest.
      * @return the import item with proper state or {@code null} if the item
-     *      was skipped
+     * was skipped
      */
     public BatchItemObject importItem(BatchItemObject item, String importer, boolean repair) {
         try {
@@ -335,13 +334,14 @@ public final class AkubraImport {
 
     /**
      * Fedora ingest of an import item coming from a failed ingest.
-     * @param item item to analyze and import
+     *
+     * @param item     item to analyze and import
      * @param importer who imports
      * @return the import item with proper state or {@code null} if the item
-     *      was skipped
+     * was skipped
      * @throws DigitalObjectException failure
      */
-    private BatchItemObject repairItemImpl(BatchItemObject item, String importer) throws DigitalObjectException, IOException, FedoraClientException {
+    private BatchItemObject repairItemImpl(BatchItemObject item, String importer) throws DigitalObjectException, IOException {
         ObjectState state = item.getState();
         if (state == ObjectState.LOADED) {
             // ingest
@@ -377,10 +377,11 @@ public final class AkubraImport {
 
     /**
      * Fedora ingest of an import item.
-     * @param item item to import
+     *
+     * @param item     item to import
      * @param importer who imports
      * @return the import item with proper state or {@code null} if the item
-     *      was skipped
+     * was skipped
      * @throws DigitalObjectException failure
      */
     private BatchItemObject importItemImpl(BatchItemObject item, String importer) throws DigitalObjectException, IOException {
@@ -451,7 +452,7 @@ public final class AkubraImport {
 //            akubraStorage.updateProperties(object.getObjectProperties());
             akubraStorage.ingest(lobj, importer,
                     "Ingested with ProArc by " + importer
-                    + " from local file " + foxml);
+                            + " from local file " + foxml);
         }
         item.setState(ObjectState.INGESTED);
         return item;
@@ -467,7 +468,7 @@ public final class AkubraImport {
 
     private void addParentMembers(Batch batch, String parent, List<String> pids, String message) throws DigitalObjectException {
         if (parent == null || pids.isEmpty()) {
-            return ;
+            return;
         }
         ConfigurationProfile profile = findImportProfile(batch.getId(), batch.getProfileId());
         ImportProfile importProfile = profile != null ? config.getImportConfiguration(profile) : config.getImportConfiguration();
@@ -475,7 +476,7 @@ public final class AkubraImport {
                 importProfile.getCreateModelsHierarchy()) {
             createHierarchy(batch, pids, parent, message);
         }
-        if (pids.size()!= 0){
+        if (pids.size() != 0) {
             setParent(parent, pids, message);
         }
     }
@@ -483,7 +484,7 @@ public final class AkubraImport {
     private ConfigurationProfile findImportProfile(Integer batchId, String profileId) {
         ConfigurationProfile profile = config.getProfiles().getProfile(ImportProfile.PROFILES, profileId);
         if (profile == null) {
-            LOG.log(Level.SEVERE,"Batch {3}: Unknown profile: {0}! Check {1} in proarc.cfg",
+            LOG.log(Level.SEVERE, "Batch {3}: Unknown profile: {0}! Check {1} in proarc.cfg",
                     new Object[]{ImportProfile.PROFILES, profileId, batchId});
             return null;
         }
@@ -536,7 +537,7 @@ public final class AkubraImport {
     }
 
 
-    private void createModels(String documentPid, ArrayList<Hierarchy> songsPid, String message)  throws  DigitalObjectException {
+    private void createModels(String documentPid, ArrayList<Hierarchy> songsPid, String message) throws DigitalObjectException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         String pid = "";
         for (Hierarchy song : songsPid) {
@@ -555,7 +556,7 @@ public final class AkubraImport {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
         for (int tmp = 0; tmp < songsPid.size(); tmp++) {
             String songPid = songsPid.get(tmp).getParent();
-            DigitalObjectManager.CreateHandler songHandler = dom.create(NdkAudioPlugin.MODEL_SONG, songPid, documentPid, user, null,  "create new object with pid: " + songsPid.get(0));
+            DigitalObjectManager.CreateHandler songHandler = dom.create(NdkAudioPlugin.MODEL_SONG, songPid, documentPid, user, null, "create new object with pid: " + songsPid.get(0));
             songHandler.create();
 
             if (songsPid.get(tmp).getChild() != null) {
@@ -565,7 +566,7 @@ public final class AkubraImport {
             }
 
             for (Hierarchy track : tracksPid.get(tmp)) {
-                DigitalObjectManager.CreateHandler trackHandler = dom.create(NdkAudioPlugin.MODEL_TRACK, track.getParent(), songPid, user, null,  "create new object with pid: " + songsPid.get(0));
+                DigitalObjectManager.CreateHandler trackHandler = dom.create(NdkAudioPlugin.MODEL_TRACK, track.getParent(), songPid, user, null, "create new object with pid: " + songsPid.get(0));
                 trackHandler.create();
 
                 List<String> trackList = new ArrayList<>();
@@ -605,7 +606,7 @@ public final class AkubraImport {
 
     private void checkParent(String parent) throws DigitalObjectException {
         if (parent == null) {
-            return ;
+            return;
         }
         AkubraObject object = akubraStorage.find(parent);
         RelationEditor editor = new RelationEditor(object);

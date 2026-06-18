@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -32,13 +32,13 @@ import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.hamcrest.core.Is;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  *
@@ -51,19 +51,19 @@ public class OriginInfoMapperTest {
     public OriginInfoMapperTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -83,11 +83,11 @@ public class OriginInfoMapperTest {
                 new PublisherItem(3, Role.PUBLISHER, "publisher[3]", "date3", "place3"),
                 new PublisherItem(4, Role.OTHER, null, null, null),
                 new PublisherItem(5, Role.PUBLISHER, "publisher[5]", "date5", "place5")
-                );
+        );
 
         OriginInfoMapper instance = new OriginInfoMapper();
         List<OriginInfoItem> result = instance.map(mods);
-        assertThat(result, Is.is(expected));
+        assertEquals(result, expected);
     }
 
     @Test
@@ -103,12 +103,12 @@ public class OriginInfoMapperTest {
                 new PublisherItem(3, null, "publisher[3]-updated", "date3-updated", "place3-updated"), // update
                 new PublisherItem(null, null, "publisher[insert][3-5]", "date-inserted", "place5-inserted"), // insert
                 new PublisherItem(5, null, "publisher[5]", "date5", "place5")
-                );
+        );
         List<PublisherItem> printers = Arrays.asList(
 //                new PublisherItem(0, null, "printer[0]", "date0", "place0"), // delete
                 new PublisherItem(1, null, "printer[1]", "date1", "place1"),
                 new PublisherItem(null, null, "printer[add][1]", "date1", "place1") // add
-                );
+        );
         List<OriginInfoItem> expected = Arrays.<OriginInfoItem>asList(
                 new PeriodicityItem(0, Collections.<String>emptyList(), OriginInfoMapper.ISSUANCE_MONOGRAPHIC),
                 new PublisherItem(1, Role.PUBLISHER, "publisher[3]-updated", "date3-updated", "place3-updated"),
@@ -118,13 +118,13 @@ public class OriginInfoMapperTest {
                 new PublisherItem(5, Role.PRINTER, "printer[add][1]", "date1", "place1"),
                 new PublisherItem(6, Role.OTHER, null, null, null),
                 new PublisherItem(7, Role.OTHER, null, null, null)
-                );
+        );
         // write
         OriginInfoMapper instance = new OriginInfoMapper();
         instance.map(mods, publishers, printers, OriginInfoMapper.ISSUANCE_MONOGRAPHIC);
 
         List<OriginInfoItem> result = instance.map(mods);
-        assertThat(result, Is.is(expected));
+        assertEquals(result, expected);
     }
 
     @Test
@@ -145,11 +145,11 @@ public class OriginInfoMapperTest {
                 new PublisherItem(4, Role.OTHER, null, null, null),
                 new PublisherItem(5, Role.PUBLISHER, "publisher[5]", "date5", "place5"),
                 new PeriodicityItem(6, Arrays.asList("weekly", "daily"), OriginInfoMapper.ISSUANCE_CONTINUING)
-                );
+        );
 
         OriginInfoMapper instance = new OriginInfoMapper();
         List<OriginInfoItem> result = instance.map(mods);
-        assertThat(result, Is.is(expected));
+        assertEquals(result, expected);
 
         List<PublisherItem> resultPublishers = OriginInfoMapper.filter(result, true, Role.PUBLISHER);
         List<String> resultFreqencies = OriginInfoMapper.getFreqencies(result);
@@ -157,10 +157,10 @@ public class OriginInfoMapperTest {
         List<PublisherItem> expectedPublishers = Arrays.asList(
                 new PublisherItem(3, Role.PUBLISHER, "publisher[3]", "date3", "place3"),
                 new PublisherItem(5, Role.PUBLISHER, "publisher[5]", "date5", "place5")
-                );
+        );
         List<String> expectedFreqencies = Arrays.asList("weekly", "daily");
-        assertThat(resultPublishers, Is.is(expectedPublishers));
-        assertThat(resultFreqencies, Is.is(expectedFreqencies));
+        assertEquals(resultPublishers, expectedPublishers);
+        assertEquals(resultFreqencies, expectedFreqencies);
     }
 
     @Test
@@ -177,12 +177,12 @@ public class OriginInfoMapperTest {
                 new PublisherItem(3, null, "publisher[3]-updated", "date3-updated", "place3-updated"), // update
                 new PublisherItem(null, null, "publisher[insert][3-5]", "date-inserted", "place5-inserted"), // insert
                 new PublisherItem(5, null, "publisher[5]", "date5", "place5")
-                );
+        );
         List<PublisherItem> printers = Arrays.asList(
 //                new PublisherItem(0, null, "printer[0]", "date0", "place0"), // delete
                 new PublisherItem(1, null, "printer[1]", "date1", "place1"),
                 new PublisherItem(null, null, "printer[add][1]", "date1", "place1") // add
-                );
+        );
         List<OriginInfoItem> expected = Arrays.asList(
                 new PeriodicityItem(0, Arrays.asList("weekly", "daily"), OriginInfoMapper.ISSUANCE_CONTINUING),
                 new PublisherItem(1, Role.PUBLISHER, "publisher[3]-updated", "date3-updated", "place3-updated"),
@@ -192,13 +192,13 @@ public class OriginInfoMapperTest {
                 new PublisherItem(5, Role.PRINTER, "printer[add][1]", "date1", "place1"),
                 new PublisherItem(6, Role.OTHER, null, null, null),
                 new PublisherItem(7, Role.OTHER, null, null, null)
-                );
+        );
         // write
         OriginInfoMapper instance = new OriginInfoMapper();
         instance.map(mods, publishers, printers, Arrays.asList("weekly", "daily"), OriginInfoMapper.ISSUANCE_CONTINUING);
 
         List<OriginInfoItem> result = instance.map(mods);
-        assertThat(result, Is.is(expected));
+        assertEquals(result, expected);
     }
 
     private OriginInfoDefinition originInfo(Role role, String name, String date, String place) {

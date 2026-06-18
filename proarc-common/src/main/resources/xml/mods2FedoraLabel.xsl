@@ -9,19 +9,19 @@
 <xsl:stylesheet version="1.0"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 xmlns:mods="http://www.loc.gov/mods/v3"
-                >
+>
     <xsl:output method="text"/>
 
     <!--MODEL = model:page|... -->
-    <xsl:param name="MODEL" />
+    <xsl:param name="MODEL"/>
 
     <xsl:template match="/">
         <xsl:choose>
             <xsl:when test="$MODEL = 'model:page' or $MODEL = 'model:periodicalitem'">
-                <xsl:apply-templates select="//mods:mods[1]/mods:part[1]" />
+                <xsl:apply-templates select="//mods:mods[1]/mods:part[1]"/>
             </xsl:when>
-            <xsl:when test="$MODEL = 'model:periodicalvolume'" >
-                <xsl:call-template name="periodicalVolume" />
+            <xsl:when test="$MODEL = 'model:periodicalvolume'">
+                <xsl:call-template name="periodicalVolume"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:apply-templates select="//mods:mods[1]/*"/>
@@ -68,7 +68,7 @@
 
     <!-- title for: periodicalvolume; syntax: volumeDate, volumeNumber -->
     <xsl:template name="periodicalVolume">
-        <xsl:variable name="volumeNumber" select="//mods:detail[@type='volume']/mods:number" />
+        <xsl:variable name="volumeNumber" select="//mods:detail[@type='volume']/mods:number"/>
         <xsl:variable name="volumeDate">
             <xsl:choose>
                 <xsl:when test="string($volumeNumber/../../mods:date)">
@@ -83,7 +83,7 @@
         <xsl:if test="$volumeDate and string($volumeNumber)">
             <xsl:text>, </xsl:text>
         </xsl:if>
-        <xsl:value-of select="$volumeNumber" />
+        <xsl:value-of select="$volumeNumber"/>
     </xsl:template>
 
     <!-- title for: periodicalitem; syntax: itemNumber -->
@@ -96,6 +96,6 @@
         <xsl:value-of select="."/>
     </xsl:template>
 
-    <xsl:template match="text()|@*" />
+    <xsl:template match="text()|@*"/>
 
 </xsl:stylesheet>

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fr="http://www.crossref.org/fundref.xsd" xmlns:ct="http://www.crossref.org/clinicaltrials.xsd" xmlns:ai="http://www.crossref.org/AccessIndicators.xsd" xmlns:mml="http://www.w3.org/1998/Math/MathML">
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fr="http://www.crossref.org/fundref.xsd"
+            xmlns:ct="http://www.crossref.org/clinicaltrials.xsd"
+            xmlns:ai="http://www.crossref.org/AccessIndicators.xsd" xmlns:mml="http://www.w3.org/1998/Math/MathML">
     <!-- *************************************************************
         Crossref Metadata Input Schema, common file v. 5.3.1
         *************************************************************
@@ -11,7 +13,8 @@
     Prior updates are noted as comments within previous schema versions.
 
        -->
-    <xsd:import namespace="http://www.w3.org/1998/Math/MathML" schemaLocation="http://www.w3.org/Math/XMLSchema/mathml3/mathml3.xsd"/>
+    <xsd:import namespace="http://www.w3.org/1998/Math/MathML"
+                schemaLocation="http://www.w3.org/Math/XMLSchema/mathml3/mathml3.xsd"/>
     <xsd:import namespace="http://www.crossref.org/fundref.xsd" schemaLocation="fundref.xsd"/>
     <xsd:import namespace="http://www.crossref.org/AccessIndicators.xsd" schemaLocation="AccessIndicators.xsd"/>
     <xsd:import namespace="http://www.crossref.org/clinicaltrials.xsd" schemaLocation="clinicaltrials.xsd"/>
@@ -22,7 +25,13 @@
     </xsd:complexType>
     <xsd:group name="face_markup">
         <xsd:annotation>
-            <xsd:documentation>The following are basic data types for face markup. Face markup that appears in the title, subtitle, and original_language_title elements should be retained when depositing metadata. Face markup in other elements (e.g. small caps in author names) must be dropped. Face markup support includes bold (b), italic (i), underline (u), over-line (ovl), superscript (sup), subscript (sub), small caps (scp), and typewriter text (tt). See https://support.crossref.org/hc/en-us/articles/214532023 MathML may also be included using the 'mml' namespace prefix.</xsd:documentation>
+            <xsd:documentation>The following are basic data types for face markup. Face markup that appears in the
+                title, subtitle, and original_language_title elements should be retained when depositing metadata. Face
+                markup in other elements (e.g. small caps in author names) must be dropped. Face markup support includes
+                bold (b), italic (i), underline (u), over-line (ovl), superscript (sup), subscript (sub), small caps
+                (scp), and typewriter text (tt). See https://support.crossref.org/hc/en-us/articles/214532023 MathML may
+                also be included using the 'mml' namespace prefix.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:choice>
             <xsd:element ref="b"/>
@@ -52,7 +61,7 @@
     <xsd:element name="font" type="xrefFaces"/>
     <xsd:element name="a">
         <xsd:annotation>
-            <xsd:documentation> content is "Inline" except that anchors shouldn't be nested </xsd:documentation>
+            <xsd:documentation>content is "Inline" except that anchors shouldn't be nested</xsd:documentation>
         </xsd:annotation>
         <xsd:complexType mixed="true">
             <xsd:simpleContent>
@@ -64,7 +73,8 @@
     </xsd:element>
     <xsd:element name="doi_batch_id">
         <xsd:annotation>
-            <xsd:documentation>Publisher generated ID that uniquely identifies the DOI submission batch.</xsd:documentation>
+            <xsd:documentation>Publisher generated ID that uniquely identifies the DOI submission batch.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -75,12 +85,16 @@
     </xsd:element>
     <xsd:element name="timestamp" type="xsd:nonNegativeInteger">
         <xsd:annotation>
-            <xsd:documentation>An integer representation of date and time that serves as a version number for the record that is being deposited, used to uniquely identify batch files and DOI values when a DOI has been updated one or more times.</xsd:documentation>
+            <xsd:documentation>An integer representation of date and time that serves as a version number for the record
+                that is being deposited, used to uniquely identify batch files and DOI values when a DOI has been
+                updated one or more times.
+            </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     <xsd:element name="depositor">
         <xsd:annotation>
-            <xsd:documentation>Information about the organization submitting DOI metadata to Crossref</xsd:documentation>
+            <xsd:documentation>Information about the organization submitting DOI metadata to Crossref
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -113,7 +127,7 @@
     </xsd:element>
     <xsd:element name="registrant">
         <xsd:annotation>
-            <xsd:documentation>The organization responsible for the information being registered. </xsd:documentation>
+            <xsd:documentation>The organization responsible for the information being registered.</xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -124,7 +138,10 @@
     </xsd:element>
     <xsd:element name="component_number">
         <xsd:annotation>
-            <xsd:documentation>The chapter, section, part, etc. number for a content item in a book. Unlike volume and edition_number, component_number should include any additional text that helps identify the type of component. </xsd:documentation>
+            <xsd:documentation>The chapter, section, part, etc. number for a content item in a book. Unlike volume and
+                edition_number, component_number should include any additional text that helps identify the type of
+                component.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -135,7 +152,10 @@
     </xsd:element>
     <xsd:element name="edition_number">
         <xsd:annotation>
-            <xsd:documentation>The edition number of a book. edition_number should include only a number and not additional text such as "edition". For example, you should submit "3", not "third edition" or "3rd edition". Roman numerals are acceptable.</xsd:documentation>
+            <xsd:documentation>The edition number of a book. edition_number should include only a number and not
+                additional text such as "edition". For example, you should submit "3", not "third edition" or "3rd
+                edition". Roman numerals are acceptable.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -151,7 +171,10 @@
          =============================================================  -->
     <xsd:element name="issue">
         <xsd:annotation>
-            <xsd:documentation>The issue number or name in which an article is published. The issue number takes precedence over any other name. For example, if an issue has only a seasonal name, then the season should be listed in issue.</xsd:documentation>
+            <xsd:documentation>The issue number or name in which an article is published. The issue number takes
+                precedence over any other name. For example, if an issue has only a seasonal name, then the season
+                should be listed in issue.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -167,7 +190,7 @@
          =============================================================  -->
     <xsd:element name="doi_data">
         <xsd:annotation>
-            <xsd:documentation>The container for elements related directly to a DOI. </xsd:documentation>
+            <xsd:documentation>The container for elements related directly to a DOI.</xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -208,12 +231,21 @@
     <xsd:element name="collection">
         <xsd:annotation>
             <xsd:documentation>
-                Container for item elements containing non-primary URIs associated with the item being registered. Collections are supported for the following (defined in the property attribute):
+                Container for item elements containing non-primary URIs associated with the item being registered.
+                Collections are supported for the following (defined in the property attribute):
                 <ul>
-                    <li>list-based: Multiple Resolution, more info: https://www.crossref.org/education/content-registration/creating-and-managing-dois/multiple-resolution/</li>
-                    <li>country-based: more info: https://www.crossref.org/education/content-registration/creating-and-managing-dois/multiple-resolution/#00130</li>
-                    <li>crawler-based: for Similarity Check URLs, more info: https://www.crossref.org/education/similarity-check/participate/urls-for-new-deposits/</li>
-                    <li>text-mining: supply specific URLs for text and data mining, more info: https://www.crossref.org/education/retrieve-metadata/rest-api/text-and-data-mining-for-members/</li>
+                    <li>list-based: Multiple Resolution, more info:
+                        https://www.crossref.org/education/content-registration/creating-and-managing-dois/multiple-resolution/
+                    </li>
+                    <li>country-based: more info:
+                        https://www.crossref.org/education/content-registration/creating-and-managing-dois/multiple-resolution/#00130
+                    </li>
+                    <li>crawler-based: for Similarity Check URLs, more info:
+                        https://www.crossref.org/education/similarity-check/participate/urls-for-new-deposits/
+                    </li>
+                    <li>text-mining: supply specific URLs for text and data mining, more info:
+                        https://www.crossref.org/education/retrieve-metadata/rest-api/text-and-data-mining-for-members/
+                    </li>
                     <li>unspecified: can be used for additional URLs</li>
                     <li>syndication: identifies resources to be used for syndication</li>
                     <li>link-header: identifies resources to be used as an endpoint</li>
@@ -249,7 +281,7 @@
     </xsd:element>
     <xsd:element name="item">
         <xsd:annotation>
-            <xsd:documentation>A container used to associate a URI with the DOI being registered. </xsd:documentation>
+            <xsd:documentation>A container used to associate a URI with the DOI being registered.</xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -544,7 +576,13 @@
     </xsd:element>
     <xsd:attributeGroup name="reference_distribution_opts.att">
         <xsd:annotation>
-            <xsd:documentation>NOTE: not currently supported. Use to flag references for distribution. "none" is the default and follows current protocol - references are only distributed to everyone if the prefix level permission is set, otherwise reference distribution is limited to the DOI owner. Setting the value to "query" releases references to anyone making a query request (this overrides any established prefix level permission). Value "any" allows bulk distribution to anyone (using a Crossref query account) using the OAI-PMH protocol, and also releases references to anyone making a query request.</xsd:documentation>
+            <xsd:documentation>NOTE: not currently supported. Use to flag references for distribution. "none" is the
+                default and follows current protocol - references are only distributed to everyone if the prefix level
+                permission is set, otherwise reference distribution is limited to the DOI owner. Setting the value to
+                "query" releases references to anyone making a query request (this overrides any established prefix
+                level permission). Value "any" allows bulk distribution to anyone (using a Crossref query account) using
+                the OAI-PMH protocol, and also releases references to anyone making a query request.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:attribute name="reference_distribution_opts" use="optional" default="none">
             <xsd:simpleType>
@@ -666,7 +704,9 @@
     </xsd:element>
     <xsd:element name="volume">
         <xsd:annotation>
-            <xsd:documentation>The volume number of a published journal, or the number of a printed volume for a book or conference proceedings.</xsd:documentation>
+            <xsd:documentation>The volume number of a published journal, or the number of a printed volume for a book or
+                conference proceedings.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -677,7 +717,8 @@
     </xsd:element>
     <xsd:element name="citation_list">
         <xsd:annotation>
-            <xsd:documentation>A list of articles, books, and other content cited by the item being registered</xsd:documentation>
+            <xsd:documentation>A list of articles, books, and other content cited by the item being registered
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -709,7 +750,10 @@
     </xsd:complexType>
     <xsd:element name="citation">
         <xsd:annotation>
-            <xsd:documentation>citation is used to deposit each reference in the reference list of the item for which the DOI is being deposited. For details see: https://www.crossref.org/education/metadata-stewardship/maintaining-your-metadata/add-references/ </xsd:documentation>
+            <xsd:documentation>citation is used to deposit each reference in the reference list of the item for which
+                the DOI is being deposited. For details see:
+                https://www.crossref.org/education/metadata-stewardship/maintaining-your-metadata/add-references/
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:complexContent>
@@ -721,7 +765,9 @@
     </xsd:element>
     <xsd:attributeGroup name="citation_key.atts">
         <xsd:annotation>
-            <xsd:documentation>Used to assign a unique ID to each reference that is deposited. We use this key value to track the specific reference query and will return this value along with the DOI in your query results.</xsd:documentation>
+            <xsd:documentation>Used to assign a unique ID to each reference that is deposited. We use this key value to
+                track the specific reference query and will return this value along with the DOI in your query results.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:attribute name="key" use="required">
             <xsd:simpleType>
@@ -735,7 +781,9 @@
     </xsd:attributeGroup>
     <xsd:element name="unstructured_citation">
         <xsd:annotation>
-            <xsd:documentation>A citation to an item that is not structured with the Crossref citation model. 'unstructured_citation' supports deposit of references for which no structural information is available. </xsd:documentation>
+            <xsd:documentation>A citation to an item that is not structured with the Crossref citation model.
+                'unstructured_citation' supports deposit of references for which no structural information is available.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType mixed="true">
             <xsd:choice minOccurs="0" maxOccurs="unbounded">
@@ -789,7 +837,13 @@
                 <xsd:element ref="crossmark_domains" minOccurs="0" maxOccurs="unbounded"/>
                 <xsd:element ref="crossmark_domain_exclusive" minOccurs="0">
                     <xsd:annotation>
-                        <xsd:documentation>Some publishers encourage broad third party hosting of the publisher's content. Other publishers do not. And still others vary their policy depending on whether a particular article has been published under an OA policy or not. This boolean flag allows the publisher to indicate whether the Crossmarked content will only legitimately be updated on the Crossmark domain (true) or whether the publisher encourages updating the content on other sites as well (false).</xsd:documentation>
+                        <xsd:documentation>Some publishers encourage broad third party hosting of the publisher's
+                            content. Other publishers do not. And still others vary their policy depending on whether a
+                            particular article has been published under an OA policy or not. This boolean flag allows
+                            the publisher to indicate whether the Crossmarked content will only legitimately be updated
+                            on the Crossmark domain (true) or whether the publisher encourages updating the content on
+                            other sites as well (false).
+                        </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:sequence minOccurs="0">
@@ -801,13 +855,20 @@
     </xsd:element>
     <xsd:element name="crossmark_policy" type="doi_t">
         <xsd:annotation>
-            <xsd:documentation>A DOI which points to a publisher's CrossMark policy document. Publishers might have different policies for different publications.</xsd:documentation>
+            <xsd:documentation>A DOI which points to a publisher's CrossMark policy document. Publishers might have
+                different policies for different publications.
+            </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     <xsd:element name="crossmark_version" type="xsd:string"/>
     <xsd:element name="crossmark_domains">
         <xsd:annotation>
-            <xsd:documentation>Container element for crossmark_domain. A list of domains where the publisher maintains updates and corrections to their content. Minimally, one of these should include the Internet domain name of the publisher's web site(s), but the publisher might also decide to include 3rd party aggregators (e.g. Ebsco, IngentaConnect) or archives with which the publisher has agreements to update the content </xsd:documentation>
+            <xsd:documentation>Container element for crossmark_domain. A list of domains where the publisher maintains
+                updates and corrections to their content. Minimally, one of these should include the Internet domain
+                name of the publisher's web site(s), but the publisher might also decide to include 3rd party
+                aggregators (e.g. Ebsco, IngentaConnect) or archives with which the publisher has agreements to update
+                the content
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -817,7 +878,13 @@
     </xsd:element>
     <xsd:element name="crossmark_domain">
         <xsd:annotation>
-            <xsd:documentation>This should be a simple Internet domain name or subdomain name (e.g. www.psychoceramics.org or psychoceramics.org). It is used to identify when a referring URL is coming from a Crossmark domain. A "crossmark_domain" is made up of two subelements; a "domain" and a "filter". The filter is only needed for use in situations where content from multiple publishers/publications is on the same host with the same domain name (e.g. an aggregator) and one needs to use the referrer's URI "path" to further determine whether the content in a crossmark domain.</xsd:documentation>
+            <xsd:documentation>This should be a simple Internet domain name or subdomain name (e.g.
+                www.psychoceramics.org or psychoceramics.org). It is used to identify when a referring URL is coming
+                from a Crossmark domain. A "crossmark_domain" is made up of two subelements; a "domain" and a "filter".
+                The filter is only needed for use in situations where content from multiple publishers/publications is
+                on the same host with the same domain name (e.g. an aggregator) and one needs to use the referrer's URI
+                "path" to further determine whether the content in a crossmark domain.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -828,18 +895,28 @@
     </xsd:element>
     <xsd:element name="domain" type="cm_domain">
         <xsd:annotation>
-            <xsd:documentation>A domain name or subdomain name (e.g. www.psychoceramics.org or psychoceramics.org). It is used to identify when a referring URL is coming from a Crossmark domain.</xsd:documentation>
+            <xsd:documentation>A domain name or subdomain name (e.g. www.psychoceramics.org or psychoceramics.org). It
+                is used to identify when a referring URL is coming from a Crossmark domain.
+            </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     <xsd:element name="filter" type="xsd:string">
         <xsd:annotation>
-            <xsd:documentation>The filter element is used to disambiguate content in situations where multiple publishers share the same host (e.g. when on an aggregated platform). It should contain a substring of the path that can be used to uniquely identify a publisher's or publication's content. For instance, using the string "alpsp" here would help the CrossMark system distinguish between ALPSP publications on the ingentaconnect host and other publications on the same host.</xsd:documentation>
+            <xsd:documentation>The filter element is used to disambiguate content in situations where multiple
+                publishers share the same host (e.g. when on an aggregated platform). It should contain a substring of
+                the path that can be used to uniquely identify a publisher's or publication's content. For instance,
+                using the string "alpsp" here would help the CrossMark system distinguish between ALPSP publications on
+                the ingentaconnect host and other publications on the same host.
+            </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     <xsd:element name="crossmark_domain_exclusive" type="xsd:boolean"/>
     <xsd:element name="updates">
         <xsd:annotation>
-            <xsd:documentation>A document might provide updates (e.g. corrections, clarifications, retractions) to several other documents. When this is the case, the DOIs of the documents that are being *updated* should be listed here.</xsd:documentation>
+            <xsd:documentation>A document might provide updates (e.g. corrections, clarifications, retractions) to
+                several other documents. When this is the case, the DOIs of the documents that are being *updated*
+                should be listed here.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -849,7 +926,11 @@
     </xsd:element>
     <xsd:element name="update">
         <xsd:annotation>
-            <xsd:documentation>The DOI of the content being updated (e.g. corrected, retracted, etc.) In the CrossMark Terms and Conditions "updates" are defined as changes that are likely to "change the reader’s interpretation or crediting of the work." That is, *editorially significant* changes. "Updates" should not include minor changes to spelling, punctuation, formatting, etc. </xsd:documentation>
+            <xsd:documentation>The DOI of the content being updated (e.g. corrected, retracted, etc.) In the CrossMark
+                Terms and Conditions "updates" are defined as changes that are likely to "change the reader’s
+                interpretation or crediting of the work." That is, *editorially significant* changes. "Updates" should
+                not include minor changes to spelling, punctuation, formatting, etc.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType mixed="true">
             <xsd:simpleContent>
@@ -877,7 +958,9 @@
                     </xsd:attribute>
                     <xsd:attribute name="date" use="required" type="xsd:date">
                         <xsd:annotation>
-                            <xsd:documentation>The date of the update will be displayed in the CrossMark dialog and can help the researcher easily tell whether they are likley to have seen the update.</xsd:documentation>
+                            <xsd:documentation>The date of the update will be displayed in the CrossMark dialog and can
+                                help the researcher easily tell whether they are likley to have seen the update.
+                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:attribute>
                 </xsd:extension>
@@ -886,7 +969,11 @@
     </xsd:element>
     <xsd:element name="custom_metadata">
         <xsd:annotation>
-            <xsd:documentation>Publishers are encouraged to provided any non-bibliographical metadata that they feel might help the researcher evaluate and make better use of the content that the Crossmark record refers to. For example, publishers might want to provide funding information, clinical trial numbers, information about the peer-review process or a summary of the publication history of the document.</xsd:documentation>
+            <xsd:documentation>Publishers are encouraged to provided any non-bibliographical metadata that they feel
+                might help the researcher evaluate and make better use of the content that the Crossmark record refers
+                to. For example, publishers might want to provide funding information, clinical trial numbers,
+                information about the peer-review process or a summary of the publication history of the document.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:choice>
@@ -911,7 +998,9 @@
     </xsd:element>
     <xsd:element name="assertion">
         <xsd:annotation>
-            <xsd:documentation>An assertion is a piece of custom, non-bibliographic metadata that the publisher is asserting about the content to which the Crossmark refers.</xsd:documentation>
+            <xsd:documentation>An assertion is a piece of custom, non-bibliographic metadata that the publisher is
+                asserting about the content to which the Crossmark refers.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType mixed="true">
             <xsd:choice minOccurs="0" maxOccurs="unbounded">
@@ -919,32 +1008,53 @@
             </xsd:choice>
             <xsd:attribute name="explanation" type="xsd:anyURI">
                 <xsd:annotation>
-                    <xsd:documentation>If the publisher wants to provide a further explanation of what the particular "assertion" means, they can link to such an explanation by providing an appropriate url on the "explanation" attribute.</xsd:documentation>
+                    <xsd:documentation>If the publisher wants to provide a further explanation of what the particular
+                        "assertion" means, they can link to such an explanation by providing an appropriate url on the
+                        "explanation" attribute.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="group_label" type="cm_assertion_group_label">
                 <xsd:annotation>
-                    <xsd:documentation>This is the human-readable form of the "group_name" attribute. This is what will be displayed in the group headings on the Crossmark metadata record dialog.</xsd:documentation>
+                    <xsd:documentation>This is the human-readable form of the "group_name" attribute. This is what will
+                        be displayed in the group headings on the Crossmark metadata record dialog.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="group_name" type="cm_assertion_group_name">
                 <xsd:annotation>
-                    <xsd:documentation>Some assertions could be logically "grouped" together in the CrossMark dialog. For instance, if the publisher is recording several pieces of metadata related to funding sources (source name, percentage, grant number), they may want to make sure that these three assertions are grouped next to each-other in the CrossMark dialog. The group_name attribute is the machine-readable value that will be used for grouping such assertions.</xsd:documentation>
+                    <xsd:documentation>Some assertions could be logically "grouped" together in the CrossMark dialog.
+                        For instance, if the publisher is recording several pieces of metadata related to funding
+                        sources (source name, percentage, grant number), they may want to make sure that these three
+                        assertions are grouped next to each-other in the CrossMark dialog. The group_name attribute is
+                        the machine-readable value that will be used for grouping such assertions.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="label" type="cm_assertion_label">
                 <xsd:annotation>
-                    <xsd:documentation>This is the human-readable version of the name attribute which will be displayed in the CrossMark dialog. If this attribute is missing, then the value of the assertion will *not* be displayed in the dialog. Publishers may want to "hide" assertions this way in cases where the assertion value is too large or too complex to display in the dialog, but where the assertion is nonetheless valuable enough to include in API queries and metadata dumps (e.g. detailed licensing terms)</xsd:documentation>
+                    <xsd:documentation>This is the human-readable version of the name attribute which will be displayed
+                        in the CrossMark dialog. If this attribute is missing, then the value of the assertion will
+                        *not* be displayed in the dialog. Publishers may want to "hide" assertions this way in cases
+                        where the assertion value is too large or too complex to display in the dialog, but where the
+                        assertion is nonetheless valuable enough to include in API queries and metadata dumps (e.g.
+                        detailed licensing terms)
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="name" use="required" type="cm_assertion_name">
                 <xsd:annotation>
-                    <xsd:documentation>This is the machine-readable name of the assertion. Use the "label" attribute to provide a human-readable version of the name.</xsd:documentation>
+                    <xsd:documentation>This is the machine-readable name of the assertion. Use the "label" attribute to
+                        provide a human-readable version of the name.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="order" type="xsd:integer">
                 <xsd:annotation>
-                    <xsd:documentation>The publisher may want to control the order in which assertions are displayed to the user in the CrossMark dialog. All assertions will be sorted by this element if it is present.</xsd:documentation>
+                    <xsd:documentation>The publisher may want to control the order in which assertions are displayed to
+                        the user in the CrossMark dialog. All assertions will be sorted by this element if it is
+                        present.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
             <xsd:attribute name="href" type="xsd:anyURI"/>
@@ -952,7 +1062,8 @@
     </xsd:element>
     <xsd:element name="designators">
         <xsd:annotation>
-            <xsd:documentation>A wrapper for designators or other primary identifiers for a standard.</xsd:documentation>
+            <xsd:documentation>A wrapper for designators or other primary identifiers for a standard.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -979,7 +1090,8 @@
     </xsd:element>
     <xsd:element name="std_as_published">
         <xsd:annotation>
-            <xsd:documentation>Designator or other primary identifier for the standard being deposited.</xsd:documentation>
+            <xsd:documentation>Designator or other primary identifier for the standard being deposited.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:complexContent>
@@ -1030,12 +1142,13 @@
     </xsd:element>
     <xsd:element name="std_family_designator" type="std_designator_t">
         <xsd:annotation>
-            <xsd:documentation>Provides for defining a DOI for a broad grouping of standards. </xsd:documentation>
+            <xsd:documentation>Provides for defining a DOI for a broad grouping of standards.</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     <xsd:element name="std_set_designator">
         <xsd:annotation>
-            <xsd:documentation>Provides for defining a DOI for a set of standards (sometimes know as truncated form). </xsd:documentation>
+            <xsd:documentation>Provides for defining a DOI for a set of standards (sometimes know as truncated form).
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:complexContent>
@@ -1047,7 +1160,9 @@
     </xsd:element>
     <xsd:element name="std_undated_designator">
         <xsd:annotation>
-            <xsd:documentation>Provides for defining a DOI for a group of closely related standard documents (undated form is a stem for any dated form) </xsd:documentation>
+            <xsd:documentation>Provides for defining a DOI for a group of closely related standard documents (undated
+                form is a stem for any dated form)
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:complexContent>
@@ -1060,17 +1175,20 @@
     </xsd:element>
     <xsd:element name="std_supersedes" type="std_designatorvalue_t">
         <xsd:annotation>
-            <xsd:documentation>Designator for standard being replaced by the standard being deposited. </xsd:documentation>
+            <xsd:documentation>Designator for standard being replaced by the standard being deposited.
+            </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     <xsd:element name="std_adopted_from" type="std_designatorvalue_t">
         <xsd:annotation>
-            <xsd:documentation>Designator for standard from which the current deposit is adopted. </xsd:documentation>
+            <xsd:documentation>Designator for standard from which the current deposit is adopted.</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     <xsd:element name="std_revision_of" type="std_designatorvalue_t">
         <xsd:annotation>
-            <xsd:documentation>Designator for the previous revision of the standard being deposited. (note: use alt_as_published for revisions within designators having common stem) </xsd:documentation>
+            <xsd:documentation>Designator for the previous revision of the standard being deposited. (note: use
+                alt_as_published for revisions within designators having common stem)
+            </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     <xsd:element name="standards_body">
@@ -1086,7 +1204,7 @@
     </xsd:element>
     <xsd:element name="standards_body_name">
         <xsd:annotation>
-            <xsd:documentation>Name of the standards organization / publisher. </xsd:documentation>
+            <xsd:documentation>Name of the standards organization / publisher.</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     <xsd:element name="standards_body_acronym">
@@ -1144,7 +1262,9 @@
     </xsd:element>
     <xsd:attributeGroup name="mime_type.atts">
         <xsd:annotation>
-            <xsd:documentation>Media / mime types for component format. For mime types refer to http://www.iana.org/assignments/media-types/</xsd:documentation>
+            <xsd:documentation>Media / mime types for component format. For mime types refer to
+                http://www.iana.org/assignments/media-types/
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:attribute name="mime_type" use="optional">
             <xsd:simpleType>
@@ -1514,7 +1634,7 @@
     </xsd:element>
     <xsd:element name="last_page">
         <xsd:annotation>
-            <xsd:documentation>Last page number of an item. </xsd:documentation>
+            <xsd:documentation>Last page number of an item.</xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -1525,7 +1645,9 @@
     </xsd:element>
     <xsd:element name="other_pages">
         <xsd:annotation>
-            <xsd:documentation>When an item has non-contiguous page information, capture the first page range in first_page and last_page. Any additional page information should be captured in other_pages.</xsd:documentation>
+            <xsd:documentation>When an item has non-contiguous page information, capture the first page range in
+                first_page and last_page. Any additional page information should be captured in other_pages.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">

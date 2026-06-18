@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns="http://www.crossref.org/schema/5.3.1" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:fr="http://www.crossref.org/fundref.xsd" xmlns:ct="http://www.crossref.org/clinicaltrials.xsd" xmlns:ai="http://www.crossref.org/AccessIndicators.xsd" xmlns:rel="http://www.crossref.org/relations.xsd" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:jats="http://www.ncbi.nlm.nih.gov/JATS1" targetNamespace="http://www.crossref.org/schema/5.3.1">
+<xsd:schema xmlns="http://www.crossref.org/schema/5.3.1" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:fr="http://www.crossref.org/fundref.xsd" xmlns:ct="http://www.crossref.org/clinicaltrials.xsd"
+            xmlns:ai="http://www.crossref.org/AccessIndicators.xsd" xmlns:rel="http://www.crossref.org/relations.xsd"
+            xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:jats="http://www.ncbi.nlm.nih.gov/JATS1"
+            targetNamespace="http://www.crossref.org/schema/5.3.1">
     <!-- *************************************************************
         Crossref Metadata Input Schema v. 5.3.1
         *************************************************************
@@ -13,7 +17,8 @@
     <xsd:include schemaLocation="common5.3.1.xsd"/>
     <!--  imported schema  -->
     <xsd:import namespace="http://www.ncbi.nlm.nih.gov/JATS1" schemaLocation="JATS-journalpublishing1.xsd"/>
-    <xsd:import namespace="http://www.w3.org/1998/Math/MathML" schemaLocation="http://www.w3.org/Math/XMLSchema/mathml3/mathml3.xsd"/>
+    <xsd:import namespace="http://www.w3.org/1998/Math/MathML"
+                schemaLocation="http://www.w3.org/Math/XMLSchema/mathml3/mathml3.xsd"/>
     <xsd:import namespace="http://www.crossref.org/fundref.xsd" schemaLocation="fundref.xsd"/>
     <xsd:import namespace="http://www.crossref.org/clinicaltrials.xsd" schemaLocation="clinicaltrials.xsd"/>
     <xsd:import namespace="http://www.crossref.org/AccessIndicators.xsd" schemaLocation="AccessIndicators.xsd"/>
@@ -21,7 +26,9 @@
     <!--  *** Head elements (used when processing submission XML)  -->
     <xsd:element name="doi_batch">
         <xsd:annotation>
-            <xsd:documentation>Top level element for a metadata record submission. This element indicates the start and end of the XML file. The version number is fixed to the version of the schema. </xsd:documentation>
+            <xsd:documentation>Top level element for a metadata record submission. This element indicates the start and
+                end of the XML file. The version number is fixed to the version of the schema.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -33,7 +40,10 @@
     </xsd:element>
     <xsd:element name="head">
         <xsd:annotation>
-            <xsd:documentation>Container for information related to the DOI batch submission. This element uniquely identifies the batch deposit to Crossref and contains information that will be used as a reference in error messages triggered during submission processing. </xsd:documentation>
+            <xsd:documentation>Container for information related to the DOI batch submission. This element uniquely
+                identifies the batch deposit to Crossref and contains information that will be used as a reference in
+                error messages triggered during submission processing.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -46,7 +56,10 @@
     </xsd:element>
     <xsd:element name="body">
         <xsd:annotation>
-            <xsd:documentation>Container for the main body of a DOI record submission. While it is possible to include records for multiple journals, books, conferences, or other types of content in a single submission, it is not possible to mix content types within a single DOI submission. </xsd:documentation>
+            <xsd:documentation>Container for the main body of a DOI record submission. While it is possible to include
+                records for multiple journals, books, conferences, or other types of content in a single submission, it
+                is not possible to mix content types within a single DOI submission.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:choice>
@@ -67,7 +80,11 @@
     <!--  *** Journal elements *** -->
     <xsd:element name="journal">
         <xsd:annotation>
-            <xsd:documentation>Container for all information about a single journal and the volumes, issues, and articles being registered within the journal. Within a journal instance you may register articles from a single issue, detailed in journal_issue. If you want to register items from more than one issue you must use multiple journal instances within your XML file.</xsd:documentation>
+            <xsd:documentation>Container for all information about a single journal and the volumes, issues, and
+                articles being registered within the journal. Within a journal instance you may register articles from a
+                single issue, detailed in journal_issue. If you want to register items from more than one issue you must
+                use multiple journal instances within your XML file.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -107,7 +124,9 @@
     </xsd:element>
     <xsd:element name="abbrev_title">
         <xsd:annotation>
-            <xsd:documentation> Common abbreviation or abbreviations used when citing a journal. It is recommended that periods be included after abbreviated words within the title. </xsd:documentation>
+            <xsd:documentation>Common abbreviation or abbreviations used when citing a journal. It is recommended that
+                periods be included after abbreviated words within the title.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -135,7 +154,9 @@
     </xsd:element>
     <xsd:element name="journal_volume">
         <xsd:annotation>
-            <xsd:documentation>Container for the journal volume and DOI assigned to an entire journal volume. You may register a DOI for an entire volume by including doi_data in journal_volume.</xsd:documentation>
+            <xsd:documentation>Container for the journal volume and DOI assigned to an entire journal volume. You may
+                register a DOI for an entire volume by including doi_data in journal_volume.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -148,7 +169,9 @@
     </xsd:element>
     <xsd:element name="special_numbering">
         <xsd:annotation>
-            <xsd:documentation>Issue level numbering for supplements or special issues. Text defining the type of special issue (e.g. "suppl") should be included in this element along with the number.</xsd:documentation>
+            <xsd:documentation>Issue level numbering for supplements or special issues. Text defining the type of
+                special issue (e.g. "suppl") should be included in this element along with the number.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -193,7 +216,10 @@
     <!--  *** Conference elements  -->
     <xsd:element name="conference">
         <xsd:annotation>
-            <xsd:documentation>Container for all information about a single conference and its proceedings. If a conference proceedings spans multiple volumes, each volume must be contained in a unique conference element.</xsd:documentation>
+            <xsd:documentation>Container for all information about a single conference and its proceedings. If a
+                conference proceedings spans multiple volumes, each volume must be contained in a unique conference
+                element.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -209,7 +235,10 @@
     </xsd:element>
     <xsd:element name="event_metadata">
         <xsd:annotation>
-            <xsd:documentation>A container for all information that applies to a conference event. event_metadata captures information about a conference event. Data about conference proceedings is captured in proceedings_metadata.</xsd:documentation>
+            <xsd:documentation>A container for all information that applies to a conference event. event_metadata
+                captures information about a conference event. Data about conference proceedings is captured in
+                proceedings_metadata.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -225,7 +254,8 @@
     </xsd:element>
     <xsd:element name="conference_name">
         <xsd:annotation>
-            <xsd:documentation>The official name of the conference, excluding numbers commonly provided in conference </xsd:documentation>
+            <xsd:documentation>The official name of the conference, excluding numbers commonly provided in conference
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -236,7 +266,12 @@
     </xsd:element>
     <xsd:element name="conference_theme">
         <xsd:annotation>
-            <xsd:documentation>The theme is the slogan or special emphasis of a conference in a particular year. It differs from the subject of a conference in that the subject is stable over the years while the theme may vary from year to year. For example, the American Society for Information Science and Technology conference theme was "Knowledge: Creation, Organization and Use" in 1999 and "Defining Information Architecture" in 2000.</xsd:documentation>
+            <xsd:documentation>The theme is the slogan or special emphasis of a conference in a particular year. It
+                differs from the subject of a conference in that the subject is stable over the years while the theme
+                may vary from year to year. For example, the American Society for Information Science and Technology
+                conference theme was "Knowledge: Creation, Organization and Use" in 1999 and "Defining Information
+                Architecture" in 2000.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -247,7 +282,10 @@
     </xsd:element>
     <xsd:element name="conference_acronym">
         <xsd:annotation>
-            <xsd:documentation>The popularly known as or jargon name (e.g. SIGGRAPH for "Special Interest Group on Computer Graphics"). Authors commonly cite the conference acronym rather than the full conference or proceedings name, so it is best to include this element when it is available.</xsd:documentation>
+            <xsd:documentation>The popularly known as or jargon name (e.g. SIGGRAPH for "Special Interest Group on
+                Computer Graphics"). Authors commonly cite the conference acronym rather than the full conference or
+                proceedings name, so it is best to include this element when it is available.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -258,7 +296,9 @@
     </xsd:element>
     <xsd:element name="conference_sponsor">
         <xsd:annotation>
-            <xsd:documentation>The sponsoring organization(s) of a conference. Multiple sponsors may be given if a conference is hosted by more than one organization.</xsd:documentation>
+            <xsd:documentation>The sponsoring organization(s) of a conference. Multiple sponsors may be given if a
+                conference is hosted by more than one organization.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -269,7 +309,9 @@
     </xsd:element>
     <xsd:element name="conference_number">
         <xsd:annotation>
-            <xsd:documentation>The number of a conference. conference_number should include only the number of the conference without any extra text</xsd:documentation>
+            <xsd:documentation>The number of a conference. conference_number should include only the number of the
+                conference without any extra text
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -280,7 +322,9 @@
     </xsd:element>
     <xsd:element name="conference_location">
         <xsd:annotation>
-            <xsd:documentation>The location of the conference. The city, state, province or country of the conference may be provided as appropriate.</xsd:documentation>
+            <xsd:documentation>The location of the conference. The city, state, province or country of the conference
+                may be provided as appropriate.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -298,8 +342,14 @@
     <xsd:element name="conference_date">
         <xsd:annotation>
             <xsd:documentation>
-                The start and end dates of a conference event. conference_date may be used in three ways: 1. If publishers that do not have parsed date values, provide just text with the conference dates. The date text should be taken from the proceedings title page. 2. If publishers have parsed date values, provide them in the attributes. 3. If both parsed date values and the date text are available, both should be provided. This is the preferred tagging for conference_date. For example:
-                <conference_date start_month="01" start_year="1997" start_day="15" end_year="1997" end_month="01" end_day="17">Jan. 15-17, 1997</conference_date>
+                The start and end dates of a conference event. conference_date may be used in three ways: 1. If
+                publishers that do not have parsed date values, provide just text with the conference dates. The date
+                text should be taken from the proceedings title page. 2. If publishers have parsed date values, provide
+                them in the attributes. 3. If both parsed date values and the date text are available, both should be
+                provided. This is the preferred tagging for conference_date. For example:
+                <conference_date start_month="01" start_year="1997" start_day="15" end_year="1997" end_month="01"
+                                 end_day="17">Jan. 15-17, 1997
+                </conference_date>
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
@@ -317,7 +367,8 @@
     </xsd:element>
     <xsd:element name="proceedings_metadata">
         <xsd:annotation>
-            <xsd:documentation>Container for all information that applies to a non-series conference proceeding.</xsd:documentation>
+            <xsd:documentation>Container for all information that applies to a non-series conference proceeding.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -339,7 +390,9 @@
     </xsd:element>
     <xsd:element name="proceedings_series_metadata">
         <xsd:annotation>
-            <xsd:documentation>Container for all information that applies to a specific conference proceeding that is part of a series.</xsd:documentation>
+            <xsd:documentation>Container for all information that applies to a specific conference proceeding that is
+                part of a series.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -387,7 +440,9 @@
     </xsd:element>
     <xsd:element name="proceedings_subject">
         <xsd:annotation>
-            <xsd:documentation>The subject of the conference proceeding, e.g. "Computer Graphics" is the subject matter of SIGGRAPH.</xsd:documentation>
+            <xsd:documentation>The subject of the conference proceeding, e.g. "Computer Graphics" is the subject matter
+                of SIGGRAPH.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -458,7 +513,9 @@
     </xsd:element>
     <xsd:element name="book_metadata">
         <xsd:annotation>
-            <xsd:documentation>A container for all title-level metadata for a single book that is not part of a series or set. </xsd:documentation>
+            <xsd:documentation>A container for all title-level metadata for a single book that is not part of a series
+                or set.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -492,7 +549,8 @@
     </xsd:element>
     <xsd:element name="book_series_metadata">
         <xsd:annotation>
-            <xsd:documentation>A container for all information that applies to an individual volume of a book series.</xsd:documentation>
+            <xsd:documentation>A container for all information that applies to an individual volume of a book series.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -537,7 +595,8 @@
     </xsd:element>
     <xsd:element name="book_set_metadata">
         <xsd:annotation>
-            <xsd:documentation>A container for all information that applies to an individual volume of a book set.</xsd:documentation>
+            <xsd:documentation>A container for all information that applies to an individual volume of a book set.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -578,7 +637,9 @@
     <!--  elements used across content types   -->
     <xsd:element name="content_item">
         <xsd:annotation>
-            <xsd:documentation>A segment of a book, report, or standard for which a DOI is being registered. Most commonly used for book chapters.</xsd:documentation>
+            <xsd:documentation>A segment of a book, report, or standard for which a DOI is being registered. Most
+                commonly used for book chapters.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -641,7 +702,9 @@
                 <xsd:element ref="titles"/>
                 <xsd:element ref="jats:abstract" minOccurs="0" maxOccurs="unbounded">
                     <xsd:annotation>
-                        <xsd:documentation>The abstract element allows depositors to include abstracts extracted from NLM or JATS XML in Crossref deposits. The jats: namespace prefix must be included.</xsd:documentation>
+                        <xsd:documentation>The abstract element allows depositors to include abstracts extracted from
+                            NLM or JATS XML in Crossref deposits. The jats: namespace prefix must be included.
+                        </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element ref="issn" maxOccurs="6"/>
@@ -662,7 +725,9 @@
     </xsd:element>
     <xsd:element name="set_metadata">
         <xsd:annotation>
-            <xsd:documentation> When a book consists of multiple volumes that are not part of a serial publication (series), set_metadata is used to describe information about the entire set. </xsd:documentation>
+            <xsd:documentation>When a book consists of multiple volumes that are not part of a serial publication
+                (series), set_metadata is used to describe information about the entire set.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -692,7 +757,10 @@
     </xsd:element>
     <xsd:element name="part_number">
         <xsd:annotation>
-            <xsd:documentation>The part number of a given volume. In some cases, a book set will have multiple parts, and then one or more volumes within each part. The part number of a given volume should be deposited in this element.</xsd:documentation>
+            <xsd:documentation>The part number of a given volume. In some cases, a book set will have multiple parts,
+                and then one or more volumes within each part. The part number of a given volume should be deposited in
+                this element.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -704,7 +772,9 @@
     <!--  *** dissertation elements ***  -->
     <xsd:element name="dissertation">
         <xsd:annotation>
-            <xsd:documentation>dissertation is the top level element for deposit of metadata about one or more dissertations.</xsd:documentation>
+            <xsd:documentation>dissertation is the top level element for deposit of metadata about one or more
+                dissertations.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -740,7 +810,9 @@
     </xsd:element>
     <xsd:element name="report-paper">
         <xsd:annotation>
-            <xsd:documentation>report-paper is the top level element for deposit of metadata about one or more reports or working papers. </xsd:documentation>
+            <xsd:documentation>report-paper is the top level element for deposit of metadata about one or more reports
+                or working papers.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -756,7 +828,8 @@
     </xsd:element>
     <xsd:element name="report-paper_metadata">
         <xsd:annotation>
-            <xsd:documentation>Container for the metadata related to a Technical Report or Working Paper.</xsd:documentation>
+            <xsd:documentation>Container for the metadata related to a Technical Report or Working Paper.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -790,7 +863,9 @@
     </xsd:element>
     <xsd:element name="report-paper_series_metadata">
         <xsd:annotation>
-            <xsd:documentation>Container for the metadata related to a Technical Report or Working Paper that is part of a series.</xsd:documentation>
+            <xsd:documentation>Container for the metadata related to a Technical Report or Working Paper that is part of
+                a series.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -823,7 +898,9 @@
     </xsd:element>
     <xsd:element name="standard">
         <xsd:annotation>
-            <xsd:documentation>standard is the top level element for deposit of metadata about standards developed by Standards Development Organizations (SDOs) or Consortia.</xsd:documentation>
+            <xsd:documentation>standard is the top level element for deposit of metadata about standards developed by
+                Standards Development Organizations (SDOs) or Consortia.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -838,7 +915,8 @@
     </xsd:element>
     <xsd:element name="standard_metadata">
         <xsd:annotation>
-            <xsd:documentation>Container for the metadata related to a Standard that is not part of a series.</xsd:documentation>
+            <xsd:documentation>Container for the metadata related to a Standard that is not part of a series.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -878,7 +956,9 @@
     </xsd:element>
     <xsd:element name="database">
         <xsd:annotation>
-            <xsd:documentation>database is the top level element for deposit of metadata about one or more datasets or records in a database. </xsd:documentation>
+            <xsd:documentation>database is the top level element for deposit of metadata about one or more datasets or
+                records in a database.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -892,7 +972,7 @@
     </xsd:element>
     <xsd:element name="database_metadata">
         <xsd:annotation>
-            <xsd:documentation>database_metadata contains metadata about the database. </xsd:documentation>
+            <xsd:documentation>database_metadata contains metadata about the database.</xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -913,7 +993,9 @@
     </xsd:element>
     <xsd:element name="dataset">
         <xsd:annotation>
-            <xsd:documentation>dataset is used to capture information about one or more database records or collections. </xsd:documentation>
+            <xsd:documentation>dataset is used to capture information about one or more database records or
+                collections.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -953,7 +1035,9 @@
             ==============================================================  -->
     <xsd:element name="publication">
         <xsd:annotation>
-            <xsd:documentation>Used to define a publication (book, journal, etc) for pending publication content. A title must be supplied, as well as an ISSN, ISBN, or title-level DOI </xsd:documentation>
+            <xsd:documentation>Used to define a publication (book, journal, etc) for pending publication content. A
+                title must be supplied, as well as an ISSN, ISBN, or title-level DOI
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -978,7 +1062,9 @@
     </xsd:element>
     <xsd:element name="intent_statement">
         <xsd:annotation>
-            <xsd:documentation>Member's custom statement of intent to publish content for which a pending publication DOI has been created</xsd:documentation>
+            <xsd:documentation>Member's custom statement of intent to publish content for which a pending publication
+                DOI has been created
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType mixed="true">
             <xsd:choice minOccurs="0" maxOccurs="unbounded">
@@ -995,7 +1081,9 @@
             ==============================================================  -->
     <xsd:element name="peer_review">
         <xsd:annotation>
-            <xsd:documentation> The peer_review content type is intended for assigning DOIs to the reports and other artifacts associated with the review of published content. </xsd:documentation>
+            <xsd:documentation>The peer_review content type is intended for assigning DOIs to the reports and other
+                artifacts associated with the review of published content.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -1045,7 +1133,8 @@
             </xsd:attribute>
             <xsd:attribute name="revision-round" use="optional" type="xsd:integer">
                 <xsd:annotation>
-                    <xsd:documentation>Required attribute. First submission defined as revision round zero</xsd:documentation>
+                    <xsd:documentation>Required attribute. First submission defined as revision round zero
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:attribute>
             <xsd:attributeGroup ref="language.atts"/>
@@ -1053,7 +1142,8 @@
     </xsd:element>
     <xsd:element name="competing_interest_statement">
         <xsd:annotation>
-            <xsd:documentation>Statement of competing interest supplied by a review author during the review process.</xsd:documentation>
+            <xsd:documentation>Statement of competing interest supplied by a review author during the review process.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType mixed="true">
             <xsd:choice minOccurs="0" maxOccurs="unbounded">
@@ -1064,7 +1154,7 @@
     </xsd:element>
     <xsd:element name="running_number" type="xsd:string">
         <xsd:annotation>
-            <xsd:documentation>Running numbers to specify the various reports (ex: RC1 to RC4) </xsd:documentation>
+            <xsd:documentation>Running numbers to specify the various reports (ex: RC1 to RC4)</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     <!--  ===========================================================
@@ -1072,7 +1162,9 @@
              ==============================================================  -->
     <xsd:element name="pending_publication">
         <xsd:annotation>
-            <xsd:documentation>Container for 'pending publication' metadata. Pending publication DOIs are used to create a DOI for a content item that is not yet available online or in print.</xsd:documentation>
+            <xsd:documentation>Container for 'pending publication' metadata. Pending publication DOIs are used to create
+                a DOI for a content item that is not yet available online or in print.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -1102,7 +1194,7 @@
             ==============================================================  -->
     <xsd:element name="posted_content">
         <xsd:annotation>
-            <xsd:documentation>Container for posted content metadata. </xsd:documentation>
+            <xsd:documentation>Container for posted content metadata.</xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -1140,7 +1232,10 @@
     </xsd:element>
     <xsd:element name="group_title">
         <xsd:annotation>
-            <xsd:documentation>Posted content may be organzed into groupings within a given publisher. This element provides for naming the group. It is expected that publishers will have a small number of groups each of which reflect a topic or subject area.</xsd:documentation>
+            <xsd:documentation>Posted content may be organzed into groupings within a given publisher. This element
+                provides for naming the group. It is expected that publishers will have a small number of groups each of
+                which reflect a topic or subject area.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -1156,7 +1251,9 @@
          =============================================================  -->
     <xsd:element name="institution">
         <xsd:annotation>
-            <xsd:documentation>Container element for information about an institution or organization associated with an item.</xsd:documentation>
+            <xsd:documentation>Container element for information about an institution or organization associated with an
+                item.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -1186,7 +1283,9 @@
     </xsd:element>
     <xsd:element name="institution_id">
         <xsd:annotation>
-            <xsd:documentation>Identifier for an institution or organization (currently supported: ROR, ISNI, Wikidata). Identifiers must be included as a URI</xsd:documentation>
+            <xsd:documentation>Identifier for an institution or organization (currently supported: ROR, ISNI, Wikidata).
+                Identifiers must be included as a URI
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:simpleContent>
@@ -1222,7 +1321,11 @@
     </xsd:element>
     <xsd:element name="institution_place">
         <xsd:annotation>
-            <xsd:documentation>The primary city location of the institution. institution_place gives the primary city location of the institution. When the location is a major city (e.g. New York, Amsterdam), no qualifying country or U.S. state need be given. If the city is not a major city, the appropriate country and/or state or province should be added.</xsd:documentation>
+            <xsd:documentation>The primary city location of the institution. institution_place gives the primary city
+                location of the institution. When the location is a major city (e.g. New York, Amsterdam), no qualifying
+                country or U.S. state need be given. If the city is not a major city, the appropriate country and/or
+                state or province should be added.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -1233,7 +1336,7 @@
     </xsd:element>
     <xsd:element name="institution_department">
         <xsd:annotation>
-            <xsd:documentation>The department within an institution. </xsd:documentation>
+            <xsd:documentation>The department within an institution.</xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -1313,7 +1416,8 @@
     </xsd:attributeGroup>
     <xsd:element name="contributors">
         <xsd:annotation>
-            <xsd:documentation>The container for all who contributed to authoring or editing an item.</xsd:documentation>
+            <xsd:documentation>The container for all who contributed to authoring or editing an item.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -1334,7 +1438,10 @@
     </xsd:simpleType>
     <xsd:element name="organization">
         <xsd:annotation>
-            <xsd:documentation>The name of an organization (as opposed to a person) that contributed to an item. If an item was authored by individuals in addition to one or more organizations, person_name and organization may be freely intermixed within contributors. </xsd:documentation>
+            <xsd:documentation>The name of an organization (as opposed to a person) that contributed to an item. If an
+                item was authored by individuals in addition to one or more organizations, person_name and organization
+                may be freely intermixed within contributors.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:simpleContent>
@@ -1346,7 +1453,8 @@
     </xsd:element>
     <xsd:element name="person_name">
         <xsd:annotation>
-            <xsd:documentation>The name of a person (as opposed to an organization) that contributed to an item.</xsd:documentation>
+            <xsd:documentation>The name of a person (as opposed to an organization) that contributed to an item.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -1355,14 +1463,14 @@
                 <xsd:element ref="suffix" minOccurs="0"/>
                 <xsd:element ref="affiliations" minOccurs="0" maxOccurs="unbounded"/>
                 <xsd:element ref="ORCID" minOccurs="0" maxOccurs="1"/>
-<!--                <xsd:element ref="alt-name" minOccurs="0"/>-->
+                <!--                <xsd:element ref="alt-name" minOccurs="0"/>-->
             </xsd:sequence>
             <xsd:attributeGroup ref="contributor.atts"/>
         </xsd:complexType>
     </xsd:element>
     <xsd:element name="anonymous">
         <xsd:annotation>
-            <xsd:documentation> </xsd:documentation>
+            <xsd:documentation></xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -1513,7 +1621,9 @@
     </xsd:element>
     <xsd:element name="sa_component">
         <xsd:annotation>
-            <xsd:documentation>Container for component metadata if the component is being registered after the parent record/DOI is created.</xsd:documentation>
+            <xsd:documentation>Container for component metadata if the component is being registered after the parent
+                record/DOI is created.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -1541,7 +1651,9 @@
     </xsd:element>
     <xsd:element name="component">
         <xsd:annotation>
-            <xsd:documentation>Container for component metadata. Supplemental materials, figures, tables, and other items that can be considered a citeable part of a registered item may be registered as components. </xsd:documentation>
+            <xsd:documentation>Container for component metadata. Supplemental materials, figures, tables, and other
+                items that can be considered a citeable part of a registered item may be registered as components.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -1608,7 +1720,9 @@
     </xsd:element>
     <xsd:element name="original_language_title">
         <xsd:annotation>
-            <xsd:documentation>The title of an item in its original language if the registration is for a translation of a work.</xsd:documentation>
+            <xsd:documentation>The title of an item in its original language if the registration is for a translation of
+                a work.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType mixed="true">
             <xsd:choice minOccurs="0" maxOccurs="unbounded">
@@ -1630,12 +1744,21 @@
     <!--  ***  Dates ***  -->
     <xsd:element name="month" type="xrefMonth">
         <xsd:annotation>
-            <xsd:documentation>Month of publication. The month must be expressed in numeric format rather spelling out the name (e.g.. submit "10", not "October"). The month must be expressed with a leading zero if it is less than 10 (e.g. submit "05", not "5"). When a journal issue has both an issue number and a season, the issue number should be placed in issue. If the month of publication is not known, the season should be placed in month as a two-digit value as follows: Season Value Spring 21 Summer 22 Autumn 23 Winter 24 First Quarter 31 Second Quarter 32 Third Quarter 33 Fourth Quarter 34 In cases when an issue covers multiple months, e.g. "March-April", include only the digits for the first month of the range.</xsd:documentation>
+            <xsd:documentation>Month of publication. The month must be expressed in numeric format rather spelling out
+                the name (e.g.. submit "10", not "October"). The month must be expressed with a leading zero if it is
+                less than 10 (e.g. submit "05", not "5"). When a journal issue has both an issue number and a season,
+                the issue number should be placed in issue. If the month of publication is not known, the season should
+                be placed in month as a two-digit value as follows: Season Value Spring 21 Summer 22 Autumn 23 Winter 24
+                First Quarter 31 Second Quarter 32 Third Quarter 33 Fourth Quarter 34 In cases when an issue covers
+                multiple months, e.g. "March-April", include only the digits for the first month of the range.
+            </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     <xsd:element name="day" type="xrefDay">
         <xsd:annotation>
-            <xsd:documentation>Day of publication. The should must be expressed with a leading zero if it is less than 10 (e.g. submit "05", not "5").</xsd:documentation>
+            <xsd:documentation>Day of publication. The should must be expressed with a leading zero if it is less than
+                10 (e.g. submit "05", not "5").
+            </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     <xsd:element name="year" type="xrefYear">
@@ -1707,7 +1830,9 @@
     </xsd:element>
     <xsd:element name="publication_date">
         <xsd:annotation>
-            <xsd:documentation>The date of publication. Multiple dates are allowed to allow for different dates of publication for online and print versions.</xsd:documentation>
+            <xsd:documentation>The date of publication. Multiple dates are allowed to allow for different dates of
+                publication for online and print versions.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:complexContent>
@@ -1745,7 +1870,9 @@
     </xsd:element>
     <xsd:element name="approval_date">
         <xsd:annotation>
-            <xsd:documentation> The date on which a dissertation was accepted by the institution awarding the degree, a report was approved, or a standard was accepted. </xsd:documentation>
+            <xsd:documentation>The date on which a dissertation was accepted by the institution awarding the degree, a
+                report was approved, or a standard was accepted.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:complexContent>
@@ -1792,7 +1919,8 @@
     </xsd:element>
     <xsd:element name="noisbn">
         <xsd:annotation>
-            <xsd:documentation>Identifies books or conference proceedings that have no ISBN assigned.</xsd:documentation>
+            <xsd:documentation>Identifies books or conference proceedings that have no ISBN assigned.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:attribute name="reason" use="required">
@@ -1836,7 +1964,8 @@
     </xsd:simpleType>
     <xsd:element name="item_number">
         <xsd:annotation>
-            <xsd:documentation>A publisher-assigned number that uniquely identifies the item being registered. </xsd:documentation>
+            <xsd:documentation>A publisher-assigned number that uniquely identifies the item being registered.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:simpleContent>
@@ -1854,7 +1983,9 @@
     </xsd:simpleType>
     <xsd:element name="identifier">
         <xsd:annotation>
-            <xsd:documentation>A public standard identifier that can be used to uniquely identify the item being registered.</xsd:documentation>
+            <xsd:documentation>A public standard identifier that can be used to uniquely identify the item being
+                registered.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:simpleContent>
@@ -1882,7 +2013,8 @@
     <!--  *** archiving elements ***  -->
     <xsd:element name="publisher">
         <xsd:annotation>
-            <xsd:documentation>A container for information about the publisher of the item being registered</xsd:documentation>
+            <xsd:documentation>A container for information about the publisher of the item being registered
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
@@ -1894,7 +2026,9 @@
     <!--  *** other metadata  -->
     <xsd:element name="publisher_place">
         <xsd:annotation>
-            <xsd:documentation>publisher_place gives the primary city location of the publisher. If the city is not a major city, the appropriate country, state, or province should be added.</xsd:documentation>
+            <xsd:documentation>publisher_place gives the primary city location of the publisher. If the city is not a
+                major city, the appropriate country, state, or province should be added.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -1905,7 +2039,9 @@
     </xsd:element>
     <xsd:element name="publisher_name">
         <xsd:annotation>
-            <xsd:documentation>The name of the publisher of a book or conference proceedings. This name may differ from that of the organization registering or maintaining the metadata record.</xsd:documentation>
+            <xsd:documentation>The name of the publisher of a book or conference proceedings. This name may differ from
+                that of the organization registering or maintaining the metadata record.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:simpleType>
             <xsd:restriction base="xsd:string">
@@ -1916,7 +2052,8 @@
     </xsd:element>
     <xsd:element name="description">
         <xsd:annotation>
-            <xsd:documentation>A narrative description of a file (e.g. a figure caption or video description).</xsd:documentation>
+            <xsd:documentation>A narrative description of a file (e.g. a figure caption or video description).
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType mixed="true">
             <xsd:choice minOccurs="0" maxOccurs="unbounded">
@@ -1933,7 +2070,8 @@
     </xsd:simpleType>
     <xsd:element name="format">
         <xsd:annotation>
-            <xsd:documentation>A narrative description of a component's file format and/or file extension.</xsd:documentation>
+            <xsd:documentation>A narrative description of a component's file format and/or file extension.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:simpleContent>
@@ -1955,7 +2093,8 @@
     </xsd:element>
     <xsd:element name="archive">
         <xsd:annotation>
-            <xsd:documentation>Used to indicate the designated archiving organization(s) for an item.</xsd:documentation>
+            <xsd:documentation>Used to indicate the designated archiving organization(s) for an item.
+            </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>
             <xsd:attribute name="name" use="required">

@@ -30,6 +30,7 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addNameIdentifier;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillAbstract;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.findPartNumber;
 import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
+
 /**
  *
  * @author Jan Pokorsky
@@ -84,7 +85,8 @@ public class NdkPeriodicalVolumeMapper extends RdaNdkMapper {
         if (dateIssued != null) {
             dc.getDates().add(new ElementType(dateIssued, null));
         }
-        addName(mods.getName(), dc.getCreators());addNameIdentifier(mods.getName(), dc.getCreators());
+        addName(mods.getName(), dc.getCreators());
+        addNameIdentifier(mods.getName(), dc.getCreators());
         addElementType(dc.getTypes(), getDcType());
         return dc;
     }

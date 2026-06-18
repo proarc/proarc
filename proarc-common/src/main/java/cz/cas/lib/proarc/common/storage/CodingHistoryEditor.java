@@ -16,14 +16,11 @@
  */
 package cz.cas.lib.proarc.common.storage;
 
-
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.object.technicalMetadata.CodingHistoryMapper;
 import cz.cas.lib.proarc.common.process.export.mets.JHoveOutput;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
@@ -38,8 +35,9 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
-import cz.cas.lib.proarc.common.object.technicalMetadata.CodingHistoryMapper;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
+import edu.harvard.hul.ois.xml.ns.jhove.PropertyType;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -47,11 +45,8 @@ import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 import javax.xml.transform.Source;
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
-import edu.harvard.hul.ois.xml.ns.jhove.PropertyType;
 
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 
 /**
  * Edits technical metadata in Coding history format.
@@ -106,6 +101,7 @@ public class CodingHistoryEditor {
 
     /**
      * Gets persisted Coding History.
+     *
      * @return PropertyType or {@code null}
      * @throws DigitalObjectException failure
      */
@@ -120,6 +116,7 @@ public class CodingHistoryEditor {
 
     /**
      * Gets persisted Coding History as {@link Property} class.
+     *
      * @return Property or {@code null}
      * @throws DigitalObjectException failure
      */
@@ -149,10 +146,10 @@ public class CodingHistoryEditor {
     /**
      * Generates and writes Coding History for the passed content.
      *
-     * @param content file containing e.g. an image
-     * @param jhoveCtx jHove context
+     * @param content   file containing e.g. an image
+     * @param jhoveCtx  jHove context
      * @param timestamp timestamp
-     * @param msg log message
+     * @param msg       log message
      * @throws DigitalObjectException failure
      */
     public void write(File content, JhoveContext jhoveCtx, long timestamp, String msg) throws DigitalObjectException {
@@ -181,10 +178,7 @@ public class CodingHistoryEditor {
             DatastreamType ndkArchivalDS = FoxmlUtils.findDatastream(element.getSourceObject(), BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
             if (ndkArchivalDS != null) {
                 InputStream inputStream = null;
-                if (Storage.FEDORA.equals(element.getMetsContext().getTypeOfStorage())) {
-                    GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(element.getOriginalPid(), BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
-                    inputStream = dsRaw.execute(element.getMetsContext().getFedoraClient()).getEntityInputStream();
-                } else if (Storage.AKUBRA.equals(element.getMetsContext().getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(element.getMetsContext().getTypeOfStorage())) {
                     AkubraObject object = element.getMetsContext().getAkubraStorage().find(element.getOriginalPid());
                     inputStream = AkubraUtils.getDatastreamDissemination(object, BinaryEditor.NDK_AUDIO_ARCHIVAL_ID);
                 } else {
@@ -192,7 +186,7 @@ public class CodingHistoryEditor {
                 }
                 String extension = MimeType.getExtension(ndkArchivalDS.getDatastreamVersion().get(0).getMIMETYPE());
                 if (importName.contains("/")) {
-                    importName = importName.split("/")[importName.split("/").length -1];
+                    importName = importName.split("/")[importName.split("/").length - 1];
                 } else if (importName.contains("\\")) {
                     importName = importName.split("\\\\")[importName.split("\\\\").length - 1];
                 }
@@ -239,11 +233,7 @@ public class CodingHistoryEditor {
         MetsContext metsContext = null;
         ProArcObject object = null;
 
-        if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-            FedoraStorage fedoraStorage = FedoraStorage.getInstance(config);
-            object = fedoraStorage.find(pid);
-            metsContext = buildFedoraContext(object, null, null, fedoraStorage, config.getNdkExportOptions());
-        } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
             object = akubraStorage.find(pid);
             metsContext = buildAkubraContext(object, null, null, akubraStorage, config.getNdkExportOptions());

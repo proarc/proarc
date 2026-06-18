@@ -116,7 +116,7 @@ public class ProarcDatabaseV11 extends DBDatabase {
             driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.priority, script);
 
             LOG.fine(script.toString());
-            script.run(driver, conn);
+            script.executeAll(driver, conn);
         } finally {
             conn.setAutoCommit(false);
         }
@@ -389,7 +389,7 @@ public class ProarcDatabaseV11 extends DBDatabase {
         public final DBTableColumn note;
         public final DBTableColumn ownerId;
         public final DBTableColumn priority;
-//        public final DBTableColumn queueNumber;
+        //        public final DBTableColumn queueNumber;
         public final DBTableColumn state;
         /** The name of a task type in workflow profile. */
         public final DBTableColumn typeRef;
@@ -621,7 +621,7 @@ public class ProarcDatabaseV11 extends DBDatabase {
         DBSQLScript script = new DBSQLScript();
         db.getCreateDDLScript(db.getDriver(), script);
         LOG.fine(script.toString());
-        script.run(db.getDriver(), conn);
+        script.executeAll(db.getDriver(), conn);
         db.initVersion(conn, null);
         db.commit(conn);
         conn.setAutoCommit(false);

@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.common.process.export.mets;
 
 import edu.harvard.hul.ois.xml.ns.jhove.PropertyType;
 import edu.harvard.hul.ois.xml.ns.jhove.ValuesType;
-
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
@@ -35,7 +34,7 @@ public class ObjectInfo {
     private String applicationCreationDate;
     private BigInteger objectCount;
     private BigInteger pageCount;
-//    private String tableCount;
+    //    private String tableCount;
 //    private String graphicCount;
     private BigInteger imageCount;
     private String language;

@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.device.DeviceException;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
+import cz.cas.lib.proarc.common.image.ImageMimeType;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -69,7 +70,6 @@ import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.DivType;
@@ -93,8 +93,9 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.premis.ObjectIdentifierComplexType;
 import cz.cas.lib.proarc.premis.PremisUtils;
 import cz.cas.lib.proarc.urnnbn.ResolverUtils;
-import cz.incad.imgsupport.ImageMimeType;
-import cz.incad.imgsupport.ImageSupport;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.xml.bind.JAXB;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -107,14 +108,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXB;
 import javax.xml.transform.dom.DOMSource;
 import org.aes.audioobject.AudioObject;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.w3c.dom.Node;
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
 
+import static cz.cas.lib.proarc.common.image.ImageUtility.readImage;
 import static cz.cas.lib.proarc.common.process.imports.TiffImporter.scale;
 import static cz.cas.lib.proarc.common.process.imports.TiffImporter.writeImage;
 import static cz.cas.lib.proarc.common.process.imports.ndk.StreamFileType.AMD;
@@ -318,7 +317,6 @@ public class FileReader {
         return localObject;
 
 
-
     }
 
     private void processStructLink(StructLink structLink) throws DigitalObjectException {
@@ -369,12 +367,12 @@ public class FileReader {
             }
             //process volume as top level
             if (volumeDivs.size() == 1) {
-                processDiv(null, null,volumeDivs.get(0), ctx, true);
+                processDiv(null, null, volumeDivs.get(0), ctx, true);
                 return null;
             }
             //if monograph div contains more subdivs, first is supposed to be the volume, the rest are supplements that will be nested in the volume.
             if (volumeDivs.size() > 1) {
-                LocalStorage.LocalObject volume = processDiv(null, null,volumeDivs.get(0), ctx, true);
+                LocalStorage.LocalObject volume = processDiv(null, null, volumeDivs.get(0), ctx, true);
                 for (int i = 1; i < volumeDivs.size(); i++) {
                     processDiv(volume, null, volumeDivs.get(i), ctx, false);
                 }
@@ -477,7 +475,7 @@ public class FileReader {
                 return NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT;
             } else if (NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(parentModel) || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(parentModel) || NdkEbornPlugin.MODEL_EMONOGRAPHUNIT.equals(parentModel)) {
                 return NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT;
-            } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parentModel) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentModel) || NdkAudioPlugin.MODEL_TRACK.equals(parentModel) || NdkAudioPlugin.MODEL_SONG.equals(parentModel)){
+            } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parentModel) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentModel) || NdkAudioPlugin.MODEL_TRACK.equals(parentModel) || NdkAudioPlugin.MODEL_SONG.equals(parentModel)) {
                 return NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT;
             } else if (OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(parentModel) || OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(parentModel) || OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(parentModel)) {
                 return OldPrintPlugin.MODEL_SUPPLEMENT;
@@ -906,7 +904,7 @@ public class FileReader {
         if (iSession.getDevicePid() != null) {
             return iSession.getDevicePid();
         }
-        List<Device> devices  = iSession.findAllDevices();
+        List<Device> devices = iSession.findAllDevices();
         for (Device device : devices) {
             if (isEqualDevice(newDevice, device.getDescription())) {
                 return device.getId();
@@ -1007,7 +1005,7 @@ public class FileReader {
                 } else {
                     if (tiff == null) {
                         start = System.nanoTime();
-                        tiff = ImageSupport.readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
+                        tiff = readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
                         endRead = System.nanoTime() - start;
                     }
                     file = writeImage(tiff, ctx.getTargetFolder(), targetName, imageType);
@@ -1036,12 +1034,12 @@ public class FileReader {
                 } else {
                     if (tiff == null) {
                         start = System.nanoTime();
-                        tiff = ImageSupport.readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
+                        tiff = readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
                         endRead = System.nanoTime() - start;
                     }
                     file = writeImage(
-                                scale(tiff, config.getPreviewScaling(), previewMaxWidth, previewMaxHeight),
-                                ctx.getTargetFolder(), targetName, imageType);
+                            scale(tiff, config.getPreviewScaling(), previewMaxWidth, previewMaxHeight),
+                            ctx.getTargetFolder(), targetName, imageType);
                 }
                 if (!InputUtils.isJpeg(file)) {
                     throw new IllegalStateException("Not a JPEG content: " + file);
@@ -1066,7 +1064,7 @@ public class FileReader {
                 } else {
                     if (tiff == null) {
                         start = System.nanoTime();
-                        tiff = ImageSupport.readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
+                        tiff = readImage(tiffFile.toURI().toURL(), ImageMimeType.TIFF);
                         endRead = System.nanoTime() - start;
                     }
                     file = writeImage(
@@ -1310,7 +1308,6 @@ public class FileReader {
         private final DeviceRepository deviceRepository;
         private final Storage typeOfStorage;
         private final AppConfiguration config;
-        private FedoraStorage fedoraStorage;
         private AkubraStorage akubraStorage;
         private String rootPid;
         private String devicePid;
@@ -1318,11 +1315,7 @@ public class FileReader {
         public ImportSession(BatchManager batchManager, ImportProcess.ImportOptions options, AppConfiguration appConfig) throws IOException {
             try {
                 this.typeOfStorage = appConfig.getTypeOfStorage();
-                if (Storage.FEDORA.equals(typeOfStorage)) {
-                    this.fedoraStorage = FedoraStorage.getInstance(appConfig);
-                    this.search = this.fedoraStorage.getSearch();
-                    this.deviceRepository = new DeviceRepository(this.fedoraStorage);
-                } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                if (Storage.AKUBRA.equals(typeOfStorage)) {
                     AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
                     this.akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     this.search = this.akubraStorage.getSearch();
@@ -1341,11 +1334,7 @@ public class FileReader {
         }
 
         public boolean exists(String pid) throws DigitalObjectException {
-            if (Storage.FEDORA.equals(this.typeOfStorage)) {
-                if (this.fedoraStorage.exist(pid)) {
-                    throw new DigitalObjectExistException(pid, null, "Object with PID " + pid + " already exists!", null);
-                }
-            } else if (Storage.AKUBRA.equals(this.typeOfStorage)) {
+            if (Storage.AKUBRA.equals(this.typeOfStorage)) {
                 if (this.akubraStorage.exist(pid)) {
                     throw new DigitalObjectExistException(pid, null, "Object with PID " + pid + " already exists!", null);
                 }
@@ -1356,7 +1345,7 @@ public class FileReader {
         }
 
         public List<Device> findAllDevices() throws DeviceException {
-            return this.deviceRepository.find(config, null, true,0);
+            return this.deviceRepository.find(config, null, true, 0);
         }
 
         public BatchManager getImportManager() {
@@ -1365,10 +1354,6 @@ public class FileReader {
 
         public LocalStorage getLocals() {
             return locals;
-        }
-
-        public FedoraStorage getFedoraRemotes() {
-            return fedoraStorage;
         }
 
         public AkubraStorage getAkubraStorage() {
@@ -1517,7 +1502,7 @@ public class FileReader {
             } else if (value != null && sourceValue == null) {
                 return 1;
             } else {
-                return  value.equals(sourceValue) ? 0 : 1;
+                return value.equals(sourceValue) ? 0 : 1;
             }
         }
     }

@@ -27,7 +27,7 @@ import org.w3c.dom.ls.LSResourceResolver;
 
 public class MetsLSResolver implements LSResourceResolver {
 
-    static final  HashMap<String, String> URL_MAP = new HashMap<String, String>();
+    static final HashMap<String, String> URL_MAP = new HashMap<String, String>();
     private static MetsLSResolver INSTANCE;
 
     private final DOMImplementationLS dls;

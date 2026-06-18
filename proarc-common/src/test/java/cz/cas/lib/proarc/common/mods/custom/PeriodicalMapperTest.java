@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,9 +20,10 @@ import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.PeriodicalMapper.Periodical;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.util.Arrays;
-import org.hamcrest.core.Is;
-import static org.junit.Assert.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  *
@@ -32,49 +33,49 @@ public class PeriodicalMapperTest {
 
     private static final String XML =
             "  <mods xmlns='http://www.loc.gov/mods/v3'>"
-            // identifiers
-            + "<identifier type='type'>IDENTIFIER</identifier>"
-            // sigla + shelf locators
-            + "<location><physicalLocation>SIGLA</physicalLocation>"
+                    // identifiers
+                    + "<identifier type='type'>IDENTIFIER</identifier>"
+                    // sigla + shelf locators
+                    + "<location><physicalLocation>SIGLA</physicalLocation>"
                     + "<shelfLocator>SHELF1</shelfLocator>"
                     + "<shelfLocator>SHELF2</shelfLocator></location>"
-            // periodicity + publishers + printers
-            + "<originInfo transliteration='publisher'>"
-                + "<place><placeTerm type='text'>PLACETERM[0]</placeTerm></place>"
-                + "<publisher>PUBLISHER[0]</publisher><dateIssued>DATE[0]</dateIssued>"
-            + "</originInfo>"
-            + "<originInfo transliteration='printer'>"
-                + "<place><placeTerm type='text'>PLACETERM[1]</placeTerm></place>"
-                + "<publisher>PRINTER[1]</publisher><dateCreated>DATE[1]</dateCreated>"
-            + "</originInfo>"
-            + "<originInfo>"
-                + "<issuance>continuing</issuance><frequency>daily</frequency>"
-            + "</originInfo>"
-            // titles
-            + "<titleInfo type='alternative'><title>ATITLE[0]</title></titleInfo>"
-            + "<titleInfo><title>MTITLE[0]</title><subTitle>STITLE[0]</subTitle></titleInfo>"
-            + "<titleInfo type='alternative' displayLabel='Klíčový název'><title>KTITLE[0]</title></titleInfo>"
-            + "<titleInfo type='uniform'><title>UNSUPPORTED</title></titleInfo>"
-            // authors + contributors
-            + "<name type='personal'>"
-            + "<namePart type='family'>FamilyAuthor1</namePart>"
-            + "<namePart type='given'>GivenAuthor1</namePart>"
-            + "<role><roleTerm type='code'>cre</roleTerm><roleTerm type='text'>Author</roleTerm></role>"
-            + "</name>"
-            // languages
-            + "<language><languageTerm authority='iso639-2b' type='code'>cze</languageTerm></language>"
-            // classifications
-            + "<classification authority='ddc'>DDC</classification>"
-            + "<classification authority='udc'>UDC</classification>"
-            // keywords
-            + "<subject><topic>TOPIC</topic></subject>"
-            // physicalDescriptions
-            + "<physicalDescription><extent>EXTENT</extent><extent>SIZE</extent></physicalDescription>"
-            // recordOrigin
-            + "<recordInfo><recordOrigin>RECORDORIGIN</recordOrigin></recordInfo>"
-            // note
-            + "<note>NOTE</note>"
-            + "</mods>";
+                    // periodicity + publishers + printers
+                    + "<originInfo transliteration='publisher'>"
+                    + "<place><placeTerm type='text'>PLACETERM[0]</placeTerm></place>"
+                    + "<publisher>PUBLISHER[0]</publisher><dateIssued>DATE[0]</dateIssued>"
+                    + "</originInfo>"
+                    + "<originInfo transliteration='printer'>"
+                    + "<place><placeTerm type='text'>PLACETERM[1]</placeTerm></place>"
+                    + "<publisher>PRINTER[1]</publisher><dateCreated>DATE[1]</dateCreated>"
+                    + "</originInfo>"
+                    + "<originInfo>"
+                    + "<issuance>continuing</issuance><frequency>daily</frequency>"
+                    + "</originInfo>"
+                    // titles
+                    + "<titleInfo type='alternative'><title>ATITLE[0]</title></titleInfo>"
+                    + "<titleInfo><title>MTITLE[0]</title><subTitle>STITLE[0]</subTitle></titleInfo>"
+                    + "<titleInfo type='alternative' displayLabel='Klíčový název'><title>KTITLE[0]</title></titleInfo>"
+                    + "<titleInfo type='uniform'><title>UNSUPPORTED</title></titleInfo>"
+                    // authors + contributors
+                    + "<name type='personal'>"
+                    + "<namePart type='family'>FamilyAuthor1</namePart>"
+                    + "<namePart type='given'>GivenAuthor1</namePart>"
+                    + "<role><roleTerm type='code'>cre</roleTerm><roleTerm type='text'>Author</roleTerm></role>"
+                    + "</name>"
+                    // languages
+                    + "<language><languageTerm authority='iso639-2b' type='code'>cze</languageTerm></language>"
+                    // classifications
+                    + "<classification authority='ddc'>DDC</classification>"
+                    + "<classification authority='udc'>UDC</classification>"
+                    // keywords
+                    + "<subject><topic>TOPIC</topic></subject>"
+                    // physicalDescriptions
+                    + "<physicalDescription><extent>EXTENT</extent><extent>SIZE</extent></physicalDescription>"
+                    // recordOrigin
+                    + "<recordInfo><recordOrigin>RECORDORIGIN</recordOrigin></recordInfo>"
+                    // note
+                    + "<note>NOTE</note>"
+                    + "</mods>";
 
     @Test
     public void testRead() {
@@ -108,27 +109,27 @@ public class PeriodicalMapperTest {
 
     public static void assertPeriodicalEquals(Periodical expected, Periodical actual) {
         if (expected == null && actual == null) {
-            return ;
+            return;
         }
         assertNotNull(expected);
         assertNotNull(actual);
-        assertThat(actual.getIdentifiers(), Is.is(expected.getIdentifiers()));
+        assertEquals(actual.getIdentifiers(), expected.getIdentifiers());
         assertEquals(expected.getSigla(), actual.getSigla());
-        assertThat(actual.getShelfLocators(), Is.is(expected.getShelfLocators()));
-        assertThat(actual.getPeriodicities(), Is.is(expected.getPeriodicities()));
-        assertThat(actual.getTitles(), Is.is(expected.getTitles()));
-        assertThat(actual.getSubtitles(), Is.is(expected.getSubtitles()));
-        assertThat(actual.getKeyTitles(), Is.is(expected.getKeyTitles()));
-        assertThat(actual.getAlternativeTitles(), Is.is(expected.getAlternativeTitles()));
-        assertThat(actual.getIdentifiers(), Is.is(expected.getIdentifiers()));
-        assertThat(actual.getAuthors(), Is.is(expected.getAuthors()));
-        assertThat(actual.getContributors(), Is.is(expected.getContributors()));
-        assertThat(actual.getPrinters(), Is.is(expected.getPrinters()));
-        assertThat(actual.getPublishers(), Is.is(expected.getPublishers()));
-        assertThat(actual.getLanguages(), Is.is(expected.getLanguages()));
-        assertThat(actual.getClassifications(), Is.is(expected.getClassifications()));
-        assertThat(actual.getKeywords(), Is.is(expected.getKeywords()));
-        assertThat(actual.getPhysicalDescriptions(), Is.is(expected.getPhysicalDescriptions()));
+        assertEquals(actual.getShelfLocators(), expected.getShelfLocators());
+        assertEquals(actual.getPeriodicities(), expected.getPeriodicities());
+        assertEquals(actual.getTitles(), expected.getTitles());
+        assertEquals(actual.getSubtitles(), expected.getSubtitles());
+        assertEquals(actual.getKeyTitles(), expected.getKeyTitles());
+        assertEquals(actual.getAlternativeTitles(), expected.getAlternativeTitles());
+        assertEquals(actual.getIdentifiers(), expected.getIdentifiers());
+        assertEquals(actual.getAuthors(), expected.getAuthors());
+        assertEquals(actual.getContributors(), expected.getContributors());
+        assertEquals(actual.getPrinters(), expected.getPrinters());
+        assertEquals(actual.getPublishers(), expected.getPublishers());
+        assertEquals(actual.getLanguages(), expected.getLanguages());
+        assertEquals(actual.getClassifications(), expected.getClassifications());
+        assertEquals(actual.getKeywords(), expected.getKeywords());
+        assertEquals(actual.getPhysicalDescriptions(), expected.getPhysicalDescriptions());
         assertEquals(expected.getRecordOrigin(), actual.getRecordOrigin());
         assertEquals(expected.getNote(), actual.getNote());
     }
@@ -177,5 +178,5 @@ public class PeriodicalMapperTest {
 ////        XMLAssert.assertXMLEqual(diff, true);
 ////        XMLAssert.assertXMLEqual(expected, toXml);
     }
-    
+
 }

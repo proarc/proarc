@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.common.process.imports;
 
-import org.apache.commons.io.IOUtils;
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Helper class to check imported data.
@@ -91,13 +91,14 @@ public class InputUtils {
         return hasMagicNumber(f, MP3_ID3V1_MAGIC_NUMBER, MP3_ID3V2_MAGIC_NUMBER);
     }
 
-    public static boolean isOgg(File f) throws  IOException {
+    public static boolean isOgg(File f) throws IOException {
         return hasMagicNumber(f, OGG_MAGIC_NUMBER);
     }
 
     /**
      * Checks a file for magic numbers.
-     * @param f file to check
+     *
+     * @param f      file to check
      * @param magics list of magic numbers
      * @return {@code true} if the file starts with some of magic numbers.
      * @throws IOException file access failure
@@ -128,7 +129,7 @@ public class InputUtils {
     }
 
     private static boolean startWith(byte[] src, int srcLength, byte[] subarray) {
-        if (subarray.length > srcLength ) {
+        if (subarray.length > srcLength) {
             return false;
         }
         StringBuilder s1 = new StringBuilder();
@@ -139,8 +140,8 @@ public class InputUtils {
             if (src[i] != subarray[i]) {
                 if (LOG.isLoggable(Level.FINE)) {
                     LOG.log(Level.FINE, "\nsrc: {0}\nsub: {1}", new Object[]{
-                        DatatypeConverter.printHexBinary(src),
-                        DatatypeConverter.printHexBinary(subarray)});
+                            DatatypeConverter.printHexBinary(src),
+                            DatatypeConverter.printHexBinary(subarray)});
                 }
                 return false;
             }

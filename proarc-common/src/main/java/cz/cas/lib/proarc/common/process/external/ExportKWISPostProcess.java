@@ -18,7 +18,7 @@ package cz.cas.lib.proarc.common.process.external;
 
 import java.io.File;
 import java.util.List;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * Processes K4 and Image export for Kramerius using Imageserver.

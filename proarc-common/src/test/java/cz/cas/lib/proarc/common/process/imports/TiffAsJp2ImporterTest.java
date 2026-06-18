@@ -17,42 +17,39 @@
 
 package cz.cas.lib.proarc.common.process.imports;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
-import cz.cas.lib.proarc.common.process.imports.FileSet;
 import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.imports.TiffAsJp2Importer;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.File;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Jakub Kremlacek
  */
 public class TiffAsJp2ImporterTest {
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder();
+    @TempDir
+    File tempDir;
 
     private UserProfile junit;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         junit = new UserProfile();
         junit.setUserName("junit");
-        File root = temp.getRoot();
+        File root = tempDir;
         System.out.println("root: " + root.toString());
     }
 
     @Test
     public void testConsumeInvalidFileSet() throws Exception {
         TiffAsJp2Importer importer = new TiffAsJp2Importer(null);
-        File testfile = new File(temp.getRoot(), "test.db");
+        File testfile = new File(tempDir, "test.db");
         FileSet set = new FileSet("test");
 
         testfile.createNewFile();

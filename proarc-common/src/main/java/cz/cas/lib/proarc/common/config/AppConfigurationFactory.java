@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -44,7 +44,7 @@ public final class AppConfigurationFactory {
     /**
      * Creates configuration of the application. The lookup of default properties
      * searches the passed map, system properties and system environment.
-     * 
+     *
      * @param defaults properties to override defaults.
      * @return the configuration
      * @throws AppConfigurationException
@@ -61,7 +61,9 @@ public final class AppConfigurationFactory {
         return pc;
     }
 
-    /** XXX replace with guice */
+    /**
+     * XXX replace with guice
+     */
     public AppConfiguration defaultInstance() throws AppConfigurationException {
         if (defaultInstance == null) {
             defaultInstance = create();
@@ -75,7 +77,7 @@ public final class AppConfigurationFactory {
 
     private static void readParameter(String name, String envName, Map<String, String> env) {
         if (env.get(name) != null) {
-            return ;
+            return;
         }
         String val = null;
         if (name != null) {

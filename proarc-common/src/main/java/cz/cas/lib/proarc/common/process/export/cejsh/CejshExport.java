@@ -37,7 +37,6 @@ import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -53,8 +52,8 @@ import java.util.Set;
 /**
  * Exports born-digital articles in CEJSH format.
  *
- * @see <a href='https://github.com/proarc/proarc/issues/286'>issue 286</a>
  * @author Jan Pokorsky
+ * @see <a href='https://github.com/proarc/proarc/issues/286'>issue 286</a>
  */
 public class CejshExport {
 
@@ -78,10 +77,11 @@ public class CejshExport {
 
     /**
      * Runs the export and writes the export log.
+     *
      * @param outputFolder a folder where to create the export folder
-     * @param pids PIDs of digital objects to include in the export. NDK and born-digital
-     *          objects are expected
-     * @param status an export status
+     * @param pids         PIDs of digital objects to include in the export. NDK and born-digital
+     *                     objects are expected
+     * @param status       an export status
      * @return the export status including the target folder and errors
      */
     public CejshStatusHandler export(File outputFolder, List<String> pids, CejshStatusHandler status, Batch batch) throws IOException {
@@ -111,9 +111,7 @@ public class CejshExport {
         }
         status.setTargetFolder(output);
         SearchView search = null;
-        if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-            search = FedoraStorage.getInstance(appConfiguration).getSearch();
-        }  else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())){
+        if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
             search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
@@ -156,11 +154,12 @@ public class CejshExport {
      * When an object is the article then its parent is listed instead and
      * the article is included in the attached set.
      * Other children of the parent are ignored during the export.
-     * @param pids input PIDs
+     *
+     * @param pids    input PIDs
      * @param crawler the search index
-     * @param ctx the context
+     * @param ctx     the context
      * @return the list of unique digital objects and their articles to include.
-     *      The {@code null} Set means include all children.
+     * The {@code null} Set means include all children.
      */
     private LinkedHashMap<DigitalObjectElement, Set<DigitalObjectElement>> prepareInputQueue(
             List<String> pids, final DigitalObjectCrawler crawler, CejshContext ctx) {

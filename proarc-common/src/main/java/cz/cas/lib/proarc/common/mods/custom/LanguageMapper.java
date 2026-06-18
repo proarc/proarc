@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,23 +22,22 @@ import cz.cas.lib.proarc.mods.LanguageDefinition;
 import cz.cas.lib.proarc.mods.LanguageTermDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.ObjectFactory;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  * Example:<br/>{@code
-     <language objectPart="summary">
-         <languageTerm type= "code" authority="iso639-2b">spa</languageTerm>
-     </language>
+ * <language objectPart="summary">
+ * <languageTerm type= "code" authority="iso639-2b">spa</languageTerm>
+ * </language>
  *
+ * @author Jan Pokorsky
  * @see <a href='http://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt'>ISO-639-2 CSV list</a>
  * @see <a href='http://www.loc.gov/standards/iso639-2/php/code_list.php'>ISO-639-2 list</a>
  * @see <a href='http://www.loc.gov/standards/mods/userguide/language.html#languageterm'>MODS user guide</a>
- *
- * @author Jan Pokorsky
  */
 final class LanguageMapper {
 

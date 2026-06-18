@@ -1,11 +1,11 @@
 package cz.cas.lib.proarc.common.workflow;
 
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 public class WorkflowOptions {
     static final String PROP_MATERIAL_FOLDER_RAW_SCAN = "workflow.material.folder.rawScan";
     static final String PROP_MATERIAL_FOLDER_MASTER_COPY = "workflow.material.folder.masterCopy";
-    static final String PROP_MATERIAL_FOLDER_OCR= "workflow.material.folder.ocr";
+    static final String PROP_MATERIAL_FOLDER_OCR = "workflow.material.folder.ocr";
     static final String PROP_MATERIAL_FOLDER_OCR_IMAGE = "workflow.material.folder.OcrAndProcessedImages";
 
     private String rawScan;

@@ -35,8 +35,8 @@ import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.dbunit.ext.postgresql.PostgresqlDataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
-import org.junit.Assert;
-import org.junit.Assume;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  *
@@ -48,7 +48,7 @@ public class DbUnitSupport {
     private static String dtdSchema;
 
     public DbUnitSupport() {
-        Assume.assumeNotNull(System.getProperty("proarc-common.DbUnitSupport.jdbc.user"));
+            assertNotNull(System.getProperty("proarc-common.DbUnitSupport.jdbc.user"));
         emireCfg = new EmpireConfiguration(
                 System.getProperty("proarc-common.DbUnitSupport.jdbc.driver"),
                 System.getProperty("proarc-common.DbUnitSupport.jdbc.url"),
@@ -56,7 +56,7 @@ public class DbUnitSupport {
                 System.getProperty("proarc-common.DbUnitSupport.jdbc.passwd"),
                 System.getProperty("proarc-common.DbUnitSupport.empiredb.driver"),
                 null
-                );
+        );
     }
 
     public EmpireConfiguration getEmireCfg() {
@@ -78,7 +78,7 @@ public class DbUnitSupport {
     public Connection getSqlConnection(Transaction tx) {
         return ((SqlTransaction) tx).getConnection();
     }
-    
+
     private IDatabaseConnection createProgresConnection(Connection c) throws DatabaseUnitException {
         DatabaseConnection dbc = new DatabaseConnection(c);
         DatabaseConfig config = dbc.getConfig();
@@ -88,7 +88,7 @@ public class DbUnitSupport {
         config.setProperty(DatabaseConfig.FEATURE_CASE_SENSITIVE_TABLE_NAMES, false);
         return dbc;
     }
-    
+
     public IDataSet loadFlatXmlDataStream(Class<?> c, String resource) throws Exception {
         return loadFlatXmlDataStream(c, resource, false);
     }
@@ -101,7 +101,9 @@ public class DbUnitSupport {
         return fds;
     }
 
-    /** initializes sequences after DBUnit inserts */
+    /**
+     * initializes sequences after DBUnit inserts
+     */
     public void initSequences(Transaction tx, int startWith, String... sqnName) throws Exception {
         initSequences(getSqlConnection(tx), startWith, sqnName);
     }
@@ -128,12 +130,13 @@ public class DbUnitSupport {
         DBCommand cmd = schema.createCommand();
         cmd.set(schema.tableUser.defaultGroup.to(null));
         cmd.set(schema.tableUser.userGroup.to(null));
+
         schema.executeUpdate(cmd, c);
     }
 
     private InputStream getResourceStream(Class<?> c, String resource) {
         InputStream stream = c.getResourceAsStream(resource);
-        Assert.assertNotNull("stream.name: " + resource + ", class: " + c, stream);
+        assertNotNull(stream, "stream.name: " + resource + ", class: " + c);
         return stream;
     }
 

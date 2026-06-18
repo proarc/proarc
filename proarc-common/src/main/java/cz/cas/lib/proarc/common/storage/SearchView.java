@@ -1,6 +1,5 @@
 package cz.cas.lib.proarc.common.storage;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.object.HasDataHandler;
 import java.io.IOException;
 import java.util.Collection;
@@ -9,118 +8,119 @@ import java.util.Locale;
 
 public abstract class SearchView {
 
-    public boolean isDeviceInUse(String deviceId) throws IOException, FedoraClientException {
+    public boolean isDeviceInUse(String deviceId) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public boolean isSoftwareInUse(String softwareId) throws IOException, FedoraClientException {
+    public boolean isSoftwareInUse(String softwareId) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> find(String... pids) throws FedoraClientException, IOException {
+    public List<SearchViewItem> find(String... pids) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> find(String pid) throws FedoraClientException, IOException {
+    public List<SearchViewItem> find(String pid) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> find(List<String> pids) throws FedoraClientException, IOException {
+    public List<SearchViewItem> find(List<String> pids) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> find(boolean onlyActive, List<String> pids) throws FedoraClientException, IOException {
-        throw new IOException("Method is not implmeneted");
-    }
-    public List<SearchViewItem> findAllObjects() throws FedoraClientException, IOException {
+    public List<SearchViewItem> find(boolean onlyActive, List<String> pids) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findReferrers(String pid) throws IOException, FedoraClientException {
+    public List<SearchViewItem> findAllObjects() throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findByModel(String modelId) throws  IOException, FedoraClientException {
+    public List<SearchViewItem> findReferrers(String pid) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findByModel(int offset, String modelId) throws IOException, FedoraClientException {
+    public List<SearchViewItem> findByModel(String modelId) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findSortedChildren(String parentPid) throws FedoraClientException, IOException, DigitalObjectException {
+    public List<SearchViewItem> findByModel(int offset, String modelId) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findSortedChildrenWithPagesFirst(String parentPid) throws FedoraClientException, IOException, DigitalObjectException {
+    public List<SearchViewItem> findSortedChildren(String parentPid) throws IOException, DigitalObjectException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findChildren(String pid) throws FedoraClientException, IOException, DigitalObjectException {
+    public List<SearchViewItem> findSortedChildrenWithPagesFirst(String parentPid) throws IOException, DigitalObjectException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findChildrenHierarchy(String pid) throws FedoraClientException, IOException, DigitalObjectException {
+    public List<SearchViewItem> findChildren(String pid) throws IOException, DigitalObjectException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findLastCreated(int offset, String model, String sort) throws FedoraClientException, IOException {
+    public List<SearchViewItem> findChildrenHierarchy(String pid) throws IOException, DigitalObjectException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findByModels(int offset, String modelId1, String modelId2) throws IOException, FedoraClientException {
+    public List<SearchViewItem> findLastCreated(int offset, String model, String sort) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findByModels(int offset, String... modelIds) throws IOException, FedoraClientException {
+    public List<SearchViewItem> findByModels(int offset, String modelId1, String modelId2) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findQuery(String title, String label, String identifier, String owner, String model, Collection<String> hasOwners) throws FedoraClientException, IOException {
+    public List<SearchViewItem> findByModels(int offset, String... modelIds) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findQuery(SearchViewQuery q, String status) throws FedoraClientException, IOException {
+    public List<SearchViewItem> findQuery(String title, String label, String identifier, String owner, String model, Collection<String> hasOwners) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findPhrase(String phrase, String status, String organization, String processor, String model, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
+    public List<SearchViewItem> findQuery(SearchViewQuery q, String status) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findAlphabetical(int offset, String model, String organization, int limit, String sort) throws IOException, FedoraClientException {
+    public List<SearchViewItem> findPhrase(String phrase, String status, String organization, String processor, String model, String sortField, String sort, int offset, int limit) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findLastCreated(int offset, String model, String organization, int limit, String sort) throws FedoraClientException, IOException {
+    public List<SearchViewItem> findAlphabetical(int offset, String model, String organization, int limit, String sort) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findLastModified(int offset, String model, String organization, int limit, String sort) throws FedoraClientException, IOException {
+    public List<SearchViewItem> findLastCreated(int offset, String model, String organization, int limit, String sort) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findAdvancedSearchItems(Boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid, String sortField, String sort, int offset, int limit) throws IOException, FedoraClientException {
+    public List<SearchViewItem> findLastModified(int offset, String model, String organization, int limit, String sort) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public int countModels(String model, String organization) throws FedoraClientException, IOException {
+    public List<SearchViewItem> findAdvancedSearchItems(Boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid, String sortField, String sort, int offset, int limit) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public int findAdvancedSearchCount(Boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid) throws FedoraClientException, IOException {
+    public int countModels(String model, String organization) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findByOwner(String owner) throws FedoraClientException, IOException {
+    public int findAdvancedSearchCount(Boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid) throws IOException {
+        throw new IOException("Method is not implmeneted");
+    }
+
+    public List<SearchViewItem> findByOwner(String owner) throws IOException {
         return findAdvancedSearchItems(true, null, null, owner, null, null, null, null, null, "label", "desc", 0, Integer.MAX_VALUE);
     }
 
-    public List<SearchViewItem> findByProcessor(String processor) throws FedoraClientException, IOException {
+    public List<SearchViewItem> findByProcessor(String processor) throws IOException {
         return findAdvancedSearchItems(true, null, null, null, null, null, processor, null, null, "label", "desc", 0, Integer.MAX_VALUE);
     }
 
-    public int countByOwner(String owner) throws FedoraClientException, IOException {
+    public int countByOwner(String owner) throws IOException {
         throw new IOException("Method is not implemented");
     }
 

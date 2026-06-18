@@ -1,14 +1,18 @@
 package cz.cas.lib.proarc.common.storage.akubra;
 
-import com.yourmediashelf.fedora.generated.foxml.ContentLocationType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
-import com.yourmediashelf.fedora.util.DateUtility;
+import com.yourmediashelf.fedora.foxml.ContentLocationType;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.PropertyType;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
+import cz.cas.lib.proarc.foxml.utility.DateUtility;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,10 +30,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -59,7 +59,7 @@ public class AkubraUtils {
             JAXBContext jaxbContextKram = JAXBContext.newInstance(new Class[]{DigitalObject.class});
             unmarshallerKram = jaxbContextKram.createUnmarshaller();
             marshallerKram = jaxbContextKram.createMarshaller();
-            JAXBContext jaxbContextPro = JAXBContext.newInstance(new Class[]{com.yourmediashelf.fedora.generated.foxml.DigitalObject.class});
+            JAXBContext jaxbContextPro = JAXBContext.newInstance(new Class[]{DigitalObject.class});
             unmarshallerProArc = jaxbContextPro.createUnmarshaller();
             marshallerProArc = jaxbContextPro.createMarshaller();
         } catch (Exception var8) {
@@ -72,7 +72,7 @@ public class AkubraUtils {
         try {
             InputStream inputStream = manager.retrieveObject(pid);
             try {
-                synchronized(unmarshallerKram) {
+                synchronized (unmarshallerKram) {
                     Object obj = unmarshallerKram.unmarshal(inputStream);
                     DigitalObject digitalObject = (DigitalObject) obj;
                     return digitalObject;
@@ -92,11 +92,12 @@ public class AkubraUtils {
             throw new RuntimeException(e);
         }
     }
+
     public static DigitalObject getDigitalObjectProArc(AkubraManager manager, String pid) throws JAXBException {
         try {
             InputStream inputStream = manager.retrieveObject(pid);
             try {
-                synchronized(unmarshallerProArc) {
+                synchronized (unmarshallerProArc) {
                     Object obj = unmarshallerProArc.unmarshal(inputStream);
                     DigitalObject digitalObject = (DigitalObject) obj;
                     return digitalObject;
@@ -123,7 +124,7 @@ public class AkubraUtils {
         try {
             InputStream inputStream = manager.retrieveObject(pid);
             try {
-                synchronized(unmarshallerProArc) {
+                synchronized (unmarshallerProArc) {
                     Object obj = unmarshallerProArc.unmarshal(inputStream);
                     DigitalObject digitalObject = (DigitalObject) obj;
                     List<DatastreamType> toDelete = new ArrayList<>();
@@ -200,7 +201,7 @@ public class AkubraUtils {
                 profile.setDsState(datastream.getSTATE().value());
                 profile.setDsID(datastream.getID());
 
-                DatastreamVersionType type =  getLastStreamVersion(datastream);
+                DatastreamVersionType type = getLastStreamVersion(datastream);
                 if (type != null) {
                     profile.setDsVersionID(type.getID());
                     profile.setDsLabel(type.getLABEL());
@@ -230,7 +231,7 @@ public class AkubraUtils {
             profile.setDsState(datastream.getSTATE().value());
             profile.setDsID(datastream.getID());
 
-            DatastreamVersionType type =  getLastStreamVersion(datastream);
+            DatastreamVersionType type = getLastStreamVersion(datastream);
             if (type != null) {
                 profile.setDsVersionID(type.getID());
                 profile.setDsLabel(type.getLABEL());
@@ -338,7 +339,7 @@ public class AkubraUtils {
     public static long getLastModified(DigitalObject digitalObject, String dsId) throws IOException {
         DatastreamVersionType stream = AkubraUtils.getLastStreamVersion(digitalObject, dsId);
         if (stream != null) {
-            return DateUtility.parseXSDDateTime(stream.getCREATED().toXMLFormat()).toDate().getTime();
+            return DateUtility.parseXSDDateTime(stream.getCREATED().toXMLFormat()).toInstant().toEpochMilli();
         } else {
             throw new IOException("Cannot find stream '" + dsId + "' for pid '" + digitalObject.getPID() + "'");
         }

@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -23,13 +23,13 @@ import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.util.Arrays;
 import java.util.List;
-import org.hamcrest.core.Is;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  *
@@ -40,19 +40,19 @@ public class ClassificationMapperTest {
     public ClassificationMapperTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -66,14 +66,14 @@ public class ClassificationMapperTest {
         mods.getClassification().add(classificationType(Type.UDC.getText(), "udc[4]"));
         ClassificationMapper instance = new ClassificationMapper();
         List<ClassificationItem> expResult = Arrays.asList(
-            new ClassificationItem(0, Type.DDC, "ddc[0]"),
-            new ClassificationItem(1, Type.DDC, "ddc[1]"),
-            new ClassificationItem(2, Type.UDC, "udc[2]"),
-            new ClassificationItem(3, Type.OTHER, null),
-            new ClassificationItem(4, Type.UDC, "udc[4]")
+                new ClassificationItem(0, Type.DDC, "ddc[0]"),
+                new ClassificationItem(1, Type.DDC, "ddc[1]"),
+                new ClassificationItem(2, Type.UDC, "udc[2]"),
+                new ClassificationItem(3, Type.OTHER, null),
+                new ClassificationItem(4, Type.UDC, "udc[4]")
         );
         List<ClassificationItem> result = instance.map(mods);
-        assertThat(result, Is.is(expResult));
+        assertEquals(result, expResult);
     }
 
     @Test
@@ -86,12 +86,12 @@ public class ClassificationMapperTest {
         mods.getClassification().add(classificationType(Type.UDC.getText(), "udc[4]"));
         ClassificationMapper instance = new ClassificationMapper();
         List<ClassificationPair> expResult = Arrays.asList(
-            new ClassificationPair("ddc[0]", 0, null, null),
-            new ClassificationPair("ddc[1]", 1, "udc[2]", 2),
-            new ClassificationPair(null, null, "udc[4]", 4)
+                new ClassificationPair("ddc[0]", 0, null, null),
+                new ClassificationPair("ddc[1]", 1, "udc[2]", 2),
+                new ClassificationPair(null, null, "udc[4]", 4)
         );
         List<ClassificationPair> result = instance.mapPairs(mods);
-        assertThat(result, Is.is(expResult));
+        assertEquals(result, expResult);
     }
 
     @Test
@@ -103,10 +103,10 @@ public class ClassificationMapperTest {
         mods.getClassification().add(classificationType(null, "unknown[3]"));
         mods.getClassification().add(classificationType(Type.UDC.getText(), "udc[4]"));
         List<ClassificationPair> updates = Arrays.asList(
-            new ClassificationPair("ddc[0]-updated", 0, "udc[new][1]", null), // update + insert
+                new ClassificationPair("ddc[0]-updated", 0, "udc[new][1]", null), // update + insert
 //            new ClassificationPair("ddc[1]-removed", 1, "udc[2]", 2), // delete
-            new ClassificationPair(null, null, "udc[4]", 4), // nothing
-            new ClassificationPair("ddc[new][5]", null, "udc[new][6]", null) // insert
+                new ClassificationPair(null, null, "udc[4]", 4), // nothing
+                new ClassificationPair("ddc[new][5]", null, "udc[new][6]", null) // insert
         );
         ClassificationMapper instance = new ClassificationMapper();
         instance.mapPairs(mods, updates);
@@ -119,8 +119,8 @@ public class ClassificationMapperTest {
                 new ClassificationItem(4, Type.DDC, "ddc[new][5]"),
                 new ClassificationItem(5, Type.UDC, "udc[new][6]"),
                 new ClassificationItem(6, Type.OTHER, null)
-                );
-        assertThat(result, Is.is(expected));
+        );
+        assertEquals(result, expected);
     }
 
     private static ClassificationDefinition classificationType(String type, String value) {

@@ -1,40 +1,215 @@
 {
-    "__comment":"NDK roleTerms according to https://www.loc.gov/marc/relators/relaterm.html. Czech localization.",
-    "data":[
-        {"type": "code", "authority":"marcrelator", "value":"act", "label":"Herec"},
-        {"type": "code", "authority":"marcrelator", "value":"adp", "label":"Autor adaptace, upravovatel"},
-        {"type": "code", "authority":"marcrelator", "value":"ant", "label":"Bibliografický předchůdce"},
-        {"type": "code", "authority":"marcrelator", "value":"arr", "label":"Aranžér"},
-        {"type": "code", "authority":"marcrelator", "value":"aui", "label":"Autor úvodu atd."},
-        {"type": "code", "authority":"marcrelator", "value":"aut", "label":"Autor"},
-        {"type": "code", "authority":"marcrelator", "value":"cmp", "label":"Skladatel"},
-        {"type": "code", "authority":"marcrelator", "value":"cnd", "label":"Dirigent"},
-        {"type": "code", "authority":"marcrelator", "value":"com", "label":"Sestavovatel, kompilátor"},
-        {"type": "code", "authority":"marcrelator", "value":"cre", "label":"Tvůrce"},
-        {"type": "code", "authority":"marcrelator", "value":"crp", "label":"Korespondent"},
-        {"type": "code", "authority":"marcrelator", "value":"dis", "label":"Defendent"},
-        {"type": "code", "authority":"marcrelator", "value":"dnr", "label":"Donátor"},
-        {"type": "code", "authority":"marcrelator", "value":"dst", "label":"Distributor"},
-        {"type": "code", "authority":"marcrelator", "value":"dte", "label":"Dedikant"},
-        {"type": "code", "authority":"marcrelator", "value":"dto", "label":"Dedikátor"},
-        {"type": "code", "authority":"marcrelator", "value":"dub", "label":"Domnělý (pochybný) autor"},
-        {"type": "code", "authority":"marcrelator", "value":"edt", "label":"Editor"},
-        {"type": "code", "authority":"marcrelator", "value":"egr", "label":"Rytec"},
-        {"type": "code", "authority":"marcrelator", "value":"fmo", "label":"Dřívější majitel"},
-        {"type": "code", "authority":"marcrelator", "value":"fnd", "label":"Investor"},
-        {"type": "code", "authority":"marcrelator", "value":"ill", "label":"Ilustrátor"},
-        {"type": "code", "authority":"marcrelator", "value":"itr", "label":"Instrumentalista"},
-        {"type": "code", "authority":"marcrelator", "value":"lbt", "label":"Libretista"},
-        {"type": "code", "authority":"marcrelator", "value":"lyr", "label":"Lyrik"},
-        {"type": "code", "authority":"marcrelator", "value":"mus", "label":"Hudebník"},
-        {"type": "code", "authority":"marcrelator", "value":"oth", "label":"Jiná role"},
-        {"type": "code", "authority":"marcrelator", "value":"pbl", "label":"Nakladatel, vydavatel"},
-        {"type": "code", "authority":"marcrelator", "value":"prf", "label":"Umělec"},
-        {"type": "code", "authority":"marcrelator", "value":"prt", "label":"Tiskař"},
-        {"type": "code", "authority":"marcrelator", "value":"rcd", "label":"Zvukař"},
-        {"type": "code", "authority":"marcrelator", "value":"red", "label":"Redaktor, výkonný redaktor"},
-        {"type": "code", "authority":"marcrelator", "value":"rev", "label":"Recenzent"},
-        {"type": "code", "authority":"marcrelator", "value":"sng", "label":"Zpěvák"},
-        {"type": "code", "authority":"marcrelator", "value":"trl", "label":"Překladatel"}
-    ]
+  "__comment": "NDK roleTerms according to https://www.loc.gov/marc/relators/relaterm.html. Czech localization.",
+  "data": [
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "act",
+      "label": "Herec"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "adp",
+      "label": "Autor adaptace, upravovatel"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "ant",
+      "label": "Bibliografický předchůdce"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "arr",
+      "label": "Aranžér"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "aui",
+      "label": "Autor úvodu atd."
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "aut",
+      "label": "Autor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "cmp",
+      "label": "Skladatel"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "cnd",
+      "label": "Dirigent"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "com",
+      "label": "Sestavovatel, kompilátor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "cre",
+      "label": "Tvůrce"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "crp",
+      "label": "Korespondent"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "dis",
+      "label": "Defendent"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "dnr",
+      "label": "Donátor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "dst",
+      "label": "Distributor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "dte",
+      "label": "Dedikant"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "dto",
+      "label": "Dedikátor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "dub",
+      "label": "Domnělý (pochybný) autor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "edt",
+      "label": "Editor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "egr",
+      "label": "Rytec"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "fmo",
+      "label": "Dřívější majitel"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "fnd",
+      "label": "Investor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "ill",
+      "label": "Ilustrátor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "itr",
+      "label": "Instrumentalista"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "lbt",
+      "label": "Libretista"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "lyr",
+      "label": "Lyrik"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "mus",
+      "label": "Hudebník"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "oth",
+      "label": "Jiná role"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "pbl",
+      "label": "Nakladatel, vydavatel"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "prf",
+      "label": "Umělec"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "prt",
+      "label": "Tiskař"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "rcd",
+      "label": "Zvukař"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "red",
+      "label": "Redaktor, výkonný redaktor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "rev",
+      "label": "Recenzent"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "sng",
+      "label": "Zpěvák"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "trl",
+      "label": "Překladatel"
+    }
+  ]
 }

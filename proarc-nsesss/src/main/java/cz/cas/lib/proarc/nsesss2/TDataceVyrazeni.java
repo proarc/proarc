@@ -8,21 +8,21 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 
 /**
  * Časové údaje evidující počátek a konec plynutí skartační lhůty.
- * 
+ *
  * <p>Java class for tDataceVyrazeni complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tDataceVyrazeni">
  *   &lt;complexContent>
@@ -35,13 +35,13 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tDataceVyrazeni", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "rokSpousteciUdalosti",
-    "rokSkartacniOperace"
+        "rokSpousteciUdalosti",
+        "rokSkartacniOperace"
 })
 public class TDataceVyrazeni {
 
@@ -54,11 +54,10 @@ public class TDataceVyrazeni {
 
     /**
      * Gets the value of the rokSpousteciUdalosti property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @return possible object is
+     * {@link XMLGregorianCalendar }
+     *
      */
     public XMLGregorianCalendar getRokSpousteciUdalosti() {
         return rokSpousteciUdalosti;
@@ -66,11 +65,10 @@ public class TDataceVyrazeni {
 
     /**
      * Sets the value of the rokSpousteciUdalosti property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link XMLGregorianCalendar }
+     *
      */
     public void setRokSpousteciUdalosti(XMLGregorianCalendar value) {
         this.rokSpousteciUdalosti = value;
@@ -78,11 +76,10 @@ public class TDataceVyrazeni {
 
     /**
      * Gets the value of the rokSkartacniOperace property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @return possible object is
+     * {@link XMLGregorianCalendar }
+     *
      */
     public XMLGregorianCalendar getRokSkartacniOperace() {
         return rokSkartacniOperace;
@@ -90,11 +87,10 @@ public class TDataceVyrazeni {
 
     /**
      * Sets the value of the rokSkartacniOperace property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link XMLGregorianCalendar }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link XMLGregorianCalendar }
+     *
      */
     public void setRokSkartacniOperace(XMLGregorianCalendar value) {
         this.rokSkartacniOperace = value;

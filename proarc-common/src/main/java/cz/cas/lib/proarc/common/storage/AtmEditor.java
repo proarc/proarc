@@ -16,8 +16,7 @@
  */
 package cz.cas.lib.proarc.common.storage;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
@@ -29,7 +28,6 @@ import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
@@ -44,7 +42,6 @@ import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_DE
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_EXPORTED;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 
 /**
  * Handles administrative and technical metadata of digital objects.
@@ -53,7 +50,9 @@ import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedo
  */
 public final class AtmEditor {
 
-    /** helper to clear current value */
+    /**
+     * helper to clear current value
+     */
     public static final String NULL = "null";
 
     private final ProArcObject fobject;
@@ -70,10 +69,11 @@ public final class AtmEditor {
 
     /**
      * Updates metadata.
-     * @param deviceId device ID to update. Use {@link #NULL} for clearing
-     * @param softwareId software ID to update. Use {@link #NULL} for clearing
-     * @param organization  ID to update. Use {@link #NULL} for clearing
-     * @param message audit message
+     *
+     * @param deviceId     device ID to update. Use {@link #NULL} for clearing
+     * @param softwareId   software ID to update. Use {@link #NULL} for clearing
+     * @param organization ID to update. Use {@link #NULL} for clearing
+     * @param message      audit message
      * @throws DigitalObjectException
      */
     public void write(String deviceId, String softwareId, String organization, String user, String status, String donator, String archivalCopiesPath, String message) throws DigitalObjectException {
@@ -128,7 +128,7 @@ public final class AtmEditor {
             if (newVal == null ? oldVal != null : !newVal.equals(oldVal)) {
                 relationEditor.setStatus(status);
                 write = true;
-            } else if (newVal.equals(oldVal) && changedUser){
+            } else if (newVal.equals(oldVal) && changedUser) {
                 relationEditor.setStatus(STATUS_ASSIGN);
                 write = true;
             }
@@ -140,10 +140,11 @@ public final class AtmEditor {
 
     /**
      * Updates metadata.
-     * @param organization  ID to update. Use {@link #NULL} for clearing
-     * @param user  ID to update. Use {@link #NULL} for clearing
-     * @param status  ID to update. Use {@link #NULL} for clearing
-     * @param message audit message
+     *
+     * @param organization ID to update. Use {@link #NULL} for clearing
+     * @param user         ID to update. Use {@link #NULL} for clearing
+     * @param status       ID to update. Use {@link #NULL} for clearing
+     * @param message      audit message
      * @param fobject
      * @throws DigitalObjectException
      */
@@ -189,6 +190,7 @@ public final class AtmEditor {
 
     /**
      * Updates metadata.
+     *
      * @param status  ID to update. Use {@link #NULL} for clearing
      * @param message audit message
      * @throws DigitalObjectException
@@ -221,8 +223,6 @@ public final class AtmEditor {
                 atm.created = searchItem.getCreated();
                 atm.modified = searchItem.getModified();
                 atm.state = searchItem.getState();
-            } catch (FedoraClientException ex) {
-                throw new DigitalObjectException(pid, ex);
             } catch (IOException ex) {
                 throw new DigitalObjectException(pid, ex);
             }
@@ -262,9 +262,7 @@ public final class AtmEditor {
         if (pid == null) {
             throw new NullPointerException("pid");
         }
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            return FedoraStorage.getInstance(appConfig).find(pid);
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
             return AkubraStorage.getInstance(akubraConfiguration).find(pid);
         } else {
@@ -298,11 +296,7 @@ public final class AtmEditor {
             MetsContext metsContext = null;
             ProArcObject object = null;
 
-            if (Storage.FEDORA.equals(config.getTypeOfStorage())) {
-                FedoraStorage fedoraStorage = FedoraStorage.getInstance(config);
-                object = fedoraStorage.find(parentPid);
-                metsContext = buildFedoraContext(object, null, null, fedoraStorage, config.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(parentPid);
                 metsContext = buildAkubraContext(object, null, null, akubraStorage, config.getNdkExportOptions());
@@ -436,7 +430,9 @@ public final class AtmEditor {
             return lockedDate;
         }
 
-        public String getDonator() { return donator;}
+        public String getDonator() {
+            return donator;
+        }
 
         public String getArchivalCopies() {
             return archivalCopies;

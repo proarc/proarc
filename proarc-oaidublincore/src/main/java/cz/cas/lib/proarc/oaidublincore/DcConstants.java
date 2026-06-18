@@ -23,9 +23,13 @@ package cz.cas.lib.proarc.oaidublincore;
  */
 public final class DcConstants {
 
-    /** Namespace http://purl.org/dc/elements/1.1/. */
+    /**
+     * Namespace http://purl.org/dc/elements/1.1/.
+     */
     public static final String NS_PURL = "http://purl.org/dc/elements/1.1/";
-    /** Namespace http://www.openarchives.org/OAI/2.0/oai_dc/. */
+    /**
+     * Namespace http://www.openarchives.org/OAI/2.0/oai_dc/.
+     */
     public static final String NS_OAIDC = "http://www.openarchives.org/OAI/2.0/oai_dc/";
 
     public static final String PREFIX_NS_OAIDC = "oai_dc";
@@ -47,9 +51,13 @@ public final class DcConstants {
     public static final String SUBJECT = "subject";
     public static final String TITLE = "title";
     public static final String TYPE = "type";
-    /** lang attribute of each element */
+    /**
+     * lang attribute of each element
+     */
     public static final String LANG = "lang";
-    /** The {@link ElementType } value name for JSON mapping. */
+    /**
+     * The {@link ElementType } value name for JSON mapping.
+     */
     public static final String VALUE = "value";
 
 }

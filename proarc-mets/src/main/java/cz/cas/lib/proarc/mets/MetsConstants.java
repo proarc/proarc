@@ -19,9 +19,9 @@ package cz.cas.lib.proarc.mets;
 
 /**
  * Mets constants
- * 
+ *
  * @author Robert Simonovsky
- * 
+ *
  */
 public class MetsConstants {
     public static final String NS_METS = "http://www.loc.gov/METS/";

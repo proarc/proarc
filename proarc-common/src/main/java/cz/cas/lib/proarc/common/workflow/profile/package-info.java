@@ -16,11 +16,12 @@
  */
 @XmlSchema(
         namespace = WorkflowProfileConsts.NS_WORKFLOW_V1,
-        elementFormDefault = javax.xml.bind.annotation.XmlNsForm.QUALIFIED,
+        elementFormDefault = QUALIFIED,
         xmlns = {
         })
 package cz.cas.lib.proarc.common.workflow.profile;
 
-//import javax.xml.bind.annotation.XmlNs;
-import javax.xml.bind.annotation.XmlSchema;
+import jakarta.xml.bind.annotation.XmlSchema;
+
+import static jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED;
 

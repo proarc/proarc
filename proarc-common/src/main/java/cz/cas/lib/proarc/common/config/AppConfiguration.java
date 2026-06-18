@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,7 +26,6 @@ import cz.cas.lib.proarc.common.process.export.ExportParams;
 import cz.cas.lib.proarc.common.process.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.process.export.KwisExportOptions;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveExportOptions;
-import cz.cas.lib.proarc.common.process.export.desa.DesaServices;
 import cz.cas.lib.proarc.common.process.export.mets.NdkExportOptions;
 import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.storage.SearchOptions;
@@ -40,17 +39,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
+import org.apache.commons.configuration2.CombinedConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.ReloadingFileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.reloading.PeriodicReloadingTrigger;
+import org.apache.commons.configuration2.tree.OverrideCombiner;
 
 import static cz.cas.lib.proarc.common.process.imports.ImportProfile.GENERATE_PDFA_PROCESSOR;
 
@@ -259,8 +265,9 @@ public final class AppConfiguration {
             profileConfig = buildConfiguration(file);
             profileConfigCache.put(cp, profileConfig);
             return profileConfig;
+        } else {
+            return config;
         }
-        throw new IllegalStateException("Unknown profile file: " + cp.toString());
     }
 
     public ImportProfile getImportConfiguration(ConfigurationProfile cp) {
@@ -316,10 +323,6 @@ public final class AppConfiguration {
         return config;
     }
 
-    public DesaServices getDesaServices() {
-        return new DesaServices(config);
-    }
-
     public UrnNbnConfiguration getUrnNbnConfiguration() {
         return new UrnNbnConfiguration(config);
     }
@@ -335,8 +338,8 @@ public final class AppConfiguration {
     public String[] getPlugins() {
         String[] plugins = config.getStringArray(PROPERTY_DIGOBJECT_PLUGINS);
         if (plugins.length == 0) {
-            plugins = new String[] {
-                NdkPlugin.ID,
+            plugins = new String[]{
+                    NdkPlugin.ID,
             };
         }
         return plugins;
@@ -357,32 +360,50 @@ public final class AppConfiguration {
     }
 
     private Configuration buildConfiguration(File cfgFile) {
-        CompositeConfiguration cc = new CompositeConfiguration();
+        CombinedConfiguration cc = new CombinedConfiguration();
         buildConfiguration(cc, cfgFile);
         return cc;
     }
 
-    private void buildConfiguration(CompositeConfiguration cc, File cfgFile) {
+    private void buildConfiguration(CombinedConfiguration cc, File cfgFile) {
         try {
+            cc.setNodeCombiner(new OverrideCombiner());
+
             // envConfig contains interpolated properties
             PropertiesConfiguration envConfig = new PropertiesConfiguration();
+            envConfig.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
             envConfig.addProperty(PROPERTY_APP_HOME, configHome.getPath());
             cc.addConfiguration(envConfig);
+
             // external configuration editable by users; UTF-8 expected
-            PropertiesConfiguration external = new PropertiesConfiguration();
-            external.setEncoding("UTF-8");
-            FileChangedReloadingStrategy reloading = new FileChangedReloadingStrategy();
-            external.setReloadingStrategy(reloading);
-            external.setFile(cfgFile);
-            cc.addConfiguration(external);
+            Parameters parameters = new Parameters();
+            ReloadingFileBasedConfigurationBuilder<PropertiesConfiguration> builder =
+                    new ReloadingFileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+                            .configure(parameters.fileBased().setFile(cfgFile).setEncoding("UTF-8")
+                                    .setListDelimiterHandler(new DefaultListDelimiterHandler(',')));
+
+            // auto reload every 5 seconds
+            PeriodicReloadingTrigger trigger =
+                    new PeriodicReloadingTrigger(builder.getReloadingController(), null, 5, TimeUnit.SECONDS);
+            trigger.start();
+
+            PropertiesConfiguration userConfig = builder.getConfiguration();
+            cc.addConfiguration(userConfig);
+
             try {
                 // bundled default configurations
                 Enumeration<URL> resources = AppConfiguration.class.getClassLoader()
                         .getResources(DEFAULT_PROPERTIES_RESOURCE);
-                for (URL resource; resources.hasMoreElements(); ) {
-                    resource = resources.nextElement();
+                while (resources.hasMoreElements()) {
+                    URL resource = resources.nextElement();
                     LOG.log(Level.FINE, "classpath config: {0}", resource);
-                    cc.addConfiguration(new PropertiesConfiguration(resource));
+                    PropertiesConfiguration defaults = new PropertiesConfiguration();
+                    defaults.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
+
+                    try (Reader reader = new InputStreamReader(resource.openStream(), StandardCharsets.UTF_8)) {
+                        defaults.read(reader);
+                    }
+                    cc.addConfiguration(defaults);
                 }
             } catch (IOException ex) {
                 LOG.log(Level.SEVERE, null, ex);
@@ -428,7 +449,7 @@ public final class AppConfiguration {
                 // we need platform dependent line separator => PrintWriter
                 PrintWriter writer = new PrintWriter(cfgFile, "UTF-8");
                 try {
-                    for (String line; (line = reader.readLine()) != null;) {
+                    for (String line; (line = reader.readLine()) != null; ) {
                         writer.println(line);
                     }
                     writer.println();
@@ -470,8 +491,8 @@ public final class AppConfiguration {
      * @return {@code true} iff {@code f} exists
      */
     public static boolean checkFile(File f, boolean mustExist,
-            Boolean expectDirectory, Boolean expectCanRead, Boolean expextCanWrite
-            ) throws IOException {
+                                    Boolean expectDirectory, Boolean expectCanRead, Boolean expextCanWrite
+    ) throws IOException {
 
         if (f.exists()) {
             if (expectDirectory != null) {

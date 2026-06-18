@@ -66,7 +66,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     }
 
     @Override
-    public void update(Batch batch) throws ConcurrentModificationException {
+    public void update(Batch batch) {
         DBRecord record = new DBRecord();
         Connection c = getConnection();
         if (batch.getId() == null) {
@@ -76,7 +76,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         } else {
             record.read(table, batch.getId(), c);
         }
-        record.setBeanValues(batch);
+        record.setRecordValues(batch);
         try {
             record.update(c);
         } catch (RecordUpdateInvalidException ex) {
@@ -186,13 +186,14 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
         result.fetch(getConnection());
         return Collections.unmodifiableList(result);
     }
+
     private Batch getBeanProperties(DBRecordData record) {
         return getBeanProperties(record, null);
     }
 
     private Batch getBeanProperties(DBRecordData record, Batch instance) {
         Batch batch = instance != null ? instance : new Batch();
-        record.getBeanProperties(batch);
+        record.setBeanProperties(batch);
         return batch;
     }
 
@@ -205,7 +206,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
 
     @Override
     public List<BatchView> view(Integer userId, Integer batchId, Set<State> state,
-            Timestamp from, Timestamp to, int offset, int maxCount, String sortBy) {
+                                Timestamp from, Timestamp to, int offset, int maxCount, String sortBy) {
 
         return view(new BatchViewFilter().setUserId(userId).setBatchIds(Collections.singletonList(batchId))
                 .setState(state).setCreatedFrom(from).setCreatedTo(to)
@@ -308,7 +309,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
             for (Iterator<DBRecordData> it = reader.iterator(filter.getMaxCount()); it.hasNext();) {
                 DBRecordData rec = it.next();
                 BatchView view = new BatchView();
-                rec.getBeanProperties(view);
+                rec.setBeanProperties(view);
                 if (view.getProfileId() == null) {
                     view.setProfileId(ConfigurationProfile.DEFAULT);
                 }

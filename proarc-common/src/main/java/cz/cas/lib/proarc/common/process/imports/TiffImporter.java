@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2011 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -18,6 +18,9 @@ package cz.cas.lib.proarc.common.process.imports;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
+import cz.cas.lib.proarc.common.image.ImageMimeType;
+import cz.cas.lib.proarc.common.image.ImageUtility;
+import cz.cas.lib.proarc.common.image.ImageUtility.ScalingMethod;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
@@ -31,20 +34,19 @@ import cz.cas.lib.proarc.common.process.external.PeroOcrProcessor;
 import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
 import cz.cas.lib.proarc.common.process.imports.FileSet.FileEntry;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
-import cz.cas.lib.proarc.common.storage.*;
+import cz.cas.lib.proarc.common.storage.BinaryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
+import cz.cas.lib.proarc.common.storage.MixEditor;
 import cz.cas.lib.proarc.common.storage.PageView.PageViewHandler;
 import cz.cas.lib.proarc.common.storage.PageView.PageViewItem;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.StringEditor;
+import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.incad.imgsupport.ImageMimeType;
-import cz.incad.imgsupport.ImageSupport;
-import cz.incad.imgsupport.ImageSupport.ScalingMethod;
-import org.apache.commons.configuration.Configuration;
-import org.codehaus.jettison.json.JSONException;
-
-import javax.imageio.stream.FileImageOutputStream;
-import javax.ws.rs.core.MediaType;
-import java.awt.*;
+import jakarta.ws.rs.core.MediaType;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -54,7 +56,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.stream.FileImageOutputStream;
+import org.apache.commons.configuration2.Configuration;
+import org.json.JSONException;
 
+import static cz.cas.lib.proarc.common.image.ImageUtility.readImage;
+import static cz.cas.lib.proarc.common.image.ImageUtility.writeImageToStream;
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NEW;
 
 /**
@@ -62,9 +69,9 @@ import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_NE
  * See http://www.oracle.com/technetwork/java/current-142188.html and
  * http://download.java.net/media/jai/builds/release/1_1_3/
  * jai-1_1_3-lib.zip is a platform independent version
- *
+ * <p>
  * http://download.java.net/media/jai-imageio/builds/release/1.1/ fo jai_imageio-1.1.jar
- *
+ * <p>
  * For maven, try to depend just on com.sun.media.jai_imageio.1.1 as kramerius common.
  * How to properly depend in pom see http://sahits.ch/blog/?p=1038
  *
@@ -113,7 +120,7 @@ public class TiffImporter implements ImageImporter {
             dobjHandler.commit();
             ibm.addChildRelation(ctx.getBatch(), null, localObj.getPid());
             batchLocalObject.setState(ObjectState.LOADED);
-        } catch(IllegalStateException ex) {
+        } catch (IllegalStateException ex) {
             LOG.log(Level.SEVERE, f.toString(), ex);
             batchLocalObject.setState(ObjectState.STOPPED);
             batchLocalObject.setLog(BatchManager.toString(ex));
@@ -211,7 +218,7 @@ public class TiffImporter implements ImageImporter {
             ocrEntry = new FileEntry(ocrFiles[0]);
             altoEntry = new FileEntry(ocrFiles[1]);
         }
-        if (skippedDatastreamId.contains(StringEditor.OCR_ID))  {
+        if (skippedDatastreamId.contains(StringEditor.OCR_ID)) {
             LOG.info("Skip import " + StringEditor.OCR_ID + " for uuid " + fo.getPid());
         } else if (ocrEntry != null) {
             importOcr(tempBatchFolder, originalFilename, ocrEntry.getFile(), config, fo);
@@ -230,7 +237,7 @@ public class TiffImporter implements ImageImporter {
                     originalFilename + config.getPlainOcrFileSuffix()).toString());
         }
         // ALTO OCR
-        if (skippedDatastreamId.contains(AltoDatastream.ALTO_ID))  {
+        if (skippedDatastreamId.contains(AltoDatastream.ALTO_ID)) {
             LOG.info("Skip import " + AltoDatastream.ALTO_ID + " for uuid " + fo.getPid());
         } else if (altoEntry != null) {
             URI altoUri = altoEntry.getFile().toURI();
@@ -252,7 +259,7 @@ public class TiffImporter implements ImageImporter {
         }
     }
 
-    private void generateOCR(File tiff, ImportOptions options) throws IOException{
+    private void generateOCR(File tiff, ImportOptions options) throws IOException {
         Integer peroOcrEngine = null;
         try {
             peroOcrEngine = options.getBatch().getParamsAsObject().getPeroOcrEngine();
@@ -266,7 +273,7 @@ public class TiffImporter implements ImageImporter {
         try {
             boolean processed = ocrProcessor.generate(tiff, ".txt", ".xml");
             if (processed) {
-                LOG.info("OCR GENERATED SUCCESSFULLY for " +  tiff.getAbsolutePath());
+                LOG.info("OCR GENERATED SUCCESSFULLY for " + tiff.getAbsolutePath());
             }
         } catch (JSONException ex) {
             LOG.severe("Generating OCR for " + tiff.getName() + " failed.");
@@ -346,7 +353,7 @@ public class TiffImporter implements ImageImporter {
         ImportProfile config = options.getConfig();
         FileEntry entry = findSibling(fileSet, config.getNdkArchivalFileSuffix());
         String dsId = BinaryEditor.NDK_ARCHIVAL_ID;
-        if (config.getSkippedDatastreamId().contains(dsId))  {
+        if (config.getSkippedDatastreamId().contains(dsId)) {
             LOG.info("Skip import " + dsId + " for uuid " + fo.getPid());
             return;
         }
@@ -371,7 +378,7 @@ public class TiffImporter implements ImageImporter {
         ImportProfile config = options.getConfig();
         FileEntry entry = findSibling(fileSet, config.getNdkUserFileSuffix());
         String dsId = BinaryEditor.NDK_USER_ID;
-        if (config.getSkippedDatastreamId().contains(dsId))  {
+        if (config.getSkippedDatastreamId().contains(dsId)) {
             LOG.info("Skip import " + dsId + " for uuid " + fo.getPid());
             return;
         }
@@ -406,15 +413,15 @@ public class TiffImporter implements ImageImporter {
                     throw new IOException(acFile.toString() + "\n" + process.getFullOutput());
                 }
             }
-            return  new FileEntry(acFile);
+            return new FileEntry(acFile);
         }
         return null;
     }
 
     private void createImages(File tempBatchFolder, File original,
-            String originalFilename, LocalObject foxml, ImportProfile config, FileSet fileSet)
+                              String originalFilename, LocalObject foxml, ImportProfile config, FileSet fileSet)
             throws IOException, DigitalObjectException, AppConfigurationException {
-        
+
         BinaryEditor.dissemination(foxml, BinaryEditor.RAW_ID, BinaryEditor.IMAGE_TIFF)
                 .write(original, 0, null);
 
@@ -434,7 +441,7 @@ public class TiffImporter implements ImageImporter {
         FileEntry fullEntry = findSibling(fileSet, config.getNdkFullFileSuffix());
         String fullId = BinaryEditor.FULL_ID;
 
-        if (config.getSkippedDatastreamId().contains(fullId))  {
+        if (config.getSkippedDatastreamId().contains(fullId)) {
             LOG.info("Skip import " + fullId + " for uuid " + foxml.getPid());
         } else if (fullEntry != null) {
             f = fullEntry.getFile();
@@ -453,7 +460,7 @@ public class TiffImporter implements ImageImporter {
             } else {
                 if (tiff == null) {
                     start = System.nanoTime();
-                    tiff = removeAlphaChannel(ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF));
+                    tiff = removeAlphaChannel(readImage(original.toURI().toURL(), ImageMimeType.TIFF));
                     endRead = System.nanoTime() - start;
                 }
                 f = writeImage(tiff, tempBatchFolder, targetName, imageType);
@@ -470,7 +477,7 @@ public class TiffImporter implements ImageImporter {
 
         FileEntry entry = findSibling(fileSet, config.getNdkPreviewFileSuffix());
         String previewId = BinaryEditor.PREVIEW_ID;
-        if (config.getSkippedDatastreamId().contains(previewId))  {
+        if (config.getSkippedDatastreamId().contains(previewId)) {
             LOG.info("Skip import " + previewId + " for uuid " + foxml.getPid());
         } else if (entry != null) {
             f = entry.getFile();
@@ -493,7 +500,7 @@ public class TiffImporter implements ImageImporter {
             } else {
                 if (tiff == null) {
                     start = System.nanoTime();
-                    tiff = removeAlphaChannel(ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF));
+                    tiff = removeAlphaChannel(readImage(original.toURI().toURL(), ImageMimeType.TIFF));
                     endRead = System.nanoTime() - start;
                 }
                 f = writeImage(
@@ -512,7 +519,7 @@ public class TiffImporter implements ImageImporter {
 
         FileEntry thumbnailEntry = findSibling(fileSet, config.getNdkThumbnailFileSuffix());
         String thumbnailId = BinaryEditor.THUMB_ID;
-        if (config.getSkippedDatastreamId().contains(thumbnailId))  {
+        if (config.getSkippedDatastreamId().contains(thumbnailId)) {
             LOG.info("Skip import " + thumbnailId + " for uuid " + foxml.getPid());
         } else if (thumbnailEntry != null) {
             f = thumbnailEntry.getFile();
@@ -537,7 +544,7 @@ public class TiffImporter implements ImageImporter {
             } else {
                 if (tiff == null) {
                     start = System.nanoTime();
-                    tiff = removeAlphaChannel(ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF));
+                    tiff = removeAlphaChannel(readImage(original.toURI().toURL(), ImageMimeType.TIFF));
                     endRead = System.nanoTime() - start;
                 }
                 f = createThumbnail(tempBatchFolder, originalFilename, original, tiff, config);
@@ -573,7 +580,7 @@ public class TiffImporter implements ImageImporter {
         // XXX requieres import profiles
 //        Configuration processCfg = config.getThumbnailProcessor();
 //        if (processCfg.isEmpty()) {
-            return createJavaThumbnail(tempBatchFolder, targetName, imageType, tiff, config);
+        return createJavaThumbnail(tempBatchFolder, targetName, imageType, tiff, config);
 //        } else {
 //            GenericExternalProcess process = new GenericExternalProcess(processCfg);
 //            process.addInputFile(original);
@@ -604,7 +611,7 @@ public class TiffImporter implements ImageImporter {
         File imgFile = new File(folder, filename);
         FileImageOutputStream fos = new FileImageOutputStream(imgFile);
         try {
-            ImageSupport.writeImageToStream(image, imageType.getDefaultFileExtension(), fos, 1.0f);
+            writeImageToStream(image, imageType.getDefaultFileExtension(), fos, 1.0f);
             return imgFile;
         } finally {
             fos.close();
@@ -612,7 +619,7 @@ public class TiffImporter implements ImageImporter {
     }
 
     public static BufferedImage scale(BufferedImage tiff, ScalingMethod method,
-            Integer maxWidth, Integer maxHeight) {
+                                      Integer maxWidth, Integer maxHeight) {
 
         long start = System.nanoTime();
         int height = tiff.getHeight();
@@ -631,7 +638,7 @@ public class TiffImporter implements ImageImporter {
             targetHeight = (int) (height * scale);
             targetWidth = (int) (width * scale);
         }
-        BufferedImage scaled = ImageSupport.scale(tiff, targetWidth, targetHeight, method, true);
+        BufferedImage scaled = ImageUtility.scale(tiff, targetWidth, targetHeight, method, true);
         LOG.fine(String.format("scaled [%s, %s] to [%s, %s], boundary [%s, %s] [w, h], time: %s ms",
                 width, height, targetWidth, targetHeight, maxWidth, maxHeight, (System.nanoTime() - start) / 1000000));
         return scaled;

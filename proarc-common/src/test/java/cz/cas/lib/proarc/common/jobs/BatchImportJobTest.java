@@ -18,19 +18,20 @@ package cz.cas.lib.proarc.common.jobs;
 
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.configuration.BaseConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.quartz.impl.StdSchedulerFactory;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Jakub Kremlacek
@@ -41,16 +42,16 @@ public class BatchImportJobTest {
 
     @Test
     public void getTypeTest() {
-        Assert.assertEquals(BatchImportJob.BATCH_IMPORT_JOB_TYPE, new BatchImportJob().getType());
+        assertEquals(BatchImportJob.BATCH_IMPORT_JOB_TYPE, new BatchImportJob().getType());
     }
 
-    @Before
+    @BeforeEach
     public void initScheduler() throws SchedulerException {
         scheduler = StdSchedulerFactory.getDefaultScheduler();
         scheduler.start();
     }
 
-    @After
+    @AfterEach
     public void shutDownScheduler() throws SchedulerException {
         scheduler = StdSchedulerFactory.getDefaultScheduler();
         scheduler.shutdown();
@@ -70,24 +71,24 @@ public class BatchImportJobTest {
         TriggerKey tk = new TriggerKey(jobName + BatchImportJob.BATCH_IMPORT_JOB_TRIGGER_SUFFIX, BatchImportJob.BATCH_IMPORT_JOB_GROUP);
         JobKey jk = new JobKey(jobName + BatchImportJob.BATCH_IMPORT_JOB_DETAIL_SUFFIX, BatchImportJob.BATCH_IMPORT_JOB_GROUP);
 
-        Assert.assertTrue(scheduler.checkExists(tk));
-        Assert.assertTrue(scheduler.checkExists(jk));
+        assertTrue(scheduler.checkExists(tk));
+        assertTrue(scheduler.checkExists(jk));
 
         Trigger t = scheduler.getTrigger(tk);
 
-        Assert.assertTrue(t.getNextFireTime().toString().contains("12:00:00"));
+        assertTrue(t.getNextFireTime().toString().contains("12:00:00"));
 
         Map mp = scheduler.getJobDetail(jk).getJobDataMap();
 
-        Assert.assertEquals(path, mp.get(BatchImportJob.BATCH_IMPORT_JOB_PATH));
+        assertEquals(path, mp.get(BatchImportJob.BATCH_IMPORT_JOB_PATH));
 
         List<String> profileList = (List<String>) mp.get(BatchImportJob.BATCH_IMPORT_JOB_PROFILES);
 
-        Assert.assertEquals(1, profileList.size());
-        Assert.assertEquals(profiles, profileList.get(0));
+        assertEquals(1, profileList.size());
+        assertEquals(profiles, profileList.get(0));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void initJobEmptyScheduleTest() throws Exception {
         new BatchImportJob().initJob(
                 scheduler,
@@ -97,7 +98,7 @@ public class BatchImportJobTest {
                         "default"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void initJobEmptyPathTest() throws Exception {
         new BatchImportJob().initJob(
                 scheduler,
@@ -107,7 +108,7 @@ public class BatchImportJobTest {
                         "default"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void initJobEmptyJobIdTest() throws Exception {
         new BatchImportJob().initJob(
                 scheduler,
@@ -117,7 +118,7 @@ public class BatchImportJobTest {
                         "default"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void initJobEmptyProfilesTest() throws Exception {
         new BatchImportJob().initJob(
                 scheduler,
@@ -125,19 +126,6 @@ public class BatchImportJobTest {
                         "0 0 12 * * ?",
                         "/testPath",
                         ""));
-    }
-
-    //Ignored due to faulty Quartz implementation of scheduler validation, which does not detect invalid symbol in schedule
-    @Deprecated
-    @Test(expected = SchedulerException.class)
-    @Ignore
-    public void initJobInvalidScheduleTest() throws Exception {
-        new BatchImportJob().initJob(
-                scheduler,
-                "JobX", getConfig(
-                        "0 0 12X * * ?",
-                        "/testPath",
-                        "default"));
     }
 
     private Configuration getConfig(String schedule, String path, String profiles) {

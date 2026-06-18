@@ -1,114 +1,48 @@
-<!doctype html>
-<!-- The DOCTYPE declaration above will set the    -->
-<!-- browser's rendering engine into               -->
-<!-- "Standards Mode". Replacing this declaration  -->
-<!-- with a "Quirks Mode" doctype may lead to some -->
-<!-- differences in layout.                        -->
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>ProArc API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-<html>
-    <head>
-        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-        <!-- locale property may be overridden with locale parameter in query string (URL) -->
-        <meta name="gwt:property" content="locale=cs">
+        .container {
+            text-align: center;
+            background-color: rgb(69, 106, 165); /* modrý box */
+            color: white; /* bílý text */
+            padding: 40px 60px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
 
-        <!--                                                               -->
-        <!-- Consider inlining CSS to reduce the number of requested files -->
-        <!--                                                               -->
-        <link type="text/css" rel="stylesheet" href="Editor.css">
+        h1 {
+            margin-bottom: 10px;
+        }
 
-        <title>ProArc</title>
+        p {
+            font-size: 18px;
+        }
 
-        <!-- CodeMirror XML Editor -->
-        <link rel="stylesheet" href="js/codemirror/lib/codemirror.css">
-        <link rel="stylesheet" href="js/codemirror/addon/fold/foldgutter.css" />
-        <style type="text/css">
-            .CodeMirror {border-top: 1px solid #ddd; border-bottom: 1px solid #ddd;}
-        </style>
-    </head>
-
-    <!--                                           -->
-    <!-- The body can have arbitrary html, or      -->
-    <!-- you can leave the body empty if you want  -->
-    <!-- to create a completely dynamic UI.        -->
-    <!--                                           -->
-    <body>
-
-        <!-- history support -->
-        <iframe src="javascript:''" id="__gwt_historyFrame" tabIndex='-1' style="position:absolute;width:0;height:0;border:0"></iframe>
-
-        <!-- RECOMMENDED if your web app will not function without JavaScript enabled -->
-        <noscript>
-        <div style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
-            Your web browser must have JavaScript enabled
-            in order for this application to display correctly.
-        </div>
-        </noscript>
-        <!--add loading indicator while the app is being loaded-->
-        <div id="loadingWrapper">
-            <div id="loading">
-                <div class="loadingIndicator">
-                    <img src="proarc/sc/skins/Enterprise/images/loadingSmall.gif" width="16" height="16" style="margin-right:8px;float:left;vertical-align:top;"/>
-                    ProArc&nbsp;-&nbsp;
-                    <span id="loadingMsg">Init</span>
-                </div>
-            </div>
-        </div>
-
-        <script type="text/javascript">
-            // Allows to append custom contents to the About window. The format is "locale":"<hr>custom message"
-            var aboutProArc = {
-                "cs": "",
-                "en": ""
-            };
-            // editor client class logging configuration
-            // format: "logger name" : "java.util.logging.Level"
-            var EditorLoggingConfiguration = {
-                "cz.cas.lib.proarc.webapp.client" : "INFO"
-                , "cz.cas.lib.proarc.webapp.client.widget.ListFormItem" : "INFO"
-            };
-
-            document.getElementById('loadingMsg').innerHTML = 'Code&nbsp;Mirror';
-        </script>
-
-        <!-- CodeMirror XML Editor -->
-        <script type="text/javascript" src="js/codemirror/lib/codemirror.js"></script>
-        <script type="text/javascript" src="js/codemirror/mode/xml/xml.js"></script>
-        <script type="text/javascript" src="js/codemirror/addon/edit/closetag.js"></script>
-        <script type="text/javascript" src="js/codemirror/addon/fold/foldcode.js"></script>
-        <script type="text/javascript" src="js/codemirror/addon/fold/foldgutter.js"></script>
-        <script type="text/javascript" src="js/codemirror/addon/fold/xml-fold.js"></script>
-
-        <!-- Moxie Uploader -->
-        <script type="text/javascript">
-            document.getElementById('loadingMsg').innerHTML = 'Moxie&nbsp;Uploader';
-        </script>
-        <script type="text/javascript" src="proarc/swfupload.js"></script>
-        <script type="text/javascript" src="proarc/swfupload.speed.js"></script>
-
-        <!-- SmartGWT -->
-        <script type="text/javascript">
-            // prevents ID conflicts of SmartGWT components
-            window.isc_useSimpleNames = false;
-            var isomorphicDir = "proarc/sc/";
-            document.getElementById('loadingMsg').innerHTML = 'SmartGWT';
-        </script>
-
-        <script type="text/javascript" src="proarc/sc/modules/ISC_Core.js">          </script>
-        <script type="text/javascript" src="proarc/sc/modules/ISC_Foundation.js">    </script>
-        <script type="text/javascript" src="proarc/sc/modules/ISC_Containers.js">    </script>
-        <script type="text/javascript" src="proarc/sc/modules/ISC_Grids.js">         </script>
-        <script type="text/javascript" src="proarc/sc/modules/ISC_Forms.js">         </script>
-        <script type="text/javascript" src="proarc/sc/modules/ISC_RichTextEditor.js"></script>
-        <script type="text/javascript" src="proarc/sc/modules/ISC_Calendar.js">      </script>
-        <script type="text/javascript" src="proarc/sc/modules/ISC_DataBinding.js">   </script>
-
-        <script type="text/javascript" src="proarc/sc/skins/Enterprise/load_skin.js"></script>
-
-        <!-- ProArc -->
-        <script type="text/javascript">
-            document.getElementById('loadingMsg').innerHTML = 'Editor';
-        </script>
-        <script type="text/javascript" language="javascript" src="proarc/proarc.nocache.js"></script>
-
-    </body>
+        .status {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #2ecc71; /* zelený text a fajfka */
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>ProArc API</h1>
+    <p>Aplikace je spuštěna.</p>
+    <div class="status">✔ API běží</div>
+</div>
+</body>
 </html>

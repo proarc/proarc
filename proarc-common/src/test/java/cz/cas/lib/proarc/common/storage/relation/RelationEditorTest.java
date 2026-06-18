@@ -1,22 +1,21 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.cas.lib.proarc.common.storage.relation;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
 import java.io.File;
@@ -24,10 +23,12 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import org.hamcrest.core.Is;
-import static org.junit.Assert.*;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -35,13 +36,13 @@ import org.junit.Test;
  */
 public class RelationEditorTest {
 
-    @Rule
-    public CustomTemporaryFolder tmp = new CustomTemporaryFolder();
+    @TempDir
+    File tempDir;
 
     @Test
     public void testRdfParse() {
         URL resource = RelationEditorTest.class.getResource("rels-ext.xml");
-        String about="info:fedora/demo:999";
+        String about = "info:fedora/demo:999";
         assertNotNull(resource);
         Rdf unmarshal = Relations.unmarshal(resource, Rdf.class);
         RdfDescription description = unmarshal.getDescription();
@@ -70,7 +71,7 @@ public class RelationEditorTest {
     @Test
     public void testReadWrite() throws Exception {
         LocalStorage storage = new LocalStorage();
-        File foxml = tmp.newFile();
+        File foxml = tempDir;
         LocalObject lobject = storage.create(foxml);
         RelationEditor instance = new RelationEditor(lobject);
         String model = "mode:page";
@@ -93,9 +94,9 @@ public class RelationEditorTest {
         assertEquals(model, instance.getModel());
         assertEquals(device, instance.getDevice());
         assertEquals(filename, instance.getImportFile());
-        assertThat(instance.getMembers(), Is.is(members));
-        assertThat(instance.getMembership(), Is.is(memberships));
-        assertThat(instance.getOwners(), Is.is(owners));
+        assertEquals(instance.getMembers(), members);
+        assertEquals(instance.getMembership(), memberships);
+        assertEquals(instance.getOwners(), owners);
         long timestamp = instance.getLastModified();
         assertTrue(timestamp > 0);
 
@@ -117,8 +118,8 @@ public class RelationEditorTest {
         instance = new RelationEditor(lobject);
         assertEquals(model, instance.getModel());
         assertEquals(device, instance.getDevice());
-        assertThat(instance.getMembers(), Is.is(members));
-        assertThat(instance.getMembership(), Is.is(memberships));
+        assertEquals(instance.getMembers(), members);
+        assertEquals(instance.getMembership(), memberships);
         assertTrue(timestamp < instance.getLastModified());
     }
 }

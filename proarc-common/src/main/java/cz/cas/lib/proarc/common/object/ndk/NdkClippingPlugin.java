@@ -71,14 +71,14 @@ public class NdkClippingPlugin implements DigitalObjectPlugin, HasMetadataHandle
                 ModsConstants.NS, MODEL_CLIPPING_COLLECTION, this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
-                new RelationCriteria[] {}
+                new RelationCriteria[]{}
         ));
         models.add(new MetaModel(MODEL_CLIPPING_DIRECTORY, false, null,
                 Arrays.asList(new ElementType("NDK Clipping directory", "en"), new ElementType("NDK Obálka výstřižku", "cs")),
                 ModsConstants.NS, MODEL_CLIPPING_DIRECTORY, this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE, DatastreamEditorType.PARENT,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
-                new RelationCriteria[] {new RelationCriteria(MODEL_CLIPPING_COLLECTION, RelationCriteria.Type.PID)}
+                new RelationCriteria[]{new RelationCriteria(MODEL_CLIPPING_COLLECTION, RelationCriteria.Type.PID)}
         ));
         models.add(new MetaModel(MODEL_CLIPPING_UNIT, null, null,
                 Arrays.asList(new ElementType("NDK Clipping Unit", "en"), new ElementType("NDK Výstřižek", "cs")),
@@ -86,7 +86,7 @@ public class NdkClippingPlugin implements DigitalObjectPlugin, HasMetadataHandle
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {
+                new RelationCriteria[]{
                         new RelationCriteria(MODEL_CLIPPING_DIRECTORY, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_CLIPPING_COLLECTION, RelationCriteria.Type.PID)
                 }
@@ -98,21 +98,21 @@ public class NdkClippingPlugin implements DigitalObjectPlugin, HasMetadataHandle
                 MODEL_PAGE,
                 this,
                 EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN)),
-                new RelationCriteria[] {
-                    new RelationCriteria(NdkPlugin.MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
-                    new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
-                    new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID),
-                    new RelationCriteria(NdkPlugin.MODEL_CARTOGRAPHIC, RelationCriteria.Type.PID),
-                    new RelationCriteria(NdkPlugin.MODEL_GRAPHIC, RelationCriteria.Type.PID),
-                    new RelationCriteria(NdkPlugin.MODEL_SHEETMUSIC, RelationCriteria.Type.PID),
-                    new RelationCriteria(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, RelationCriteria.Type.PID),
-                    new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, RelationCriteria.Type.PID),
-                    new RelationCriteria(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID),
-                    new RelationCriteria(NdkAudioPlugin.MODEL_MUSICDOCUMENT, RelationCriteria.Type.PID),
-                    new RelationCriteria(NdkAudioPlugin.MODEL_PHONOGRAPH, RelationCriteria.Type.PID),
-                    new RelationCriteria(NdkAudioPlugin.MODEL_SONG, RelationCriteria.Type.PID),
-                    new RelationCriteria(NdkAudioPlugin.MODEL_TRACK, RelationCriteria.Type.PID),
-                    new RelationCriteria(NdkClippingPlugin.MODEL_CLIPPING_UNIT, RelationCriteria.Type.PID)
+                new RelationCriteria[]{
+                        new RelationCriteria(NdkPlugin.MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_CARTOGRAPHIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_GRAPHIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_SHEETMUSIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, RelationCriteria.Type.PID),
+                        new RelationCriteria(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_MUSICDOCUMENT, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_PHONOGRAPH, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_SONG, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_TRACK, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkClippingPlugin.MODEL_CLIPPING_UNIT, RelationCriteria.Type.PID)
                 }).setPriority(2)
         );
 

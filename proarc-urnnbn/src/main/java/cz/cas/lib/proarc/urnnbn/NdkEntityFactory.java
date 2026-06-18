@@ -44,9 +44,9 @@ public class NdkEntityFactory {
     private static final Level XML_DEBUG_LEVEL = Level.FINE;
 
     public Import createMultipartMonographImport(
-            ModsDefinition titleMods,  ModsDefinition volumeMods,
+            ModsDefinition titleMods, ModsDefinition volumeMods,
             MixType mix, ErrorHandler status, boolean oldPrint, String urnNbnValue
-            ) throws SAXException {
+    ) throws SAXException {
 
         MonographVolume m = new MonographVolume();
         m.setCcnb(ResolverUtils.getIdentifierValue("ccnb", volumeMods, titleMods));
@@ -85,7 +85,7 @@ public class NdkEntityFactory {
 
     public Import createMonographImport(
             ModsDefinition volumeMods, MixType mix, ErrorHandler status, boolean eBorn, boolean oldPrint, String urnNbnValue
-            ) throws SAXException {
+    ) throws SAXException {
 
         Monograph m = new Monograph();
         m.setCcnb(ResolverUtils.getIdentifierValue("ccnb", volumeMods));
@@ -122,7 +122,7 @@ public class NdkEntityFactory {
         DigitalDocument digitalDocument;
         if (eBorn) {
             digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", volumeMods)).setPreccessor(urnNbnValue).build();
-        } else{
+        } else {
             digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", volumeMods)).setMix(mix).setPreccessor(urnNbnValue).build();
         }
         imp.setDigitalDocument(digitalDocument);
@@ -162,7 +162,7 @@ public class NdkEntityFactory {
     public Import createPeriodicalIssueImport(
             ModsDefinition titleMods, ModsDefinition volumeMods,
             ModsDefinition issueMods, MixType mix, ErrorHandler status, boolean eBorn, String urnNbnValue
-            ) throws SAXException {
+    ) throws SAXException {
 
         Import imp = new Import();
         PeriodicalIssue issue = new PeriodicalIssue();
@@ -217,7 +217,7 @@ public class NdkEntityFactory {
         DigitalDocument digitalDocument;
         if (eBorn) {
             digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", issueMods)).setPreccessor(urnNbnValue).build();
-        } else{
+        } else {
             digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", issueMods)).setPreccessor(urnNbnValue).setMix(mix).build();
         }
         imp.setDigitalDocument(digitalDocument);
@@ -228,14 +228,14 @@ public class NdkEntityFactory {
 
     public Import createCartographicImport(
             ModsDefinition titleMods, MixType mix, ErrorHandler status, String urnNbnValue
-            ) throws SAXException {
+    ) throws SAXException {
 
         return createOtherEntityImport(titleMods, "cartographic", mix, status, false, urnNbnValue);
     }
 
     public Import createSheetMusicImport(
             ModsDefinition titleMods, MixType mix, ErrorHandler status, String urnNbnValue
-            ) throws SAXException {
+    ) throws SAXException {
 
         return createOtherEntityImport(titleMods, "sheetmusic", mix, status, false, urnNbnValue);
     }
@@ -287,7 +287,7 @@ public class NdkEntityFactory {
         DigitalDocument digitalDocument;
         if (eBorn) {
             digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", titleMods)).setPreccessor(urnNbnValue).build();
-        } else{
+        } else {
             if (mix == null && "soundrecording".equals(documentType)) {
                 digitalDocument = new DigitalDocumentBuilder().setUuid(ResolverUtils.getIdentifierValue("uuid", titleMods)).setPreccessor(urnNbnValue).build();
             } else {

@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.process.export.mets;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
@@ -43,8 +43,10 @@ import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.mets.info.Info;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,9 +54,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import org.apache.commons.lang.Validate;
 
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V5;
@@ -80,20 +79,10 @@ public class NdkExport {
     private static final Logger LOG = Logger.getLogger(NdkExport.class.getName());
     private final AppConfiguration appConfig;
     private final AkubraConfiguration akubraConfiguration;
-    private FedoraStorage fedoraStorage;
-
-    public NdkExport(FedoraStorage fedoraStorage, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
-        this.appConfig = appConfig;
-        this.akubraConfiguration = akubraConfiguration;
-        this.fedoraStorage = fedoraStorage;
-    }
 
     public NdkExport(AppConfiguration config, AkubraConfiguration akubraConfiguration) {
         this.appConfig = config;
         this.akubraConfiguration = akubraConfiguration;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            this.fedoraStorage = FedoraStorage.getInstance();
-        }
     }
 
     /**
@@ -144,7 +133,7 @@ public class NdkExport {
                     KImporter kImporter = new KImporter(appConfig, instance);
                     state = kImporter.importToKramerius(result.getTargetFolder(), false, KUtils.EXPORT_NDK, policy, license);
                     LOG.fine("PROCESS " + state.getProcessState() + " BATCH " + state.getBatchState() + " DELETE " + instance.deleteAfterImport());
-                    if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState())  && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
+                    if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState()) && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
                         if (instance.deleteAfterImport()) {
                             LOG.fine("Mazu soubor " + result.getTargetFolder());
                             MetsUtils.deleteFolder(result.getTargetFolder());
@@ -224,7 +213,7 @@ public class NdkExport {
         if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
             ExportUtils.writeExportResult(target, reslog);
         } else {
-            if (!(KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState())  && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState())))) {
+            if (!(KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState()) && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState())))) {
                 ExportUtils.writeExportResult(target, reslog);
             }
         }
@@ -301,9 +290,7 @@ public class NdkExport {
 
 
         try {
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                object = fedoraStorage.find(pid);
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
             } else {
@@ -368,10 +355,7 @@ public class NdkExport {
     public MetsContext buildContext(String pid, File target) {
         ProArcObject object = null;
         try {
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                object = fedoraStorage.find(pid);
-                return MetsContext.buildFedoraContext(object, null, target, fedoraStorage, appConfig.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 return MetsContext.buildAkubraContext(object, null, target, akubraStorage, appConfig.getNdkExportOptions());
@@ -477,10 +461,7 @@ public class NdkExport {
         MetsContext metsContext = null;
         ProArcObject object = null;
         try {
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                object = fedoraStorage.find(pid);
-                metsContext = MetsContext.buildFedoraContext(object, null, target, fedoraStorage, appConfig.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 metsContext = MetsContext.buildAkubraContext(object, null, target, akubraStorage, appConfig.getNdkExportOptions());

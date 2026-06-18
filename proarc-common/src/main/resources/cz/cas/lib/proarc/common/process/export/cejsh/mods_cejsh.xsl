@@ -32,7 +32,7 @@ Author Miroslav Pavelka
     <!-- supplement UUID - mods/identifier[type="uuid"] -->
     <xsl:param name="supplementId"/>
     <!-- supplement title - mods/titleInfo/title -->
-    <xsl:param name="supplementTitle" />
+    <xsl:param name="supplementTitle"/>
     <!-- supplement genre - mods/genre -->
     <xsl:param name="supplementType"/>
 
@@ -57,7 +57,7 @@ Author Miroslav Pavelka
 
     <xsl:param name="journalsInfo"/>
 
-    <xsl:variable name="lookupDoc" select="document($journalsInfo)" />
+    <xsl:variable name="lookupDoc" select="document($journalsInfo)"/>
     <xsl:variable name="journalId" select="$lookupDoc/cejsh/journal[@issn=$issn]/journalId"/>
     <xsl:variable name="discipline" select="$lookupDoc/cejsh/journal[@issn=$issn]/discipline"/>
     <xsl:variable name="publisherAddress" select="$lookupDoc/cejsh/journal[@issn=$issn]/publisherAddress"/>
@@ -87,7 +87,8 @@ Author Miroslav Pavelka
             <xsl:message terminate="yes">ERROR: Missing hierarchy parameters name: volume or issue</xsl:message>
         </xsl:if>
         <xsl:if test="not($journalId)">
-            <xsl:message terminate="yes">ERROR: Missing journalId for ISSN: '<xsl:value-of select="$issn"/>'!</xsl:message>
+            <xsl:message terminate="yes">ERROR: Missing journalId for ISSN: '<xsl:value-of select="$issn"/>'!
+            </xsl:message>
         </xsl:if>
         <xsl:if test="($supplementType='volume_supplement' and not($volumeId)) or ($supplementType='issue_supplement' and not($issueId))">
             <xsl:message terminate="yes">ERROR: Missing hierarchy parameters!</xsl:message>
@@ -111,7 +112,8 @@ Author Miroslav Pavelka
                     <xsl:attribute name="class">bwmeta1.hierarchy-class.hierarchy_Journal</xsl:attribute>
                     <xsl:attribute name="level">bwmeta1.level.hierarchy_Journal_Year</xsl:attribute>
                     <xsl:element name="element-ref">
-                        <xsl:attribute name="ref">bwmeta1.element.cejsh-<xsl:value-of select="$journalId"/></xsl:attribute>
+                        <xsl:attribute name="ref">bwmeta1.element.cejsh-<xsl:value-of select="$journalId"/>
+                        </xsl:attribute>
                     </xsl:element>
                 </xsl:element>
             </xsl:element>
@@ -242,256 +244,258 @@ Author Miroslav Pavelka
 
         <xsl:choose>
             <xsl:when test="mods:identifier[@type='uuid'] != '' ">
-                    <xsl:element name="element">
-                        <xsl:attribute name="id">
-                            <xsl:value-of select="$element_prefix"/>
-                            <xsl:value-of select="mods:identifier[@type='uuid']"/>
+                <xsl:element name="element">
+                    <xsl:attribute name="id">
+                        <xsl:value-of select="$element_prefix"/>
+                        <xsl:value-of select="mods:identifier[@type='uuid']"/>
+                    </xsl:attribute>
+                    <xsl:if test="mods:language/mods:languageTerm">
+                        <xsl:attribute name="langs">
+                            <xsl:call-template name="iso-639-2b-converter">
+                                <xsl:with-param name="languageCode" select="mods:language/mods:languageTerm"/>
+                            </xsl:call-template>
                         </xsl:attribute>
-                        <xsl:if test="mods:language/mods:languageTerm">
-                            <xsl:attribute name="langs">
-                                <xsl:call-template name="iso-639-2b-converter">
-                                    <xsl:with-param name="languageCode" select="mods:language/mods:languageTerm"/>
-                                </xsl:call-template>
-                            </xsl:attribute>
-                        </xsl:if>
+                    </xsl:if>
 
-                        <xsl:for-each select="mods:titleInfo">
-                            <xsl:element name="name">
-                                <xsl:if test="./@lang">
-                                    <xsl:attribute name="lang">
-                                        <xsl:call-template name="iso-639-2b-converter">
-                                            <xsl:with-param name="languageCode" select="./@lang"/>
-                                        </xsl:call-template>
-                                    </xsl:attribute>
-                                </xsl:if>
-                                <xsl:if test="./mods:nonSort!=''">
-                                    <xsl:variable name="nonSort" select="normalize-space(./mods:nonSort)"/>
-                                    <xsl:variable name="apos">'</xsl:variable>
-                                    <xsl:choose>
-                                        <xsl:when test="'´' = substring($nonSort, string-length($nonSort))">
-                                            <xsl:value-of select="$nonSort"/>
-                                        </xsl:when>
-                                        <xsl:when test="'’' = substring($nonSort, string-length($nonSort))">
-                                            <xsl:value-of select="$nonSort"/>
-                                        </xsl:when>
-                                        <xsl:when test="$apos = substring($nonSort, string-length($nonSort))">
-                                            <xsl:value-of select="$nonSort"/>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <xsl:value-of select="$nonSort"/>
-<!--                                            <xsl:value-of select="concat(substring($nonSort, string-length($nonSort), 1), '’')"/>-->
-                                            <xsl:text>&#160;</xsl:text>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
-<!--                                    <xsl:if test="./mods:title!='' or ./mods:subTitle!=''">-->
-<!--                                        <xsl:text>&#160;</xsl:text>-->
-<!--                                    </xsl:if>-->
-                                </xsl:if>
-                                <xsl:if test="./mods:title!=''">
-                                    <xsl:value-of select="./mods:title"/>
-                                    <xsl:if test="./mods:subTitle!=''">
-                                        <xsl:text>: </xsl:text>
-                                    </xsl:if>
-                                </xsl:if>
+                    <xsl:for-each select="mods:titleInfo">
+                        <xsl:element name="name">
+                            <xsl:if test="./@lang">
+                                <xsl:attribute name="lang">
+                                    <xsl:call-template name="iso-639-2b-converter">
+                                        <xsl:with-param name="languageCode" select="./@lang"/>
+                                    </xsl:call-template>
+                                </xsl:attribute>
+                            </xsl:if>
+                            <xsl:if test="./mods:nonSort!=''">
+                                <xsl:variable name="nonSort" select="normalize-space(./mods:nonSort)"/>
+                                <xsl:variable name="apos">'</xsl:variable>
+                                <xsl:choose>
+                                    <xsl:when test="'´' = substring($nonSort, string-length($nonSort))">
+                                        <xsl:value-of select="$nonSort"/>
+                                    </xsl:when>
+                                    <xsl:when test="'’' = substring($nonSort, string-length($nonSort))">
+                                        <xsl:value-of select="$nonSort"/>
+                                    </xsl:when>
+                                    <xsl:when test="$apos = substring($nonSort, string-length($nonSort))">
+                                        <xsl:value-of select="$nonSort"/>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:value-of select="$nonSort"/>
+                                        <!--                                            <xsl:value-of select="concat(substring($nonSort, string-length($nonSort), 1), '’')"/>-->
+                                        <xsl:text>&#160;</xsl:text>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                                <!--                                    <xsl:if test="./mods:title!='' or ./mods:subTitle!=''">-->
+                                <!--                                        <xsl:text>&#160;</xsl:text>-->
+                                <!--                                    </xsl:if>-->
+                            </xsl:if>
+                            <xsl:if test="./mods:title!=''">
+                                <xsl:value-of select="./mods:title"/>
                                 <xsl:if test="./mods:subTitle!=''">
-                                    <xsl:value-of select="./mods:subTitle"/>
+                                    <xsl:text>: </xsl:text>
                                 </xsl:if>
-                            </xsl:element>
-                        </xsl:for-each>
-
-                        <xsl:for-each select="mods:abstract">
-                            <xsl:if test="./@lang='eng'">
-                                <xsl:element name="description">
-                                    <xsl:attribute name="lang">en</xsl:attribute>
-                                    <xsl:value-of select="normalize-space(.)"/>
-                                </xsl:element>
                             </xsl:if>
-                        </xsl:for-each>
-                        <xsl:for-each select="mods:abstract">
-                            <xsl:if test="./@lang='cze'">
-                                <xsl:element name="description">
-                                    <xsl:attribute name="lang">cs</xsl:attribute>
-                                    <xsl:value-of select="normalize-space(.)"/>
-                                </xsl:element>
+                            <xsl:if test="./mods:subTitle!=''">
+                                <xsl:value-of select="./mods:subTitle"/>
                             </xsl:if>
-                        </xsl:for-each>
-                        <xsl:element name="attribute">
-                            <xsl:attribute name="key">cejsh.paper-type</xsl:attribute>
-                            <xsl:attribute name="value">ARTICLE</xsl:attribute>
                         </xsl:element>
+                    </xsl:for-each>
 
-                        <xsl:if test="$discipline">
-                            <xsl:element name="categories">
-                                <xsl:attribute name="ids">
-                                    <xsl:value-of select="$category_prefix"/>
-                                    <xsl:value-of select="$discipline"/>
+                    <xsl:for-each select="mods:abstract">
+                        <xsl:if test="./@lang='eng'">
+                            <xsl:element name="description">
+                                <xsl:attribute name="lang">en</xsl:attribute>
+                                <xsl:value-of select="normalize-space(.)"/>
+                            </xsl:element>
+                        </xsl:if>
+                    </xsl:for-each>
+                    <xsl:for-each select="mods:abstract">
+                        <xsl:if test="./@lang='cze'">
+                            <xsl:element name="description">
+                                <xsl:attribute name="lang">cs</xsl:attribute>
+                                <xsl:value-of select="normalize-space(.)"/>
+                            </xsl:element>
+                        </xsl:if>
+                    </xsl:for-each>
+                    <xsl:element name="attribute">
+                        <xsl:attribute name="key">cejsh.paper-type</xsl:attribute>
+                        <xsl:attribute name="value">ARTICLE</xsl:attribute>
+                    </xsl:element>
+
+                    <xsl:if test="$discipline">
+                        <xsl:element name="categories">
+                            <xsl:attribute name="ids">
+                                <xsl:value-of select="$category_prefix"/>
+                                <xsl:value-of select="$discipline"/>
+                            </xsl:attribute>
+                        </xsl:element>
+                    </xsl:if>
+
+                    <xsl:for-each select="mods:name">
+                        <xsl:element name="contributor">
+                            <xsl:attribute name="index">
+                                <xsl:value-of select="position()"/>
+                            </xsl:attribute>
+                            <xsl:if test="./mods:role/mods:roleTerm[@type='code']='aut'">
+                                <xsl:attribute name="role">author</xsl:attribute>
+                            </xsl:if>
+                            <xsl:if test="./mods:role/mods:roleTerm[@type='code']='edt'">
+                                <xsl:attribute name="role">editor</xsl:attribute>
+                            </xsl:if>
+
+                            <xsl:if test="./@type='personal'">
+                                <xsl:if test="./mods:namePart[@type='family']!='' and ./mods:namePart[@type='given']!=''">
+                                    <xsl:attribute name="title">
+                                        <xsl:value-of select="./mods:namePart[@type='given']"/>
+                                        <xsl:text>&#160;</xsl:text>
+                                        <xsl:value-of select="./mods:namePart[@type='family']"/>
+                                    </xsl:attribute>
+                                </xsl:if>
+                            </xsl:if>
+
+                            <xsl:if test="not(./mods:namePart[@type='family'] and ./mods:namePart[@type='given'])">
+                                <xsl:attribute name="title">
+                                    <xsl:value-of select="./mods:namePart"/>
+                                </xsl:attribute>
+                            </xsl:if>
+
+                            <xsl:if test="./@type='corporate' and ./mods:namePart ">
+                                <xsl:attribute name="title">
+                                    <xsl:value-of select="./mods:namePart"/>
+                                </xsl:attribute>
+                            </xsl:if>
+
+                            <xsl:if test="$publisherAddress">
+                                <xsl:element name="affiliation">
+                                    <xsl:element name="attribute">
+                                        <xsl:attribute name="key">text</xsl:attribute>
+                                        <xsl:attribute name="value">
+                                            <xsl:value-of select="$publisherAddress"/>
+                                        </xsl:attribute>
+                                    </xsl:element>
+                                </xsl:element>
+                            </xsl:if>
+
+                            <xsl:if test="./@type='personal'">
+                                <xsl:element name="attribute">
+                                    <xsl:attribute name="key">person</xsl:attribute>
+                                    <xsl:if test="./mods:namePart[@type='family'] != '' ">
+                                        <xsl:element name="attribute">
+                                            <xsl:attribute name="key">person.surname</xsl:attribute>
+                                            <xsl:attribute name="value">
+                                                <xsl:value-of select="./mods:namePart[@type='family']"/>
+                                            </xsl:attribute>
+                                        </xsl:element>
+                                    </xsl:if>
+                                    <xsl:if test="./mods:namePart[@type='given'] != '' ">
+                                        <xsl:element name="attribute">
+                                            <xsl:attribute name="key">person.firstname</xsl:attribute>
+                                            <xsl:attribute name="value">
+                                                <xsl:value-of select="./mods:namePart[@type='given']"/>
+                                            </xsl:attribute>
+                                        </xsl:element>
+                                    </xsl:if>
+                                </xsl:element>
+                            </xsl:if>
+
+                            <xsl:if test="./@type='corporate' and ./mods:namePart">
+                                <xsl:element name="attribute">
+                                    <xsl:attribute name="key">institution</xsl:attribute>
+                                    <xsl:attribute name="value">_</xsl:attribute>
+                                    <xsl:element name="attribute">
+                                        <xsl:attribute name="key">institution.name</xsl:attribute>
+                                        <xsl:attribute name="value">
+                                            <xsl:value-of select="./mods:namePart"/>
+                                        </xsl:attribute>
+                                    </xsl:element>
+                                </xsl:element>
+                            </xsl:if>
+
+                        </xsl:element>
+                    </xsl:for-each>
+
+                    <xsl:element name="hierarchy">
+                        <xsl:attribute name="class">bwmeta1.hierarchy-class.hierarchy_Journal</xsl:attribute>
+                        <xsl:attribute name="level">bwmeta1.level.hierarchy_Journal_Article</xsl:attribute>
+                        <xsl:element name="element-ref">
+                            <xsl:attribute name="ref">
+                                <xsl:value-of select="$element_prefix"/>
+                                <xsl:value-of select="$parentId"/>
+                            </xsl:attribute>
+                        </xsl:element>
+                        <xsl:if test="mods:part/mods:extent/mods:start and mods:part/mods:extent/mods:end">
+                            <xsl:element name="position">
+                                <xsl:attribute name="value">
+                                    <xsl:value-of select="mods:part/mods:extent/mods:start"/>-<xsl:value-of
+                                        select="mods:part/mods:extent/mods:end"/>
                                 </xsl:attribute>
                             </xsl:element>
                         </xsl:if>
-
-                        <xsl:for-each select="mods:name">
-                            <xsl:element name="contributor">
-                                <xsl:attribute name="index">
-                                    <xsl:value-of select="position()" />
+                        <xsl:if test="mods:relatedItem/mods:part/mods:extent/mods:start and mods:relatedItem/mods:part/mods:extent/mods:end">
+                            <xsl:element name="position">
+                                <xsl:attribute name="value">
+                                    <xsl:value-of select="mods:relatedItem/mods:part/mods:extent/mods:start"/>-<xsl:value-of
+                                        select="mods:relatedItem/mods:part/mods:extent/mods:end"/>
                                 </xsl:attribute>
-                                <xsl:if test="./mods:role/mods:roleTerm[@type='code']='aut'">
-                                    <xsl:attribute name="role">author</xsl:attribute>
-                                </xsl:if>
-                                <xsl:if test="./mods:role/mods:roleTerm[@type='code']='edt'">
-                                    <xsl:attribute name="role">editor</xsl:attribute>
-                                </xsl:if>
-
-                                <xsl:if test="./@type='personal'">
-                                    <xsl:if test="./mods:namePart[@type='family']!='' and ./mods:namePart[@type='given']!=''">
-                                        <xsl:attribute name="title">
-                                            <xsl:value-of select="./mods:namePart[@type='given']"/>
-                                            <xsl:text>&#160;</xsl:text>
-                                            <xsl:value-of select="./mods:namePart[@type='family']"/>
-                                        </xsl:attribute>
-                                    </xsl:if>
-                                </xsl:if>
-
-                                <xsl:if test="not(./mods:namePart[@type='family'] and ./mods:namePart[@type='given'])">
-                                    <xsl:attribute name="title">
-                                        <xsl:value-of select="./mods:namePart"/>
-                                    </xsl:attribute>
-                                </xsl:if>
-
-                                <xsl:if test="./@type='corporate' and ./mods:namePart ">
-                                    <xsl:attribute name="title">
-                                        <xsl:value-of select="./mods:namePart"/>
-                                    </xsl:attribute>
-                                </xsl:if>
-
-                                <xsl:if test="$publisherAddress">
-                                    <xsl:element name="affiliation">
-                                        <xsl:element name="attribute">
-                                            <xsl:attribute name="key">text</xsl:attribute>
-                                            <xsl:attribute name="value">
-                                                <xsl:value-of select="$publisherAddress"/>
-                                            </xsl:attribute>
-                                        </xsl:element>
-                                    </xsl:element>
-                                </xsl:if>
-
-                                <xsl:if test="./@type='personal'">
-                                    <xsl:element name="attribute">
-                                        <xsl:attribute name="key">person</xsl:attribute>
-                                        <xsl:if test="./mods:namePart[@type='family'] != '' ">
-                                            <xsl:element name="attribute">
-                                                <xsl:attribute name="key">person.surname</xsl:attribute>
-                                                <xsl:attribute name="value">
-                                                    <xsl:value-of select="./mods:namePart[@type='family']"/>
-                                                </xsl:attribute>
-                                            </xsl:element>
-                                        </xsl:if>
-                                        <xsl:if test="./mods:namePart[@type='given'] != '' ">
-                                            <xsl:element name="attribute">
-                                                <xsl:attribute name="key">person.firstname</xsl:attribute>
-                                                <xsl:attribute name="value">
-                                                    <xsl:value-of select="./mods:namePart[@type='given']"/>
-                                                </xsl:attribute>
-                                            </xsl:element>
-                                        </xsl:if>
-                                    </xsl:element>
-                                </xsl:if>
-
-                                <xsl:if test="./@type='corporate' and ./mods:namePart">
-                                    <xsl:element name="attribute">
-                                        <xsl:attribute name="key">institution</xsl:attribute>
-                                        <xsl:attribute name="value">_</xsl:attribute>
-                                        <xsl:element name="attribute">
-                                            <xsl:attribute name="key">institution.name</xsl:attribute>
-                                            <xsl:attribute name="value">
-                                                <xsl:value-of select="./mods:namePart"/>
-                                            </xsl:attribute>
-                                        </xsl:element>
-                                    </xsl:element>
-                                </xsl:if>
-
                             </xsl:element>
-                        </xsl:for-each>
+                        </xsl:if>
+                    </xsl:element>
 
-                        <xsl:element name="hierarchy">
-                            <xsl:attribute name="class">bwmeta1.hierarchy-class.hierarchy_Journal</xsl:attribute>
-                            <xsl:attribute name="level">bwmeta1.level.hierarchy_Journal_Article</xsl:attribute>
+                    <xsl:if test="$supplementId and $supplementType='issue_supplement'">
+                        <xsl:element name="relations">
+                            <xsl:attribute name="type">supplement</xsl:attribute>
                             <xsl:element name="element-ref">
                                 <xsl:attribute name="ref">
                                     <xsl:value-of select="$element_prefix"/>
-                                    <xsl:value-of select="$parentId"/>
+                                    <xsl:value-of select="$supplementId"/>
                                 </xsl:attribute>
                             </xsl:element>
-                            <xsl:if test="mods:part/mods:extent/mods:start and mods:part/mods:extent/mods:end">
-                                <xsl:element name="position">
-                                    <xsl:attribute name="value">
-                                        <xsl:value-of select="mods:part/mods:extent/mods:start"/>-<xsl:value-of select="mods:part/mods:extent/mods:end"/>
-                                    </xsl:attribute>
-                                </xsl:element>
-                            </xsl:if>
-                            <xsl:if test="mods:relatedItem/mods:part/mods:extent/mods:start and mods:relatedItem/mods:part/mods:extent/mods:end">
-                                <xsl:element name="position">
-                                    <xsl:attribute name="value">
-                                        <xsl:value-of select="mods:relatedItem/mods:part/mods:extent/mods:start"/>-<xsl:value-of select="mods:relatedItem/mods:part/mods:extent/mods:end"/>
-                                    </xsl:attribute>
-                                </xsl:element>
-                            </xsl:if>
                         </xsl:element>
+                    </xsl:if>
 
-                        <xsl:if test="$supplementId and $supplementType='issue_supplement'">
-                            <xsl:element name="relations">
-                                <xsl:attribute name="type">supplement</xsl:attribute>
-                                <xsl:element name="element-ref">
-                                    <xsl:attribute name="ref">
-                                        <xsl:value-of select="$element_prefix"/>
-                                        <xsl:value-of select="$supplementId"/>
-                                    </xsl:attribute>
-                                </xsl:element>
+                    <xsl:element name="contents">
+                        <xsl:attribute name="index">1</xsl:attribute>
+                        <xsl:attribute name="type">full-text</xsl:attribute>
+                        <xsl:element name="location">
+                            <xsl:attribute name="name">Digitální knihovna AV ČR</xsl:attribute>
+                            <xsl:element name="localisation">
+                                <xsl:attribute name="type">URL</xsl:attribute>
+                                <xsl:attribute name="remote">yes</xsl:attribute>
+                                <xsl:value-of select="$remote_link"/>
+                                <xsl:value-of select="mods:identifier[@type='uuid']"/>
                             </xsl:element>
-                        </xsl:if>
-
-                        <xsl:element name="contents">
-                            <xsl:attribute name="index">1</xsl:attribute>
-                            <xsl:attribute name="type">full-text</xsl:attribute>
-                            <xsl:element name="location">
-                                <xsl:attribute name="name">Digitální knihovna AV ČR</xsl:attribute>
-                                <xsl:element name="localisation">
-                                    <xsl:attribute name="type">URL</xsl:attribute>
-                                    <xsl:attribute name="remote">yes</xsl:attribute>
-                                    <xsl:value-of select="$remote_link"/>
-                                    <xsl:value-of select="mods:identifier[@type='uuid']"/>
-                                </xsl:element>
-                                <xsl:element name="format">
-                                    <xsl:attribute name="type">application/pdf</xsl:attribute>
-                                </xsl:element>
+                            <xsl:element name="format">
+                                <xsl:attribute name="type">application/pdf</xsl:attribute>
                             </xsl:element>
                         </xsl:element>
-
-                        <xsl:if test="mods:subject/mods:topic/@lang='eng'">
-                            <xsl:element name="keywords">
-                                <xsl:attribute name="lang">en</xsl:attribute>
-                                <xsl:for-each select="mods:subject/mods:topic">
-                                    <xsl:if test="./@lang='eng'">
-                                        <xsl:element name="k">
-                                            <xsl:value-of select="."/>
-                                        </xsl:element>
-                                    </xsl:if>
-                                </xsl:for-each>
-                            </xsl:element>
-                        </xsl:if>
-                        <xsl:if test="mods:subject/mods:topic/@lang='cze'">
-                            <xsl:element name="keywords">
-                                <xsl:attribute name="lang">cs</xsl:attribute>
-                                <xsl:for-each select="mods:subject/mods:topic">
-                                    <xsl:if test="./@lang='cze'">
-                                        <xsl:element name="k">
-                                            <xsl:value-of select="."/>
-                                        </xsl:element>
-                                    </xsl:if>
-                                </xsl:for-each>
-                            </xsl:element>
-                        </xsl:if>
-
                     </xsl:element>
+
+                    <xsl:if test="mods:subject/mods:topic/@lang='eng'">
+                        <xsl:element name="keywords">
+                            <xsl:attribute name="lang">en</xsl:attribute>
+                            <xsl:for-each select="mods:subject/mods:topic">
+                                <xsl:if test="./@lang='eng'">
+                                    <xsl:element name="k">
+                                        <xsl:value-of select="."/>
+                                    </xsl:element>
+                                </xsl:if>
+                            </xsl:for-each>
+                        </xsl:element>
+                    </xsl:if>
+                    <xsl:if test="mods:subject/mods:topic/@lang='cze'">
+                        <xsl:element name="keywords">
+                            <xsl:attribute name="lang">cs</xsl:attribute>
+                            <xsl:for-each select="mods:subject/mods:topic">
+                                <xsl:if test="./@lang='cze'">
+                                    <xsl:element name="k">
+                                        <xsl:value-of select="."/>
+                                    </xsl:element>
+                                </xsl:if>
+                            </xsl:for-each>
+                        </xsl:element>
+                    </xsl:if>
+
+                </xsl:element>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:message terminate="yes">ERROR: Missing article UUID</xsl:message>

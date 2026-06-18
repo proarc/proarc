@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -29,13 +29,13 @@ import java.util.function.Function;
  * {@code mods/titleInfo[@type = null]/subTitle}
  * {@code mods/titleInfo[@type = 'alternative' && @displayLabel = 'Klíčový název']/title}
  * {@code mods/titleInfo[@type = 'alternative']/title}
- *
+ * <p>
  * XXX: should there be titles:[{title:"", subTitle:""}]?
  *
  * @author Jan Pokorsky
  */
 final class TitleInfoMapper {
-    
+
     private static final String ATTR_ALTERNATIVE_TITLE_TYPE = "alternative";
     private static final String ATTR_KEY_TITLE_DISPLAYLABEL = "Klíčový název";
 
@@ -61,7 +61,7 @@ final class TitleInfoMapper {
         if (titleNode == null) {
             if (newTitles.isEmpty() && newSubtitles.isEmpty()) {
                 // nothing to update
-                return ;
+                return;
             }
             titleNode = factory.createTitleInfoDefinition();
             mods.getTitleInfo().add(titleNode);
@@ -77,7 +77,7 @@ final class TitleInfoMapper {
         searchNodes();
         if (keyTitleNode == null) {
             if (updates.isEmpty()) {
-                return ;
+                return;
             }
             keyTitleNode = factory.createTitleInfoDefinition();
             keyTitleNode.setType(ATTR_ALTERNATIVE_TITLE_TYPE);
@@ -92,7 +92,7 @@ final class TitleInfoMapper {
         searchNodes();
         if (alternativeTitleNode == null) {
             if (updates.isEmpty()) {
-                return ;
+                return;
             }
             alternativeTitleNode = factory.createTitleInfoDefinition();
             alternativeTitleNode.setType(ATTR_ALTERNATIVE_TITLE_TYPE);
@@ -133,7 +133,7 @@ final class TitleInfoMapper {
 
     private void searchNodes() {
         if (searched) {
-            return ;
+            return;
         }
         boolean foundTitles = false;
         boolean foundAlternatives = false;

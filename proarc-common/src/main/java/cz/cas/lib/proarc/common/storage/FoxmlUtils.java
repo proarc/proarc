@@ -1,32 +1,39 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.cas.lib.proarc.common.storage;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
-import com.yourmediashelf.fedora.generated.foxml.ObjectFactory;
-import com.yourmediashelf.fedora.generated.foxml.ObjectPropertiesType;
-import com.yourmediashelf.fedora.generated.foxml.PropertyType;
-import com.yourmediashelf.fedora.generated.foxml.StateType;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DatastreamVersionType;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.ObjectPropertiesType;
+import com.yourmediashelf.fedora.foxml.PropertyType;
+import com.yourmediashelf.fedora.foxml.StateType;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
+import cz.cas.lib.proarc.foxml.management.ObjectFactory;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.oaidublincore.DcConstants;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.xml.bind.DataBindingException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.annotation.XmlSchema;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,16 +50,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
 import javax.xml.XMLConstants;
-import javax.xml.bind.DataBindingException;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlSchema;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -69,14 +67,20 @@ import org.w3c.dom.Element;
 public final class FoxmlUtils {
 
     public static final String FOXML_NAMESPACE;
-    /** The audit data stream ID. */
+    /**
+     * The audit data stream ID.
+     */
     public static final String DS_AUDIT_ID = "AUDIT";
     public static final String PID_PREFIX = "uuid:";
     public static final String LOCAL_FEDORA_OBJ_PATH = "http://local.fedora.server/fedora/get/";
 
     static {
         XmlSchema schema = ObjectFactory.class.getPackage().getAnnotation(XmlSchema.class);
-        FOXML_NAMESPACE = schema.namespace();
+        if (schema != null) {
+            FOXML_NAMESPACE = schema.namespace();
+        } else {
+            FOXML_NAMESPACE = "info:fedora/fedora-system:def/foxml#"; // default
+        }
         assert FOXML_NAMESPACE != null;
     }
 
@@ -85,7 +89,7 @@ public final class FoxmlUtils {
     public static final String PROPERTY_LASTMODIFIED = "info:fedora/fedora-system:def/view#lastModifiedDate";
     public static final String PROPERTY_OWNER = "info:fedora/fedora-system:def/model#ownerId";
     public static final String PROPERTY_STATE = "info:fedora/fedora-system:def/model#state";
-    
+
     private static final Logger LOG = Logger.getLogger(FoxmlUtils.class.getName());
     private static JAXBContext defaultJaxbContext;
     private static ThreadLocal<Marshaller> defaultMarshaller = new ThreadLocal<Marshaller>();
@@ -97,6 +101,7 @@ public final class FoxmlUtils {
 
     /**
      * Default FOXML context. Oracle JAXB RI's context should be thread safe.
+     *
      * @see <a href='http://jaxb.java.net/faq/index.html#threadSafety'>Are the JAXB runtime API's thread safe?</a>
      */
     public static JAXBContext defaultJaxbContext() throws JAXBException {
@@ -141,7 +146,7 @@ public final class FoxmlUtils {
             if (propery != null) {
                 dobj.getObjectProperties().getProperty().remove(propery);
             }
-            return ;
+            return;
         }
         if (propery == null) {
             propery = createProperty(dobj, name);
@@ -179,7 +184,7 @@ public final class FoxmlUtils {
     }
 
     public static DatastreamVersionType createDataStreamVersion(DigitalObject dobj,
-            String dsId, ControlGroup controlGroup, boolean versionable, StateType state) {
+                                                                String dsId, ControlGroup controlGroup, boolean versionable, StateType state) {
 
         DatastreamVersionType datastreamVersion = null;
         DatastreamType datastream = findDatastream(dobj, dsId);
@@ -202,7 +207,7 @@ public final class FoxmlUtils {
     public static String versionDefaultId(String dsId) {
         return versionNewId(dsId, 0);
     }
-    
+
     private static String versionNewId(String dsId, int existingVersionCount) {
         return String.format("%s.%s", dsId, existingVersionCount);
     }
@@ -254,7 +259,7 @@ public final class FoxmlUtils {
      * For now it fills only description!
      */
     public static DatastreamProfile toDatastreamProfile(String pid,
-            DatastreamVersionType version, DatastreamType datastream) {
+                                                        DatastreamVersionType version, DatastreamType datastream) {
 
         DatastreamProfile profile = new DatastreamProfile();
         profile.setDsID(datastream.getID());
@@ -269,23 +274,6 @@ public final class FoxmlUtils {
         profile.setDsState(datastream.getSTATE().value());
 //        profile.setDsVersionID();
 //        profile.setPid(datastream.);
-        return profile;
-    }
-
-
-    /**
-     * Translates {@link com.yourmediashelf.fedora.generated.access.DatastreamType}
-     * to {@link DatastreamProfile}. It searches
-     * for the newest version.
-     * <p>For now it fills only description!
-     */
-    public static DatastreamProfile toDatastreamProfile(String pid,
-            com.yourmediashelf.fedora.generated.access.DatastreamType datastream) {
-
-        DatastreamProfile profile = new DatastreamProfile();
-        profile.setDsID(datastream.getDsid());
-        profile.setDsLabel(datastream.getLabel());
-        profile.setDsMIME(datastream.getMimeType());
         return profile;
     }
 
@@ -370,6 +358,7 @@ public final class FoxmlUtils {
 
     /**
      * Is a valid Fedora PID?
+     *
      * @see <a href='https://wiki.duraspace.org/display/FEDORA37/Fedora+Identifiers#FedoraIdentifiers-PIDspids'>Fedora PID</a>
      */
     public static boolean isValidPid(String pid) {
@@ -495,7 +484,8 @@ public final class FoxmlUtils {
     /**
      * Creates an object or datastream URI independent on a Fedora instance.
      * The URI is resolvable just inside a given Fedora context.
-     * @param pid object PID
+     *
+     * @param pid  object PID
      * @param dsId datastream ID
      * @return the portable URI
      * @throws URISyntaxException failure
@@ -513,21 +503,6 @@ public final class FoxmlUtils {
         return location;
     }
 
-    /**
-     * Check whether failure stands for a missing requested datastream.
-     */
-    public static boolean missingDatastream(FedoraClientException ex) {
-        if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-            // Missing datastream message:
-            // HTTP 404 Error: No datastream could be found. Either there is no datastream for the digital object "uuid:5c3caa12-1e82-4670-a6aa-3d9ff8a7a3c5" with datastream ID of "TEXT_OCR"  OR  there are no datastreams that match the specified date/time value of "null".
-            // Missing object message:
-            // HTTP 404 Error: uuid:5c3caa12-1e82-4670-a6aa-3d9ff8a7a3c56
-            // To check message see fcrepo-server/src/main/java/org/fcrepo/server/rest/DatastreamResource.java
-            return ex.getMessage().contains("No datastream");
-        }
-        return false;
-    }
-
     public static boolean missingDatastream(IOException ex) {
         return ex.getMessage().contains("Cannot find stream");
     }
@@ -536,6 +511,7 @@ public final class FoxmlUtils {
      * Fixes DublinCore exported by Fedora Commons.
      * <p>The {@code schemaLocation} is removed.
      * <br>The namespace declaration is added to the root element.
+     *
      * @param dcRoot the root element of DC
      * @return the root element of DC
      */
@@ -570,7 +546,7 @@ public final class FoxmlUtils {
             }
             return null;
         }
-        
+
     }
 
 }

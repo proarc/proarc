@@ -19,14 +19,22 @@ package cz.cas.lib.proarc.common.process.imports.replaceStream;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.image.ImageMimeType;
+import cz.cas.lib.proarc.common.ocr.AltoDatastream;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.process.external.ExternalProcess;
+import cz.cas.lib.proarc.common.process.external.KakaduCompress;
+import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess;
+import cz.cas.lib.proarc.common.process.imports.InputUtils;
+import cz.cas.lib.proarc.common.process.imports.TiffImporter;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.MixEditor;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.common.storage.Storage;
@@ -35,19 +43,8 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess;
-import cz.cas.lib.proarc.common.process.imports.InputUtils;
-import cz.cas.lib.proarc.common.ocr.AltoDatastream;
-import cz.cas.lib.proarc.common.process.external.ExternalProcess;
-import cz.cas.lib.proarc.common.process.external.KakaduCompress;
-import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
-import cz.cas.lib.proarc.common.process.imports.TiffImporter;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
-import cz.incad.imgsupport.ImageMimeType;
-import cz.incad.imgsupport.ImageSupport;
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -56,8 +53,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
+import static cz.cas.lib.proarc.common.image.ImageUtility.readImage;
 import static cz.cas.lib.proarc.common.process.imports.replaceStream.ReplaceStreamScanner.checkIfFileHasExtension;
 
 /**
@@ -83,7 +81,7 @@ public class FileReader {
         }
     }
 
-    private void readImpl(File file, ImportProcess.ImportOptions context) throws IOException, FedoraClientException, AppConfigurationException, MetsExportException {
+    private void readImpl(File file, ImportProcess.ImportOptions context) throws IOException, AppConfigurationException, MetsExportException {
         String pid = getPid(file);
         List<SearchViewItem> items = iSession.getSearch().find(pid);
         if (items == null || items.isEmpty()) {
@@ -221,7 +219,7 @@ public class FileReader {
                 }
             } else {
                 if (tiff == null) {
-                    tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+                    tiff = readImage(original.toURI().toURL(), ImageMimeType.TIFF);
                 }
                 f = TiffImporter.writeImage(tiff, context.getTargetFolder(), targetName, imageType);
             }
@@ -245,7 +243,7 @@ public class FileReader {
                 }
             } else {
                 if (tiff == null) {
-                    tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+                    tiff = readImage(original.toURI().toURL(), ImageMimeType.TIFF);
                 }
                 f = TiffImporter.writeImage(
                         TiffImporter.scale(tiff, context.getConfig().getPreviewScaling(), previewMaxWidth, previewMaxHeight),
@@ -271,7 +269,7 @@ public class FileReader {
                 }
             } else {
                 if (tiff == null) {
-                    tiff = ImageSupport.readImage(original.toURI().toURL(), ImageMimeType.TIFF);
+                    tiff = readImage(original.toURI().toURL(), ImageMimeType.TIFF);
                 }
                 f = TiffImporter.writeImage(
                         TiffImporter.scale(tiff, context.getConfig().getThumbnailScaling(), thumbMaxWidth, thumbMaxHeight),
@@ -289,7 +287,7 @@ public class FileReader {
     }
 
     private File getSibling(File original, String suffix) {
-        return new File(original.getParentFile(), (getName(original)  + "." + suffix).replace("..", "."));
+        return new File(original.getParentFile(), (getName(original) + "." + suffix).replace("..", "."));
     }
 
     protected static String toValidDsId(File file, ImportProcess.ImportOptions context) throws IOException {
@@ -303,7 +301,7 @@ public class FileReader {
             }
         } else if (checkIfFileHasExtension(file.getName(), context.getConfig().getPlainOcrFileSuffix())) {
             return StringEditor.OCR_ID;
-        } else if (checkIfFileHasExtension(file.getName(),  context.getConfig().getRawFileSuffix(), "." + ImageMimeType.TIFF.getDefaultFileExtension()) && InputUtils.isTiff(file)) {
+        } else if (checkIfFileHasExtension(file.getName(), context.getConfig().getRawFileSuffix(), "." + ImageMimeType.TIFF.getDefaultFileExtension()) && InputUtils.isTiff(file)) {
             return BinaryEditor.RAW_ID;
         } else if (checkIfFileHasExtension(file.getName(), context.getConfig().getNdkFullFileSuffix(), ".full." + ImageMimeType.JPEG.getDefaultFileExtension()) && InputUtils.isJpeg(file)) {
             return BinaryEditor.FULL_ID;
@@ -360,16 +358,12 @@ public class FileReader {
         private final LocalStorage locals;
         private final SearchView search;
         private final Storage typeOfStorage;
-        private FedoraStorage remotes;
         private AkubraStorage akubraStorage;
 
         public ImportSession(BatchManager ibm, ImportProcess.ImportOptions options, AppConfiguration config) {
             this.typeOfStorage = config.getTypeOfStorage();
             try {
-                if (Storage.FEDORA.equals(typeOfStorage)) {
-                    this.remotes = FedoraStorage.getInstance();
-                    this.search = this.remotes.getSearch();
-                } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+                if (Storage.AKUBRA.equals(typeOfStorage)) {
                     AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
                     this.akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                     this.search = this.akubraStorage.getSearch();
@@ -391,10 +385,6 @@ public class FileReader {
 
         public LocalStorage getLocals() {
             return locals;
-        }
-
-        public FedoraStorage getRemotes() {
-            return remotes;
         }
 
         public Storage getTypeOfStorage() {

@@ -16,13 +16,13 @@
  */
 package cz.cas.lib.proarc.common.process.export;
 
-import com.yourmediashelf.fedora.generated.foxml.DigitalObject;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
-import cz.cas.lib.proarc.common.process.export.desa.Const;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
@@ -34,13 +34,13 @@ import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
+import jakarta.xml.bind.JAXB;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -51,7 +51,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXB;
 
 import static cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils.STATUS_EXPORTED;
 
@@ -68,8 +67,9 @@ public final class ExportUtils {
 
     /**
      * Creates new folder. If name already exists it finds similar free name.
+     *
      * @param parent target folder
-     * @param name name of the new folder
+     * @param name   name of the new folder
      * @return the new folder
      */
     public static File createFolder(File parent, String name, boolean overwrite) {
@@ -98,7 +98,7 @@ public final class ExportUtils {
      * <p>It does not use special characters as ':' to avoid platform particularities.
      *
      * @param output target folder
-     * @param pid PID of digital object
+     * @param pid    PID of digital object
      * @return file
      */
     public static File pidAsXmlFile(File output, String pid) {
@@ -128,9 +128,10 @@ public final class ExportUtils {
 
     /**
      * Stores an export result to the digital object.
-     * @param pid digital object ID
+     *
+     * @param pid    digital object ID
      * @param target export result (file/folder path, remote storage handle, ...)
-     * @param log fedora log message
+     * @param log    fedora log message
      * @throws DigitalObjectException failure
      */
     public static void storeObjectExportResult(String pid, String target, String type, String log) throws DigitalObjectException {
@@ -139,7 +140,7 @@ public final class ExportUtils {
         fo.indexHierarchical(false);
         DigitalObjectHandler doh = dom.createHandler(fo);
         RelationEditor relations = doh.relations();
-        switch(type) {
+        switch (type) {
             case "NDK":
                 relations.setNdkExportResult(target);
                 relations.setExportResult(target);
@@ -309,14 +310,10 @@ public final class ExportUtils {
 
 
     public static void missingUrnNbn(List<String> pids, boolean ignoreMissingUrnNbn, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) throws IOException, MetsExportException {
-        for (String pid: pids) {
+        for (String pid : pids) {
             MetsContext metsContext = null;
             ProArcObject object = null;
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                FedoraStorage fedoraStorage = FedoraStorage.getInstance();
-                object = fedoraStorage.find(pid);
-                metsContext = MetsContext.buildFedoraContext(object, null, null, fedoraStorage, appConfig.getNdkExportOptions());
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(pid);
                 metsContext = MetsContext.buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
@@ -328,7 +325,7 @@ public final class ExportUtils {
             List<String> PSPs = new ArrayList<>();
             if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(ExportUtils.getModel(metsElement.getModel())) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(ExportUtils.getModel(metsElement.getModel()))) {
                 PSPs = Collections.singletonList(metsElement.getOriginalPid());
-            }   else {
+            } else {
                 PSPs = MetsUtils.findPSPPIDs(object.getPid(), metsContext, true);
             }
             for (String pspPid : PSPs) {

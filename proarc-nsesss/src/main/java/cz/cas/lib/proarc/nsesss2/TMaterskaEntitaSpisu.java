@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Metadatový kontejner pro mateřské entity spisu.
- * 
+ *
  * <p>Java class for tMaterskaEntitaSpisu complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tMaterskaEntitaSpisu">
  *   &lt;complexContent>
@@ -32,12 +32,12 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tMaterskaEntitaSpisu", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "vecnaSkupina"
+        "vecnaSkupina"
 })
 public class TMaterskaEntitaSpisu {
 
@@ -46,11 +46,10 @@ public class TMaterskaEntitaSpisu {
 
     /**
      * Gets the value of the vecnaSkupina property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TVecnaSkupina }
-     *     
+     *
+     * @return possible object is
+     * {@link TVecnaSkupina }
+     *
      */
     public TVecnaSkupina getVecnaSkupina() {
         return vecnaSkupina;
@@ -58,11 +57,10 @@ public class TMaterskaEntitaSpisu {
 
     /**
      * Sets the value of the vecnaSkupina property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TVecnaSkupina }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TVecnaSkupina }
+     *
      */
     public void setVecnaSkupina(TVecnaSkupina value) {
         this.vecnaSkupina = value;

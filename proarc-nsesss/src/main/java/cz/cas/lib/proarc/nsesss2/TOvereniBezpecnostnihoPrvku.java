@@ -8,17 +8,17 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * <p>Java class for tOvereniBezpecnostnihoPrvku complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tOvereniBezpecnostnihoPrvku">
  *   &lt;complexContent>
@@ -35,17 +35,17 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tOvereniBezpecnostnihoPrvku", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "certifikat",
-    "overeniCertifikatu",
-    "casPouziti",
-    "casOvereni",
-    "platnostBezpecnostnihoPrvku",
-    "overovatel"
+        "certifikat",
+        "overeniCertifikatu",
+        "casPouziti",
+        "casOvereni",
+        "platnostBezpecnostnihoPrvku",
+        "overovatel"
 })
 public class TOvereniBezpecnostnihoPrvku {
 
@@ -64,11 +64,10 @@ public class TOvereniBezpecnostnihoPrvku {
 
     /**
      * Gets the value of the certifikat property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TCertifikat }
-     *     
+     *
+     * @return possible object is
+     * {@link TCertifikat }
+     *
      */
     public TCertifikat getCertifikat() {
         return certifikat;
@@ -76,11 +75,10 @@ public class TOvereniBezpecnostnihoPrvku {
 
     /**
      * Sets the value of the certifikat property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TCertifikat }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TCertifikat }
+     *
      */
     public void setCertifikat(TCertifikat value) {
         this.certifikat = value;
@@ -88,11 +86,10 @@ public class TOvereniBezpecnostnihoPrvku {
 
     /**
      * Gets the value of the overeniCertifikatu property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOvereniCertifikatu }
-     *     
+     *
+     * @return possible object is
+     * {@link TOvereniCertifikatu }
+     *
      */
     public TOvereniCertifikatu getOvereniCertifikatu() {
         return overeniCertifikatu;
@@ -100,11 +97,10 @@ public class TOvereniBezpecnostnihoPrvku {
 
     /**
      * Sets the value of the overeniCertifikatu property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOvereniCertifikatu }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOvereniCertifikatu }
+     *
      */
     public void setOvereniCertifikatu(TOvereniCertifikatu value) {
         this.overeniCertifikatu = value;
@@ -112,11 +108,10 @@ public class TOvereniBezpecnostnihoPrvku {
 
     /**
      * Gets the value of the casPouziti property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getCasPouziti() {
         return casPouziti;
@@ -124,11 +119,10 @@ public class TOvereniBezpecnostnihoPrvku {
 
     /**
      * Sets the value of the casPouziti property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setCasPouziti(TDatum value) {
         this.casPouziti = value;
@@ -136,11 +130,10 @@ public class TOvereniBezpecnostnihoPrvku {
 
     /**
      * Gets the value of the casOvereni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getCasOvereni() {
         return casOvereni;
@@ -148,11 +141,10 @@ public class TOvereniBezpecnostnihoPrvku {
 
     /**
      * Sets the value of the casOvereni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setCasOvereni(TDatum value) {
         this.casOvereni = value;
@@ -160,11 +152,10 @@ public class TOvereniBezpecnostnihoPrvku {
 
     /**
      * Gets the value of the platnostBezpecnostnihoPrvku property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TVysledekOvereni }
-     *     
+     *
+     * @return possible object is
+     * {@link TVysledekOvereni }
+     *
      */
     public TVysledekOvereni getPlatnostBezpecnostnihoPrvku() {
         return platnostBezpecnostnihoPrvku;
@@ -172,11 +163,10 @@ public class TOvereniBezpecnostnihoPrvku {
 
     /**
      * Sets the value of the platnostBezpecnostnihoPrvku property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TVysledekOvereni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TVysledekOvereni }
+     *
      */
     public void setPlatnostBezpecnostnihoPrvku(TVysledekOvereni value) {
         this.platnostBezpecnostnihoPrvku = value;
@@ -184,11 +174,10 @@ public class TOvereniBezpecnostnihoPrvku {
 
     /**
      * Gets the value of the overovatel property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TOsobaInterni }
-     *     
+     *
+     * @return possible object is
+     * {@link TOsobaInterni }
+     *
      */
     public TOsobaInterni getOverovatel() {
         return overovatel;
@@ -196,11 +185,10 @@ public class TOvereniBezpecnostnihoPrvku {
 
     /**
      * Sets the value of the overovatel property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TOsobaInterni }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TOsobaInterni }
+     *
      */
     public void setOverovatel(TOsobaInterni value) {
         this.overovatel = value;

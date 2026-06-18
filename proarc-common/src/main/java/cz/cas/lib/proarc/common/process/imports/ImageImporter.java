@@ -38,7 +38,7 @@ public interface ImageImporter {
      * processes specified fileset with options defined in ImportOptions
      *
      * @param fileSet FileSet to be consumed and processed
-     * @param ctx setup options for importer
+     * @param ctx     setup options for importer
      * @return returns object with processed images from fileSet
      */
     BatchItemObject consume(FileSet fileSet, ImportProcess.ImportOptions ctx);

@@ -42,6 +42,7 @@ public final class MetaModelRepository {
 
     /**
      * Creates the repository for digital object plugins.
+     *
      * @param pluginIds
      */
     public static void setInstance(String... pluginIds) {

@@ -194,7 +194,7 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
         return null;
     }
 
-    public R visitNdkEMonographTitle(DigitalObjectElement elm, P p) throws  VisitorException {
+    public R visitNdkEMonographTitle(DigitalObjectElement elm, P p) throws VisitorException {
         return visitChildren(elm, p);
     }
 
@@ -233,6 +233,7 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
     public R visitOldPrintPage(DigitalObjectElement elm, P p) throws VisitorException {
         return visitChildren(elm, p);
     }
+
     public R visitOldPrintSheetmusic(DigitalObjectElement elm, P p) throws VisitorException {
         return visitChildren(elm, p);
     }

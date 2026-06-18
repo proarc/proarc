@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,13 +21,13 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.ObjectFactory;
 import java.util.Arrays;
 import java.util.List;
-import org.hamcrest.core.Is;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  *
@@ -40,19 +40,19 @@ public class SubjectMapperTest {
     public SubjectMapperTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -70,7 +70,7 @@ public class SubjectMapperTest {
         SubjectMapper instance = new SubjectMapper(mods);
         List<String> result = instance.getKeywords();
         List<String> expect = Arrays.asList("keyword[0]", "keyword[1]", "keyword[3]");
-        assertThat(result, Is.is(expect));
+        assertEquals(result, expect);
     }
 
     @Test
@@ -84,12 +84,12 @@ public class SubjectMapperTest {
                 + "</subject>"
                 + "</mods>";
         ModsDefinition mods = ModsUtils.unmarshal(xml, ModsDefinition.class);
-        List<String> keywords = Arrays.asList("keyword[new]","keyword[0] - updated", "keyword[3] - updated");
+        List<String> keywords = Arrays.asList("keyword[new]", "keyword[0] - updated", "keyword[3] - updated");
         SubjectMapper instance = new SubjectMapper(mods);
         instance.setKeywords(keywords);
         List<String> result = instance.getKeywords();
-        List<String> expect = Arrays.asList("keyword[new]","keyword[0] - updated", "keyword[3] - updated");
-        assertThat(result, Is.is(expect));
+        List<String> expect = Arrays.asList("keyword[new]", "keyword[0] - updated", "keyword[3] - updated");
+        assertEquals(result, expect);
     }
 
 }

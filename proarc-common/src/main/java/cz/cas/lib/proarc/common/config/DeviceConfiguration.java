@@ -19,7 +19,7 @@ package cz.cas.lib.proarc.common.config;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * Device configuration.

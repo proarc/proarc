@@ -16,37 +16,12 @@
  */
 package cz.cas.lib.proarc.nsesss2.mapping;
 
-import cz.cas.lib.proarc.nsesss2.Dokument;
-import cz.cas.lib.proarc.nsesss2.NsesssConstants;
-import cz.cas.lib.proarc.nsesss2.Spis;
-import cz.cas.lib.proarc.nsesss2.TDataceVyrazeni;
-import cz.cas.lib.proarc.nsesss2.TDatum;
-import cz.cas.lib.proarc.nsesss2.TDorucenyDokument;
-import cz.cas.lib.proarc.nsesss2.TEvidence;
-import cz.cas.lib.proarc.nsesss2.TEvidencniUdajeDokumentu;
-import cz.cas.lib.proarc.nsesss2.TEvidencniUdajeSpisu;
-import cz.cas.lib.proarc.nsesss2.TIdentifikace;
-import cz.cas.lib.proarc.nsesss2.TIdentifikator;
-import cz.cas.lib.proarc.nsesss2.TManipulaceSeskupeni;
-import cz.cas.lib.proarc.nsesss2.TOsobaExterni;
-import cz.cas.lib.proarc.nsesss2.TOsobyExterni;
-import cz.cas.lib.proarc.nsesss2.TOsobyInterni;
-import cz.cas.lib.proarc.nsesss2.TPuvodDokumentu;
-import cz.cas.lib.proarc.nsesss2.TPuvodSeskupeni;
-import cz.cas.lib.proarc.nsesss2.TSkartacniRezim;
-import cz.cas.lib.proarc.nsesss2.TSubjektExterni;
-import cz.cas.lib.proarc.nsesss2.TSubjektInterni;
-import cz.cas.lib.proarc.nsesss2.TTrideniDokumentu;
-import cz.cas.lib.proarc.nsesss2.TTypDokumentu;
-import cz.cas.lib.proarc.nsesss2.TUrceneCasoveObdobi;
-import cz.cas.lib.proarc.nsesss2.TVlastniDokument;
-import cz.cas.lib.proarc.nsesss2.TVyrazovani;
-import cz.cas.lib.proarc.nsesss2.TVyrizeniEntity;
+import cz.cas.lib.proarc.nsesss2.*;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
@@ -118,6 +93,7 @@ public final class NsesssMapper {
     /**
      * Fills {@code zdroj} attribute of all {@link TIdentifikator} elements
      * with {@code /Spis/EvidencniUdaje/Evidence/NazevEvidenceDokumentu} value.
+     *
      * @param s
      * @return updated object
      */
@@ -152,7 +128,8 @@ public final class NsesssMapper {
     /**
      * Fills {@code zdroj} attribute of all {@link TIdentifikator} elements
      * with {@code /Document/EvidencniUdaje/Evidence/NazevEvidenceDokumentu} value.
-     * @param s
+     *
+     * @param d
      * @return updated object
      */
     public Dokument fillZdroj(Dokument d) {
@@ -308,6 +285,7 @@ public final class NsesssMapper {
 
     /**
      * Fills default values. ID, current date, ...
+     *
      * @param id unique ID with NCName syntax
      */
     public Spis fillDefaults(Spis s, String id) {
@@ -346,6 +324,7 @@ public final class NsesssMapper {
 
     /**
      * Fills default values. ID, current date, ...
+     *
      * @param id unique ID with NCName syntax
      */
     public Dokument fillDefaults(Dokument d, boolean intenalDocument, String id) {
@@ -418,7 +397,7 @@ public final class NsesssMapper {
         public static SubjektExterni fromSubjektExterni(TSubjektExterni se) {
             SubjektExterni o = new SubjektExterni();
             o.subjectType = se.getPostovniAdresa() != null
-                    ? NsesssConstants.DOKUMENT_PRIJEMCE_FYZICKA_OSOBA: NsesssConstants.DOKUMENT_PRIJEMCE_PRAVNICKA_OSOBA;
+                    ? NsesssConstants.DOKUMENT_PRIJEMCE_FYZICKA_OSOBA : NsesssConstants.DOKUMENT_PRIJEMCE_PRAVNICKA_OSOBA;
             o.setElektronickyKontakt(se.getElektronickyKontakt());
             o.setIdentifikatorFyzickeOsoby(se.getIdentifikatorFyzickeOsoby());
             o.setIdentifikatorOrganizace(se.getIdentifikatorOrganizace());

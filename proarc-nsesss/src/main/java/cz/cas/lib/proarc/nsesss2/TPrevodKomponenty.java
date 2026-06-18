@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Metadatový kontejner pro zaznamenání procesu konverze komponenty.
- * 
+ *
  * <p>Java class for tPrevodKomponenty complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tPrevodKomponenty">
  *   &lt;complexContent>
@@ -33,13 +33,13 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tPrevodKomponenty", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "konverzeADDA",
-    "konverzeDD"
+        "konverzeADDA",
+        "konverzeDD"
 })
 public class TPrevodKomponenty {
 
@@ -50,11 +50,10 @@ public class TPrevodKomponenty {
 
     /**
      * Gets the value of the konverzeADDA property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TKonverzeADDA }
-     *     
+     *
+     * @return possible object is
+     * {@link TKonverzeADDA }
+     *
      */
     public TKonverzeADDA getKonverzeADDA() {
         return konverzeADDA;
@@ -62,11 +61,10 @@ public class TPrevodKomponenty {
 
     /**
      * Sets the value of the konverzeADDA property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TKonverzeADDA }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TKonverzeADDA }
+     *
      */
     public void setKonverzeADDA(TKonverzeADDA value) {
         this.konverzeADDA = value;
@@ -74,11 +72,10 @@ public class TPrevodKomponenty {
 
     /**
      * Gets the value of the konverzeDD property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TKonverzeDD }
-     *     
+     *
+     * @return possible object is
+     * {@link TKonverzeDD }
+     *
      */
     public TKonverzeDD getKonverzeDD() {
         return konverzeDD;
@@ -86,11 +83,10 @@ public class TPrevodKomponenty {
 
     /**
      * Sets the value of the konverzeDD property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TKonverzeDD }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TKonverzeDD }
+     *
      */
     public void setKonverzeDD(TKonverzeDD value) {
         this.konverzeDD = value;

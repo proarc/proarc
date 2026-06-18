@@ -11,7 +11,6 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,16 +36,16 @@ public class ImportUtils {
 
             try {
                 int length = splitName.length;
-                if (splitName[length-3].length() == 2 && splitName[length-2].length() == 2 && splitName[length-1].length() == 2) {
-                    int disc = Integer.valueOf(splitName[splitName.length-3]);
-                    int song = Integer.valueOf(splitName[splitName.length-2]);
-                    int track = Integer.valueOf(splitName[splitName.length-1]);
+                if (splitName[length - 3].length() == 2 && splitName[length - 2].length() == 2 && splitName[length - 1].length() == 2) {
+                    int disc = Integer.valueOf(splitName[splitName.length - 3]);
+                    int song = Integer.valueOf(splitName[splitName.length - 2]);
+                    int track = Integer.valueOf(splitName[splitName.length - 1]);
 
                     if (disc < 1 || song < 1) {
                         LOG.log(Level.WARNING, "Spatna hodnota v nazvu souboru. Nepodarilo se automaticky vytvorit hierarchii objektu: " + splitName + ".");
                         return false;
                     }
-                    if (track > 0 ) {
+                    if (track > 0) {
                         if (songsPid.size() < song) {
                             pid = FoxmlUtils.createPid();
                             Hierarchy songHierarchy = new Hierarchy(pid, null);
@@ -100,10 +99,7 @@ public class ImportUtils {
         try {
             ProArcObject object = null;
             AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
-                object = rstorage.find(item.getPid());
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
                 AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
                 object = akubraStorage.find(item.getPid());

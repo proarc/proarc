@@ -17,13 +17,10 @@
 
 package cz.cas.lib.proarc.common.process.export.mets;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import java.io.File;
@@ -35,14 +32,14 @@ import java.util.Optional;
 
 /**
  * Context for Mets mets export
- *
+ * <p>
  * If Fedora is used as a source for FoXML documents, then fedoraClient should
  * be set and fsParentMap and path should be empty.
- *
+ * <p>
  * If FoXML documents are stored on a file system, then fedoraClient should be
  * empty and fsParentMap must contain parent mappings and path is an absolute
  * path to the directory with FoXML documents
- *
+ * <p>
  * outputPath is an absolute path where PSP packages are stored
  *
  * @author Robert Simonovsky
@@ -51,8 +48,6 @@ import java.util.Optional;
 public class MetsContext {
 
     private Storage typeOfStorage;
-    private FedoraClient fedoraClient;
-    private FedoraStorage fedoraStorage;
     private AkubraStorage akubraStorage;
     private Map<String, Integer> elementIds = new HashMap<String, Integer>();
     private MetsElement rootElement;
@@ -67,14 +62,18 @@ public class MetsContext {
     private JhoveContext jhoveContext;
     private NdkExportOptions options;
 
-    /** Sets options */
-    public void setConfig(NdkExportOptions options){
+    /**
+     * Sets options
+     */
+    public void setConfig(NdkExportOptions options) {
         this.options = options;
     }
 
 
-    /** Returns options */
-    public NdkExportOptions getOptions(){
+    /**
+     * Returns options
+     */
+    public NdkExportOptions getOptions() {
         return options;
     }
 
@@ -92,6 +91,7 @@ public class MetsContext {
 
     /**
      * Sets the ProArc version
+     *
      * @param proarcVersion
      */
     public void setProarcVersion(String proarcVersion) {
@@ -105,6 +105,7 @@ public class MetsContext {
     public void setPackageDir(File packageDir) {
         this.packageDir = packageDir;
     }
+
     /**
      * Resets the element Id counter
      *
@@ -115,6 +116,7 @@ public class MetsContext {
         packageID = null;
         rootElement = null;
     }
+
     /**
      * returns true if URNNBN is not mandatory
      *
@@ -301,42 +303,6 @@ public class MetsContext {
     }
 
     /**
-     * Returns the fedora client
-     *
-     * @return
-     */
-    public FedoraClient getFedoraClient() {
-        return fedoraClient;
-    }
-
-    /**
-     * Sets the fedora client - used when FoXML documents are stored in Fedora
-     *
-     * @param fedoraClient
-     */
-    public void setFedoraClient(FedoraClient fedoraClient) {
-        this.fedoraClient = fedoraClient;
-    }
-
-    /**
-     * Returns the remote storage (Fedora)
-     *
-     * @return
-     */
-    public FedoraStorage getRemoteStorage() {
-        return fedoraStorage;
-    }
-
-    /**
-     * Sets the remote storage (Fedora)
-     *
-     * @param fedoraStorage
-     */
-    public void setRemoteStorage(FedoraStorage fedoraStorage) {
-        this.fedoraStorage = fedoraStorage;
-    }
-
-    /**
      * Adds a new element ID
      *
      * @param elementId
@@ -391,18 +357,8 @@ public class MetsContext {
         return metsContext;
     }
 
-    public static MetsContext buildFedoraContext(ProArcObject object, String packageId, File targetFolder, FedoraStorage rstorage, NdkExportOptions exportOptions) {
-        MetsContext metsContext = buildContext(object, packageId, targetFolder, exportOptions);
-        metsContext.setTypeOfStorage(Storage.FEDORA);
-        metsContext.setRemoteStorage(rstorage);
-        return metsContext;
-    }
-
     private static MetsContext buildContext(ProArcObject fo, String packageId, File targetFolder, NdkExportOptions exportOptions) {
         MetsContext mc = new MetsContext();
-        if (fo instanceof RemoteObject) {
-            mc.setFedoraClient(((RemoteObject) fo).getClient());
-        }
         mc.setPackageID(packageId);
         mc.setOutputPath(targetFolder == null ? null : targetFolder.getAbsolutePath());
         mc.setAllowNonCompleteStreams(false);

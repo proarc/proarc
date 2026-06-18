@@ -33,7 +33,6 @@ import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,8 +41,8 @@ import java.util.List;
 /**
  * Exports born-digital articles in CrossRef format.
  *
- * @see <a href='https://github.com/proarc/proarc/issues/444'>issue 444</a>
  * @author Jan Pokorsky
+ * @see <a href='https://github.com/proarc/proarc/issues/444'>issue 444</a>
  */
 public class CrossrefExport {
 
@@ -90,9 +89,7 @@ public class CrossrefExport {
         }
         status.setTargetFolder(output);
         SearchView search = null;
-        if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-            search = FedoraStorage.getInstance(appConfiguration).getSearch();
-        } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
             search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
@@ -102,12 +99,12 @@ public class CrossrefExport {
         List<CrossrefPackage> packages = selector.select(pids);
         if (packages.isEmpty()) {
             status.error(pids.get(0), "Nothing to export!", null);
-            return ;
+            return;
         }
 
         CrossrefBuilder crossRefBuilder = initBuilder(output, status, pids.get(0), appConfiguration.getExportParams());
         if (crossRefBuilder == null) {
-            return ;
+            return;
         }
 
         for (CrossrefPackage aPackage : packages) {

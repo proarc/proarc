@@ -23,12 +23,14 @@ import java.util.List;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  *
@@ -45,15 +47,15 @@ public class EmpireGroupDaoTest {
     public EmpireGroupDaoTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         support = new DbUnitSupport();
         schema = support.getEmireCfg().getSchema();
@@ -64,7 +66,7 @@ public class EmpireGroupDaoTest {
         dao.setTransaction(tx);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         if (tx != null) {
             tx.close();
@@ -83,7 +85,7 @@ public class EmpireGroupDaoTest {
     public void testFind() throws Exception {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "group.xml")
-                );
+        );
         support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
@@ -101,7 +103,7 @@ public class EmpireGroupDaoTest {
     public void testFindName() throws Exception {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "group.xml")
-                );
+        );
         support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
@@ -126,10 +128,10 @@ public class EmpireGroupDaoTest {
     public void testCreate() throws Exception {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "group.xml")
-                );
+        );
         support.cleanInsert(support.getConnection(tx), db);
         final Integer id = 10;
-        support.initSequences(tx, id, schema.tableUserGroup.id.getSequenceName());
+        support.initSequences(tx, id, (String) schema.tableUserGroup.id.getDefaultValue());
         tx.commit();
 
         Group group = Group.create("createName", "createTitle");
@@ -150,7 +152,7 @@ public class EmpireGroupDaoTest {
     public void testUpdate() throws Exception {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "group.xml")
-                );
+        );
         support.cleanInsert(support.getConnection(tx), db);
 
         tx.commit();

@@ -24,9 +24,9 @@ import org.apache.solr.common.SolrDocument;
 
 public class SolrUtils {
 
-    public enum SortOperation {DESC, ASC};
+    public enum SortOperation {DESC, ASC}
 
-    public enum QueryOperator {AND, OR};
+    public enum QueryOperator {AND, OR}
 
     public static final String FIELD_PID = "pid";
     public static final String FIELD_PARENT_PID = "parentPid";
@@ -237,9 +237,11 @@ public class SolrUtils {
         item.setK1(getContainsString(solrDocument, FIELD_EXPORT_NDK));
         item.setKrameriusExportPath(getString(solrDocument, FIELD_EXPORT_KRAMERIUS));
         item.setK2(getContainsString(solrDocument, FIELD_EXPORT_KRAMERIUS));
-        item.setArchiveExportPath(getString(solrDocument, FIELD_EXPORT_ARCHIVE));;
+        item.setArchiveExportPath(getString(solrDocument, FIELD_EXPORT_ARCHIVE));
+        ;
         item.setK3(getContainsString(solrDocument, FIELD_EXPORT_ARCHIVE));
-        item.setCrossrefExportPath(getString(solrDocument, FIELD_EXPORT_CROSSREF));;
+        item.setCrossrefExportPath(getString(solrDocument, FIELD_EXPORT_CROSSREF));
+        ;
         item.setK4(getContainsString(solrDocument, FIELD_EXPORT_CROSSREF));
         item.setIsLocked(getBoolean(solrDocument, FIELD_LOCKED));
         item.setUrnNbn(getString(solrDocument, FIELD_URNNBN));

@@ -16,9 +16,7 @@
 
 package cz.cas.lib.proarc.common.process.export.sip;
 
-import com.yourmediashelf.fedora.client.FedoraClient;
-import com.yourmediashelf.fedora.client.request.GetDatastreamDissemination;
-import com.yourmediashelf.fedora.generated.foxml.DatastreamType;
+import com.yourmediashelf.fedora.foxml.DatastreamType;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.process.export.mets.JHoveOutput;
@@ -233,9 +231,7 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
 
     private String getValidationStatus(IMetsElement metsElement) throws MetsExportException {
         ProArcObject object = null;
-        if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-            object = metsElement.getMetsContext().getRemoteStorage().find(metsElement.getOriginalPid());
-        } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             object = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
         } else {
             throw new IllegalStateException("Unsupported type of Storage: " + metsElement.getMetsContext().getTypeOfStorage());
@@ -283,10 +279,7 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
                 String extension = null;
 
                 InputStream inputStream = null;
-                if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-                    GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
-                    inputStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
                     AkubraObject object = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
                     inputStream = AkubraUtils.getDatastreamDissemination(object, "RAW");
                 } else {
@@ -408,10 +401,7 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
             if (rawDatastream.isPresent()) {
                 DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
                 InputStream inputStream = null;
-                if (Storage.FEDORA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
-                    GetDatastreamDissemination dsRaw = FedoraClient.getDatastreamDissemination(metsElement.getOriginalPid(), "RAW");
-                    inputStream = dsRaw.execute(metsElement.getMetsContext().getFedoraClient()).getEntityInputStream();
-                } else if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
                     AkubraObject object = metsElement.getMetsContext().getAkubraStorage().find(metsElement.getOriginalPid());
                     inputStream = AkubraUtils.getDatastreamDissemination(object, "RAW");
                 } else {

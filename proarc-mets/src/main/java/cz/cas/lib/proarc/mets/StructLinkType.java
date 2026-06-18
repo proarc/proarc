@@ -17,21 +17,20 @@
 
 package cz.cas.lib.proarc.mets;
 
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElements;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlIDREF;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElements;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlIDREF;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  * structLinkType: Complex Type for Structural Map Linking The Structural Map
@@ -40,15 +39,15 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * contains a single, repeatable element, smLink. Each smLink element indicates
  * a hyperlink between two nodes in the structMap. The structMap nodes recorded
  * in smLink are identified using their XML ID attribute values.
- * 
- * 
+ *
+ *
  * <p>
  * Java class for structLinkType complex type.
- * 
+ *
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="structLinkType">
  *   &lt;complexContent>
@@ -117,8 +116,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "structLinkType", namespace = "http://www.loc.gov/METS/", propOrder = {
@@ -142,26 +141,26 @@ public class StructLinkType {
 
     /**
      * Gets the value of the smLinkOrSmLinkGrp property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the smLinkOrSmLinkGrp property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getSmLinkOrSmLinkGrp().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link StructLinkType.SmLink } {@link StructLinkType.SmLinkGrp }
-     * 
-     * 
+     *
+     *
      */
     public List<Object> getSmLinkOrSmLinkGrp() {
         if (smLinkOrSmLinkGrp == null) {
@@ -172,9 +171,9 @@ public class StructLinkType {
 
     /**
      * Gets the value of the id property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getID() {
         return id;
@@ -182,10 +181,9 @@ public class StructLinkType {
 
     /**
      * Sets the value of the id property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setID(String value) {
         this.id = value;
@@ -194,11 +192,11 @@ public class StructLinkType {
     /**
      * <p>
      * Java class for anonymous complex type.
-     * 
+     *
      * <p>
      * The following schema fragment specifies the expected content contained
      * within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType>
      *   &lt;complexContent>
@@ -214,8 +212,8 @@ public class StructLinkType {
      *   &lt;/complexContent>
      * &lt;/complexType>
      * </pre>
-     * 
-     * 
+     *
+     *
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "")
@@ -241,9 +239,9 @@ public class StructLinkType {
 
         /**
          * Gets the value of the id property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getID() {
             return id;
@@ -251,23 +249,21 @@ public class StructLinkType {
 
         /**
          * Sets the value of the id property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setID(String value) {
             this.id = value;
         }
 
         /**
-         * 
+         *
          * xlink:arcrole - the role of the link, as per the xlink specification.
          * See http://www.w3.org/TR/xlink/
-         * 
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getArcrole() {
             return arcrole;
@@ -275,23 +271,21 @@ public class StructLinkType {
 
         /**
          * Sets the value of the arcrole property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setArcrole(String value) {
             this.arcrole = value;
         }
 
         /**
-         * 
+         *
          * xlink:title - a title for the link (if needed), as per the xlink
          * specification. See http://www.w3.org/TR/xlink/
-         * 
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getTitle() {
             return title;
@@ -299,23 +293,21 @@ public class StructLinkType {
 
         /**
          * Sets the value of the title property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setTitle(String value) {
             this.title = value;
         }
 
         /**
-         * 
+         *
          * xlink:show - see the xlink specification at
          * http://www.w3.org/TR/xlink/
-         * 
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getShow() {
             return show;
@@ -323,23 +315,21 @@ public class StructLinkType {
 
         /**
          * Sets the value of the show property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setShow(String value) {
             this.show = value;
         }
 
         /**
-         * 
+         *
          * xlink:actuate - see the xlink specification at
          * http://www.w3.org/TR/xlink/
-         * 
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getActuate() {
             return actuate;
@@ -347,23 +337,21 @@ public class StructLinkType {
 
         /**
          * Sets the value of the actuate property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setActuate(String value) {
             this.actuate = value;
         }
 
         /**
-         * 
+         *
          * xlink:to - the value of the label for the element in the structMap
          * you are linking to.
-         * 
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getTo() {
             return to;
@@ -371,23 +359,21 @@ public class StructLinkType {
 
         /**
          * Sets the value of the to property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setTo(String value) {
             this.to = value;
         }
 
         /**
-         * 
+         *
          * xlink:from - the value of the label for the element in the structMap
          * you are linking from.
-         * 
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getFrom() {
             return from;
@@ -395,10 +381,9 @@ public class StructLinkType {
 
         /**
          * Sets the value of the from property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setFrom(String value) {
             this.from = value;
@@ -409,11 +394,11 @@ public class StructLinkType {
     /**
      * <p>
      * Java class for anonymous complex type.
-     * 
+     *
      * <p>
      * The following schema fragment specifies the expected content contained
      * within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType>
      *   &lt;complexContent>
@@ -456,8 +441,8 @@ public class StructLinkType {
      *   &lt;/complexContent>
      * &lt;/complexType>
      * </pre>
-     * 
-     * 
+     *
+     *
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "", propOrder = {
@@ -486,56 +471,56 @@ public class StructLinkType {
 
         /**
          * Gets the value of the smLocatorLink property.
-         * 
+         *
          * <p>
          * This accessor method returns a reference to the live list, not a
          * snapshot. Therefore any modification you make to the returned list
          * will be present inside the JAXB object. This is why there is not a
          * <CODE>set</CODE> method for the smLocatorLink property.
-         * 
+         *
          * <p>
          * For example, to add a new item, do as follows:
-         * 
+         *
          * <pre>
          * getSmLocatorLink().add(newItem);
          * </pre>
-         * 
-         * 
+         *
+         *
          * <p>
          * Objects of the following type(s) are allowed in the list
          * {@link StructLinkType.SmLinkGrp.SmLocatorLink }
-         * 
-         * 
+         *
+         *
          */
         public List<StructLinkType.SmLinkGrp.SmLocatorLink> getSmLocatorLink() {
             if (smLocatorLink == null) {
-                smLocatorLink = new ArrayList<StructLinkType.SmLinkGrp.SmLocatorLink>();
+                smLocatorLink = new ArrayList<SmLocatorLink>();
             }
             return this.smLocatorLink;
         }
 
         /**
          * Gets the value of the smArcLink property.
-         * 
+         *
          * <p>
          * This accessor method returns a reference to the live list, not a
          * snapshot. Therefore any modification you make to the returned list
          * will be present inside the JAXB object. This is why there is not a
          * <CODE>set</CODE> method for the smArcLink property.
-         * 
+         *
          * <p>
          * For example, to add a new item, do as follows:
-         * 
+         *
          * <pre>
          * getSmArcLink().add(newItem);
          * </pre>
-         * 
-         * 
+         *
+         *
          * <p>
          * Objects of the following type(s) are allowed in the list
          * {@link StructLinkType.SmLinkGrp.SmArcLink }
-         * 
-         * 
+         *
+         *
          */
         public List<StructLinkType.SmLinkGrp.SmArcLink> getSmArcLink() {
             if (smArcLink == null) {
@@ -546,9 +531,9 @@ public class StructLinkType {
 
         /**
          * Gets the value of the id property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getID() {
             return id;
@@ -556,10 +541,9 @@ public class StructLinkType {
 
         /**
          * Sets the value of the id property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setID(String value) {
             this.id = value;
@@ -567,9 +551,9 @@ public class StructLinkType {
 
         /**
          * Gets the value of the arclinkorder property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getARCLINKORDER() {
             if (arclinkorder == null) {
@@ -581,10 +565,9 @@ public class StructLinkType {
 
         /**
          * Sets the value of the arclinkorder property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setARCLINKORDER(String value) {
             this.arclinkorder = value;
@@ -592,9 +575,9 @@ public class StructLinkType {
 
         /**
          * Gets the value of the type property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getType() {
             if (type == null) {
@@ -606,10 +589,9 @@ public class StructLinkType {
 
         /**
          * Sets the value of the type property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setType(String value) {
             this.type = value;
@@ -617,9 +599,9 @@ public class StructLinkType {
 
         /**
          * Gets the value of the role property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getRole() {
             return role;
@@ -627,10 +609,9 @@ public class StructLinkType {
 
         /**
          * Sets the value of the role property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setRole(String value) {
             this.role = value;
@@ -638,9 +619,9 @@ public class StructLinkType {
 
         /**
          * Gets the value of the title property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getTitle() {
             return title;
@@ -648,32 +629,31 @@ public class StructLinkType {
 
         /**
          * Sets the value of the title property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setTitle(String value) {
             this.title = value;
         }
 
         /**
-         * 
+         *
          * The structMap arc link element <smArcLink> is of xlink:type "arc" It
          * can be used to establish a traversal link between two <div> elements
          * as identified by <smLocatorLink> elements within the same smLinkGrp
          * element. The associated xlink:from and xlink:to attributes identify
          * the from and to sides of the arc link by referencing the xlink:label
          * attribute values on the participating smLocatorLink elements.
-         * 
-         * 
+         *
+         *
          * <p>
          * Java class for anonymous complex type.
-         * 
+         *
          * <p>
          * The following schema fragment specifies the expected content
          * contained within this class.
-         * 
+         *
          * <pre>
          * &lt;complexType>
          *   &lt;complexContent>
@@ -686,8 +666,8 @@ public class StructLinkType {
          *   &lt;/complexContent>
          * &lt;/complexType>
          * </pre>
-         * 
-         * 
+         *
+         *
          */
         @XmlAccessorType(XmlAccessType.FIELD)
         @XmlType(name = "")
@@ -721,9 +701,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the id property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getID() {
                 return id;
@@ -731,10 +711,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the id property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setID(String value) {
                 this.id = value;
@@ -742,9 +721,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the arctype property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getARCTYPE() {
                 return arctype;
@@ -752,10 +731,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the arctype property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setARCTYPE(String value) {
                 this.arctype = value;
@@ -763,26 +741,26 @@ public class StructLinkType {
 
             /**
              * Gets the value of the admid property.
-             * 
+             *
              * <p>
              * This accessor method returns a reference to the live list, not a
              * snapshot. Therefore any modification you make to the returned
              * list will be present inside the JAXB object. This is why there is
              * not a <CODE>set</CODE> method for the admid property.
-             * 
+             *
              * <p>
              * For example, to add a new item, do as follows:
-             * 
+             *
              * <pre>
              * getADMID().add(newItem);
              * </pre>
-             * 
-             * 
+             *
+             *
              * <p>
              * Objects of the following type(s) are allowed in the list
              * {@link Object }
-             * 
-             * 
+             *
+             *
              */
             public List<Object> getADMID() {
                 if (admid == null) {
@@ -793,9 +771,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the type property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getType() {
                 if (type == null) {
@@ -807,10 +785,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the type property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setType(String value) {
                 this.type = value;
@@ -818,9 +795,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the arcrole property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getArcrole() {
                 return arcrole;
@@ -828,10 +805,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the arcrole property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setArcrole(String value) {
                 this.arcrole = value;
@@ -839,9 +815,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the title property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getTitle() {
                 return title;
@@ -849,10 +825,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the title property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setTitle(String value) {
                 this.title = value;
@@ -860,9 +835,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the show property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getShow() {
                 return show;
@@ -870,10 +845,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the show property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setShow(String value) {
                 this.show = value;
@@ -881,9 +855,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the actuate property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getActuate() {
                 return actuate;
@@ -891,10 +865,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the actuate property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setActuate(String value) {
                 this.actuate = value;
@@ -902,9 +875,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the from property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getFrom() {
                 return from;
@@ -912,10 +885,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the from property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setFrom(String value) {
                 this.from = value;
@@ -923,9 +895,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the to property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getTo() {
                 return to;
@@ -933,10 +905,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the to property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setTo(String value) {
                 this.to = value;
@@ -947,11 +918,11 @@ public class StructLinkType {
         /**
          * <p>
          * Java class for anonymous complex type.
-         * 
+         *
          * <p>
          * The following schema fragment specifies the expected content
          * contained within this class.
-         * 
+         *
          * <pre>
          * &lt;complexType>
          *   &lt;complexContent>
@@ -962,8 +933,8 @@ public class StructLinkType {
          *   &lt;/complexContent>
          * &lt;/complexType>
          * </pre>
-         * 
-         * 
+         *
+         *
          */
         @XmlAccessorType(XmlAccessType.FIELD)
         @XmlType(name = "")
@@ -988,9 +959,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the id property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getID() {
                 return id;
@@ -998,10 +969,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the id property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setID(String value) {
                 this.id = value;
@@ -1009,9 +979,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the type property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getType() {
                 if (type == null) {
@@ -1023,10 +993,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the type property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setType(String value) {
                 this.type = value;
@@ -1034,9 +1003,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the href property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getHref() {
                 return href;
@@ -1044,10 +1013,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the href property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setHref(String value) {
                 this.href = value;
@@ -1055,9 +1023,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the role property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getRole() {
                 return role;
@@ -1065,10 +1033,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the role property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setRole(String value) {
                 this.role = value;
@@ -1076,9 +1043,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the title property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getTitle() {
                 return title;
@@ -1086,10 +1053,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the title property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setTitle(String value) {
                 this.title = value;
@@ -1097,9 +1063,9 @@ public class StructLinkType {
 
             /**
              * Gets the value of the label property.
-             * 
+             *
              * @return possible object is {@link String }
-             * 
+             *
              */
             public String getLabel() {
                 return label;
@@ -1107,10 +1073,9 @@ public class StructLinkType {
 
             /**
              * Sets the value of the label property.
-             * 
-             * @param value
-             *            allowed object is {@link String }
-             * 
+             *
+             * @param value allowed object is {@link String }
+             *
              */
             public void setLabel(String value) {
                 this.label = value;

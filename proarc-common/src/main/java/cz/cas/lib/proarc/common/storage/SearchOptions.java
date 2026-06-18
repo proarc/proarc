@@ -16,7 +16,7 @@
  */
 package cz.cas.lib.proarc.common.storage;
 
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 ;
 

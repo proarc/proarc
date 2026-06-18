@@ -1,40 +1,215 @@
 {
-    "__comment":"NDK roleTerms according to https://www.loc.gov/marc/relators/relaterm.html.",
-    "data":[
-        {"type": "code", "authority":"marcrelator", "value":"act", "label":"Actor"},
-        {"type": "code", "authority":"marcrelator", "value":"adp", "label":"Adapter"},
-        {"type": "code", "authority":"marcrelator", "value":"ant", "label":"Bibliographic antecedent"},
-        {"type": "code", "authority":"marcrelator", "value":"arr", "label":"Arranger"},
-        {"type": "code", "authority":"marcrelator", "value":"aui", "label":"Author of introduction, etc."},
-        {"type": "code", "authority":"marcrelator", "value":"aut", "label":"Author"},
-        {"type": "code", "authority":"marcrelator", "value":"cmp", "label":"Composer"},
-        {"type": "code", "authority":"marcrelator", "value":"cnd", "label":"Compositor"},
-        {"type": "code", "authority":"marcrelator", "value":"com", "label":"Compiler"},
-        {"type": "code", "authority":"marcrelator", "value":"cre", "label":"Creator"},
-        {"type": "code", "authority":"marcrelator", "value":"crp", "label":"Correspondent"},
-        {"type": "code", "authority":"marcrelator", "value":"dis", "label":"Defendent"},
-        {"type": "code", "authority":"marcrelator", "value":"dnr", "label":"Donor"},
-        {"type": "code", "authority":"marcrelator", "value":"dst", "label":"Distributor"},
-        {"type": "code", "authority":"marcrelator", "value":"dte", "label":"Dedicatee"},
-        {"type": "code", "authority":"marcrelator", "value":"dto", "label":"Dedicator"},
-        {"type": "code", "authority":"marcrelator", "value":"dub", "label":"Dubious author"},
-        {"type": "code", "authority":"marcrelator", "value":"edt", "label":"Editor"},
-        {"type": "code", "authority":"marcrelator", "value":"egr", "label":"Engraver"},
-        {"type": "code", "authority":"marcrelator", "value":"fmo", "label":"Former owner"},
-        {"type": "code", "authority":"marcrelator", "value":"fnd", "label":"Funder"},
-        {"type": "code", "authority":"marcrelator", "value":"ill", "label":"Illustrator"},
-        {"type": "code", "authority":"marcrelator", "value":"itr", "label":"Instrumentalist"},
-        {"type": "code", "authority":"marcrelator", "value":"lbt", "label":"Librettist"},
-        {"type": "code", "authority":"marcrelator", "value":"lyr", "label":"Lyricist"},
-        {"type": "code", "authority":"marcrelator", "value":"mus", "label":"Musician"},
-        {"type": "code", "authority":"marcrelator", "value":"oth", "label":"Other"},
-        {"type": "code", "authority":"marcrelator", "value":"pbl", "label":"Publisher"},
-        {"type": "code", "authority":"marcrelator", "value":"prf", "label":"Performer"},
-        {"type": "code", "authority":"marcrelator", "value":"rcd", "label":"Recordist"},
-        {"type": "code", "authority":"marcrelator", "value":"prt", "label":"Printer"},
-        {"type": "code", "authority":"marcrelator", "value":"red", "label":"Redaktor"},
-        {"type": "code", "authority":"marcrelator", "value":"rev", "label":"Reviewer"},
-        {"type": "code", "authority":"marcrelator", "value":"sng", "label":"Singer"},
-        {"type": "code", "authority":"marcrelator", "value":"trl", "label":"Translator"}
-    ]
+  "__comment": "NDK roleTerms according to https://www.loc.gov/marc/relators/relaterm.html.",
+  "data": [
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "act",
+      "label": "Actor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "adp",
+      "label": "Adapter"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "ant",
+      "label": "Bibliographic antecedent"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "arr",
+      "label": "Arranger"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "aui",
+      "label": "Author of introduction, etc."
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "aut",
+      "label": "Author"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "cmp",
+      "label": "Composer"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "cnd",
+      "label": "Compositor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "com",
+      "label": "Compiler"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "cre",
+      "label": "Creator"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "crp",
+      "label": "Correspondent"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "dis",
+      "label": "Defendent"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "dnr",
+      "label": "Donor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "dst",
+      "label": "Distributor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "dte",
+      "label": "Dedicatee"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "dto",
+      "label": "Dedicator"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "dub",
+      "label": "Dubious author"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "edt",
+      "label": "Editor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "egr",
+      "label": "Engraver"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "fmo",
+      "label": "Former owner"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "fnd",
+      "label": "Funder"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "ill",
+      "label": "Illustrator"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "itr",
+      "label": "Instrumentalist"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "lbt",
+      "label": "Librettist"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "lyr",
+      "label": "Lyricist"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "mus",
+      "label": "Musician"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "oth",
+      "label": "Other"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "pbl",
+      "label": "Publisher"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "prf",
+      "label": "Performer"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "rcd",
+      "label": "Recordist"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "prt",
+      "label": "Printer"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "red",
+      "label": "Redaktor"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "rev",
+      "label": "Reviewer"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "sng",
+      "label": "Singer"
+    },
+    {
+      "type": "code",
+      "authority": "marcrelator",
+      "value": "trl",
+      "label": "Translator"
+    }
+  ]
 }

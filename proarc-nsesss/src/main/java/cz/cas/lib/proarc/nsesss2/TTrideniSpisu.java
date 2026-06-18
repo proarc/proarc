@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro zatřídění spisu do hierarchie spisového plánu.
- * 
+ *
  * <p>Java class for tTrideniSpisu complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tTrideniSpisu">
  *   &lt;complexContent>
@@ -32,27 +32,25 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tTrideniSpisu", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "materskaEntita"
+        "materskaEntita"
 })
 public class TTrideniSpisu
-    extends TTrideni
-{
+        extends TTrideni {
 
     @XmlElement(name = "MaterskaEntita", namespace = "http://www.mvcr.cz/nsesss/v2", required = true)
     protected TMaterskaEntitaSpisu materskaEntita;
 
     /**
      * Gets the value of the materskaEntita property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TMaterskaEntitaSpisu }
-     *     
+     *
+     * @return possible object is
+     * {@link TMaterskaEntitaSpisu }
+     *
      */
     public TMaterskaEntitaSpisu getMaterskaEntita() {
         return materskaEntita;
@@ -60,11 +58,10 @@ public class TTrideniSpisu
 
     /**
      * Sets the value of the materskaEntita property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TMaterskaEntitaSpisu }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TMaterskaEntitaSpisu }
+     *
      */
     public void setMaterskaEntita(TMaterskaEntitaSpisu value) {
         this.materskaEntita = value;

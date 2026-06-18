@@ -227,7 +227,7 @@ public class UpdatePagesMetadata {
                     }
                 }
             } else {
-                DetailDefinition detailDefinition  = null;
+                DetailDefinition detailDefinition = null;
                 for (PartDefinition part : mods.getPart()) {
                     for (DetailDefinition detail : part.getDetail()) {
                         if (ModsConstants.FIELD_PAGE_NUMBER.equals(detail.getType()) || ModsConstants.FIELD_PAGE_NUMBER_SPLIT.equals(detail.getType())) {

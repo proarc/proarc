@@ -16,32 +16,32 @@
  */
 package cz.cas.lib.proarc.common.object;
 
-import com.sun.jersey.api.client.ClientResponse;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.process.external.GenericExternalProcess;
+import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
+import cz.cas.lib.proarc.common.process.imports.FileSet;
+import cz.cas.lib.proarc.common.process.imports.TiffAsJp2Importer;
 import cz.cas.lib.proarc.common.storage.AesEditor;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
 import cz.cas.lib.proarc.common.storage.MixEditor;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
-import cz.cas.lib.proarc.common.process.imports.FileSet;
-import cz.cas.lib.proarc.common.process.imports.TiffAsJp2Importer;
-import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -51,19 +51,13 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.rmi.server.RemoteObject;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 import static cz.cas.lib.proarc.common.device.DeviceRepository.getMixDescriptionEditor;
 import static cz.cas.lib.proarc.common.storage.BinaryEditor.NDK_ARCHIVAL_ID;
@@ -119,7 +113,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
             }
 
             Date lastModification = new Date(loader.getLastModified());
-            ResponseBuilder evaluatePreconditions = httpRequest == null
+            Response.ResponseBuilder evaluatePreconditions = httpRequest == null
                     ? null : httpRequest.evaluatePreconditions(lastModification);
             if (evaluatePreconditions != null) {
                 return evaluatePreconditions.build();
@@ -139,15 +133,12 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
             } else {
 */
             return Response.ok(entity, loader.getProfile().getDsMIME())
-                        .header("Content-Disposition", "inline; filename=\"" + entity.getName() + '"')
-                        .lastModified(lastModification).build();
+                    .header("Content-Disposition", "inline; filename=\"" + entity.getName() + '"')
+                    .lastModified(lastModification).build();
 //            }
         } else if (fobject instanceof AkubraObject) {
             AkubraObject akubraObject = (AkubraObject) fobject;
             return getResponse(akubraObject, dsId);
-        } else if (fobject instanceof RemoteObject) {
-            RemoteObject remote = (RemoteObject) fobject;
-            return getResponse(remote, dsId);
         }
         throw new IllegalStateException("unsupported: " + fobject.getClass());
     }
@@ -159,33 +150,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         // In case of large images it could be faster to ask datastream for modification date first.
         String pid = object.getPid();
         String path = String.format("objects/%s/datastreams/%s/content", pid, dsId);
-        if (object instanceof RemoteObject) {
-            ClientResponse response = ((RemoteObject) object).getClient().resource().path(path).get(ClientResponse.class);
-            if (Status.fromStatusCode(response.getStatus()) != Status.OK) {
-                throw new DigitalObjectNotFoundException(pid, null, dsId, response.getEntity(String.class), null);
-            }
-            MultivaluedMap<String, String> headers = response.getHeaders();
-            String filename = headers.getFirst("Content-Disposition");
-            filename = filename != null ? filename : "inline; filename=" + pid + '-' + dsId;
-/*
-        //transform jp2 or tiff to jpg
-        if (NDK_ARCHIVAL_ID.equals(dsId) || NDK_USER_ID.equals(dsId) || RAW_ID.equals(dsId)) {
-
-            try {
-                return Response.ok(convertToBrowserCompatible(response.getEntity(InputStream.class), dsId), "image/jpeg")
-                        .header("Content-Disposition", filename + ".jpg")
-                        .build();
-            } catch (Exception e) {
-                LOG.log(Level.SEVERE,"Converting " + dsId + " to jpg failed.");
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
-        } else {
-*/
-            return Response.ok(response.getEntity(InputStream.class), headers.getFirst("Content-Type"))
-                    .header("Content-Disposition", filename)
-                    .build();
-//        }
-        } else if (object instanceof AkubraObject) {
+        if (object instanceof AkubraObject) {
             if (DeviceRepository.DESCRIPTION_DS_ID.equals(dsId)) {
                 XmlStreamEditor editor = getMixDescriptionEditor(object);
                 InputStream inputStream = editor.readStream();
@@ -286,7 +251,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
     }
 
     private static byte[] convertToBrowserCompatible(InputStream entity, String dsId) throws IOException, AppConfigurationException {
-        File inFile = File.createTempFile(String.valueOf(new Timestamp(System.currentTimeMillis())),".jp2");
+        File inFile = File.createTempFile(String.valueOf(new Timestamp(System.currentTimeMillis())), ".jp2");
 
         OutputStream out = new FileOutputStream(inFile);
         org.apache.commons.io.IOUtils.copy(entity, out);
@@ -325,7 +290,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
                     AppConfigurationFactory.getInstance().defaultInstance().getImportConfiguration().getConvertorTiffToJpgProcessor(),
                     tiff.getFile(),
                     out,
-                    500 ,
+                    500,
                     500).run();
 
             if (!RAW_ID.equals(dsId)) {
@@ -403,7 +368,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
      * Writes an icon URI to represent the given MIME. It searches for {@code icon:MIME/dsId}
      * or {@code icon:MIME/THUMBNAIL}. If there is no icon and stream found, nothing is written.
      *
-     * @param dsId stream ID where to write an icon location
+     * @param dsId     stream ID where to write an icon location
      * @param origMime MIME to derive icon URI
      * @param dsLabel
      * @param message
@@ -421,22 +386,19 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         URI newLocationDefault;
         if (newLocation.toASCIIString().equals(dsLocation)) {
             // ok
-            return ;
+            return;
         } else {
             newLocationDefault = toIconUri(origMime, defaultDsId);
             if (newLocationDefault.toASCIIString().equals(dsLocation)) {
                 // ok
-                return ;
+                return;
             }
         }
         //  check icon:mime/DS exists
         List<DatastreamProfile> iconStreams;
         try {
 
-            if (Storage.FEDORA.equals(storageType)) {
-                RemoteObject object = FedoraStorage.getInstance().find(mime2iconPid(origMime));
-                iconStreams = object.getDatastreams();
-            } else if (Storage.AKUBRA.equals(storageType)) {
+            if (Storage.AKUBRA.equals(storageType)) {
                 AkubraObject object = AkubraStorage.getInstance().find(mime2iconPid(origMime));
                 iconStreams = object.getDatastreamProfiles();
             } else {
@@ -446,7 +408,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
             // no icon
             LOG.log(Level.WARNING, "Missing object ''{0}''! No datastream ''{1}'' created for ''{2}''.",
                     new Object[]{mime2iconPid(origMime), dsId, fobject.getPid()});
-            return ;
+            return;
         }
 
         DatastreamProfile iconStream = findProfile(dsId, iconStreams);
@@ -455,7 +417,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
             iconStream = findProfile(defaultDsId, iconStreams);
             if (iconStream == null) {
                 // no icon
-                return ;
+                return;
             }
             newLocation = newLocationDefault;
         }

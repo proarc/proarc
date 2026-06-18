@@ -22,17 +22,17 @@ import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.profile.ActionDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.TaskDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
-import org.apache.commons.beanutils.BeanUtils;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import org.apache.commons.beanutils.PropertyUtils;
 
 /**
  * Workflow action handler
- *
+ * <p>
  * Running actions after task changes
  *
  * @author Martin Rumanek
@@ -45,7 +45,7 @@ public class WorkflowActionHandler {
     /**
      *
      * @param workflow loaded from workflow.xml
-     * @param locale locale
+     * @param locale   locale
      */
     public WorkflowActionHandler(WorkflowDefinition workflow, Locale locale) {
         this.workflow = workflow;
@@ -55,10 +55,10 @@ public class WorkflowActionHandler {
     /**
      * Run command after task change. Task is defined in workflow.xml
      *
-     * @see @linktourl{https://github.com/proarc/proarc/wiki/RDflow}
      * @param task changed task
      * @throws WorkflowException probably bad workflow profile
-     * @throws IOException error when executing the command
+     * @throws IOException       error when executing the command
+     * @see @linktourl{https://github.com/proarc/proarc/wiki/RDflow}
      */
     public void runAction(Task task) throws WorkflowException, IOException {
 
@@ -74,7 +74,8 @@ public class WorkflowActionHandler {
                     List<String> command = new ArrayList<>(Collections.singletonList(actionDefinition.getCommand()));
                     for (String arg : actionDefinition.getArgs()) {
                         try {
-                            command.add(BeanUtils.getProperty(material, arg));
+                            Object value = PropertyUtils.getProperty(material, arg); // vrací Object
+                            command.add(String.valueOf(value)); // pak teprve převeď na String
                         } catch (IllegalAccessException e) {
                             throw new WorkflowException("caller does not have access to the property accessor method");
                         } catch (InvocationTargetException e) {

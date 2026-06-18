@@ -16,11 +16,12 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.info.ApplicationInfo;
 import cz.cas.lib.proarc.webapp.shared.rest.ApplicationResourceApi;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 
 /**
  * Helper class to annotate {@link ApplicationInfo} properties.
@@ -31,74 +32,89 @@ import javax.xml.bind.annotation.XmlElement;
 public abstract class AnnotatedApplicationInfo extends ApplicationInfo {
 
     @XmlElement(name = ApplicationResourceApi.VERSION)
+    @JsonProperty(ApplicationResourceApi.VERSION)
     @Override
     public String getVersion() {
         return super.getVersion();
     }
 
     @XmlElement(name = ApplicationResourceApi.REVISION)
+    @JsonProperty(ApplicationResourceApi.REVISION)
     @Override
     public String getRevision() {
         return super.getRevision();
     }
 
     @XmlElement(name = ApplicationResourceApi.TIMESTAMP)
+    @JsonProperty(ApplicationResourceApi.TIMESTAMP)
     @Override
     public String getTimestamp() {
         return super.getTimestamp();
     }
 
     @XmlElement(name = ApplicationResourceApi.RDFLOW_VERSION)
+    @JsonProperty(ApplicationResourceApi.RDFLOW_VERSION)
     @Override
     public String getRdflowVersion() {
         return super.getRdflowVersion();
     }
 
     @XmlElement(name = ApplicationResourceApi.STORAGE)
+    @JsonProperty(ApplicationResourceApi.STORAGE)
     @Override
     public String getStorage() {
         return super.getStorage();
     }
 
     @XmlElement(name = ApplicationResourceApi.DATABASE)
+    @JsonProperty(ApplicationResourceApi.DATABASE)
     @Override
     public String getDatabase() {
         return super.getDatabase();
     }
 
     @XmlElement(name = ApplicationResourceApi.STABLE_CONFIG_FILE)
+    @JsonProperty(ApplicationResourceApi.STABLE_CONFIG_FILE)
     @Override
-    public String getStableConfigFile() {return super.getStableConfigFile();}
+    public String getConfigFile() {return super.getConfigFile();}
 
     @XmlElement(name = ApplicationResourceApi.STABLE_CONFIG)
+    @JsonProperty(ApplicationResourceApi.STABLE_CONFIG)
     @Override
-    public Boolean getStableConfig() {return super.getStableConfig();}
+    public Boolean getConfig() {return super.getConfig();}
 
     @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_CS_FILE)
+    @JsonProperty(ApplicationResourceApi.STABLE_LANGUAGE_CS_FILE)
     @Override
-    public String getStableLanguageCsFile() {return super.getStableLanguageCsFile();}
+    public String getLanguageCsFile() {return super.getLanguageCsFile();}
 
     @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_CS)
+    @JsonProperty(ApplicationResourceApi.STABLE_LANGUAGE_CS)
     @Override
-    public Boolean getStableLanguageCs() {return super.getStableLanguageCs();}
+    public Boolean getLanguageCs() {return super.getLanguageCs();}
 
     @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_CSEN_FILE)
+    @JsonProperty(ApplicationResourceApi.STABLE_LANGUAGE_CSEN_FILE)
     @Override
-    public String getStableLanguageCsEnFile() {return super.getStableLanguageCsEnFile();}
+    public String getLanguageCsEnFile() {return super.getLanguageCsEnFile();}
 
     @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_CSEN)
+    @JsonProperty(ApplicationResourceApi.STABLE_LANGUAGE_CSEN)
     @Override
-    public Boolean getStableLanguageCsEn() {return super.getStableLanguageCsEn();}
+    public Boolean getLanguageCsEn() {return super.getLanguageCsEn();}
 
     @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_EN_FILE)
+    @JsonProperty(ApplicationResourceApi.STABLE_LANGUAGE_EN_FILE)
     @Override
-    public String getStableLanguageEnFile() {return super.getStableLanguageEnFile();}
+    public String getLanguageEnFile() {return super.getLanguageEnFile();}
 
     @XmlElement(name = ApplicationResourceApi.STABLE_LANGUAGE_EN)
+    @JsonProperty(ApplicationResourceApi.STABLE_LANGUAGE_EN)
     @Override
-    public Boolean getStableLanguageEn() {return super.getStableLanguageEn();}
+    public Boolean getLanguageEn() {return super.getLanguageEn();}
 
     @XmlElement(name = ApplicationResourceApi.ERROR)
+    @JsonProperty(ApplicationResourceApi.ERROR)
     @Override
     public String getError() {return super.getError();}
 }

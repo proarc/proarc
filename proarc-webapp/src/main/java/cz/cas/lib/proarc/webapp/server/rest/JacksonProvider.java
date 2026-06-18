@@ -17,14 +17,15 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.cas.lib.proarc.common.info.ApplicationInfo;
 import cz.cas.lib.proarc.common.json.JsonUtils;
-import cz.cas.lib.proarc.webapp.server.rest.SmartGwtResponse.AnnotatedSmartGwtResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse.AnnotatedProArcResponse;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.ws.rs.ext.Provider;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
 
 /**
  * This provider enables a customized JSON mapper supporting JAXB annotations
@@ -45,18 +46,18 @@ public final class JacksonProvider implements ContextResolver<ObjectMapper> {
     public JacksonProvider() {
         mapper = JsonUtils.createJaxbMapper();
 
+        mapper.addMixIn(ApplicationInfo.class, AnnotatedApplicationInfo.class);
         registerAnnotatedSuperclass(AnnotatedAtmItem.class);
         registerAnnotatedSuperclass(AnnotatedBatchView.class);
         registerAnnotatedSuperclass(AnnotatedConfigurationProfile.class);
         registerAnnotatedSuperclass(AnnotatedDescriptionMetadata.class);
         registerAnnotatedSuperclass(AnnotatedDevice.class);
         registerAnnotatedSuperclass(AnnotatedSoftware.class);
-        registerAnnotatedSuperclass(AnnotatedApplicationInfo.class);
         registerAnnotatedSuperclass(AnnotatedDublinCoreRecord.class);
 //        registerAnnotatedSuperclass(AnnotatedMetaModel.class);
         registerAnnotatedSuperclass(AnnotatedPageViewItem.class);
         registerAnnotatedSuperclass(AnnotatedSearchViewItem.class);
-        registerAnnotatedSuperclass(AnnotatedSmartGwtResponse.class);
+        registerAnnotatedSuperclass(AnnotatedProArcResponse.class);
         registerAnnotatedSuperclass(AnnotatedStringRecord.class);
         registerAnnotatedSuperclass(AnnotatedUser.class);
         registerAnnotatedSuperclass(AnnotatedUserSetting.class);

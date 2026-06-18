@@ -14,7 +14,7 @@ import java.util.function.Supplier;
  *
  * @author Lukas Sykora
  */
-public class ChronicleMapperFactory extends  NdkMapperFactory{
+public class ChronicleMapperFactory extends NdkMapperFactory {
 
     private static final Map<String, Supplier<NdkMapper>> mappers = new HashMap<>();
 

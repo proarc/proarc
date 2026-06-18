@@ -32,6 +32,7 @@ import org.apache.empire.db.DBColumnExpr;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBJoinType;
 import org.apache.empire.db.DBQuery;
+import org.apache.empire.db.DBQueryColumn;
 import org.apache.empire.db.DBReader;
 import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRecordData;
@@ -65,14 +66,14 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         } else {
             r.read(tableTask, task.getId(), c);
         }
-        r.setBeanValues(task);
+        r.setRecordValues(task);
         try {
             r.setModified(tableTask.state, true);
             r.update(c);
         } catch (RecordUpdateInvalidException ex) {
             throw new ConcurrentModificationException(ex);
         }
-        r.getBeanProperties(task);
+        r.setBeanProperties(task);
     }
 
     @Override
@@ -92,7 +93,7 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         try {
             record.read(tableTask, id, getConnection());
             Task task = new Task();
-            record.getBeanProperties(task);
+            record.setBeanProperties(task);
             return task;
         } catch (RecordNotFoundException ex) {
             return null;
@@ -123,8 +124,8 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
         pmatCmd.groupBy(db.tableWorkflowTask.jobId);
         DBQuery pmatQuery = new DBQuery(pmatCmd);
 
-        DBQuery.DBQueryColumn wmId = pmatQuery.findQueryColumn(pmatMaterialId);
-        DBQuery.DBQueryColumn wjId = pmatQuery.findQueryColumn(db.tableWorkflowTask.jobId);
+        DBQueryColumn wmId = pmatQuery.findQueryColumn(pmatMaterialId);
+        DBQueryColumn wjId = pmatQuery.findQueryColumn(db.tableWorkflowTask.jobId);
         cmd.join(db.tableWorkflowJob.id, wjId, DBJoinType.LEFT);
         // empire db reverse the joint type so that is why RIGHT instead of LEFT
         cmd.join(db.tableWorkflowPhysicalDoc.materialId, wmId, DBJoinType.RIGHT);
@@ -181,7 +182,7 @@ public class EmpireWorkflowTaskDao extends EmpireDao implements WorkflowTaskDao 
             for (Iterator<DBRecordData> it = reader.iterator(filter.getMaxCount()); it.hasNext();) {
                 DBRecordData rec = it.next();
                 TaskView view = new TaskView();
-                rec.getBeanProperties(view);
+                rec.setBeanProperties(view);
                 viewItems.add(view);
             }
             return viewItems;

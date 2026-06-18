@@ -25,7 +25,7 @@ import java.sql.SQLException;
  * @author Jan Pokorsky
  */
 public final class SqlTransaction implements Transaction {
-    
+
     private final Connection c;
 
     public SqlTransaction(Connection c) {
@@ -64,5 +64,4 @@ public final class SqlTransaction implements Transaction {
             throw new IllegalStateException(ex);
         }
     }
-
 }

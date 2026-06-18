@@ -28,9 +28,13 @@ public class PhysicalMaterial extends Material {
     private String field001;
     private BigDecimal rdczId;
     private String signature;
-    /** The URL to a catalog. */
+    /**
+     * The URL to a catalog.
+     */
     private String source;
-    /** MODS. */
+    /**
+     * MODS.
+     */
     private String metadata;
     private String detail;
     private String issue;

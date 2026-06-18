@@ -26,12 +26,15 @@ import org.apache.empire.db.DBTable;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.operation.DatabaseOperation;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -47,15 +50,15 @@ public class ProarcDatabaseTest {
     public ProarcDatabaseTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         support = new DbUnitSupport();
         emireCfg = support.getEmireCfg();
@@ -63,7 +66,7 @@ public class ProarcDatabaseTest {
         driver = emireCfg.getDriver();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -93,7 +96,7 @@ public class ProarcDatabaseTest {
             conn.close();
         }
     }
-    
+
     @Test
     public void testInit() throws Exception {
         // clear DB
@@ -168,7 +171,7 @@ public class ProarcDatabaseTest {
 //            System.out.println("### drop script:\n" + script);
             conn.setAutoCommit(true);
             try {
-                script.run(driver, conn, true);
+                script.executeAll(driver, conn, true);
             } finally {
                 conn.setAutoCommit(false);
             }

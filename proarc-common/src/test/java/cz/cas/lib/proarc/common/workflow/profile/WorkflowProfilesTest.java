@@ -16,10 +16,12 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.ValueType;
 import cz.cas.lib.proarc.common.workflow.profile.ValueMapDefinition.ValueMapItemDefinition;
+import jakarta.xml.bind.JAXB;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.SchemaOutputResolver;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -28,19 +30,22 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.xml.bind.JAXB;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.SchemaOutputResolver;
 import javax.xml.transform.Result;
 import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.junit.Rule;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  *
@@ -48,25 +53,25 @@ import org.junit.Rule;
  */
 public class WorkflowProfilesTest {
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
+    @TempDir
+    File tempDir;
 
     public WorkflowProfilesTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -115,9 +120,8 @@ public class WorkflowProfilesTest {
                 + "      <value key='grey'>v šedi</value>\n"
                 + "    </valuemap>\n"
                 + "    <valuemap name='proarc.devices' source='PROARC'/>\n"
-                + "</workflow>\n"
-                ;
-        File xmlFile = new File(temp.getRoot(), "workflow.xml");
+                + "</workflow>\n";
+        File xmlFile = new File(tempDir, "workflow.xml");
         FileUtils.write(xmlFile, xml, StandardCharsets.UTF_8);
         WorkflowProfiles profiles = new WorkflowProfiles(xmlFile);
         WorkflowDefinition wf = profiles.getProfiles();
@@ -190,7 +194,7 @@ public class WorkflowProfilesTest {
 
     @Test
     public void testCopyDefaultFile() throws Exception {
-        File wfFile = new File(temp.getRoot(), "wf.xml");
+        File wfFile = new File(tempDir, "wf.xml");
         WorkflowProfiles.copyDefaultFile(wfFile);
         assertTrue(wfFile.exists());
         assertTrue(wfFile.length() > 0);
@@ -198,7 +202,7 @@ public class WorkflowProfilesTest {
         assertNotNull(wp.getProfiles());
     }
 
-//    @Test
+    //    @Test
     public void testCreateSchema() throws Exception {
         JAXBContext jctx = JAXBContext.newInstance(WorkflowDefinition.class);
         final Map<String, StreamResult> schemas = new HashMap<String, StreamResult>();
@@ -290,9 +294,8 @@ public class WorkflowProfilesTest {
                 + "    <task name='task.id5'/>\n"
                 + "    <task name='task.id6'/>\n"
                 + "    <task name='task.idNotStep'/>\n"
-                + "</workflow>\n"
-                ;
-        File xmlFile = new File(temp.getRoot(), "workflow.xml");
+                + "</workflow>\n";
+        File xmlFile = new File(tempDir, "workflow.xml");
         FileUtils.write(xmlFile, xml);
         WorkflowProfiles profiles = new WorkflowProfiles(xmlFile);
         WorkflowDefinition wf = profiles.getProfiles();
@@ -322,16 +325,15 @@ public class WorkflowProfilesTest {
                 + "    <task name='task.id2'/>\n"
                 + "    <task name='task.id3'/>\n"
                 + "    <task name='task.id4'/>\n"
-                + "</workflow>\n"
-                ;
-        File xmlFile = new File(temp.getRoot(), "workflow.xml");
+                + "</workflow>\n";
+        File xmlFile = new File(tempDir, "workflow.xml");
         FileUtils.write(xmlFile, xml);
         WorkflowProfiles profiles = new WorkflowProfiles(xmlFile);
         try {
             WorkflowDefinition wf = profiles.getProfiles();
             fail(String.valueOf(profiles.getSortedTaskNames(wf.getJobs().get(0))));
         } catch (IllegalStateException ex) {
-            assertTrue(ex.getMessage(), ex.getMessage().startsWith("There must be a cycle"));
+            assertTrue(ex.getMessage().startsWith("There must be a cycle"), () -> ex.getMessage());
         }
     }
 

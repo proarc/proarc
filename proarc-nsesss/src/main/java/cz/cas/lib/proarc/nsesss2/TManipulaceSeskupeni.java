@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro indikaci nezbytných dokumentů a dokumentů v analogové podobě. Prvek obsahuje povinné časové údaje evidující otevření a uzavření entity pro příjem dceřiných entit.
- * 
+ *
  * <p>Java class for tManipulaceSeskupeni complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tManipulaceSeskupeni">
  *   &lt;complexContent>
@@ -33,17 +33,16 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tManipulaceSeskupeni", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "datumOtevreni",
-    "datumUzavreni"
+        "datumOtevreni",
+        "datumUzavreni"
 })
 public class TManipulaceSeskupeni
-    extends TManipulace
-{
+        extends TManipulace {
 
     @XmlElement(name = "DatumOtevreni", namespace = "http://www.mvcr.cz/nsesss/v2", required = true)
     protected TDatum datumOtevreni;
@@ -52,11 +51,10 @@ public class TManipulaceSeskupeni
 
     /**
      * Gets the value of the datumOtevreni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getDatumOtevreni() {
         return datumOtevreni;
@@ -64,11 +62,10 @@ public class TManipulaceSeskupeni
 
     /**
      * Sets the value of the datumOtevreni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setDatumOtevreni(TDatum value) {
         this.datumOtevreni = value;
@@ -76,11 +73,10 @@ public class TManipulaceSeskupeni
 
     /**
      * Gets the value of the datumUzavreni property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDatum }
-     *     
+     *
+     * @return possible object is
+     * {@link TDatum }
+     *
      */
     public TDatum getDatumUzavreni() {
         return datumUzavreni;
@@ -88,11 +84,10 @@ public class TManipulaceSeskupeni
 
     /**
      * Sets the value of the datumUzavreni property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDatum }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDatum }
+     *
      */
     public void setDatumUzavreni(TDatum value) {
         this.datumUzavreni = value;

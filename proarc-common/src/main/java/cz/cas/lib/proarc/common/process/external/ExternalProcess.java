@@ -18,15 +18,13 @@ package cz.cas.lib.proarc.common.process.external;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConversionException;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * The helper to run external processes. It builds command line and environment
@@ -82,7 +80,7 @@ public class ExternalProcess implements Runnable {
             for (int i = 0; i < retry; i++) {
                 runCmdLine(cmdLine, env);
                 if (isOk()) {
-                    return ;
+                    return;
                 }
                 LOG.log(Level.WARNING, "{0}. failure, \n{1}, \nCmd: {2}",
                         new Object[]{i + 1, getFullOutput(), cmdLine});
@@ -97,7 +95,7 @@ public class ExternalProcess implements Runnable {
     protected Map<String, String> buildEnv(Configuration conf) {
         Configuration envConfig = conf.subset(PROP_ENVIRONMENT);
         Map<String, String> env = new HashMap<String, String>();
-        for (Iterator<String> it = envConfig.getKeys(); it.hasNext();) {
+        for (Iterator<String> it = envConfig.getKeys(); it.hasNext(); ) {
             String envKey = it.next();
             env.put(envKey, envConfig.getString(envKey));
         }
@@ -109,10 +107,16 @@ public class ExternalProcess implements Runnable {
         if (exec == null) {
             throw new IllegalStateException("Missing 'exec'!");
         }
-        String[] args = conf.getStringArray(PROP_ARG);
+        List<String> args= conf.getList(String.class, PROP_ARG);
         List<String> cmdLine = new ArrayList<String>();
         cmdLine.add(exec);
-        cmdLine.addAll(Arrays.asList(args));
+        for (String arg : args) {
+            if (arg.contains("\\")) {
+                arg = arg.replaceAll("\\\\", "");
+            }
+            cmdLine.add(arg);
+        }
+//        cmdLine.addAll(Arrays.asList(args));
         return cmdLine;
     }
 
@@ -132,7 +136,7 @@ public class ExternalProcess implements Runnable {
     }
 
     public String getOut() {
-        return asyncProcess == null ? null: asyncProcess.getOut();
+        return asyncProcess == null ? null : asyncProcess.getOut();
     }
 
     public String getErr() {
@@ -140,7 +144,7 @@ public class ExternalProcess implements Runnable {
     }
 
     public int getExitCode() {
-        return asyncProcess == null ? -1: asyncProcess.getExitCode();
+        return asyncProcess == null ? -1 : asyncProcess.getExitCode();
     }
 
     public boolean isOk() {
@@ -157,7 +161,7 @@ public class ExternalProcess implements Runnable {
             retry = Math.max(0, retry);
             retry = Math.min(100, retry);
             return retry;
-        } catch (ConversionException ex) {
+        } catch (Throwable ex) {
             LOG.log(Level.WARNING, null, ex);
             return DEFAULT_RETRY_ATTEMPTS;
         }
@@ -168,7 +172,7 @@ public class ExternalProcess implements Runnable {
             long timeout = conf.getLong(PROP_TIMEOUT, DEFAULT_TIMEOUT);
             timeout = Math.max(0, timeout);
             return timeout;
-        } catch (ConversionException ex) {
+        } catch (Throwable ex) {
             LOG.log(Level.WARNING, null, ex);
             return DEFAULT_TIMEOUT;
         }

@@ -24,15 +24,15 @@ import java.util.List;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  *
@@ -49,15 +49,15 @@ public class EmpireUserDaoTest {
     public EmpireUserDaoTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         support = new DbUnitSupport();
         schema = support.getEmireCfg().getSchema();
@@ -68,7 +68,7 @@ public class EmpireUserDaoTest {
         dao.setTransaction(tx);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         if (tx != null) {
             tx.close();
@@ -86,7 +86,7 @@ public class EmpireUserDaoTest {
     public void testFindId() throws Exception {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml")
-                );
+        );
         support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
@@ -100,7 +100,7 @@ public class EmpireUserDaoTest {
     public void testFindQuery() throws Exception {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml")
-                );
+        );
         support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 
@@ -119,10 +119,10 @@ public class EmpireUserDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "group.xml"),
                 support.loadFlatXmlDataStream(getClass(), "user.xml")
-                );
+        );
         support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
-        support.initSequences(tx, 10, schema.tableUser.id.getSequenceName());
+        support.initSequences(tx, 10, (String) schema.tableUser.id.getDefaultValue());
 
         UserProfile create = dao.create();
         create.setDefaultGroup(1);
@@ -172,7 +172,7 @@ public class EmpireUserDaoTest {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "group.xml"),
                 support.loadFlatXmlDataStream(getClass(), "user.xml")
-                );
+        );
         support.cleanInsert(support.getConnection(tx), db);
         tx.commit();
 

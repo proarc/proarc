@@ -37,7 +37,7 @@ public class RelationCriteria {
     /**
      * Creates new RelationCriteraia
      *
-     * @param pid parent pid
+     * @param pid  parent pid
      * @param type criteria type, see RelationCriteria.Type
      */
     public RelationCriteria(String pid, Type type) {

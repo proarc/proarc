@@ -16,8 +16,8 @@
  */
 package cz.cas.lib.proarc.common.dao.empiredb;
 
-import cz.cas.lib.proarc.common.dao.BatchItemDao;
 import cz.cas.lib.proarc.common.dao.BatchItem;
+import cz.cas.lib.proarc.common.dao.BatchItemDao;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.BatchItemTable;
 import java.sql.Timestamp;
 import java.util.Collections;
@@ -55,9 +55,9 @@ public class EmpireBatchItemDao extends EmpireDao implements BatchItemDao {
             } else {
                 dbr.read(table, item.getId(), getConnection());
             }
-            dbr.setBeanValues(item);
+            dbr.setRecordValues(item);
             dbr.update(getConnection());
-            dbr.getBeanProperties(item);
+            dbr.setBeanProperties(item);
         } finally {
             dbr.close();
         }
@@ -69,7 +69,7 @@ public class EmpireBatchItemDao extends EmpireDao implements BatchItemDao {
         try {
             dbr.read(table, id, getConnection());
             BatchItem item = new BatchItem();
-            dbr.getBeanProperties(item);
+            dbr.setBeanProperties(item);
             return item;
         } finally {
             dbr.close();
@@ -106,6 +106,7 @@ public class EmpireBatchItemDao extends EmpireDao implements BatchItemDao {
     public void removeItems(int batchId) {
         DBCommand cmd = db.createCommand();
         cmd.where(table.batchId.is(batchId));
+
         db.executeDelete(table, cmd, getConnection());
     }
 
@@ -114,7 +115,7 @@ public class EmpireBatchItemDao extends EmpireDao implements BatchItemDao {
         DBCommand cmd = db.createCommand();
         cmd.where(table.batchId.is(batchId));
         cmd.where(table.pid.is(pid));
+
         db.executeDelete(table, cmd, getConnection());
     }
-
 }

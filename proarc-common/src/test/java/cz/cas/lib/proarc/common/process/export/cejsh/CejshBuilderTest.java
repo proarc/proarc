@@ -16,17 +16,17 @@
  */
 package cz.cas.lib.proarc.common.process.export.cejsh;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.process.export.cejsh.CejshBuilder.Article;
 import cz.cas.lib.proarc.common.process.export.cejsh.CejshBuilder.Issue;
 import cz.cas.lib.proarc.common.process.export.cejsh.CejshBuilder.Title;
 import cz.cas.lib.proarc.common.process.export.cejsh.CejshBuilder.Volume;
-import cz.cas.lib.proarc.common.object.DigitalObjectElement;
 import cz.cas.lib.proarc.common.xml.ProarcXmlUtils;
 import cz.cas.lib.proarc.common.xml.SimpleNamespaceContext;
 import cz.cas.lib.proarc.common.xml.TransformErrorListener;
+import jakarta.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
@@ -35,7 +35,6 @@ import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Properties;
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -48,16 +47,21 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import org.apache.commons.io.Charsets;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.apache.commons.codec.Charsets;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  *
@@ -67,32 +71,32 @@ public class CejshBuilderTest {
 
     private final AppConfiguration appConfig = AppConfigurationFactory.getInstance().defaultInstance();
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
-
     public CejshBuilderTest() throws Exception {
     }
 
-    @BeforeClass
+    @TempDir
+    File tempDir;
+
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
     @Test
     public void testWriteProperties() throws Exception {
         CejshBuilder cb = new CejshBuilder(new CejshConfig(), appConfig.getExportParams());
-        File folder = temp.getRoot();
+        File folder = tempDir;
         int articleCount = 3;
         cb.writeProperties(folder, articleCount);
         File file = new File(folder, CejshBuilder.IMPORT_PROPERTIES_FILENAME);
@@ -223,8 +227,7 @@ public class CejshBuilderTest {
 
         // issn must match some cejsh_journals.xml/cejsh/journal[@issn=$issn]
         assertEquals(1, cb.getTranformationErrors().size());
-        assertTrue(cb.getTranformationErrors().get(0), cb.getTranformationErrors().get(0)
-                .startsWith("ERROR: Missing journalId"));
+        assertTrue(cb.getTranformationErrors().get(0).startsWith("ERROR: Missing journalId"), () -> cb.getTranformationErrors().get(0));
     }
 
     @Test
@@ -270,7 +273,7 @@ public class CejshBuilderTest {
     public void testWritePackage() throws Exception {
         CejshConfig cejshConfig = new CejshConfig();
         CejshBuilder cb = new CejshBuilder(cejshConfig, appConfig.getExportParams());
-        CejshContext ctx = new CejshContext(temp.getRoot(), new CejshStatusHandler(), cejshConfig, appConfig.getExportParams());
+        CejshContext ctx = new CejshContext(tempDir, new CejshStatusHandler(), cejshConfig, appConfig.getExportParams());
         cb.setTitle(new Title());
         cb.getTitle().setIssn("1111-1111");
         cb.setVolume(new Volume());
@@ -298,7 +301,7 @@ public class CejshBuilderTest {
     public void testAddArticleNotReviewed() throws Exception {
         CejshConfig cejshConfig = new CejshConfig();
         CejshBuilder cb = new CejshBuilder(cejshConfig, appConfig.getExportParams());
-        CejshContext ctx = new CejshContext(temp.getRoot(), new CejshStatusHandler(), cejshConfig, appConfig.getExportParams());
+        CejshContext ctx = new CejshContext(tempDir, new CejshStatusHandler(), cejshConfig, appConfig.getExportParams());
         cb.setTitle(new Title());
         cb.getTitle().setIssn("1111-1111");
         cb.setVolume(new Volume());
@@ -318,6 +321,7 @@ public class CejshBuilderTest {
     private void dump(Source src) throws TransformerException {
         dump(src, new StreamResult(System.out));
     }
+
     private void dump(Source src, Result res) throws TransformerException {
         Transformer t = TransformerFactory.newInstance().newTransformer();
         t.setOutputProperty(OutputKeys.INDENT, "yes");

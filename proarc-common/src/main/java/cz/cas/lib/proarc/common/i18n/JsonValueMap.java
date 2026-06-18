@@ -34,12 +34,12 @@ import java.util.logging.Logger;
 /**
  * Holds JSON content as a value map. It expects attribute {@code data} as
  * a list of mappings.
- *
+ * <p>
  * <p/>Later it could include field descriptions like SmartGWT datasource.
  *
  * @author Jan Pokorsky
  */
-public class JsonValueMap extends ValueMap<Map<String, Object>>{
+public class JsonValueMap extends ValueMap<Map<String, Object>> {
 
     private static final JsonControl CONTROL = new JsonControl();
     private static final Logger LOG = Logger.getLogger(JsonValueMap.class.getName());

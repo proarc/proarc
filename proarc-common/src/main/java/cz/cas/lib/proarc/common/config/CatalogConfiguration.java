@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.config;
 
 import cz.cas.lib.proarc.common.catalog.AlephXServer;
-import cz.cas.lib.proarc.common.catalog.DigitizationRegistryCatalog;
 import cz.cas.lib.proarc.common.catalog.updateCatalog.AlephXmlUpdateCatalog;
 import cz.cas.lib.proarc.common.catalog.updateCatalog.VerbisUpdateCatalog;
 import java.io.PrintWriter;
@@ -25,9 +24,9 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.BaseConfiguration;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationUtils;
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.ConfigurationUtils;
 
 /**
  * Bibliographic catalog configuration.
@@ -44,9 +43,13 @@ public final class CatalogConfiguration {
     public static final String PROPERTY_PASSWD = "password";
     public static final String PROPERTY_URL = "url";
     public static final String PROPERTY_TYPE = "type";
-    /** The configuration property name to list field IDs. */
+    /**
+     * The configuration property name to list field IDs.
+     */
     public static final String PROPERTY_FIELDS = "fields";
-    /** The configuration property prefix of field's properties. */
+    /**
+     * The configuration property prefix of field's properties.
+     */
     public static final String FIELD_PREFIX = "field";
     public static final String PROPERTY_DEFAULT_SEARCH_FIELD = "defaultSearchField";
 
@@ -192,23 +195,25 @@ public final class CatalogConfiguration {
         ArrayList<CatalogQueryField> fields = new ArrayList<>();
         if (AlephXServer.TYPE.equals(type)) {
             fields.add(new CatalogQueryField("barcode",
-                    new BaseConfiguration() {{addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "bar");}}));
+                    new BaseConfiguration() {{
+                        addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "bar");
+                    }}));
             fields.add(new CatalogQueryField("ccnb",
-                    new BaseConfiguration() {{addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "cnb");}}));
+                    new BaseConfiguration() {{
+                        addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "cnb");
+                    }}));
             fields.add(new CatalogQueryField("isbn",
-                    new BaseConfiguration() {{addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "sbn");}}));
+                    new BaseConfiguration() {{
+                        addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "sbn");
+                    }}));
             fields.add(new CatalogQueryField("issn",
-                    new BaseConfiguration() {{addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "ssn");}}));
+                    new BaseConfiguration() {{
+                        addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "ssn");
+                    }}));
             fields.add(new CatalogQueryField("signature",
-                    new BaseConfiguration() {{addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "sg");}}));
-        } else if (DigitizationRegistryCatalog.TYPE.equals(type)) {
-            BaseConfiguration emptyConfiguration = new BaseConfiguration();
-            fields.add(new CatalogQueryField("barcode", emptyConfiguration));
-            fields.add(new CatalogQueryField("ccnb", emptyConfiguration));
-            fields.add(new CatalogQueryField("isbn", emptyConfiguration));
-            fields.add(new CatalogQueryField("issn", emptyConfiguration));
-            fields.add(new CatalogQueryField("signature", emptyConfiguration));
-            fields.add(new CatalogQueryField("title", emptyConfiguration));
+                    new BaseConfiguration() {{
+                        addProperty(AlephXServer.PROPERTY_FIELD_QUERY, "sg");
+                    }}));
         }
         return fields;
     }
@@ -238,7 +243,9 @@ public final class CatalogConfiguration {
         return "CatalogConfiguration{id=" + id + ", prefix=" + prefix + ", properties:" + dump + '}';
     }
 
-    /** Adds missing protocol that is required by URL/URI classes. */
+    /**
+     * Adds missing protocol that is required by URL/URI classes.
+     */
     private static String fixUrlProtocol(String url) {
         if (url == null) {
             return url;

@@ -34,7 +34,7 @@ public interface MetadataHandler<T> {
      * <p>Return {@code null} from {@link DescriptionMetadata#getData() }
      * to create default metadata instance.
      *
-     * @param data metadata holder
+     * @param data    metadata holder
      * @param message log message
      * @throws DigitalObjectException failure
      */
@@ -46,7 +46,7 @@ public interface MetadataHandler<T> {
      * to create default metadata instance.
      *
      * @param jsonData metadata holder
-     * @param message log message
+     * @param message  log message
      * @throws DigitalObjectException failure
      */
     void setMetadataAsJson(DescriptionMetadata<String> jsonData, String message, String typeRecord) throws DigitalObjectException;
@@ -72,7 +72,8 @@ public interface MetadataHandler<T> {
 
     /**
      * Gets description metadata as an object mappable to JSON.
-     * @param <O> metadata type
+     *
+     * @param <O>       metadata type
      * @param mappingId mapping ID
      * @return tho object mappable to JSON
      * @throws DigitalObjectException failure

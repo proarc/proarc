@@ -85,7 +85,7 @@ public class GraphicPlugin implements DigitalObjectPlugin, HasMetadataHandler<Mo
 
     @Override
     public <T extends HasDataHandler> T getHandlerProvider(Class<T> type) {
-        return type.isInstance(this) ? type.cast(this): null;
+        return type.isInstance(this) ? type.cast(this) : null;
     }
 
     @Override
@@ -101,7 +101,7 @@ public class GraphicPlugin implements DigitalObjectPlugin, HasMetadataHandler<Mo
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {}
+                new RelationCriteria[]{}
         ));
         models.add(new MetaModel(
                 MODEL_PAGE, null, true,

@@ -16,13 +16,12 @@
  */
 package cz.cas.lib.proarc.authentication;
 
-import cz.cas.lib.proarc.authentication.desa.DESAAuthenticator;
 import cz.cas.lib.proarc.authentication.proarc.ProArcAuthenticator;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * The authenticators configuration.
@@ -32,10 +31,10 @@ import org.apache.commons.configuration.Configuration;
 public final class Authenticators {
 
     public static final String PROPERTY_AUTHENTICATORS = "authenticators";
-    /** The internal authenticator. */
+    /**
+     * The internal authenticator.
+     */
     public static final String TYPE_PROARC = "proarc";
-    /** The DESA authenticator. For now it stands for both type and ID. */
-    public static final String TYPE_DESA = "desa";
 
     private static final Logger LOG = Logger.getLogger(Authenticators.class.getName());
     private static Authenticators INSTANCE;
@@ -67,8 +66,6 @@ public final class Authenticators {
         for (Object id : ids) {
             if (TYPE_PROARC.equals(id)) {
                 authenticators.add(new ProArcAuthenticator());
-            } else if (TYPE_DESA.equals(id)) {
-                authenticators.add(new DESAAuthenticator());
             } else {
                 LOG.warning("Unknown authenticator: " + id);
             }
@@ -77,12 +74,6 @@ public final class Authenticators {
     }
 
     public String getLoginType() {
-        List<Object> authenticatorIds = conf.getList(PROPERTY_AUTHENTICATORS);
-        for (Object aid : authenticatorIds) {
-            if (TYPE_DESA.equals(aid)) {
-                return TYPE_DESA;
-            }
-        }
         return TYPE_PROARC;
     }
 

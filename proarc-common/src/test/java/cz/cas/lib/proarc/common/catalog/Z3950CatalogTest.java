@@ -22,18 +22,17 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import org.apache.commons.configuration.BaseConfiguration;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.apache.commons.configuration2.BaseConfiguration;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  *
@@ -44,19 +43,19 @@ public class Z3950CatalogTest {
     public Z3950CatalogTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -89,7 +88,10 @@ public class Z3950CatalogTest {
         String port = System.getProperty("Z3950CatalogTest.port");
         String base = System.getProperty("Z3950CatalogTest.base");
         String recordCharset = System.getProperty("Z3950CatalogTest.recordCharset");
-        Assume.assumeNotNull(host, port, base);
+
+        assertNotNull(host);
+        assertNotNull(port);
+        assertNotNull(base);
 
         String fieldName = "sys";
         String value = "001704913";
@@ -102,7 +104,7 @@ public class Z3950CatalogTest {
         Z3950Catalog instance = new Z3950Catalog(host, Integer.parseInt(port), base,
                 recordCharset == null ? null : Charset.forName(recordCharset),
                 Z3950Catalog.readFields(c), null
-                );
+        );
         List<MetadataItem> result = instance.find(null, fieldName, value, locale);
         assertFalse(result.isEmpty());
     }
@@ -118,14 +120,17 @@ public class Z3950CatalogTest {
         Map<String, Z3950Field> result = Z3950Catalog.readFields(c);
         assertNotNull(result);
         assertEquals(3, result.size());
+
         Z3950Field field1 = result.get("field1");
-        assertNotNull("field1", field1);
+        assertNotNull(field1, "field1");
         assertEquals("query1", field1.getQuery());
+
         Z3950Field field2 = result.get("field2");
-        assertNotNull("field2", field2);
+        assertNotNull(field2, "field2");
         assertEquals("query2", field2.getQuery());
+
         Z3950Field field3 = result.get("field3");
-        assertNotNull("field3", field3);
+        assertNotNull(field3, "field3");
         assertNull(field3.getQuery());
     }
 }

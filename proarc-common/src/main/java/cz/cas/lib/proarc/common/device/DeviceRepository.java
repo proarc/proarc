@@ -16,8 +16,6 @@
  */
 package cz.cas.lib.proarc.common.device;
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
-import com.yourmediashelf.fedora.generated.management.DatastreamProfile;
 import cz.cas.lib.proarc.audiopremis.NkComplexType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
@@ -37,10 +35,9 @@ import cz.cas.lib.proarc.common.storage.XmlStreamEditor.EditorResult;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage.RemoteObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.xml.ProArcPrefixNamespaceMapper;
+import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mix.Mix;
@@ -50,6 +47,11 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.premis.AgentComplexType;
 import cz.cas.lib.proarc.premis.PremisComplexType;
 import cz.cas.lib.proarc.premis.PremisUtils;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,12 +61,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
 import org.w3c.dom.Element;
 
@@ -99,19 +95,10 @@ public final class DeviceRepository {
     public static final String METAMODEL_ID_LABEL = "Skener";
     public static final String METAMODEL_AUDIODEVICE_ID_LABEL = "Audio linka";
 
-    private FedoraStorage fedoraStorage;
     private final Storage typeOfStorage;
     private AkubraStorage akubraStorage;
 
     private final Logger LOG = Logger.getLogger(DeviceRepository.class.getName());
-
-    public DeviceRepository(FedoraStorage fedoraStorage) {
-        if (fedoraStorage == null) {
-            throw new NullPointerException("remoteStorage");
-        }
-        this.fedoraStorage = fedoraStorage;
-        this.typeOfStorage = Storage.FEDORA;
-    }
 
     public DeviceRepository(AkubraStorage akubraStorage) {
         if (akubraStorage == null) {
@@ -166,16 +153,7 @@ public final class DeviceRepository {
         checkDeviceId(id);
         try {
             // check fedora usages
-            // device may be still used by any import item
-            if (Storage.FEDORA.equals(typeOfStorage)) {
-                RemoteObject object = fedoraStorage.find(id);
-                if (fedoraStorage.getSearch().isDeviceInUse(id)) {
-                    return false;
-                } else {
-                    object.purge(log);
-                    return true;
-                }
-            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            if (Storage.AKUBRA.equals(typeOfStorage)) {
                 AkubraObject object = akubraStorage.find(id);
                 if (akubraStorage.getSearch().isDeviceInUse(id)) {
                     return false;
@@ -186,14 +164,9 @@ public final class DeviceRepository {
             } else {
                 throw new DeviceException("Not implemented or missing typeOfStorage");
             }
+            // device may be still used by any import item
         } catch (DigitalObjectNotFoundException ex) {
             throw new DeviceNotFoundException(null, ex, id);
-        } catch (FedoraClientException ex) {
-            if (ex.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new DeviceNotFoundException(null, ex, id);
-            } else {
-                throw new DeviceException(id, ex);
-            }
         } catch (DigitalObjectException | IOException ex) {
             throw new DeviceException(id, ex);
         }
@@ -233,8 +206,6 @@ public final class DeviceRepository {
             return devices;
         } catch (IOException ex) {
             throw new DeviceException(id, ex);
-        } catch (FedoraClientException ex) {
-            throw new DeviceException(id, ex);
         }
     }
 
@@ -264,9 +235,7 @@ public final class DeviceRepository {
         String id = device.getId();
         try {
             ProArcObject object = null;
-            if (Storage.FEDORA.equals(typeOfStorage)) {
-                object = fedoraStorage.find(id);
-            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            if (Storage.AKUBRA.equals(typeOfStorage)) {
                 object = akubraStorage.find(id);
             }
             XmlStreamEditor editor = getMixDescriptionEditor(object);
@@ -287,7 +256,7 @@ public final class DeviceRepository {
                     JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
                     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 //                    unmarshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-//                    unmarshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
+//                    unmarshaller.setProperty("org.glassfish.jaxb.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
                     audiodesc = (Mets) unmarshaller.unmarshal(audiosrc);
                     audiodesc = repairNkComplexType(audiodesc);
                 } catch (JAXBException e) {
@@ -324,9 +293,7 @@ public final class DeviceRepository {
         checkDeviceId(id);
         try {
             ProArcObject object = null;
-            if (Storage.FEDORA.equals(typeOfStorage)) {
-                object = fedoraStorage.find(id);
-            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            if (Storage.AKUBRA.equals(typeOfStorage)) {
                 object = akubraStorage.find(id);
             }
 
@@ -362,7 +329,7 @@ public final class DeviceRepository {
                         JAXBContext jaxbContext = JAXBContext.newInstance(Mets.class, PremisComplexType.class, NkComplexType.class);
                         Marshaller marshaller = jaxbContext.createMarshaller();
                         marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
-                        marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
+                        marshaller.setProperty("org.glassfish.jaxb.namespacePrefixMapper", new ProArcPrefixNamespaceMapper());
                         marshaller.marshal(update.getAudioDescription(), result);
                         audiodescriptionEditor.write(result, update.getAudioTimestamp(), log);
                     } catch (JAXBException e) {
@@ -407,9 +374,7 @@ public final class DeviceRepository {
         lobject.flush();
         lobject.setModel(model);
 
-        if (Storage.FEDORA.equals(typeOfStorage)) {
-            fedoraStorage.ingest(lobject, owner);
-        } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+        if (Storage.AKUBRA.equals(typeOfStorage)) {
             akubraStorage.ingest(lobject, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, owner);
         }
         Device device = new Device();
@@ -423,23 +388,19 @@ public final class DeviceRepository {
         List<SearchViewItem> items = new ArrayList<>();
         try {
             SearchView searchView = null;
-            if (Storage.FEDORA.equals(typeOfStorage)) {
-                searchView = fedoraStorage.getSearch();
-            } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+            if (Storage.AKUBRA.equals(typeOfStorage)) {
                 searchView = akubraStorage.getSearch().setAllowDevicesAndSoftware(true);
             }
             items = searchView.findByModels(offset, METAMODEL_ID, METAMODEL_AUDIODEVICE_ID);
-        } catch (IOException | FedoraClientException ex) {
+        } catch (IOException ex) {
             throw new DeviceException(ex.getMessage());
         }
         return objectAsDevice(config, items, null);
     }
 
-    private List<Device> findDevice(AppConfiguration config, String... pids) throws IOException, FedoraClientException {
+    private List<Device> findDevice(AppConfiguration config, String... pids) throws IOException {
         SearchView searchView = null;
-        if (Storage.FEDORA.equals(typeOfStorage)) {
-            searchView = fedoraStorage.getSearch();
-        } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+        if (Storage.AKUBRA.equals(typeOfStorage)) {
             searchView = akubraStorage.getSearch().setAllowDevicesAndSoftware(true);
         }
 
@@ -492,7 +453,7 @@ public final class DeviceRepository {
     }
 
     private String getModel(String modelOld) {
-        if(modelOld != null && !modelOld.isEmpty()) {
+        if (modelOld != null && !modelOld.isEmpty()) {
             if (METAMODEL_ID.equals(modelOld) || METAMODEL_ID_LABEL.equals(modelOld)) {
                 return METAMODEL_ID;
             } else if (METAMODEL_AUDIODEVICE_ID.equals(modelOld) || METAMODEL_AUDIODEVICE_ID_LABEL.equals(modelOld)) {
@@ -550,9 +511,7 @@ public final class DeviceRepository {
     public XmlStreamEditor getDescriptionEditor(String id) throws DeviceException {
         checkDeviceId(id);
         ProArcObject object = null;
-        if (Storage.FEDORA.equals(typeOfStorage)) {
-            object = fedoraStorage.find(id);
-        } else if (Storage.AKUBRA.equals(typeOfStorage)) {
+        if (Storage.AKUBRA.equals(typeOfStorage)) {
             object = akubraStorage.find(id);
         }
         return getMixDescriptionEditor(object);

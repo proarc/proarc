@@ -165,7 +165,9 @@ public class NdkPeriodicalIssueMapper extends RdaNdkMapper {
         return dc;
     }
 
-    /** Searches first dateIssued without {@code @point}. */
+    /**
+     * Searches first dateIssued without {@code @point}.
+     */
     private static String findFullDateIssued(ModsDefinition mods) {
         List<OriginInfoDefinition> originInfos = mods.getOriginInfo();
         for (OriginInfoDefinition originInfo : originInfos) {

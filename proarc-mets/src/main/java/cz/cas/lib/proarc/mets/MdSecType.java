@@ -17,37 +17,35 @@
 
 package cz.cas.lib.proarc.mets;
 
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAnyElement;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlIDREF;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlIDREF;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.datatype.XMLGregorianCalendar;
-
 import org.w3c.dom.Element;
 
 /**
  * mdSecType: Complex Type for Metadata Sections A generic framework for
  * pointing to/including metadata within a METS document, a la Warwick
  * Framework.
- * 
- * 
+ *
+ *
  * <p>
  * Java class for mdSecType complex type.
- * 
+ *
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="mdSecType">
  *   &lt;complexContent>
@@ -104,8 +102,8 @@ import org.w3c.dom.Element;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "mdSecType", namespace = "http://www.loc.gov/METS/", propOrder = {
@@ -136,9 +134,9 @@ public class MdSecType {
 
     /**
      * Gets the value of the mdRef property.
-     * 
+     *
      * @return possible object is {@link MdSecType.MdRef }
-     * 
+     *
      */
     public MdSecType.MdRef getMdRef() {
         return mdRef;
@@ -146,10 +144,9 @@ public class MdSecType {
 
     /**
      * Sets the value of the mdRef property.
-     * 
-     * @param value
-     *            allowed object is {@link MdSecType.MdRef }
-     * 
+     *
+     * @param value allowed object is {@link MdSecType.MdRef }
+     *
      */
     public void setMdRef(MdSecType.MdRef value) {
         this.mdRef = value;
@@ -157,9 +154,9 @@ public class MdSecType {
 
     /**
      * Gets the value of the mdWrap property.
-     * 
+     *
      * @return possible object is {@link MdSecType.MdWrap }
-     * 
+     *
      */
     public MdSecType.MdWrap getMdWrap() {
         return mdWrap;
@@ -167,10 +164,9 @@ public class MdSecType {
 
     /**
      * Sets the value of the mdWrap property.
-     * 
-     * @param value
-     *            allowed object is {@link MdSecType.MdWrap }
-     * 
+     *
+     * @param value allowed object is {@link MdSecType.MdWrap }
+     *
      */
     public void setMdWrap(MdSecType.MdWrap value) {
         this.mdWrap = value;
@@ -178,9 +174,9 @@ public class MdSecType {
 
     /**
      * Gets the value of the id property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getID() {
         return id;
@@ -188,10 +184,9 @@ public class MdSecType {
 
     /**
      * Sets the value of the id property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setID(String value) {
         this.id = value;
@@ -199,9 +194,9 @@ public class MdSecType {
 
     /**
      * Gets the value of the groupid property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getGROUPID() {
         return groupid;
@@ -209,10 +204,9 @@ public class MdSecType {
 
     /**
      * Sets the value of the groupid property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setGROUPID(String value) {
         this.groupid = value;
@@ -220,25 +214,25 @@ public class MdSecType {
 
     /**
      * Gets the value of the admid property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the admid property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getADMID().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list {@link Object }
-     * 
-     * 
+     *
+     *
      */
     public List<Object> getADMID() {
         if (admid == null) {
@@ -249,9 +243,9 @@ public class MdSecType {
 
     /**
      * Gets the value of the created property.
-     * 
+     *
      * @return possible object is {@link XMLGregorianCalendar }
-     * 
+     *
      */
     public XMLGregorianCalendar getCREATED() {
         return created;
@@ -259,10 +253,9 @@ public class MdSecType {
 
     /**
      * Sets the value of the created property.
-     * 
-     * @param value
-     *            allowed object is {@link XMLGregorianCalendar }
-     * 
+     *
+     * @param value allowed object is {@link XMLGregorianCalendar }
+     *
      */
     public void setCREATED(XMLGregorianCalendar value) {
         this.created = value;
@@ -270,9 +263,9 @@ public class MdSecType {
 
     /**
      * Gets the value of the status property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getSTATUS() {
         return status;
@@ -280,10 +273,9 @@ public class MdSecType {
 
     /**
      * Sets the value of the status property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setSTATUS(String value) {
         this.status = value;
@@ -292,11 +284,11 @@ public class MdSecType {
     /**
      * <p>
      * Java class for anonymous complex type.
-     * 
+     *
      * <p>
      * The following schema fragment specifies the expected content contained
      * within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType>
      *   &lt;complexContent>
@@ -312,8 +304,8 @@ public class MdSecType {
      *   &lt;/complexContent>
      * &lt;/complexType>
      * </pre>
-     * 
-     * 
+     *
+     *
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "")
@@ -367,9 +359,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the id property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getID() {
             return id;
@@ -377,10 +369,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the id property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setID(String value) {
             this.id = value;
@@ -388,9 +379,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the label7 property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getLabel7() {
             return label7;
@@ -398,10 +389,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the label7 property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setLabel7(String value) {
             this.label7 = value;
@@ -409,9 +399,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the xptr property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getXPTR() {
             return xptr;
@@ -419,10 +409,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the xptr property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setXPTR(String value) {
             this.xptr = value;
@@ -430,9 +419,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the mdtype property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getMDTYPE() {
             return mdtype;
@@ -440,10 +429,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the mdtype property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setMDTYPE(String value) {
             this.mdtype = value;
@@ -451,9 +439,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the othermdtype property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getOTHERMDTYPE() {
             return othermdtype;
@@ -461,10 +449,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the othermdtype property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setOTHERMDTYPE(String value) {
             this.othermdtype = value;
@@ -472,9 +459,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the mdtypeversion property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getMDTYPEVERSION() {
             return mdtypeversion;
@@ -482,10 +469,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the mdtypeversion property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setMDTYPEVERSION(String value) {
             this.mdtypeversion = value;
@@ -493,9 +479,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the loctype property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getLOCTYPE() {
             return loctype;
@@ -503,10 +489,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the loctype property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setLOCTYPE(String value) {
             this.loctype = value;
@@ -514,9 +499,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the otherloctype property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getOTHERLOCTYPE() {
             return otherloctype;
@@ -524,10 +509,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the otherloctype property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setOTHERLOCTYPE(String value) {
             this.otherloctype = value;
@@ -535,9 +519,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the type property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getType() {
             if (type == null) {
@@ -549,10 +533,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the type property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setType(String value) {
             this.type = value;
@@ -560,9 +543,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the href property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getHref() {
             return href;
@@ -570,10 +553,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the href property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setHref(String value) {
             this.href = value;
@@ -581,9 +563,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the role property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getRole() {
             return role;
@@ -591,10 +573,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the role property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setRole(String value) {
             this.role = value;
@@ -602,9 +583,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the arcrole property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getArcrole() {
             return arcrole;
@@ -612,10 +593,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the arcrole property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setArcrole(String value) {
             this.arcrole = value;
@@ -623,9 +603,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the title property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getTitle() {
             return title;
@@ -633,10 +613,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the title property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setTitle(String value) {
             this.title = value;
@@ -644,9 +623,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the show property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getShow() {
             return show;
@@ -654,10 +633,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the show property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setShow(String value) {
             this.show = value;
@@ -665,9 +643,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the actuate property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getActuate() {
             return actuate;
@@ -675,10 +653,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the actuate property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setActuate(String value) {
             this.actuate = value;
@@ -686,9 +663,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the mimetype property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getMIMETYPE() {
             return mimetype;
@@ -696,10 +673,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the mimetype property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setMIMETYPE(String value) {
             this.mimetype = value;
@@ -707,9 +683,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the size property.
-         * 
+         *
          * @return possible object is {@link Long }
-         * 
+         *
          */
         public Long getSIZE() {
             return size;
@@ -717,10 +693,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the size property.
-         * 
-         * @param value
-         *            allowed object is {@link Long }
-         * 
+         *
+         * @param value allowed object is {@link Long }
+         *
          */
         public void setSIZE(Long value) {
             this.size = value;
@@ -728,9 +703,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the created property.
-         * 
+         *
          * @return possible object is {@link XMLGregorianCalendar }
-         * 
+         *
          */
         public XMLGregorianCalendar getCREATED() {
             return created;
@@ -738,10 +713,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the created property.
-         * 
-         * @param value
-         *            allowed object is {@link XMLGregorianCalendar }
-         * 
+         *
+         * @param value allowed object is {@link XMLGregorianCalendar }
+         *
          */
         public void setCREATED(XMLGregorianCalendar value) {
             this.created = value;
@@ -749,9 +723,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the checksum property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getCHECKSUM() {
             return checksum;
@@ -759,10 +733,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the checksum property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setCHECKSUM(String value) {
             this.checksum = value;
@@ -770,9 +743,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the checksumtype property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getCHECKSUMTYPE() {
             return checksumtype;
@@ -780,10 +753,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the checksumtype property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setCHECKSUMTYPE(String value) {
             this.checksumtype = value;
@@ -794,11 +766,11 @@ public class MdSecType {
     /**
      * <p>
      * Java class for anonymous complex type.
-     * 
+     *
      * <p>
      * The following schema fragment specifies the expected content contained
      * within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType>
      *   &lt;complexContent>
@@ -825,11 +797,11 @@ public class MdSecType {
      *   &lt;/complexContent>
      * &lt;/complexType>
      * </pre>
-     * 
-     * 
+     *
+     *
      */
     @XmlAccessorType(XmlAccessType.FIELD)
-    @XmlType(name = "", propOrder = { "binData", "xmlData" })
+    @XmlType(name = "", propOrder = {"binData", "xmlData"})
     public static class MdWrap {
 
         @XmlElement(namespace = "http://www.loc.gov/METS/")
@@ -863,7 +835,7 @@ public class MdSecType {
 
         /**
          * Gets the value of the binData property.
-         * 
+         *
          * @return possible object is byte[]
          */
         public byte[] getBinData() {
@@ -872,9 +844,8 @@ public class MdSecType {
 
         /**
          * Sets the value of the binData property.
-         * 
-         * @param value
-         *            allowed object is byte[]
+         *
+         * @param value allowed object is byte[]
          */
         public void setBinData(byte[] value) {
             this.binData = value;
@@ -882,9 +853,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the xmlData property.
-         * 
+         *
          * @return possible object is {@link MdSecType.MdWrap.XmlData }
-         * 
+         *
          */
         public MdSecType.MdWrap.XmlData getXmlData() {
             return xmlData;
@@ -892,10 +863,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the xmlData property.
-         * 
-         * @param value
-         *            allowed object is {@link MdSecType.MdWrap.XmlData }
-         * 
+         *
+         * @param value allowed object is {@link MdSecType.MdWrap.XmlData }
+         *
          */
         public void setXmlData(MdSecType.MdWrap.XmlData value) {
             this.xmlData = value;
@@ -903,9 +873,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the id property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getID() {
             return id;
@@ -913,10 +883,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the id property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setID(String value) {
             this.id = value;
@@ -924,9 +893,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the label8 property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getLabel8() {
             return label8;
@@ -934,10 +903,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the label8 property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setLabel8(String value) {
             this.label8 = value;
@@ -945,9 +913,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the mimetype property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getMIMETYPE() {
             return mimetype;
@@ -955,10 +923,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the mimetype property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setMIMETYPE(String value) {
             this.mimetype = value;
@@ -966,9 +933,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the size property.
-         * 
+         *
          * @return possible object is {@link Long }
-         * 
+         *
          */
         public Long getSIZE() {
             return size;
@@ -976,10 +943,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the size property.
-         * 
-         * @param value
-         *            allowed object is {@link Long }
-         * 
+         *
+         * @param value allowed object is {@link Long }
+         *
          */
         public void setSIZE(Long value) {
             this.size = value;
@@ -987,9 +953,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the created property.
-         * 
+         *
          * @return possible object is {@link XMLGregorianCalendar }
-         * 
+         *
          */
         public XMLGregorianCalendar getCREATED() {
             return created;
@@ -997,10 +963,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the created property.
-         * 
-         * @param value
-         *            allowed object is {@link XMLGregorianCalendar }
-         * 
+         *
+         * @param value allowed object is {@link XMLGregorianCalendar }
+         *
          */
         public void setCREATED(XMLGregorianCalendar value) {
             this.created = value;
@@ -1008,9 +973,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the checksum property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getCHECKSUM() {
             return checksum;
@@ -1018,10 +983,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the checksum property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setCHECKSUM(String value) {
             this.checksum = value;
@@ -1029,9 +993,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the checksumtype property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getCHECKSUMTYPE() {
             return checksumtype;
@@ -1039,10 +1003,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the checksumtype property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setCHECKSUMTYPE(String value) {
             this.checksumtype = value;
@@ -1050,9 +1013,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the mdtype property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getMDTYPE() {
             return mdtype;
@@ -1060,10 +1023,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the mdtype property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setMDTYPE(String value) {
             this.mdtype = value;
@@ -1071,9 +1033,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the othermdtype property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getOTHERMDTYPE() {
             return othermdtype;
@@ -1081,10 +1043,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the othermdtype property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setOTHERMDTYPE(String value) {
             this.othermdtype = value;
@@ -1092,9 +1053,9 @@ public class MdSecType {
 
         /**
          * Gets the value of the mdtypeversion property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getMDTYPEVERSION() {
             return mdtypeversion;
@@ -1102,10 +1063,9 @@ public class MdSecType {
 
         /**
          * Sets the value of the mdtypeversion property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setMDTYPEVERSION(String value) {
             this.mdtypeversion = value;
@@ -1114,11 +1074,11 @@ public class MdSecType {
         /**
          * <p>
          * Java class for anonymous complex type.
-         * 
+         *
          * <p>
          * The following schema fragment specifies the expected content
          * contained within this class.
-         * 
+         *
          * <pre>
          * &lt;complexType>
          *   &lt;complexContent>
@@ -1130,11 +1090,11 @@ public class MdSecType {
          *   &lt;/complexContent>
          * &lt;/complexType>
          * </pre>
-         * 
-         * 
+         *
+         *
          */
         @XmlAccessorType(XmlAccessType.FIELD)
-        @XmlType(name = "", propOrder = { "any" })
+        @XmlType(name = "", propOrder = {"any"})
         public static class XmlData {
 
             @XmlAnyElement(lax = true)
@@ -1142,26 +1102,26 @@ public class MdSecType {
 
             /**
              * Gets the value of the any property.
-             * 
+             *
              * <p>
              * This accessor method returns a reference to the live list, not a
              * snapshot. Therefore any modification you make to the returned
              * list will be present inside the JAXB object. This is why there is
              * not a <CODE>set</CODE> method for the any property.
-             * 
+             *
              * <p>
              * For example, to add a new item, do as follows:
-             * 
+             *
              * <pre>
              * getAny().add(newItem);
              * </pre>
-             * 
-             * 
+             *
+             *
              * <p>
              * Objects of the following type(s) are allowed in the list
              * {@link Object } {@link Element }
-             * 
-             * 
+             *
+             *
              */
             public List<Object> getAny() {
                 if (any == null) {

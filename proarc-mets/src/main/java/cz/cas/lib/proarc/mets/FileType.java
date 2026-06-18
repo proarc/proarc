@@ -17,23 +17,21 @@
 
 package cz.cas.lib.proarc.mets;
 
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAnyElement;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlIDREF;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlIDREF;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.datatype.XMLGregorianCalendar;
-
 import org.w3c.dom.Element;
 
 /**
@@ -43,15 +41,15 @@ import org.w3c.dom.Element;
  * element, which wraps an encoded version of the file. Note that ALL FLocat and
  * FContent elements underneath a single file element should identify/contain
  * identical copies of a single file.
- * 
- * 
+ *
+ *
  * <p>
  * Java class for fileType complex type.
- * 
+ *
  * <p>
  * The following schema fragment specifies the expected content contained within
  * this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="fileType">
  *   &lt;complexContent>
@@ -159,11 +157,11 @@ import org.w3c.dom.Element;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "fileType", namespace = "http://www.loc.gov/METS/", propOrder = { "fLocat", "fContent", "stream", "transformFile", "file" })
+@XmlType(name = "fileType", namespace = "http://www.loc.gov/METS/", propOrder = {"fLocat", "fContent", "stream", "transformFile", "file"})
 public class FileType {
 
     @XmlElement(name = "FLocat", namespace = "http://www.loc.gov/METS/")
@@ -217,39 +215,39 @@ public class FileType {
 
     /**
      * Gets the value of the fLocat property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the fLocat property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getFLocat().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link FileType.FLocat }
-     * 
-     * 
+     *
+     *
      */
     public List<FileType.FLocat> getFLocat() {
         if (fLocat == null) {
-            fLocat = new ArrayList<FileType.FLocat>();
+            fLocat = new ArrayList<FLocat>();
         }
         return this.fLocat;
     }
 
     /**
      * Gets the value of the fContent property.
-     * 
+     *
      * @return possible object is {@link FileType.FContent }
-     * 
+     *
      */
     public FileType.FContent getFContent() {
         return fContent;
@@ -257,10 +255,9 @@ public class FileType {
 
     /**
      * Sets the value of the fContent property.
-     * 
-     * @param value
-     *            allowed object is {@link FileType.FContent }
-     * 
+     *
+     * @param value allowed object is {@link FileType.FContent }
+     *
      */
     public void setFContent(FileType.FContent value) {
         this.fContent = value;
@@ -268,26 +265,26 @@ public class FileType {
 
     /**
      * Gets the value of the stream property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the stream property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getStream().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link FileType.Stream }
-     * 
-     * 
+     *
+     *
      */
     public List<FileType.Stream> getStream() {
         if (stream == null) {
@@ -298,26 +295,26 @@ public class FileType {
 
     /**
      * Gets the value of the transformFile property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the transformFile property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getTransformFile().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link FileType.TransformFile }
-     * 
-     * 
+     *
+     *
      */
     public List<FileType.TransformFile> getTransformFile() {
         if (transformFile == null) {
@@ -328,25 +325,25 @@ public class FileType {
 
     /**
      * Gets the value of the file property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the file property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getFile().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list {@link FileType }
-     * 
-     * 
+     *
+     *
      */
     public List<FileType> getFile() {
         if (file == null) {
@@ -357,9 +354,9 @@ public class FileType {
 
     /**
      * Gets the value of the id property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getID() {
         return id;
@@ -367,10 +364,9 @@ public class FileType {
 
     /**
      * Sets the value of the id property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setID(String value) {
         this.id = value;
@@ -378,9 +374,9 @@ public class FileType {
 
     /**
      * Gets the value of the seq property.
-     * 
+     *
      * @return possible object is {@link Integer }
-     * 
+     *
      */
     public Integer getSEQ() {
         return seq;
@@ -388,10 +384,9 @@ public class FileType {
 
     /**
      * Sets the value of the seq property.
-     * 
-     * @param value
-     *            allowed object is {@link Integer }
-     * 
+     *
+     * @param value allowed object is {@link Integer }
+     *
      */
     public void setSEQ(Integer value) {
         this.seq = value;
@@ -399,9 +394,9 @@ public class FileType {
 
     /**
      * Gets the value of the ownerid property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getOWNERID() {
         return ownerid;
@@ -409,10 +404,9 @@ public class FileType {
 
     /**
      * Sets the value of the ownerid property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setOWNERID(String value) {
         this.ownerid = value;
@@ -420,25 +414,25 @@ public class FileType {
 
     /**
      * Gets the value of the admid property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the admid property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getADMID().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list {@link Object }
-     * 
-     * 
+     *
+     *
      */
     public List<Object> getADMID() {
         if (admid == null) {
@@ -449,25 +443,25 @@ public class FileType {
 
     /**
      * Gets the value of the dmdid property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list, not a
      * snapshot. Therefore any modification you make to the returned list will
      * be present inside the JAXB object. This is why there is not a
      * <CODE>set</CODE> method for the dmdid property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
-     * 
+     *
      * <pre>
      * getDMDID().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list {@link Object }
-     * 
-     * 
+     *
+     *
      */
     public List<Object> getDMDID() {
         if (dmdid == null) {
@@ -478,9 +472,9 @@ public class FileType {
 
     /**
      * Gets the value of the groupid property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getGROUPID() {
         return groupid;
@@ -488,10 +482,9 @@ public class FileType {
 
     /**
      * Sets the value of the groupid property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setGROUPID(String value) {
         this.groupid = value;
@@ -499,9 +492,9 @@ public class FileType {
 
     /**
      * Gets the value of the use property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getUSE() {
         return use;
@@ -509,10 +502,9 @@ public class FileType {
 
     /**
      * Sets the value of the use property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setUSE(String value) {
         this.use = value;
@@ -520,9 +512,9 @@ public class FileType {
 
     /**
      * Gets the value of the begin property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getBEGIN() {
         return begin;
@@ -530,10 +522,9 @@ public class FileType {
 
     /**
      * Sets the value of the begin property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setBEGIN(String value) {
         this.begin = value;
@@ -541,9 +532,9 @@ public class FileType {
 
     /**
      * Gets the value of the end property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getEND() {
         return end;
@@ -551,10 +542,9 @@ public class FileType {
 
     /**
      * Sets the value of the end property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setEND(String value) {
         this.end = value;
@@ -562,9 +552,9 @@ public class FileType {
 
     /**
      * Gets the value of the betype property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getBETYPE() {
         return betype;
@@ -572,10 +562,9 @@ public class FileType {
 
     /**
      * Sets the value of the betype property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setBETYPE(String value) {
         this.betype = value;
@@ -583,9 +572,9 @@ public class FileType {
 
     /**
      * Gets the value of the mimetype property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getMIMETYPE() {
         return mimetype;
@@ -593,10 +582,9 @@ public class FileType {
 
     /**
      * Sets the value of the mimetype property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setMIMETYPE(String value) {
         this.mimetype = value;
@@ -604,9 +592,9 @@ public class FileType {
 
     /**
      * Gets the value of the size property.
-     * 
+     *
      * @return possible object is {@link Long }
-     * 
+     *
      */
     public Long getSIZE() {
         return size;
@@ -614,10 +602,9 @@ public class FileType {
 
     /**
      * Sets the value of the size property.
-     * 
-     * @param value
-     *            allowed object is {@link Long }
-     * 
+     *
+     * @param value allowed object is {@link Long }
+     *
      */
     public void setSIZE(Long value) {
         this.size = value;
@@ -625,9 +612,9 @@ public class FileType {
 
     /**
      * Gets the value of the created property.
-     * 
+     *
      * @return possible object is {@link XMLGregorianCalendar }
-     * 
+     *
      */
     public XMLGregorianCalendar getCREATED() {
         return created;
@@ -635,10 +622,9 @@ public class FileType {
 
     /**
      * Sets the value of the created property.
-     * 
-     * @param value
-     *            allowed object is {@link XMLGregorianCalendar }
-     * 
+     *
+     * @param value allowed object is {@link XMLGregorianCalendar }
+     *
      */
     public void setCREATED(XMLGregorianCalendar value) {
         this.created = value;
@@ -646,9 +632,9 @@ public class FileType {
 
     /**
      * Gets the value of the checksum property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getCHECKSUM() {
         return checksum;
@@ -656,10 +642,9 @@ public class FileType {
 
     /**
      * Sets the value of the checksum property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setCHECKSUM(String value) {
         this.checksum = value;
@@ -667,9 +652,9 @@ public class FileType {
 
     /**
      * Gets the value of the checksumtype property.
-     * 
+     *
      * @return possible object is {@link String }
-     * 
+     *
      */
     public String getCHECKSUMTYPE() {
         return checksumtype;
@@ -677,10 +662,9 @@ public class FileType {
 
     /**
      * Sets the value of the checksumtype property.
-     * 
-     * @param value
-     *            allowed object is {@link String }
-     * 
+     *
+     * @param value allowed object is {@link String }
+     *
      */
     public void setCHECKSUMTYPE(String value) {
         this.checksumtype = value;
@@ -689,11 +673,11 @@ public class FileType {
     /**
      * <p>
      * Java class for anonymous complex type.
-     * 
+     *
      * <p>
      * The following schema fragment specifies the expected content contained
      * within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType>
      *   &lt;complexContent>
@@ -718,11 +702,11 @@ public class FileType {
      *   &lt;/complexContent>
      * &lt;/complexType>
      * </pre>
-     * 
-     * 
+     *
+     *
      */
     @XmlAccessorType(XmlAccessType.FIELD)
-    @XmlType(name = "", propOrder = { "binData", "xmlData" })
+    @XmlType(name = "", propOrder = {"binData", "xmlData"})
     public static class FContent {
 
         @XmlElement(namespace = "http://www.loc.gov/METS/")
@@ -739,7 +723,7 @@ public class FileType {
 
         /**
          * Gets the value of the binData property.
-         * 
+         *
          * @return possible object is byte[]
          */
         public byte[] getBinData() {
@@ -748,9 +732,8 @@ public class FileType {
 
         /**
          * Sets the value of the binData property.
-         * 
-         * @param value
-         *            allowed object is byte[]
+         *
+         * @param value allowed object is byte[]
          */
         public void setBinData(byte[] value) {
             this.binData = value;
@@ -758,9 +741,9 @@ public class FileType {
 
         /**
          * Gets the value of the xmlData property.
-         * 
+         *
          * @return possible object is {@link FileType.FContent.XmlData }
-         * 
+         *
          */
         public FileType.FContent.XmlData getXmlData() {
             return xmlData;
@@ -768,10 +751,9 @@ public class FileType {
 
         /**
          * Sets the value of the xmlData property.
-         * 
-         * @param value
-         *            allowed object is {@link FileType.FContent.XmlData }
-         * 
+         *
+         * @param value allowed object is {@link FileType.FContent.XmlData }
+         *
          */
         public void setXmlData(FileType.FContent.XmlData value) {
             this.xmlData = value;
@@ -779,9 +761,9 @@ public class FileType {
 
         /**
          * Gets the value of the id property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getID() {
             return id;
@@ -789,10 +771,9 @@ public class FileType {
 
         /**
          * Sets the value of the id property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setID(String value) {
             this.id = value;
@@ -800,9 +781,9 @@ public class FileType {
 
         /**
          * Gets the value of the use property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getUSE() {
             return use;
@@ -810,10 +791,9 @@ public class FileType {
 
         /**
          * Sets the value of the use property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setUSE(String value) {
             this.use = value;
@@ -822,11 +802,11 @@ public class FileType {
         /**
          * <p>
          * Java class for anonymous complex type.
-         * 
+         *
          * <p>
          * The following schema fragment specifies the expected content
          * contained within this class.
-         * 
+         *
          * <pre>
          * &lt;complexType>
          *   &lt;complexContent>
@@ -838,11 +818,11 @@ public class FileType {
          *   &lt;/complexContent>
          * &lt;/complexType>
          * </pre>
-         * 
-         * 
+         *
+         *
          */
         @XmlAccessorType(XmlAccessType.FIELD)
-        @XmlType(name = "", propOrder = { "any" })
+        @XmlType(name = "", propOrder = {"any"})
         public static class XmlData {
 
             @XmlAnyElement(lax = true)
@@ -850,26 +830,26 @@ public class FileType {
 
             /**
              * Gets the value of the any property.
-             * 
+             *
              * <p>
              * This accessor method returns a reference to the live list, not a
              * snapshot. Therefore any modification you make to the returned
              * list will be present inside the JAXB object. This is why there is
              * not a <CODE>set</CODE> method for the any property.
-             * 
+             *
              * <p>
              * For example, to add a new item, do as follows:
-             * 
+             *
              * <pre>
              * getAny().add(newItem);
              * </pre>
-             * 
-             * 
+             *
+             *
              * <p>
              * Objects of the following type(s) are allowed in the list
              * {@link Object } {@link Element }
-             * 
-             * 
+             *
+             *
              */
             public List<Object> getAny() {
                 if (any == null) {
@@ -885,11 +865,11 @@ public class FileType {
     /**
      * <p>
      * Java class for anonymous complex type.
-     * 
+     *
      * <p>
      * The following schema fragment specifies the expected content contained
      * within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType>
      *   &lt;complexContent>
@@ -902,8 +882,8 @@ public class FileType {
      *   &lt;/complexContent>
      * &lt;/complexType>
      * </pre>
-     * 
-     * 
+     *
+     *
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "")
@@ -938,9 +918,9 @@ public class FileType {
 
         /**
          * Gets the value of the id property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getID() {
             return id;
@@ -948,10 +928,9 @@ public class FileType {
 
         /**
          * Sets the value of the id property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setID(String value) {
             this.id = value;
@@ -959,9 +938,9 @@ public class FileType {
 
         /**
          * Gets the value of the use property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getUSE() {
             return use;
@@ -969,10 +948,9 @@ public class FileType {
 
         /**
          * Sets the value of the use property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setUSE(String value) {
             this.use = value;
@@ -980,9 +958,9 @@ public class FileType {
 
         /**
          * Gets the value of the type property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getType() {
             if (type == null) {
@@ -994,10 +972,9 @@ public class FileType {
 
         /**
          * Sets the value of the type property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setType(String value) {
             this.type = value;
@@ -1005,9 +982,9 @@ public class FileType {
 
         /**
          * Gets the value of the href property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getHref() {
             return href;
@@ -1015,10 +992,9 @@ public class FileType {
 
         /**
          * Sets the value of the href property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setHref(String value) {
             this.href = value;
@@ -1026,9 +1002,9 @@ public class FileType {
 
         /**
          * Gets the value of the role property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getRole() {
             return role;
@@ -1036,10 +1012,9 @@ public class FileType {
 
         /**
          * Sets the value of the role property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setRole(String value) {
             this.role = value;
@@ -1047,9 +1022,9 @@ public class FileType {
 
         /**
          * Gets the value of the arcrole property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getArcrole() {
             return arcrole;
@@ -1057,10 +1032,9 @@ public class FileType {
 
         /**
          * Sets the value of the arcrole property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setArcrole(String value) {
             this.arcrole = value;
@@ -1068,9 +1042,9 @@ public class FileType {
 
         /**
          * Gets the value of the title property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getTitle() {
             return title;
@@ -1078,10 +1052,9 @@ public class FileType {
 
         /**
          * Sets the value of the title property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setTitle(String value) {
             this.title = value;
@@ -1089,9 +1062,9 @@ public class FileType {
 
         /**
          * Gets the value of the show property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getShow() {
             return show;
@@ -1099,10 +1072,9 @@ public class FileType {
 
         /**
          * Sets the value of the show property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setShow(String value) {
             this.show = value;
@@ -1110,9 +1082,9 @@ public class FileType {
 
         /**
          * Gets the value of the actuate property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getActuate() {
             return actuate;
@@ -1120,10 +1092,9 @@ public class FileType {
 
         /**
          * Sets the value of the actuate property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setActuate(String value) {
             this.actuate = value;
@@ -1131,9 +1102,9 @@ public class FileType {
 
         /**
          * Gets the value of the loctype property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getLOCTYPE() {
             return loctype;
@@ -1141,10 +1112,9 @@ public class FileType {
 
         /**
          * Sets the value of the loctype property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setLOCTYPE(String value) {
             this.loctype = value;
@@ -1152,9 +1122,9 @@ public class FileType {
 
         /**
          * Gets the value of the otherloctype property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getOTHERLOCTYPE() {
             return otherloctype;
@@ -1162,10 +1132,9 @@ public class FileType {
 
         /**
          * Sets the value of the otherloctype property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setOTHERLOCTYPE(String value) {
             this.otherloctype = value;
@@ -1176,11 +1145,11 @@ public class FileType {
     /**
      * <p>
      * Java class for anonymous complex type.
-     * 
+     *
      * <p>
      * The following schema fragment specifies the expected content contained
      * within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType>
      *   &lt;complexContent>
@@ -1203,8 +1172,8 @@ public class FileType {
      *   &lt;/complexContent>
      * &lt;/complexType>
      * </pre>
-     * 
-     * 
+     *
+     *
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "")
@@ -1236,9 +1205,9 @@ public class FileType {
 
         /**
          * Gets the value of the id property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getID() {
             return id;
@@ -1246,10 +1215,9 @@ public class FileType {
 
         /**
          * Sets the value of the id property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setID(String value) {
             this.id = value;
@@ -1257,9 +1225,9 @@ public class FileType {
 
         /**
          * Gets the value of the streamType property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getStreamType() {
             return streamType;
@@ -1267,10 +1235,9 @@ public class FileType {
 
         /**
          * Sets the value of the streamType property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setStreamType(String value) {
             this.streamType = value;
@@ -1278,9 +1245,9 @@ public class FileType {
 
         /**
          * Gets the value of the ownerid property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getOWNERID() {
             return ownerid;
@@ -1288,10 +1255,9 @@ public class FileType {
 
         /**
          * Sets the value of the ownerid property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setOWNERID(String value) {
             this.ownerid = value;
@@ -1299,26 +1265,26 @@ public class FileType {
 
         /**
          * Gets the value of the admid property.
-         * 
+         *
          * <p>
          * This accessor method returns a reference to the live list, not a
          * snapshot. Therefore any modification you make to the returned list
          * will be present inside the JAXB object. This is why there is not a
          * <CODE>set</CODE> method for the admid property.
-         * 
+         *
          * <p>
          * For example, to add a new item, do as follows:
-         * 
+         *
          * <pre>
          * getADMID().add(newItem);
          * </pre>
-         * 
-         * 
+         *
+         *
          * <p>
          * Objects of the following type(s) are allowed in the list
          * {@link Object }
-         * 
-         * 
+         *
+         *
          */
         public List<Object> getADMID() {
             if (admid == null) {
@@ -1329,26 +1295,26 @@ public class FileType {
 
         /**
          * Gets the value of the dmdid property.
-         * 
+         *
          * <p>
          * This accessor method returns a reference to the live list, not a
          * snapshot. Therefore any modification you make to the returned list
          * will be present inside the JAXB object. This is why there is not a
          * <CODE>set</CODE> method for the dmdid property.
-         * 
+         *
          * <p>
          * For example, to add a new item, do as follows:
-         * 
+         *
          * <pre>
          * getDMDID().add(newItem);
          * </pre>
-         * 
-         * 
+         *
+         *
          * <p>
          * Objects of the following type(s) are allowed in the list
          * {@link Object }
-         * 
-         * 
+         *
+         *
          */
         public List<Object> getDMDID() {
             if (dmdid == null) {
@@ -1359,9 +1325,9 @@ public class FileType {
 
         /**
          * Gets the value of the begin property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getBEGIN() {
             return begin;
@@ -1369,10 +1335,9 @@ public class FileType {
 
         /**
          * Sets the value of the begin property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setBEGIN(String value) {
             this.begin = value;
@@ -1380,9 +1345,9 @@ public class FileType {
 
         /**
          * Gets the value of the end property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getEND() {
             return end;
@@ -1390,10 +1355,9 @@ public class FileType {
 
         /**
          * Sets the value of the end property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setEND(String value) {
             this.end = value;
@@ -1401,9 +1365,9 @@ public class FileType {
 
         /**
          * Gets the value of the betype property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getBETYPE() {
             return betype;
@@ -1411,10 +1375,9 @@ public class FileType {
 
         /**
          * Sets the value of the betype property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setBETYPE(String value) {
             this.betype = value;
@@ -1425,11 +1388,11 @@ public class FileType {
     /**
      * <p>
      * Java class for anonymous complex type.
-     * 
+     *
      * <p>
      * The following schema fragment specifies the expected content contained
      * within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType>
      *   &lt;complexContent>
@@ -1451,8 +1414,8 @@ public class FileType {
      *   &lt;/complexContent>
      * &lt;/complexType>
      * </pre>
-     * 
-     * 
+     *
+     *
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "")
@@ -1479,9 +1442,9 @@ public class FileType {
 
         /**
          * Gets the value of the id property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getID() {
             return id;
@@ -1489,10 +1452,9 @@ public class FileType {
 
         /**
          * Sets the value of the id property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setID(String value) {
             this.id = value;
@@ -1500,9 +1462,9 @@ public class FileType {
 
         /**
          * Gets the value of the transformtype property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getTRANSFORMTYPE() {
             return transformtype;
@@ -1510,10 +1472,9 @@ public class FileType {
 
         /**
          * Sets the value of the transformtype property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setTRANSFORMTYPE(String value) {
             this.transformtype = value;
@@ -1521,9 +1482,9 @@ public class FileType {
 
         /**
          * Gets the value of the transformalgorithm property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getTRANSFORMALGORITHM() {
             return transformalgorithm;
@@ -1531,10 +1492,9 @@ public class FileType {
 
         /**
          * Sets the value of the transformalgorithm property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setTRANSFORMALGORITHM(String value) {
             this.transformalgorithm = value;
@@ -1542,9 +1502,9 @@ public class FileType {
 
         /**
          * Gets the value of the transformkey property.
-         * 
+         *
          * @return possible object is {@link String }
-         * 
+         *
          */
         public String getTRANSFORMKEY() {
             return transformkey;
@@ -1552,10 +1512,9 @@ public class FileType {
 
         /**
          * Sets the value of the transformkey property.
-         * 
-         * @param value
-         *            allowed object is {@link String }
-         * 
+         *
+         * @param value allowed object is {@link String }
+         *
          */
         public void setTRANSFORMKEY(String value) {
             this.transformkey = value;
@@ -1563,9 +1522,9 @@ public class FileType {
 
         /**
          * Gets the value of the transformbehavior property.
-         * 
+         *
          * @return possible object is {@link Object }
-         * 
+         *
          */
         public Object getTRANSFORMBEHAVIOR() {
             return transformbehavior;
@@ -1573,10 +1532,9 @@ public class FileType {
 
         /**
          * Sets the value of the transformbehavior property.
-         * 
-         * @param value
-         *            allowed object is {@link Object }
-         * 
+         *
+         * @param value allowed object is {@link Object }
+         *
          */
         public void setTRANSFORMBEHAVIOR(Object value) {
             this.transformbehavior = value;
@@ -1584,9 +1542,9 @@ public class FileType {
 
         /**
          * Gets the value of the transformorder property.
-         * 
+         *
          * @return possible object is {@link BigInteger }
-         * 
+         *
          */
         public BigInteger getTRANSFORMORDER() {
             return transformorder;
@@ -1594,10 +1552,9 @@ public class FileType {
 
         /**
          * Sets the value of the transformorder property.
-         * 
-         * @param value
-         *            allowed object is {@link BigInteger }
-         * 
+         *
+         * @param value allowed object is {@link BigInteger }
+         *
          */
         public void setTRANSFORMORDER(BigInteger value) {
             this.transformorder = value;

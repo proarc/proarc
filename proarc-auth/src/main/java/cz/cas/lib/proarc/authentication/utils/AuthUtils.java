@@ -18,11 +18,10 @@ package cz.cas.lib.proarc.authentication.utils;
 
 import cz.cas.lib.proarc.authentication.Authenticators;
 import cz.cas.lib.proarc.authentication.ProarcAuthFilter;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
-import org.apache.commons.io.IOUtils;
 
 /**
  *
@@ -32,12 +31,13 @@ public final class AuthUtils {
 
     /**
      * The HTTP header in unauthorized response to choose a login form/type on client.
-     * Expect values like proarc, desa, ....
+     * Expect values like proarc, ....
      */
     public static final String HEADER_AUTHENTICATE_TYPE = "ProArc-Authenticate";
 
     /**
      * Writes the authentication required status to the HTTP response.
+     *
      * @param response response
      * @throws IOException failure
      * @see #HEADER_AUTHENTICATE_TYPE
@@ -49,29 +49,36 @@ public final class AuthUtils {
         response.setContentType(MediaType.TEXT_HTML);
         InputStream res = ProarcAuthFilter.class.getResourceAsStream("loginRequiredMarker.html");
         try {
-            IOUtils.copy(res, response.getOutputStream());
-            res.close();
+            res.transferTo(response.getOutputStream());
         } finally {
-            IOUtils.closeQuietly(res);
+            closeQuietly(res);
         }
     }
 
     /**
      * Writes the authentication OK status to the HTTP response.
+     *
      * @param response response
      * @throws IOException failure
      * @see <a href='http://www.smartclient.com/smartgwt/javadoc/com/smartgwt/client/docs/Relogin.html'>SmartGWT Relogin</a>
      */
-    public static void  setLoginSuccesResponse(HttpServletResponse response) throws IOException {
+    public static void setLoginSuccesResponse(HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.TEXT_HTML);
         InputStream res = ProarcAuthFilter.class.getResourceAsStream("loginSuccessMarker.html");
         try {
-            IOUtils.copy(res, response.getOutputStream());
-            res.close();
+            res.transferTo(response.getOutputStream());
         } finally {
-            IOUtils.closeQuietly(res);
+            closeQuietly(res);
         }
     }
 
+    public static void closeQuietly(AutoCloseable closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (Exception ignored) {
+            }
+        }
+    }
 }

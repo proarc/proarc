@@ -35,7 +35,7 @@ public class EmpireDaoFactory implements DaoFactory {
     public EmpireDaoFactory(EmpireConfiguration conf) {
         this.db = conf.getSchema();
         this.conf = conf;
-        
+
     }
 
     public ProarcDatabase getDb() {
@@ -106,5 +106,5 @@ public class EmpireDaoFactory implements DaoFactory {
     public EmpireWorkflowMaterialDao createWorkflowMaterialDao() {
         return new EmpireWorkflowMaterialDao(db);
     }
-    
+
 }

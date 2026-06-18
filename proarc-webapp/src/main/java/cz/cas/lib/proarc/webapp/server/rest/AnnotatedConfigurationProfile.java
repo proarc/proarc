@@ -16,13 +16,14 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.webapp.shared.rest.ConfigurationProfileResourceApi;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlTransient;
 import java.io.File;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  * Helper class to annotate {@link ConfigurationProfile} properties.
@@ -39,18 +40,22 @@ public abstract class AnnotatedConfigurationProfile extends ConfigurationProfile
     }
 
     @XmlElement(name = ConfigurationProfileResourceApi.PROFILE_ID)
+    @JsonProperty(ConfigurationProfileResourceApi.PROFILE_ID)
     @Override
     public abstract String getId();
 
     @XmlElement(name = ConfigurationProfileResourceApi.PROFILE_LABEL)
+    @JsonProperty(ConfigurationProfileResourceApi.PROFILE_LABEL)
     @Override
     public abstract String getLabel();
 
     @XmlElement(name = ConfigurationProfileResourceApi.PROFILE_DESCRIPTION)
+    @JsonProperty(ConfigurationProfileResourceApi.PROFILE_DESCRIPTION)
     @Override
     public abstract String getDescription();
 
     @XmlElement(name = ConfigurationProfileResourceApi.PROFILE_ERROR)
+    @JsonProperty(ConfigurationProfileResourceApi.PROFILE_ERROR)
     @Override
     public abstract String getError();
 

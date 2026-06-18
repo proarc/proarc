@@ -16,23 +16,22 @@
  */
 package cz.cas.lib.proarc.common.process.export.mets;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.process.imports.TiffImporterTest;
-import cz.cas.lib.proarc.common.process.export.mets.JHoveOutput;
-import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
-import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
-import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
 import java.io.File;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.junit.Rule;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -40,41 +39,41 @@ import org.junit.Rule;
  */
 public class JhoveUtilityTest {
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder();
+    @TempDir
+    File tempDir;
 
     public JhoveUtilityTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
     @Test
     public void testCreateContext() throws Exception {
-        File root = temp.newFolder();
+        File root = tempDir;
         JhoveContext ctx = JhoveUtility.createContext(root);
         assertNotNull(ctx);
         assertTrue(new File(root, JhoveUtility.JHOVE_CONFIG_NAME).exists());
         ctx.destroy();
-        assertFalse(root.toString(), root.exists());
+        assertFalse(root.exists(), () -> root.toString());
     }
 
     @Test
     public void testGetMix() throws Exception {
-        File root = temp.getRoot();
+        File root = tempDir;
         File imageFile = new File(root, "test.tif");
 //        FileUtils.copyFile(new File("/tmp/test.jp2"),
 //                imageFile, true);

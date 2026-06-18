@@ -184,7 +184,7 @@ public class MyMarcStreamReader implements MarcReader {
             }
 
 
-            if (this.input.read() != 29 ) {
+            if (this.input.read() != 29) {
                 throw new MarcException("expected record terminator");
             }
 

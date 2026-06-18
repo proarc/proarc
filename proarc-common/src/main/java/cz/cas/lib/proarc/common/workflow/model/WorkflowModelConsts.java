@@ -120,7 +120,9 @@ public final class WorkflowModelConsts {
     public static final String PARAMETER_PROFILEHINT = "profileHint";
     public static final String PARAMETER_PROFILELABEL = "profileLabel";
     public static final String PARAMETER_PROFILENAME = "profileName";
-    /** JSON. */
+    /**
+     * JSON.
+     */
     public static final String PARAMETER_REQUIRED = "required";
     public static final String PARAMETER_VALUE = "value";
     public static final String PARAMETER_VALUEMAPID = "valueMapId";

@@ -16,12 +16,12 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  *
@@ -227,8 +227,7 @@ public class Job {
 
         OPEN,
         FINISHED,
-        CANCELED
-        ;
+        CANCELED;
 
         public static State fromValue(String s) {
             for (State state : values()) {

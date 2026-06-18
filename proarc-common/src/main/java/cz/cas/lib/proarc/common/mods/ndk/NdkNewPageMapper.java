@@ -42,13 +42,21 @@ import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addTitle;
 
 public class NdkNewPageMapper extends NdkMapper {
 
-    /** {@code /mods/part/detail@type} */
+    /**
+     * {@code /mods/part/detail@type}
+     */
     public static final String NUMBER_TYPE_PAGE_INDEX = "pageIndex";
-    /** {@code /mods/part/detail@type} */
+    /**
+     * {@code /mods/part/detail@type}
+     */
     public static final String NUMBER_TYPE_PAGE_NUMBER_WRONG = "page number";
-    /** {@code /mods/part/detail@type} */
+    /**
+     * {@code /mods/part/detail@type}
+     */
     public static final String NUMBER_TYPE_PAGE_NUMBER = "pageNumber";
-    /** {@code /mods/part@type} */
+    /**
+     * {@code /mods/part@type}
+     */
     public static final String PAGE_TYPE_NORMAL = "normalPage";
 
 
@@ -322,7 +330,7 @@ public class NdkNewPageMapper extends NdkMapper {
     }
 
     private String getValue(String wrapperValue, String pageValue) {
-        if (wrapperValue != null &&!wrapperValue.isEmpty()) {
+        if (wrapperValue != null && !wrapperValue.isEmpty()) {
             return wrapperValue;
         } else return pageValue;
     }

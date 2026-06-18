@@ -16,14 +16,16 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor.DublinCoreRecord;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 /**
  * Helper class to annotate {@link DublinCoreRecord} properties.
@@ -36,6 +38,7 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlRootElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_ELEMENT,
         namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
+@JsonRootName(DigitalObjectResourceApi.DUBLINCORERECORD_ELEMENT)
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
 public abstract class AnnotatedDublinCoreRecord extends DublinCoreRecord {
@@ -43,22 +46,26 @@ public abstract class AnnotatedDublinCoreRecord extends DublinCoreRecord {
     @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_BATCHID,
             namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS,
             nillable = true)
+    @JsonProperty(DigitalObjectResourceApi.DUBLINCORERECORD_BATCHID)
     @Override
     public abstract Integer getBatchId();
 
     @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_DC,
             namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS_OAIDC,
             required = true)
+    @JsonProperty(DigitalObjectResourceApi.DUBLINCORERECORD_DC)
     @Override
     public abstract OaiDcType getDc();
 
     @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_PID,
             namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
+    @JsonProperty(DigitalObjectResourceApi.DUBLINCORERECORD_PID)
     @Override
     public abstract String getPid();
 
     @XmlElement(name = DigitalObjectResourceApi.DUBLINCORERECORD_TIMESTAMP,
             namespace = DigitalObjectResourceApi.DUBLINCORERECORD_NS)
+    @JsonProperty(DigitalObjectResourceApi.DUBLINCORERECORD_TIMESTAMP)
     @Override
     public abstract long getTimestamp();
 

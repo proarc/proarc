@@ -34,6 +34,7 @@ import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
 import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBExpr;
+import org.apache.empire.db.DBRecord;
 import org.apache.empire.db.DBRelation;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
@@ -88,8 +89,8 @@ class EmpireUtils {
      * @param defaultDescending {@code true} to sort {@code defaultSortByColumn} top down
      */
     public static void addOrderBy(DBCommand cmd,
-            String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
-            boolean defaultDescending
+                                  String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
+                                  boolean defaultDescending
     ) {
         DBColumnExpr[] selectExprList = cmd.getSelectExprList();
         List<? extends DBColumnExpr> selections = Arrays.asList(selectExprList);
@@ -97,8 +98,8 @@ class EmpireUtils {
     }
 
     private static void addOrderBy(DBCommand cmd, List<? extends DBColumnExpr> selections,
-            String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
-            boolean defaultDescending
+                                   String columnBeanPropertyName, DBTableColumn defaultSortByColumn,
+                                   boolean defaultDescending
     ) {
         DBColumnExpr sortByCol = findSelection(selections, columnBeanPropertyName);
         boolean descending;
@@ -125,11 +126,7 @@ class EmpireUtils {
                 ? prefixedBeanPropertyName.substring(1) : prefixedBeanPropertyName;
         for (DBColumnExpr selection : selections) {
             if (beanPropertyName.equals(selection.getBeanPropertyName())) {
-                if (DataType.TEXT.equals(selection.getDataType())) {
-                    return selection.lower();
-                } else {
-                    return selection;
-                }
+                return selection;
             }
         }
         return null;
@@ -257,7 +254,7 @@ class EmpireUtils {
          * Adds a timestamp column to the table used for optimistic locking.
          *
          * <p>This implementation creates column that can be modified with
-         * {@link DBRecord#setBeanValues } or {@link DBRecord#setValue } as
+         * {@link DBRecord#setBeanProperties } or {@link DBRecord#setValue } as
          * the column is not read-only or auto generated.
          *
          * @param columnName the column name

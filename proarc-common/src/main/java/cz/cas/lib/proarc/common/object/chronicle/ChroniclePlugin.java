@@ -49,8 +49,8 @@ public class ChroniclePlugin implements DigitalObjectPlugin, HasMetadataHandler<
         HasSearchViewHandler {
 
     /**
-    * The plugin ID.
-    */
+     * The plugin ID.
+     */
     public static final String ID = "chronicle";
     public static final String MODEL_CHRONICLETITLE = "model:chronicletitle";
     public static final String MODEL_CHRONICLEVOLUME = "model:chroniclevolume";
@@ -73,74 +73,74 @@ public class ChroniclePlugin implements DigitalObjectPlugin, HasMetadataHandler<
 
     @Override
     public <T extends HasDataHandler> T getHandlerProvider(Class<T> type) {
-        return type.isInstance(this) ? type.cast(this): null;
+        return type.isInstance(this) ? type.cast(this) : null;
     }
 
     @Override
     public Collection<MetaModel> getModel() {
-            // for now it is read only repository
-            List<MetaModel> models = new ArrayList<MetaModel>();
-            models.add(new MetaModel(
-                    MODEL_CHRONICLEVOLUME, true, null,
-                    Arrays.asList(new ElementType("Chronicle Volume", "en"), new ElementType("Svazek kronika", "cs")),
-                    ModsConstants.NS,
-                    MODEL_CHRONICLEVOLUME,
-                    this,
-                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                            DatastreamEditorType.ATM),
-                    new RelationCriteria[] {new RelationCriteria(MODEL_CHRONICLETITLE, RelationCriteria.Type.PID)}
-            ));
-            models.add(new MetaModel(
-                    MODEL_CHRONICLETITLE, true, null,
-                    Arrays.asList(new ElementType("Multipart Chronicle", "en"), new ElementType("Vícedílná kronika", "cs")),
-                    ModsConstants.NS,
-                    MODEL_CHRONICLETITLE,
-                    this,
-                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
-                    new RelationCriteria[] {new RelationCriteria(MODEL_CHRONICLETITLE, RelationCriteria.Type.PID)}
-            ));
-            models.add(new MetaModel(
-                    MODEL_CHRONICLESUPPLEMENT, null, null,
-                    Arrays.asList(new ElementType("Chronicle Supplement", "en"), new ElementType("Příloha kroniky", "cs")),
-                    ModsConstants.NS,
-                    MODEL_CHRONICLESUPPLEMENT,
-                    this,
-                    EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
-                            DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
-                            DatastreamEditorType.ATM),
-                    new RelationCriteria[] {new RelationCriteria(MODEL_CHRONICLEVOLUME, RelationCriteria.Type.PID)}
-            ).setPriority(2));
-            models.add(new MetaModel(
-                    MODEL_PAGE, null, true,
-                    Arrays.asList(new ElementType("Page", "en"), new ElementType("Strana", "cs")),
-                    ModsConstants.NS,
-                    ModsCutomEditorType.EDITOR_PAGE,
-                    this,
-                    EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN, DatastreamEditorType.TECHNICAL)),
-                    new RelationCriteria[]{
-                            new RelationCriteria(NdkPlugin.MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
-                            new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
-                            new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID),
-                            new RelationCriteria(NdkPlugin.MODEL_CARTOGRAPHIC, RelationCriteria.Type.PID),
-                            new RelationCriteria(NdkPlugin.MODEL_GRAPHIC, RelationCriteria.Type.PID),
-                            new RelationCriteria(NdkPlugin.MODEL_SHEETMUSIC, RelationCriteria.Type.PID),
-                            new RelationCriteria(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, RelationCriteria.Type.PID),
-                            new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, RelationCriteria.Type.PID),
-                            new RelationCriteria(NdkAudioPlugin.MODEL_MUSICDOCUMENT, RelationCriteria.Type.PID),
-                            new RelationCriteria(NdkAudioPlugin.MODEL_PHONOGRAPH, RelationCriteria.Type.PID),
-                            new RelationCriteria(NdkAudioPlugin.MODEL_SONG, RelationCriteria.Type.PID),
-                            new RelationCriteria(NdkAudioPlugin.MODEL_TRACK, RelationCriteria.Type.PID),
-                            new RelationCriteria(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID),
-                            new RelationCriteria(GraphicPlugin.MODEL_GRAPHIC, RelationCriteria.Type.PID),
-                            new RelationCriteria(ChroniclePlugin.MODEL_CHRONICLEVOLUME, RelationCriteria.Type.PID),
-                            new RelationCriteria(ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT, RelationCriteria.Type.PID),
-                    }
-            ).setPriority(4)) // override K4 plugin
-            ;
-            return models;
-        }
+        // for now it is read only repository
+        List<MetaModel> models = new ArrayList<MetaModel>();
+        models.add(new MetaModel(
+                MODEL_CHRONICLEVOLUME, true, null,
+                Arrays.asList(new ElementType("Chronicle Volume", "en"), new ElementType("Svazek kronika", "cs")),
+                ModsConstants.NS,
+                MODEL_CHRONICLEVOLUME,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[]{new RelationCriteria(MODEL_CHRONICLETITLE, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
+                MODEL_CHRONICLETITLE, true, null,
+                Arrays.asList(new ElementType("Multipart Chronicle", "en"), new ElementType("Vícedílná kronika", "cs")),
+                ModsConstants.NS,
+                MODEL_CHRONICLETITLE,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[]{new RelationCriteria(MODEL_CHRONICLETITLE, RelationCriteria.Type.PID)}
+        ));
+        models.add(new MetaModel(
+                MODEL_CHRONICLESUPPLEMENT, null, null,
+                Arrays.asList(new ElementType("Chronicle Supplement", "en"), new ElementType("Příloha kroniky", "cs")),
+                ModsConstants.NS,
+                MODEL_CHRONICLESUPPLEMENT,
+                this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM),
+                new RelationCriteria[]{new RelationCriteria(MODEL_CHRONICLEVOLUME, RelationCriteria.Type.PID)}
+        ).setPriority(2));
+        models.add(new MetaModel(
+                MODEL_PAGE, null, true,
+                Arrays.asList(new ElementType("Page", "en"), new ElementType("Strana", "cs")),
+                ModsConstants.NS,
+                ModsCutomEditorType.EDITOR_PAGE,
+                this,
+                EnumSet.complementOf(EnumSet.of(DatastreamEditorType.CHILDREN, DatastreamEditorType.TECHNICAL)),
+                new RelationCriteria[]{
+                        new RelationCriteria(NdkPlugin.MODEL_PERIODICALISSUE, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_CARTOGRAPHIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_GRAPHIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_SHEETMUSIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_MUSICDOCUMENT, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_PHONOGRAPH, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_SONG, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_TRACK, RelationCriteria.Type.PID),
+                        new RelationCriteria(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(GraphicPlugin.MODEL_GRAPHIC, RelationCriteria.Type.PID),
+                        new RelationCriteria(ChroniclePlugin.MODEL_CHRONICLEVOLUME, RelationCriteria.Type.PID),
+                        new RelationCriteria(ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT, RelationCriteria.Type.PID),
+                }
+        ).setPriority(4)) // override K4 plugin
+        ;
+        return models;
+    }
 
     @Override
     public MetadataHandler<ModsDefinition> createMetadataHandler(DigitalObjectHandler handler) {

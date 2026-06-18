@@ -18,7 +18,7 @@ package cz.cas.lib.proarc.common.object;
 
 /**
  * The class to handle description metadata of a digital object.
- *
+ * <p>
  * The format of metadata is driven by the datastream formatURI.
  *
  * @author Jan Pokorsky

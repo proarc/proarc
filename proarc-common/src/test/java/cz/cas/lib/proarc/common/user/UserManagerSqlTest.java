@@ -16,14 +16,12 @@
  */
 package cz.cas.lib.proarc.common.user;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.DbUnitSupport;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireUserDaoTest;
-import cz.cas.lib.proarc.common.storage.FedoraTestSupport;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
+import java.io.File;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -35,16 +33,16 @@ import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Integration tests.
@@ -53,31 +51,27 @@ import static org.junit.Assert.assertNull;
  */
 public class UserManagerSqlTest {
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
+    @TempDir
+    File tempDir;
+
     private AppConfiguration configuration;
     private DbUnitSupport db;
-    private FedoraTestSupport fedora;
-    private FedoraStorage fedoraStorage;
     private UserManagerSql manager;
 
     public UserManagerSqlTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         // fedora init
-        fedora = new FedoraTestSupport();
-        fedora.cleanUp();
-        fedoraStorage = fedora.getRemoteStorage();
         configuration = AppConfigurationFactory.getInstance().defaultInstance();
 
         // rdbms init
@@ -96,7 +90,7 @@ public class UserManagerSqlTest {
                 // XXX related fedora objects do not exist!
                 db.loadFlatXmlDataStream(EmpireUserDaoTest.class, "user.xml")
 //                db.loadFlatXmlDataStream(getClass(), "group.xml")
-                );
+        );
         final IDatabaseConnection con = db.getConnection();
         try {
             db.cleanInsert(con, database);
@@ -108,10 +102,13 @@ public class UserManagerSqlTest {
         }
 
         EasyMock.replay(dataSource);
-        manager = new UserManagerSql(configuration, dataSource, temp.getRoot(), fedoraStorage, daos);
+        manager = new UserManagerSql(dataSource, configuration, daos);
+
+        EasyMock.replay(dataSource);
+        manager = new UserManagerSql(dataSource, configuration, daos);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
     }
 
@@ -130,7 +127,7 @@ public class UserManagerSqlTest {
         // proarc user
         UserProfile user = UserProfile.create(userName, passwd, "Datel");
         user.setEmail("email@somewhere");
-        manager.add(user, Collections.<Group>emptyList(), fedora.getTestUser(), "add user");
+        manager.add(user, Collections.<Group>emptyList(), "test", "add user");
         assertNotNull(user.getId());
         assertNull(user.getUserPassword());
 
@@ -159,7 +156,7 @@ public class UserManagerSqlTest {
                     UserUtil.toUserName("desa", remoteGroupName),
                     remoteGroupName, remoteGroupName, remoteType);
             manager.addGroup(group, Arrays.asList(Permissions.REPO_SEARCH_GROUPOWNER),
-                    fedora.getTestUser(), "add remote group");
+                    "testGroup", "add remote group");
         }
         UserProfile user = manager.find(remoteUserName, remoteType);
         if (user == null) {
@@ -167,7 +164,7 @@ public class UserManagerSqlTest {
             user.setEmail("email@somewhere");
             user.setUserName(UserUtil.toUserName("desa", remoteUserName));
             user.setDefaultGroup(group.getId());
-            manager.add(user, Arrays.asList(group), fedora.getTestUser(), "add remote user");
+            manager.add(user, Arrays.asList(group), "test2", "add remote user");
         }
     }
 

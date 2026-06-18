@@ -27,7 +27,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
 import org.apache.empire.db.DBColumn;
 import org.apache.empire.db.DBCommand;
@@ -84,7 +83,7 @@ public class ProarcDatabase extends DBDatabase {
 //
 //        if (currentSchemaVersion < VERSION) {
 //            LOG.log(Level.INFO, "Upgrading ProArc schema from version " + currentSchemaVersion + ".");
-//            currentSchemaVersion = ProarcDatabaseVXX.upgradeToVersionXX+1(currentSchemaVersion, conn, conf);
+//            currentSchemaVersion = ProarcDatabaseVXX.upgradeToVersionXX+1(currentSchemaVersion, context, conf);
 //        }
 //        if (currentSchemaVersion > VERSION) {
 //            // ignore higher versions
@@ -94,30 +93,31 @@ public class ProarcDatabase extends DBDatabase {
 //        }
 ////        ProarcDatabaseVXX schema = new ProarcDatabaseVXX();
 //        try {
-//            schema.open(conf.getDriver(), conn);
-//            upgradeDdl(schema, conn);
+//            schema.open(context);
+//            upgradeDdl(schema, context);
 //            LOG.log(Level.INFO, "Upgrading ProArc schema from version " + currentSchemaVersion + ".");
-//            int schemaVersion = schema.initVersion(conn, VERSION);
+//            int schemaVersion = schema.initVersion(context, VERSION);
 //
-//            conn.commit();
+//            context.commit();
 //            return schemaVersion;
 //        } finally {
-////            schema.close(conn);
+
+    /// /            schema.close(context);
 //        }
 //    }
 //
-//    private static void upgradeDdl(ProarcDatabase schema, Connection conn) throws SQLException {
+//    private static void upgradeDdl(ProarcDatabase schema, DBContext context) throws SQLException {
 //        try {
-//            conn.setAutoCommit(true);
+//            context.getConnection().setAutoCommit(true);
 //            DBDatabaseDriver driver = schema.getDriver();
-//            DBSQLScript script = new DBSQLScript();
+//            DBSQLScript script = new DBSQLScript(context);
 //
 //            // TO-DO
 //
 //            LOG.fine(script.toString());
-//            script.run(driver, conn);
+//            script.executeAll();
 //        } finally {
-//            conn.setAutoCommit(false);
+//            context.getConnection().setAutoCommit(false);
 //        }
 //    }
 
@@ -188,7 +188,7 @@ public class ProarcDatabase extends DBDatabase {
             nightOnly = addColumn("NIGHT_ONLY", DataType.BOOL, 0, false);
 
             setPrimaryKey(id);
-            addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { create, state, title, userId });
+            addIndex(String.format("%s_IDX", getName()), false, new DBColumn[]{create, state, title, userId});
         }
 
     }
@@ -221,8 +221,8 @@ public class ProarcDatabase extends DBDatabase {
             log = addColumn("LOG", DataType.CLOB, 0, false);
             timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
-            addIndex(String.format("%s_UNIQ_IDX", getName()), true, new DBColumn[] { batchId, pid, dsId, type });
-            addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { batchId, pid, dsId, state, type });
+            addIndex(String.format("%s_UNIQ_IDX", getName()), true, new DBColumn[]{batchId, pid, dsId, type});
+            addIndex(String.format("%s_IDX", getName()), false, new DBColumn[]{batchId, pid, dsId, state, type});
         }
 
     }
@@ -242,13 +242,21 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn lastLogin;
         public final DBTableColumn home;
         public final DBTableColumn organization;
-        /** group to use as owner for newly created objects */
+        /**
+         * group to use as owner for newly created objects
+         */
         public final DBTableColumn defaultGroup;
-        /** group that can contain single member; it can hold overridden permissions */
+        /**
+         * group that can contain single member; it can hold overridden permissions
+         */
         public final DBTableColumn userGroup;
-        /** use to identify external user. */
+        /**
+         * use to identify external user.
+         */
         public final DBTableColumn remoteName;
-        /** type of the remote user null(PROARC), DESA, LDAP, ... */
+        /**
+         * type of the remote user null(PROARC), LDAP, ...
+         */
         public final DBTableColumn remoteType;
         public final DBTableColumn timestamp;
         public final DBTableColumn changeModelFunction;
@@ -284,7 +292,7 @@ public class ProarcDatabase extends DBDatabase {
             surname = addColumn("SURNAME", DataType.TEXT, 255, true);
             email = addColumn("EMAIL", DataType.TEXT, 255, false);
             state = addColumn("STATUS", DataType.TEXT, 20, false);
-            created = addColumn("CREATED", DataType.DATETIME, 0, DataMode.NotNull, SYSDATE);
+            created = addColumn("CREATED", DataType.DATETIME, 0, true, SYSDATE);
             lastLogin = addColumn("LASTLOGIN", DataType.DATETIME, 0, false);
             lastLogin.setBeanPropertyName("lastLogin");
             home = addColumn("HOME", DataType.TEXT, 2000, true);
@@ -316,7 +324,7 @@ public class ProarcDatabase extends DBDatabase {
             prepareBatchFunction = addColumn("PREPARE_BATCH_FUNCTION", DataType.BOOL, 0, false);
             sysAdminFunction = addColumn("SYS_ADMIN_FUNCTION", DataType.BOOL, 0, false);
             setPrimaryKey(id);
-            addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[] { username });
+            addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[]{username});
         }
 
     }
@@ -330,9 +338,13 @@ public class ProarcDatabase extends DBDatabase {
          */
         public final DBTableColumn groupname;
         public final DBTableColumn title;
-        /** use to identify group of external users. */
+        /**
+         * use to identify group of external users.
+         */
         public final DBTableColumn remoteName;
-        /** type of the remote group null(PROARC), DESA, LDAP, ... */
+        /**
+         * type of the remote group null(PROARC), LDAP, ...
+         */
         public final DBTableColumn remoteType;
         public final DBTableColumn created;
         public final DBTableColumn timestamp;
@@ -345,11 +357,11 @@ public class ProarcDatabase extends DBDatabase {
             title = addColumn("TITLE", DataType.TEXT, 255, false);
             remoteName = addColumn("REMOTE_NAME", DataType.TEXT, 255, false);
             remoteType = addColumn("REMOTE_TYPE", DataType.TEXT, 2000, false);
-            created = addColumn("CREATED", DataType.DATETIME, 0, DataMode.NotNull, SYSDATE);
+            created = addColumn("CREATED", DataType.DATETIME, 0, true, SYSDATE);
             timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
             // unique group name
-            addIndex(String.format("%s_%s_IDX", getName(), groupname.getName()), true, new DBColumn[] { groupname });
+            addIndex(String.format("%s_%s_IDX", getName(), groupname.getName()), true, new DBColumn[]{groupname});
         }
 
     }
@@ -371,7 +383,7 @@ public class ProarcDatabase extends DBDatabase {
             timestamp = addTimestampColumn("TIMESTAMP");
             setPrimaryKey(id);
             // unique group name
-            addIndex(String.format("%s_%s_IDX", getName(), userId.getName()), true, new DBColumn[] { userId });
+            addIndex(String.format("%s_%s_IDX", getName(), userId.getName()), true, new DBColumn[]{userId});
         }
 
     }
@@ -397,7 +409,9 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn groupid;
         public final DBTableColumn objectid;
         public final DBTableColumn permissionid;
-        /** type to override inherited permission in user group. Options: null, disabled, enabled. */
+        /**
+         * type to override inherited permission in user group. Options: null, disabled, enabled.
+         */
         public final DBTableColumn type;
 
         public GroupPermissionTable(DBDatabase db) {
@@ -457,9 +471,11 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn note;
         public final DBTableColumn ownerId;
         public final DBTableColumn priority;
-//        public final DBTableColumn queueNumber;
+        //        public final DBTableColumn queueNumber;
         public final DBTableColumn state;
-        /** The name of a task type in workflow profile. */
+        /**
+         * The name of a task type in workflow profile.
+         */
         public final DBTableColumn typeRef;
         public final DBTableColumn timestamp;
         public final DBTableColumn order;
@@ -488,7 +504,9 @@ public class ProarcDatabase extends DBDatabase {
         private static final long serialVersionUID = 1L;
 
         public final DBTableColumn taskId;
-        /** The name of a parameter type in workflow profile. */
+        /**
+         * The name of a parameter type in workflow profile.
+         */
         public final DBTableColumn paramRef;
         public final DBTableColumn valueType;
         public final DBTableColumn value;
@@ -514,7 +532,9 @@ public class ProarcDatabase extends DBDatabase {
         private static final long serialVersionUID = 1L;
 
         public final DBTableColumn id;
-        /** The description of a material's value */
+        /**
+         * The description of a material's value
+         */
         public final DBTableColumn label;
         public final DBTableColumn name;
         public final DBTableColumn note;
@@ -576,14 +596,20 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn field001;
         public final DBTableColumn rdczId;
         public final DBTableColumn signature;
-        /** The URL to a catalog. */
+        /**
+         * The URL to a catalog.
+         */
         public final DBTableColumn source;
-        /** MODS. */
+        /**
+         * MODS.
+         */
         public final DBTableColumn metadata;
         public final DBTableColumn detail;
         public final DBTableColumn issue;
         public final DBTableColumn issueInt;
-        /** The sigla format {@code [A-Z][A-Z][A-Z][0-9][0-9][0-9]}. */
+        /**
+         * The sigla format {@code [A-Z][A-Z][A-Z][0-9][0-9][0-9]}.
+         */
         public final DBTableColumn sigla;
         public final DBTableColumn volume;
         public final DBTableColumn volumeInt;
@@ -694,7 +720,7 @@ public class ProarcDatabase extends DBDatabase {
         DBSQLScript script = new DBSQLScript();
         db.getCreateDDLScript(db.getDriver(), script);
         LOG.fine(script.toString());
-        script.run(db.getDriver(), conn);
+        script.executeAll(db.getDriver(), conn);
         db.initVersion(conn, null);
         db.commit(conn);
         conn.setAutoCommit(false);

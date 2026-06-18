@@ -19,16 +19,12 @@ package cz.cas.lib.proarc.codingHistory;
 import edu.harvard.hul.ois.xml.ns.jhove.ObjectFactory;
 import edu.harvard.hul.ois.xml.ns.jhove.Property;
 import edu.harvard.hul.ois.xml.ns.jhove.PropertyType;
-import javax.xml.bind.DataBindingException;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
+import jakarta.xml.bind.DataBindingException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -36,6 +32,10 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 /**
  *
@@ -47,13 +47,14 @@ public final class CodingHistoryUtils {
      * The AES57 namespace {@code http://www.aes.org/audioObject}.
      */
     public static final String NS = "http://hul.harvard.edu/ois/xml/ns/jhove";
-    
+
     private static JAXBContext defaultJaxbContext;
     private static ThreadLocal<Marshaller> defaultMarshaller = new ThreadLocal<Marshaller>();
     private static ThreadLocal<Unmarshaller> defaultUnmarshaller = new ThreadLocal<Unmarshaller>();
 
     /**
      * Default context. Oracle JAXB RI's context should be thread safe.
+     *
      * @see <a href='http://jaxb.java.net/faq/index.html#threadSafety'>Are the JAXB runtime API's thread safe?</a>
      */
     public static JAXBContext defaultJaxbContext() throws JAXBException {
@@ -85,6 +86,7 @@ public final class CodingHistoryUtils {
         }
         return m;
     }
+
     /**
      * Dumps object to XML string.
      */
@@ -116,6 +118,7 @@ public final class CodingHistoryUtils {
             }
         }
     }
+
     public static <T> T unmarshal(String source, Class<T> type) {
         return unmarshal(new StreamSource(new StringReader(source)), type);
     }

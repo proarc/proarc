@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema 
-    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    targetNamespace="http://yadda.icm.edu.pl/bwmeta-1.0.5.xsd"
-    xmlns="http://yadda.icm.edu.pl/bwmeta-1.0.5.xsd"
-    elementFormDefault="qualified">
+<xsd:schema
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://yadda.icm.edu.pl/bwmeta-1.0.5.xsd"
+        xmlns="http://yadda.icm.edu.pl/bwmeta-1.0.5.xsd"
+        elementFormDefault="qualified">
 
     <xsd:element name="bwmeta" type="BwmetaType"/>
 
@@ -157,7 +157,7 @@
     <xsd:complexType name="AccessType">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
-                Definition of access to the metadata.  In the future
+                Definition of access to the metadata. In the future
                 this entry might be extended by parameters.
             </xsd:documentation>
         </xsd:annotation>

@@ -21,7 +21,7 @@ package cz.cas.lib.proarc.common.object;
  *
  * @author Jan Pokorsky
  */
-public interface DigitalObjectVisitor<R,P> {
+public interface DigitalObjectVisitor<R, P> {
 
     R visit(DigitalObjectElement elm, P p) throws VisitorException;
 

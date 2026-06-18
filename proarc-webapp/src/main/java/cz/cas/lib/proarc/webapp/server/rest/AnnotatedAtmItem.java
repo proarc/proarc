@@ -16,12 +16,13 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.storage.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.util.Date;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 
 /**
  * Helper class to annotate {@link AtmItem} properties.
@@ -34,94 +35,117 @@ import javax.xml.bind.annotation.XmlElement;
 public abstract class AnnotatedAtmItem extends AtmItem {
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_BATCHID)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_BATCHID)
     @Override
     public abstract Integer getBatchId();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_PID)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_PID)
     @Override
     public abstract String getPid();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_OWNER)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_OWNER)
     @Override
     public abstract String getOwner();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_MODEL)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_MODEL)
     @Override
     public abstract String getModel();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_STATE)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_STATE)
     @Override
     public abstract String getState();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_CREATED)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_CREATED)
     @Override
     public abstract String getCreated();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_MODIFIED)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_MODIFIED)
     @Override
     public abstract String getModified();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_DEVICE)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_DEVICE)
     @Override
     public abstract String getDeviceId();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_SOFTWARE)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_SOFTWARE)
     @Override
     public abstract String getSoftwareId();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_FILENAME)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_FILENAME)
     @Override
     public abstract String getImportFile();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_EXPORTRESULT)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_EXPORTRESULT)
     @Override
     public abstract String getExport();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_ORGANIZATION)
     @Override
     public abstract String getOrganization();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_USER)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_USER)
     @Override
     public abstract String getUser();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_NDK_EXPORT)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_NDK_EXPORT)
     @Override
     public abstract String getNdkExport();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_KRAMERIUS_EXPORT)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_KRAMERIUS_EXPORT)
     @Override
     public abstract  String getKrameriusExport();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_ARCHIVE_EXPORT)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_ARCHIVE_EXPORT)
     @Override
     public abstract  String getArchiveExport();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_CROSSREF_EXPORT)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_CROSSREF_EXPORT)
     @Override
     public abstract String getCrossrefExport();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_STATUS)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_STATUS)
     @Override
     public abstract String getStatus();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_LOCKED)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_LOCKED)
     @Override
     public abstract boolean isLocked();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_LOCKED_BY)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_LOCKED_BY)
     @Override
     public abstract String getLockedBy();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_LOCKED_DATE)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_LOCKED_DATE)
     @Override
     public abstract Date getLockedDate();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_DONATOR)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_DONATOR)
     @Override
     public abstract String getDonator();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_ARCHIVAL_COPIES)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_ARCHIVAL_COPIES)
     @Override
     public abstract String getArchivalCopies();
 }

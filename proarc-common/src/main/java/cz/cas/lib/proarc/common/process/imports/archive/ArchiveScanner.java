@@ -30,6 +30,7 @@ public class ArchiveScanner {
 
     /**
      * Finds {@code mets.xml} files in a folder hierarchy.
+     *
      * @param folder the folder to search
      * @return the list of METs
      */

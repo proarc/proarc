@@ -74,7 +74,8 @@ public class NdkSoundRecordingMapper extends RdaNdkMapper {
             addElementType(dc.getTitles(), title.toString());
         }
 
-        addName(mods.getName(), dc.getCreators());addNameIdentifier(mods.getName(), dc.getCreators());
+        addName(mods.getName(), dc.getCreators());
+        addNameIdentifier(mods.getName(), dc.getCreators());
 
         for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
             for (PlaceDefinition place : originInfo.getPlace()) {

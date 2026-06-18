@@ -150,7 +150,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
                 new RelationCriteria[]{}
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_MONOGRAPHUNIT, null, null,
                 Arrays.asList(new ElementType("Old Print Monograph Unit", "en"), new ElementType("STT Svazek Vícedílné monografie", "cs")),
@@ -172,7 +172,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         DatastreamEditorType.ATM),
                 new RelationCriteria[]{
                         new RelationCriteria(MODEL_CONVOLUTTE, RelationCriteria.Type.PID)}
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_SUPPLEMENT, true, null,
                 Arrays.asList(new ElementType("Old Print Supplement", "en"), new ElementType("STT Příloha monografie", "cs")),
@@ -185,7 +185,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 new RelationCriteria[]{
                         new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID)}
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_CHAPTER, null, null,
                 Arrays.asList(new ElementType("Old Print Chapter", "en"), new ElementType("STT  Kapitola", "cs")),
@@ -195,10 +195,10 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {
+                new RelationCriteria[]{
                         new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID)}
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_PAGE, null, true,
                 Arrays.asList(new ElementType("Old Print Page", "en"), new ElementType("STT Strana", "cs")),
@@ -215,7 +215,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         new RelationCriteria(MODEL_GRAPHICS, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_SHEETMUSIC, RelationCriteria.Type.PID),
                 }
-                ));
+        ));
         models.add(new MetaModel(
                 MODEL_CONVOLUTTE, true, null,
                 Arrays.asList(new ElementType("Old Print Omnibus volume", "en"), new ElementType("STT Konvolut", "cs")),
@@ -235,7 +235,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM),
-                new RelationCriteria[] {
+                new RelationCriteria[]{
                         new RelationCriteria(MODEL_MONOGRAPHVOLUME, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_CONVOLUTTE, RelationCriteria.Type.PID)}
@@ -273,7 +273,7 @@ public class OldPrintPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
 
     @Override
     public <T extends HasDataHandler> T getHandlerProvider(Class<T> type) {
-        return type.isInstance(this) ? type.cast(this): null;
+        return type.isInstance(this) ? type.cast(this) : null;
     }
 
     @Override

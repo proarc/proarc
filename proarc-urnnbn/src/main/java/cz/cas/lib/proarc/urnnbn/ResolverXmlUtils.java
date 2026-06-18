@@ -17,13 +17,13 @@
 package cz.cas.lib.proarc.urnnbn;
 
 import cz.cas.lib.proarc.urnnbn.model.registration.Import;
+import jakarta.xml.bind.DataBindingException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.util.JAXBSource;
 import java.io.IOException;
 import java.io.StringWriter;
 import javax.xml.XMLConstants;
-import javax.xml.bind.DataBindingException;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.util.JAXBSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
@@ -59,6 +59,7 @@ public final class ResolverXmlUtils {
 
     /**
      * Gets the default registration context. Oracle JAXB RI's context should be thread safe.
+     *
      * @see <a href='http://jaxb.java.net/faq/index.html#threadSafety'>Are the JAXB runtime API's thread safe?</a>
      */
     public static JAXBContext defaultRegistrationContext() throws JAXBException {

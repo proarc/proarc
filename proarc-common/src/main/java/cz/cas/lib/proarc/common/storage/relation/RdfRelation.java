@@ -16,21 +16,20 @@
  */
 package cz.cas.lib.proarc.common.storage.relation;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
 
 /**
  * Generic RDF relation.
- *
+ * <p>
  * <p/>{@code <fedora-model:hasModel rdf:resource="info:fedora/mode:page"/>}
  *
- * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Digital+Object+Relationships'>
- *      Digital Object Relationships</a>
- * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Content+Model+Architecture'>
- *      Content Model Architecture</a>
- *
  * @author Jan Pokorsky
+ * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Digital+Object+Relationships'>
+ * Digital Object Relationships</a>
+ * @see <a href='https://wiki.duraspace.org/display/FEDORA35/Content+Model+Architecture'>
+ * Content Model Architecture</a>
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class RdfRelation {
@@ -60,7 +59,7 @@ public class RdfRelation {
     public void setResource(RelationResource resource) {
         this.resource = resource;
     }
-    
+
     public String getResourcePid() {
         return resource.getPid();
     }

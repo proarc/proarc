@@ -16,8 +16,6 @@
  */
 package cz.cas.lib.proarc.common.process.export.crossref;
 
-import com.sun.org.apache.xml.internal.serialize.OutputFormat;
-import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
@@ -201,7 +199,7 @@ class CrossrefBuilder {
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(packageFile), StandardCharsets.UTF_8));
             StringBuffer buffer = new StringBuffer();
             String line = reader.readLine();
-            while(line != null) {
+            while (line != null) {
                 line = line.replaceAll("&lt;", "<");
                 line = line.replaceAll("&gt;", ">");
                 buffer.append(line);
@@ -209,7 +207,7 @@ class CrossrefBuilder {
             }
             reader.close();
             String xmlFormatted = format(buffer.toString());
-            
+
             Writer writer = new OutputStreamWriter(new FileOutputStream(packageFile), StandardCharsets.UTF_8);
             writer.append(xmlFormatted);
             writer.close();
@@ -225,14 +223,16 @@ class CrossrefBuilder {
             InputSource is = new InputSource(new StringReader(xmlUnformatted));
             Document document = db.parse(is);
 
-            OutputFormat format = new OutputFormat(document);
-            format.setIndenting(true);
-            format.setIndent(4);
-            Writer out = new StringWriter();
-            XMLSerializer serializer = new XMLSerializer(out, format);
-            serializer.serialize(document);
 
-            return out.toString();
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+            StringWriter writer = new StringWriter();
+            transformer.transform(new DOMSource(document), new StreamResult(writer));
+
+            return writer.toString();
         } catch (Exception e) {
             return xmlUnformatted;
         }
@@ -240,6 +240,7 @@ class CrossrefBuilder {
 
     /**
      * Transforms a collection of articles to the Crossref document.
+     *
      * @param src modsCollection in MODS format
      * @param dst Crossref document
      * @return the error handler

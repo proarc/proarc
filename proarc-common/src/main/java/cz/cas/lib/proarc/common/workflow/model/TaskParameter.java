@@ -18,14 +18,16 @@ package cz.cas.lib.proarc.common.workflow.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlValue;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlValue;
-import org.joda.time.DateTime;
-import org.joda.time.format.ISODateTimeFormat;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 
 /**
  *
@@ -97,7 +99,8 @@ public class TaskParameter {
         } else if (valueType == ValueType.DATETIME) {
             Timestamp t = getValueDateTime();
             if (t != null) {
-                value = ISODateTimeFormat.dateTime().withZoneUTC().print(t.getTime());
+                Instant instant = t.toInstant(); // převedeme na Instant
+                value = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC).format(instant);
             }
         } else if (valueType == ValueType.STRING) {
             value = getValueString();
@@ -129,8 +132,8 @@ public class TaskParameter {
             Timestamp t = null;
             if (value != null) {
                 try {
-                    DateTime dateTime = ISODateTimeFormat.dateOptionalTimeParser().withZoneUTC().parseDateTime(value);
-                    t = new Timestamp(dateTime.getMillis());
+                    OffsetDateTime dateTime = OffsetDateTime.parse(value, DateTimeFormatter.ISO_DATE_TIME);
+                    t = Timestamp.from(dateTime.toInstant());
                 } catch (IllegalArgumentException ex) {
                     throw new WorkflowException(value, ex)
                             .addParamDateTimeFormat(paramRef, value);

@@ -21,7 +21,7 @@ package cz.cas.lib.proarc.common.storage;
  * @author Jan Pokorsky
  */
 public class DigitalObjectException extends Exception {
-    
+
     private static final long serialVersionUID = 1L;
 
     private final String pid;
@@ -36,7 +36,7 @@ public class DigitalObjectException extends Exception {
     public DigitalObjectException(String pid, String message) {
         this(pid, message, null);
     }
-    
+
     public DigitalObjectException(String pid, Throwable cause) {
         this(pid, cause == null ? null : cause.getMessage(), cause);
     }

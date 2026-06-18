@@ -31,6 +31,7 @@ public class KrameriusScanner {
 
     /**
      * Finds all files ending with {@code .xml}.
+     *
      * @param folder the folder to search
      * @return the list of files ending with .xml
      */

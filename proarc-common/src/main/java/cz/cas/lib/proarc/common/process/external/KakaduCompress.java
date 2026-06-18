@@ -22,7 +22,7 @@ import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 
 /**
  * Runs kdu_compress. Requires kdu libraries in the environment.

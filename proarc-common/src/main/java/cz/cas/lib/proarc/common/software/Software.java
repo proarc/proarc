@@ -84,7 +84,7 @@ public class Software {
     }
 
     public String getDescriptionAsXml() {
-         return descriptionXml;
+        return descriptionXml;
     }
 
     public void setDescription(Mets description) {
@@ -115,7 +115,7 @@ public class Software {
     @Override
     public String toString() {
         return "Software{" + "id=" + id + ", label=" + label + ", model=" + model +
-                ", setOfLinkedIds="+ setOfLinkedIds != null ? setOfLinkedIds.toString() : "" +
+                ", setOfLinkedIds=" + setOfLinkedIds != null ? setOfLinkedIds.toString() : "" +
                 ", description=" + description + ", timestamp=" + timestamp +
                 '}';
     }

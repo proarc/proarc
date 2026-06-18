@@ -39,7 +39,7 @@ public class ArchiveOldPrintObjectSelector extends ArchiveObjectSelector {
     protected void searchPath(List<DigitalObjectElement> entryPath) throws DigitalObjectException, MetsExportException {
         DigitalObjectElement entry = entryPath.get(0);
         if (processedPids.contains(entry.getPid())) {
-            return ;
+            return;
         }
         processedPids.add(entry.getPid());
         String modelId = entry.getModelId();

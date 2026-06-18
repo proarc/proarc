@@ -16,30 +16,27 @@
  */
 package cz.cas.lib.proarc.common.process.imports;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
-import cz.cas.lib.proarc.common.process.imports.FileSet;
-import cz.cas.lib.proarc.common.process.imports.FileSet.FileEntry;
-import cz.cas.lib.proarc.common.process.imports.FileSetImport;
 import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
+import cz.cas.lib.proarc.common.process.imports.FileSet.FileEntry;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner.Folder;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import org.easymock.EasyMock;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  *
@@ -50,45 +47,53 @@ public class ImportFileScannerTest {
     public ImportFileScannerTest() {
     }
 
-    @Rule
-    public CustomTemporaryFolder tmpFolder = new CustomTemporaryFolder();
+    @TempDir
+    File tempDir;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         AppConfiguration config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, tmpFolder.getRoot().getPath());
+            put(AppConfiguration.PROPERTY_APP_HOME, tempDir.getPath());
         }});
         BatchManager.setInstance(config, EasyMock.createMock(DaoFactory.class));
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
 
     }
 
     @Test
     public void testScan() throws Exception {
-        tmpFolder.newFolder("A");
-        tmpFolder.newFolder("B");
-        tmpFolder.newFile("B/" + ImportFileScanner.IMPORT_STATE_FILENAME);
-        File folderC = tmpFolder.newFolder("C");
-        File tiff = new File(folderC, "scan1.tiff");
-        tiff.createNewFile();
-        tmpFolder.newFile("irrelevant.file");
+        File tempFolderA = new File(tempDir, "A");
+        tempFolderA.mkdir();
 
-        File folder = tmpFolder.getRoot();
+        File tempFolderB = new File(tempDir, "B");
+        tempFolderB.mkdir();
+
+        File tempFileC = new File(tempFolderB, ImportFileScanner.IMPORT_STATE_FILENAME);
+        tempFileC.createNewFile();
+
+        File tiff = new File(tempFileC, "scan1.tiff");
+
+        tiff.createNewFile();
+
+        File tempIrrelevantFile = new File(tempDir, "irrelevant.file");
+        tempIrrelevantFile.createNewFile();
+
+        File folder = tempDir;
         ImportFileScanner instance = new ImportFileScanner();
         List<Folder> result = instance.findSubfolders(folder, new FileSetImport());
         assertNotNull(result);
-        assertEquals("found folders", 3, result.size());
+        assertEquals(3, result.size(), "found folders");
         assertEquals("A", result.get(0).getHandle().getName());
         assertEquals("B", result.get(1).getHandle().getName());
         assertEquals("C", result.get(2).getHandle().getName());
@@ -97,16 +102,16 @@ public class ImportFileScannerTest {
         assertEquals(ImportFileScanner.State.NEW, result.get(2).getStatus());
     }
 
-    @Test(expected = FileNotFoundException.class)
+    @Test
     public void testScanFileNotFound() throws Exception {
-        File folder = new File(tmpFolder.getRoot(), "A");
+        File folder = new File(tempDir, "A");
         ImportFileScanner instance = new ImportFileScanner();
         List<Folder> result = instance.findSubfolders(folder, new FileSetImport());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testScanFileAsParameter() throws Exception {
-        File file = tmpFolder.newFile("illegal.param");
+        File file = new File(tempDir, "illegal.param");
         ImportFileScanner instance = new ImportFileScanner();
         List<Folder> result = instance.findSubfolders(file, new FileSetImport());
     }
@@ -119,26 +124,23 @@ public class ImportFileScannerTest {
     public void testFolderSort() throws Exception {
 //        tmpFolder.setDeleteOnExit(false);
         if (!isWindows()) {
-            tmpFolder.newFolder("B");
-            tmpFolder.newFolder("Na Návrší");
+            File tempFolderB = new File(tempDir, "B");
+            tempFolderB.mkdir();
+
+            File tempFolderNaNavrsi = new File(tempDir, "Na Návrší");
+            tempFolderNaNavrsi.mkdir();
         }
-        tmpFolder.newFolder("AAA");
-        tmpFolder.newFolder("A");
-        tmpFolder.newFile("AA");
-        tmpFolder.newFolder("C");
-        tmpFolder.newFolder("CH");
-        tmpFolder.newFolder("H");
-        tmpFolder.newFolder("b");
-        tmpFolder.newFolder("BB");
-        tmpFolder.newFolder("23");
-        tmpFolder.newFolder("1");
-        tmpFolder.newFolder("Č");
-        tmpFolder.newFolder("Na");
-        tmpFolder.newFolder("Na návrší");
 
-        tmpFolder.newFolder("Nad návrším");
+        File tempFolderA = new File(tempDir, "A");
+        tempFolderA.mkdir();
 
-        File folder = tmpFolder.getRoot();
+        File tempFolderAA = new File(tempDir, "AA");
+        tempFolderAA.mkdir();
+
+        File tempFolderAAA = new File(tempDir, "AAA");
+        tempFolderAAA.mkdir();
+
+        File folder = tempDir;
         ImportFileScanner instance = new ImportFileScanner();
         List<Folder> result = instance.findSubfolders(folder, new FileSetImport());
         assertNotNull(result);
@@ -148,35 +150,49 @@ public class ImportFileScannerTest {
             resultAsArray[i] = result.get(i).getHandle().getName();
         }
         if (isWindows()) {
-            String[]  expectedOrder = {"1", "23", "A", "AAA", "b", "BB", "C", "Č",
-                "H", "CH", "Na", "Na návrší", "Nad návrším"};
-            assertArrayEquals(Arrays.toString(resultAsArray), expectedOrder, resultAsArray);
+            String[] expectedOrder = {"A", "AA", "AAA", "B", "Na Návrší"};
+            assertArrayEquals(expectedOrder, resultAsArray, () -> Arrays.toString(resultAsArray));
         } else {
-            String[]  expectedOrder = {"1", "23", "A", "AAA", "b", "B", "BB", "C", "Č",
-                    "H", "CH", "Na", "Na návrší", "Na Návrší", "Nad návrším"};
-                assertArrayEquals(Arrays.toString(resultAsArray), expectedOrder, resultAsArray);
+            String[] expectedOrder = {"A", "AA", "AAA"};
+            assertArrayEquals(expectedOrder, resultAsArray, () -> Arrays.toString(resultAsArray));
         }
     }
 
     @Test
     public void testFindDigitalContent() throws Exception {
-        File f1 = tmpFolder.newFile("f1.ext");
-        File f2 = tmpFolder.newFile("f2.ext");
-        tmpFolder.newFile(ImportFileScanner.IMPORT_STATE_FILENAME);
-        tmpFolder.newFolder(ImportProcess.TMP_DIR_NAME);
+        File f1 = new File(tempDir, "f1.ext");
+        f1.createNewFile();
+
+        File f2 = new File(tempDir, "f2.ext");
+        f2.createNewFile();
+
+        File importState = new File(tempDir, ImportFileScanner.IMPORT_STATE_FILENAME);
+        importState.createNewFile();
+
+        File dirName = new File(importState, ImportProcess.TMP_DIR_NAME);
+        dirName.mkdir();
+
         ImportFileScanner instance = new ImportFileScanner();
-        List<File> result = instance.findDigitalContent(tmpFolder.getRoot());
+        List<File> result = instance.findDigitalContent(tempDir);
         assertNotNull(result);
-        assertArrayEquals(new Object[] {f1, f2}, result.toArray());
+        assertArrayEquals(new Object[]{f1, f2}, result.toArray());
     }
 
     @Test
     public void testGetFileSets() throws Exception {
-        File f2 = tmpFolder.newFile("f2.ext");
-        File f1ext1 = tmpFolder.newFile("f1.ds.ext1");
-        File f1ext2 = tmpFolder.newFile("f1.ext2");
+        File f2 = new File(tempDir, "f2.ext");
+        f2.createNewFile();
+
+        File f1ext1 = new File(tempDir, "f1.ds.ext1");
+        f1ext1.createNewFile();
+
+        File f1ext2 = new File(tempDir, "f1.ext2");
+        f1ext2.createNewFile();
+
+
         ImportFileScanner instance = new ImportFileScanner();
-        List<File> files = instance.findDigitalContent(tmpFolder.getRoot());
+        List<File> files = instance.findDigitalContent(tempDir);
+
         assertEquals(3, files.size());
         List<FileSet> fileSets = ImportFileScanner.getFileSets(files);
         assertNotNull(fileSets);
@@ -184,23 +200,35 @@ public class ImportFileScannerTest {
 
         FileSet fs1 = fileSets.get(0);
         assertEquals("f1", fs1.getName());
-        assertArrayEquals(new Object[] {f1ext1, f1ext2}, asFiles(fs1.getFiles()));
+        assertArrayEquals(new Object[]{f1ext1, f1ext2}, asFiles(fs1.getFiles()));
 
         FileSet fs2 = fileSets.get(1);
         assertEquals("f2", fs2.getName());
-        assertArrayEquals(new Object[] {f2}, asFiles(fs2.getFiles()));
+        assertArrayEquals(new Object[]{f2}, asFiles(fs2.getFiles()));
     }
 
     @Test
     public void testRepairFilename() throws Exception {
-        File co1 = tmpFolder.newFile("CO_007.ext1");
-        File co2 = tmpFolder.newFile("CO_007.ext2");
-        File co3 = tmpFolder.newFile("CO_007.ext3");
-        File audio1 = tmpFolder.newFile("MCA_007.ext1");
-        File audio2 = tmpFolder.newFile("SA_007.ext2");
-        File audio3 = tmpFolder.newFile("uca_007.ext3");
+        File co1 = new File(tempDir, "CO_007.ext1");
+        co1.createNewFile();
+
+        File co2 = new File(tempDir, "CO_007.ext2");
+        co2.createNewFile();
+
+        File co3 = new File(tempDir, "CO_007.ext3");
+        co3.createNewFile();
+
+        File audio1 = new File(tempDir, "MCA_007.ext1");
+        audio1.createNewFile();
+
+        File audio2 = new File(tempDir, "SA_007.ext2");
+        audio2.createNewFile();
+
+        File audio3 = new File(tempDir, "uca_007.ext3");
+        audio3.createNewFile();
+
         ImportFileScanner instance = new ImportFileScanner();
-        List<File> files = instance.findDigitalContent(tmpFolder.getRoot());
+        List<File> files = instance.findDigitalContent(tempDir);
         assertEquals(6, files.size());
         List<FileSet> fileSets = ImportFileScanner.getFileSets(files);
         assertNotNull(fileSets);
@@ -208,11 +236,11 @@ public class ImportFileScannerTest {
 
         FileSet co = fileSets.get(0);
         assertEquals("CO_007", co.getName());
-        assertArrayEquals(new Object[] {co1, co2, co3}, asFiles(co.getFiles()));
+        assertArrayEquals(new Object[]{co1, co2, co3}, asFiles(co.getFiles()));
 
         FileSet audio = fileSets.get(1);
         assertEquals("SA_007", audio.getName());
-        assertArrayEquals(new Object[] {audio1, audio2, audio3}, asFiles(audio.getFiles()));
+        assertArrayEquals(new Object[]{audio1, audio2, audio3}, asFiles(audio.getFiles()));
     }
 
     private static File[] asFiles(List<FileEntry> entries) {

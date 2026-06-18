@@ -66,6 +66,7 @@ public abstract class NdkMapper {
 
     /**
      * Gets a NDK mapper for the given model ID.
+     *
      * @param modelId model ID
      * @return the mapper
      */
@@ -82,7 +83,7 @@ public abstract class NdkMapper {
             mapper = graphicMapperFactory.get(modelId);
         } else if (isBornDigitalModel(modelId)) {
             mapper = bornDigitalMapperFactory.get(modelId);
-        } else if(isOldprintModel(modelId)) {
+        } else if (isOldprintModel(modelId)) {
             mapper = oldprintMapperFacotry.get(modelId);
         } else {
             mapper = k4MapperFactory.get(modelId);
@@ -108,7 +109,7 @@ public abstract class NdkMapper {
     }
 
     public static boolean isNdkModel(String modelId) {
-         return modelId != null && (modelId.contains("ndk") || NdkPlugin.MODEL_PAGE.equals(modelId));
+        return modelId != null && (modelId.contains("ndk") || NdkPlugin.MODEL_PAGE.equals(modelId));
     }
 
     public static boolean isNdkEModel(String modelId) {
@@ -170,8 +171,9 @@ public abstract class NdkMapper {
 
     /**
      * Override to provide own view of MODS for a JSON editor.
+     *
      * @param mods persisted MODS
-     * @param ctx context
+     * @param ctx  context
      * @return the serializable object
      */
     public ModsWrapper toJsonObject(ModsDefinition mods, Context ctx) {
@@ -180,6 +182,7 @@ public abstract class NdkMapper {
 
     /**
      * Reads MODS from JSON. Use subclass of {@link ModsWrapper} to read a customized MODS.
+     *
      * @param jsMapper
      * @param json
      * @param ctx
@@ -215,7 +218,7 @@ public abstract class NdkMapper {
      */
     public final String toLabel(ModsDefinition mods) {
         String label = createObjectLabel(mods);
-        if (label == null) {
+            if (label == null) {
             label = "?";
         } else {
             label = label.trim();
@@ -229,7 +232,7 @@ public abstract class NdkMapper {
     }
 
     /**
-     *  @see <a href="http://www.ndk.cz/standardy-digitalizace/elementy-modsgenre_dctype">modsgenre elements</a>
+     * @see <a href="http://www.ndk.cz/standardy-digitalizace/elementy-modsgenre_dctype">modsgenre elements</a>
      */
     protected final String getDcType() {
         Map<String, String> modelMap = new HashMap<String, String>() {
@@ -296,6 +299,7 @@ public abstract class NdkMapper {
 
     /**
      * The default implementation creates label from titleInfo subelements.
+     *
      * @return label or {@code null}
      */
     protected String createObjectLabel(ModsDefinition mods) {
@@ -308,12 +312,14 @@ public abstract class NdkMapper {
         return null;
     }
 
-    /** Set default Authority value or repair it if needed. */
-    protected void repairAuthorityInClassification(ClassificationDefinition classification){
+    /**
+     * Set default Authority value or repair it if needed.
+     */
+    protected void repairAuthorityInClassification(ClassificationDefinition classification) {
         if (classification.getAuthority() == null) {
             classification.setAuthority("udc");
         }
-        if (StringUtils.isNotEmpty(classification.getEdition()) && classification.getEdition().equals("Konspekt")){
+        if (StringUtils.isNotEmpty(classification.getEdition()) && classification.getEdition().equals("Konspekt")) {
             classification.setAuthority("udc"); // edition = "Konspekt" only if authority = "udc"
         }
     }
@@ -456,7 +462,7 @@ public abstract class NdkMapper {
         }
 
         public String getPid() {
-            return handler == null ? pid: handler.getFedoraObject().getPid();
+            return handler == null ? pid : handler.getFedoraObject().getPid();
         }
 
         public String getParentModel() {

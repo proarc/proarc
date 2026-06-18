@@ -24,27 +24,24 @@ import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireConfiguration;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
-import cz.cas.lib.proarc.common.process.export.ExportDispatcher;
-import cz.cas.lib.proarc.common.process.export.ExportProcess;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorageInitializer;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.Storage;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
-import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.imports.ImportDispatcher;
-import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.jobs.JobHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
 import cz.cas.lib.proarc.common.process.InternalExternalProcess;
+import cz.cas.lib.proarc.common.process.export.ExportDispatcher;
+import cz.cas.lib.proarc.common.process.export.ExportProcess;
+import cz.cas.lib.proarc.common.process.imports.ImportDispatcher;
+import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.sql.DbUtils;
+import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
-import cz.incad.kramerius.utils.conf.KConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -98,7 +95,6 @@ public final class ProarcInitializer {
         AppConfiguration config = initConfig(env);
         AkubraConfiguration akubraConfiguration = null;
         if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
-            KConfiguration.setWorkingDir(config.getConfigHome().getAbsolutePath());
             akubraConfiguration = initAkubraConfig(env, config);
         }
         initProarcModel(config);
@@ -147,11 +143,6 @@ public final class ProarcInitializer {
      * it runs in the same container.
      */
     private void asyncInitialization(Storage storage) {
-
-        if (Storage.FEDORA.equals(storage)) {
-            FedoraStorageInitializer rsi = new FedoraStorageInitializer(FedoraStorage.getInstance());
-            rsi.init();
-        }
         UserUtil.initDefaultAdmin();
     }
 

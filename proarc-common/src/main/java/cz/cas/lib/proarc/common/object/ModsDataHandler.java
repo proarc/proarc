@@ -30,7 +30,6 @@ import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.workflow.WorkflowManager;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.mods.DateDefinition;
@@ -258,7 +257,8 @@ public class ModsDataHandler {
                     inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                 }
             }
-        } if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(modelId)) {
+        }
+        if (OldPrintPlugin.MODEL_SUPPLEMENT.equals(modelId)) {
             // issue 329
             ModsDefinition titleMods = findEnclosingObject(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
@@ -310,7 +310,7 @@ public class ModsDataHandler {
     private void setRules(ModsDefinition mods) {
         StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
         String rules = appConfiguration.getRules();
-        descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(rules)? ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR : ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
+        descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(rules) ? ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR : ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
         RecordInfoDefinition recordInfo = new RecordInfoDefinition();
         recordInfo.getDescriptionStandard().add(0, descriptionStandard);
         mods.getRecordInfo().add(0, recordInfo);
@@ -401,9 +401,7 @@ public class ModsDataHandler {
 
     public DigitalObjectCrawler getCrawler() {
         try {
-            if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                return new DigitalObjectCrawler(DigitalObjectManager.getDefault(), FedoraStorage.getInstance().getSearch());
-            } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
                 AkubraConfiguration akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfiguration.getConfigHome());
                 return new DigitalObjectCrawler(DigitalObjectManager.getDefault(), AkubraStorage.getInstance(akubraConfiguration).getSearch());
             } else {
@@ -586,7 +584,7 @@ public class ModsDataHandler {
                         ri.getDescriptionStandard().add(description);
                     }
                 } else {
-                    ri =new RecordInfoDefinition();
+                    ri = new RecordInfoDefinition();
                     mods.getRecordInfo().add(ri);
                     StringPlusLanguagePlusAuthority description = new StringPlusLanguagePlusAuthority();
                     description.setValue(recordInfo.getDescriptionStandard().get(0).getValue());

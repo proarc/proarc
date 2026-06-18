@@ -44,7 +44,7 @@ public class WorkflowMetadataHandler {
             AppConfiguration config = AppConfigurationFactory.getInstance().defaultInstance();
             StringPlusLanguagePlusAuthority descriptionStandard = new StringPlusLanguagePlusAuthority();
             String rules = config.getRules();
-            descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(rules)? ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR : ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
+            descriptionStandard.setValue(ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR.equalsIgnoreCase(rules) ? ModsConstants.VALUE_DESCRIPTIONSTANDARD_AACR : ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA);
             RecordInfoDefinition recordInfo = new RecordInfoDefinition();
             recordInfo.getDescriptionStandard().add(0, descriptionStandard);
             mods.getRecordInfo().add(0, recordInfo);

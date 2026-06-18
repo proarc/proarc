@@ -1,7 +1,7 @@
 package cz.cas.lib.proarc.common.process.internal;
 
 
-import com.yourmediashelf.fedora.client.FedoraClientException;
+import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
@@ -14,14 +14,11 @@ import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
-import cz.cas.lib.proarc.common.storage.SearchViewQuery;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.PurgeAkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.SolrUtils;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.PurgeFedoraObject;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.workflow.WorkflowActionHandler;
 import cz.cas.lib.proarc.common.workflow.WorkflowException;
@@ -42,7 +39,6 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
-import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildFedoraContext;
 
 public class DeleteProcess {
 
@@ -85,7 +81,7 @@ public class DeleteProcess {
         this.hierarchy = true;
     }
 
-    public Result deleteObject() throws IOException, PurgeFedoraObject.PurgeException {
+    public Result deleteObject() throws IOException, PurgeAkubraObject.PurgeException {
         Result result = new Result();
 
         for (String pid : pids) {
@@ -104,17 +100,7 @@ public class DeleteProcess {
             }
         }
 
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            FedoraStorage fedora = FedoraStorage.getInstance(appConfig);
-            PurgeFedoraObject service = new PurgeFedoraObject(fedora);
-            if (purge) { // opravneni na purge hlidano jiz v priprave procesu
-                service.purge(pids, hierarchy, "Odstranění objektu");
-            } else if (restore) {
-                service.restore(pids, "Obnova objektu");
-            } else {
-                service.delete(pids, hierarchy, "Přidání příznaku smazáno");
-            }
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubra = AkubraStorage.getInstance(akubraConfiguration);
             PurgeAkubraObject service = new PurgeAkubraObject(akubra);
             if (purge) { // opravneni na purge hlidano jiz v priprave procesu
@@ -176,11 +162,7 @@ public class DeleteProcess {
     private IMetsElement getIMetsElement(String pid, boolean validation) throws MetsExportException, IOException {
         MetsContext metsContext = null;
         ProArcObject object = null;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            FedoraStorage rstorage = FedoraStorage.getInstance(appConfig);
-            object = rstorage.find(pid);
-            metsContext = buildFedoraContext(object, null, null, rstorage, appConfig.getNdkExportOptions());
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
             object = akubraStorage.find(pid);
             metsContext = buildAkubraContext(object, null, null, akubraStorage, appConfig.getNdkExportOptions());
@@ -194,19 +176,16 @@ public class DeleteProcess {
 
     private MetsElement getMetsElement(ProArcObject fo, MetsContext metsContext, boolean hierarchy, boolean validation) throws MetsExportException {
         metsContext.resetContext();
-        com.yourmediashelf.fedora.generated.foxml.DigitalObject dobj = MetsUtils.readFoXML(metsContext, fo);
+        DigitalObject dobj = MetsUtils.readFoXML(metsContext, fo);
         if (dobj == null) {
             return null;
         }
         return MetsElement.getElement(dobj, null, metsContext, hierarchy, validation);
     }
 
-    public Result findAndDelete(String type) throws IOException, FedoraClientException, PurgeFedoraObject.PurgeException {
+    public Result findAndDelete(String type) throws IOException, PurgeAkubraObject.PurgeException {
         SearchView search = null;
-        if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-            FedoraStorage storage = FedoraStorage.getInstance(appConfig);
-            search = storage.getSearch(locale);
-        } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             AkubraStorage akubraStorage = AkubraStorage.getInstance(akubraConfiguration);
             search = akubraStorage.getSearch(locale);
         } else {
@@ -216,17 +195,14 @@ public class DeleteProcess {
         int countDeleted = 0;
         Result result = new Result();
 
-        while(true) {
+        while (true) {
             List<SearchViewItem> items = new ArrayList<>();
             switch (type.toLowerCase()) {
                 case "orphan":
                     items = search.findAdvancedSearchItems(true, null, null, null, null, null, null, MetaModel.MODELS_LEAF, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, "created", "desc", 0, 100);
                     break;
                 case "deleted":
-                    if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                        items = search.findQuery(new SearchViewQuery(), "deleted");
-                        break;
-                    } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                    if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                         items = search.findAdvancedSearchItems(false, null, null, null, null, null, null, MetaModel.MODELS_LEAF, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, "created", "desc", 0, 100);
                         break;
                     } else {
@@ -258,14 +234,7 @@ public class DeleteProcess {
                     }
                 }
 
-                if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                    FedoraStorage fedora = FedoraStorage.getInstance(appConfig);
-                    PurgeFedoraObject service = new PurgeFedoraObject(fedora);
-                    for (String pid : pids) {
-                        service.purge(pid, true, "Odstranění objektu");
-                        countDeleted++;
-                    }
-                } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                     AkubraStorage akubra = AkubraStorage.getInstance(akubraConfiguration);
                     PurgeAkubraObject service = new PurgeAkubraObject(akubra);
                     for (String pid : pids) {

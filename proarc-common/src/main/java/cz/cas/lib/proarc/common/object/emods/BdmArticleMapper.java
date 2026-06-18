@@ -42,9 +42,13 @@ import java.util.logging.Logger;
  */
 public class BdmArticleMapper extends NdkArticleMapper {
 
-    /** {@code mods/genre/text()='article'}. */
+    /**
+     * {@code mods/genre/text()='article'}.
+     */
     public static final String GENRE_ARTICLE_VALUE = "article";
-    /** {@code mods/genre/@type='peer-reviewed'}. */
+    /**
+     * {@code mods/genre/@type='peer-reviewed'}.
+     */
     public static final String GENRE_PEER_REVIEWED_TYPE = "peer-reviewed";
     private static final Logger LOG = Logger.getLogger(BdmArticleMapper.class.getName());
 
@@ -186,7 +190,7 @@ public class BdmArticleMapper extends NdkArticleMapper {
     /**
      * Sets FormDefinitions
      *
-     * @param form element created by user
+     * @param form              element created by user
      * @param newFormDefinition element created by computer
      */
     public static void setFormDefinition(FormDefinition form, FormDefinition newFormDefinition, String value) {
@@ -214,17 +218,17 @@ public class BdmArticleMapper extends NdkArticleMapper {
         } else {
             mw.setReviewed(Boolean.FALSE);
         }
-        if (mods.getRecordInfo().isEmpty() || mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()){
+        if (mods.getRecordInfo().isEmpty() || mods.getRecordInfo().get(0).getDescriptionStandard().isEmpty()) {
             return mw;
         } else {
-           String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
-           if (descriptionStandard.equals(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)) {
-               mw.setRdaRules(true);
-           } else {
-               mw.setRdaRules(false);
-           }
+            String descriptionStandard = mods.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue();
+            if (descriptionStandard.equals(ModsConstants.VALUE_DESCRIPTIONSTANDARD_RDA)) {
+                mw.setRdaRules(true);
+            } else {
+                mw.setRdaRules(false);
+            }
             mods.getRecordInfo().get(0).getDescriptionStandard().clear();
-           return mw;
+            return mw;
         }
     }
 

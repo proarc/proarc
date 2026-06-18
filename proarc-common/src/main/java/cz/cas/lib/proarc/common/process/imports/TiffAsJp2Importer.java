@@ -26,13 +26,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FilenameUtils;
 
 /**
  *
  * Prepares tiff image from jp2 at input for TiffImporter
- *
+ * <p>
  * Original .j2 image is not used after the conversion into .tiff,
  * .tiff image is furthermore treated as original image
  *
@@ -49,9 +49,13 @@ public class TiffAsJp2Importer implements ImageImporter {
     }
 
     @Override
-    public boolean accept(FileSet fileSet) { return isJp2(fileSet); }
+    public boolean accept(FileSet fileSet) {
+        return isJp2(fileSet);
+    }
 
-    private boolean isJp2(FileSet fileSet) { return findJp2(fileSet) != null;}
+    private boolean isJp2(FileSet fileSet) {
+        return findJp2(fileSet) != null;
+    }
 
     private FileEntry findJp2(FileSet fileSet) {
 

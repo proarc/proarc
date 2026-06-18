@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2011 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -38,15 +38,22 @@ public final class UserUtil {
 
     public static final String DEFAULT_ADMIN_USER = "proarc";
 
+    public static final String GROUP_PID_PREFIX = "group:";
+    public static final String USER_PID_PREFIX = "user:";
+
     static final String IMPORT_FOLDER_NAME = "import";
     static final String EXPORT_FOLDER_NAME = "export";
     static final String EDIT_FOLDER_NAME = "images";
-    /** allows only lower case characters to prevent confusion */
+    /**
+     * allows only lower case characters to prevent confusion
+     */
     static final Pattern USERNAME_PATTERN = Pattern.compile("[a-z][a-z0-9_-]{4,}");
-    /** The pattern to replace forbidden chars in remote user names. */
+    /**
+     * The pattern to replace forbidden chars in remote user names.
+     */
     static final Pattern USERNAME_REPLACE_PATTERN = Pattern.compile("[^a-zA-Z0-9_-]+");
     private static final Pattern GROUP_PATTERN = Pattern.compile(
-            "^" + FedoraGroupDao.PID_PREFIX + "[a-z][a-z0-9_-]{4,}$");
+            "^" + GROUP_PID_PREFIX + "[a-z][a-z0-9_-]{4,}$");
 
     private static UserManager MANGER = null;
 
@@ -66,6 +73,7 @@ public final class UserUtil {
 
     /**
      * creates new user folder
+     *
      * @param userName
      * @param userHomePath
      * @param allUsersHome
@@ -103,8 +111,8 @@ public final class UserUtil {
      * Translates platform specific path to independent form as URI
      *
      * @param folder platform specific path as <pre>UNIX: /tmp/imports/</pre>
-     *      or <pre>MS Win: c:\imports</pre> or <pre>UNC MS Win: \\laptop\My Documents\</pre>
-     *      are valid options
+     *               or <pre>MS Win: c:\imports</pre> or <pre>UNC MS Win: \\laptop\My Documents\</pre>
+     *               are valid options
      * @return an abstract path
      */
     static URI toUri(File folder) {
@@ -122,23 +130,27 @@ public final class UserUtil {
     }
 
     static boolean isValidUserName(String name) {
-        return name != null && name.length() + FedoraUserDao.PID_PREFIX.length() <= 64
+        return name != null && name.length() + USER_PID_PREFIX.length() <= 64
                 && USERNAME_PATTERN.matcher(name).matches();
     }
 
-    /** Replaces forbidden chars in remoteName and fixes length. */
+    /**
+     * Replaces forbidden chars in remoteName and fixes length.
+     */
     public static String toUserName(String remoteName) {
         return toUserName("", remoteName);
     }
 
-    /** Replaces forbidden chars in remoteName and fixes length. */
+    /**
+     * Replaces forbidden chars in remoteName and fixes length.
+     */
     public static String toUserName(String remotePrefix, String remoteName) {
         if (remoteName == null || remoteName.isEmpty()) {
             throw new IllegalArgumentException(remoteName);
         }
         String name = remoteName;
         // fedora PID max length 64
-        int maxLength = 64 - FedoraUserDao.PID_PREFIX.length() - 4;
+        int maxLength = 64 - USER_PID_PREFIX.length() - 4;
         if (remoteName.length() > maxLength) {
             name = remoteName.substring(0, maxLength);
         }
@@ -209,7 +221,7 @@ public final class UserUtil {
     }
 
     public static String toGroupPid(String groupObjectId) {
-        return FedoraGroupDao.PID_PREFIX + groupObjectId;
+        return GROUP_PID_PREFIX + groupObjectId;
     }
 
     public static boolean isValidGroupPid(String pid) {
@@ -217,7 +229,7 @@ public final class UserUtil {
     }
 
     public static String toUserPid(UserProfile user) {
-        return FedoraUserDao.PID_PREFIX + user.getUserName();
+        return USER_PID_PREFIX + user.getUserName();
     }
 
 }

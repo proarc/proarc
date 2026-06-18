@@ -1,25 +1,25 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package cz.cas.lib.proarc.common.xml;
 
-import cz.cas.lib.proarc.common.process.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.custom.PageMapperTest;
+import cz.cas.lib.proarc.common.process.export.mets.ValidationErrorHandler;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -38,19 +38,21 @@ import java.util.logging.Logger;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Validator;
-import org.custommonkey.xmlunit.SimpleNamespaceContext;
-import org.custommonkey.xmlunit.XMLAssert;
-import org.custommonkey.xmlunit.XMLUnit;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.xml.sax.InputSource;
+import org.xmlunit.builder.DiffBuilder;
+import org.xmlunit.builder.Input;
+import org.xmlunit.diff.Diff;
+import org.xmlunit.xpath.JAXPXPathEngine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -65,7 +67,7 @@ public class TransformersTest {
     public TransformersTest() {
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() throws Exception {
         defaultProxy = ProxySelector.getDefault();
         // detect external connections
@@ -84,26 +86,22 @@ public class TransformersTest {
         });
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         externalConnections = new ArrayList<URI>();
-        XMLUnit.setIgnoreWhitespace(true);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
-        assertTrue(externalConnections.toString(), externalConnections.isEmpty());
-        XMLUnit.setIgnoreWhitespace(false);
-        XMLUnit.setNormalizeWhitespace(false);
+        assertTrue(externalConnections.isEmpty(), () -> externalConnections.toString());
     }
 
     @Test
     public void testMarcAsMods() throws Exception {
-        XMLUnit.setNormalizeWhitespace(true);
         InputStream goldenIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMods.xml");
         assertNotNull(goldenIS);
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("alephXServerDetailResponseAsMarcXml.xml");// from test
@@ -115,7 +113,15 @@ public class TransformersTest {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
             assertNotNull(contents);
 //            System.out.println(new String(contents, "UTF-8"));
-            XMLAssert.assertXMLEqual(new InputSource(goldenIS), new InputSource(new ByteArrayInputStream(contents)));
+
+            Diff diff = DiffBuilder.compare(new InputSource(goldenIS))
+                    .withTest(new InputSource(new ByteArrayInputStream(contents)))
+                    .ignoreWhitespace()
+                    .ignoreComments()
+                    .checkForSimilar()
+                    .build();
+
+            assertFalse(diff.hasDifferences(), diff.toString());
         } finally {
             close(xmlIS);
             close(goldenIS);
@@ -137,15 +143,21 @@ public class TransformersTest {
             assertNotNull(contents);
             String xmlResult = new String(contents, "UTF-8");
 //            System.out.println(xmlResult);
-            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
-                put("m", ModsConstants.NS);
-            }}));
-            XMLAssert.assertXpathEvaluatesTo("HKA001", "/m:mods/m:location/m:physicalLocation[1]", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo("test sigla", "/m:mods/m:location/m:physicalLocation[2]", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo("2", "count(/m:mods/m:location/m:physicalLocation)", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo("54 487", "/m:mods/m:location/m:shelfLocator[1]", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo("test signatura", "/m:mods/m:location/m:shelfLocator[2]", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo("2", "count(/m:mods/m:location/m:shelfLocator)", xmlResult);
+
+            Map<String, String> namespaces = new HashMap<>();
+            namespaces.put("m", ModsConstants.NS);
+
+            JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+            xpathEngine.setNamespaceContext(namespaces);
+
+            assertEquals("HKA001", xpathEngine.evaluate("/m:mods/m:location/m:physicalLocation[1]", Input.fromString(xmlResult).build()));
+
+            assertEquals("HKA001", xpathEngine.evaluate("/m:mods/m:location/m:physicalLocation[1]", Input.fromString(xmlResult).build()));
+            assertEquals("test sigla", xpathEngine.evaluate("/m:mods/m:location/m:physicalLocation[2]", Input.fromString(xmlResult).build()));
+            assertEquals("2", xpathEngine.evaluate("count(/m:mods/m:location/m:physicalLocation)", Input.fromString(xmlResult).build()));
+            assertEquals("54 487", xpathEngine.evaluate("/m:mods/m:location/m:shelfLocator[1]", Input.fromString(xmlResult).build()));
+            assertEquals("test signatura", xpathEngine.evaluate("/m:mods/m:location/m:shelfLocator[2]", Input.fromString(xmlResult).build()));
+            assertEquals("2", xpathEngine.evaluate("count(/m:mods/m:location/m:shelfLocator)", Input.fromString(xmlResult).build()));
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);
@@ -168,13 +180,17 @@ public class TransformersTest {
             assertNotNull(contents);
             String xmlResult = new String(contents, "UTF-8");
 //            System.out.println(xmlResult);
-            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
-                put("m", ModsConstants.NS);
-            }}));
-            XMLAssert.assertXpathNotExists("/m:mods/m:originInfo/m:frequency[1]/@authority", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo("2x ročně", "/m:mods/m:originInfo/m:frequency[1]", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo("marcfrequency", "/m:mods/m:originInfo/m:frequency[2]/@authority", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo("Semiannual", "/m:mods/m:originInfo/m:frequency[2]", xmlResult);
+
+            HashMap<String, String> namespaces = new HashMap<String, String>();
+            namespaces.put("m", ModsConstants.NS);
+
+            JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+            xpathEngine.setNamespaceContext(namespaces);
+
+            assertTrue(xpathEngine.evaluate("/m:mods/m:originInfo/m:frequency[1]/@authority", Input.fromString(xmlResult).build()).isEmpty());
+            assertEquals("2x ročně", xpathEngine.evaluate("/m:mods/m:originInfo/m:frequency[1]", Input.fromString(xmlResult).build()));
+            assertEquals("marcfrequency", xpathEngine.evaluate("/m:mods/m:originInfo/m:frequency[2]/@authority", Input.fromString(xmlResult).build()));
+            assertEquals("Semiannual", xpathEngine.evaluate("/m:mods/m:originInfo/m:frequency[2]", Input.fromString(xmlResult).build()));
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);
@@ -197,17 +213,20 @@ public class TransformersTest {
             assertNotNull(contents);
             String xmlResult = new String(contents, "UTF-8");
 //            System.out.println(xmlResult);
-            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
-                put("m", ModsConstants.NS);
-            }}));
+            HashMap<String, String> namespaces = new HashMap<String, String>();
+            namespaces.put("m", ModsConstants.NS);
+
+            JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+            xpathEngine.setNamespaceContext(namespaces);
+
             // 600
-            XMLAssert.assertXpathExists("/m:mods/m:subject[@authority='czenas']/m:name[@type='personal']/m:namePart[text()='Novák, A. Jiří']", xmlResult);
+            assertFalse(xpathEngine.evaluate("/m:mods/m:subject[@authority='czenas']/m:name[@type='personal']/m:namePart[text()='Novák, A. Jiří']", Input.fromString(xmlResult).build()).isEmpty());
             // 650
-            XMLAssert.assertXpathExists("/m:mods/m:subject[@authority='czenas']/m:topic[text()='daňové delikty']", xmlResult);
-            XMLAssert.assertXpathExists("/m:mods/m:subject[@authority='eczenas']/m:topic[text()='tax delinquency']", xmlResult);
+            assertFalse(xpathEngine.evaluate("/m:mods/m:subject[@authority='czenas']/m:topic[text()='daňové delikty']", Input.fromString(xmlResult).build()).isEmpty());
+            assertFalse(xpathEngine.evaluate("/m:mods/m:subject[@authority='eczenas']/m:topic[text()='tax delinquency']", Input.fromString(xmlResult).build()).isEmpty());
             // 651
-            XMLAssert.assertXpathExists("/m:mods/m:subject[@authority='czenas']/m:geographic[text()='Česko']", xmlResult);
-            XMLAssert.assertXpathExists("/m:mods/m:subject[@authority='eczenas']/m:geographic[text()='Czechia']", xmlResult);
+            assertFalse(xpathEngine.evaluate("/m:mods/m:subject[@authority='czenas']/m:geographic[text()='Česko']", Input.fromString(xmlResult).build()).isEmpty());
+            assertFalse(xpathEngine.evaluate("/m:mods/m:subject[@authority='eczenas']/m:geographic[text()='Czechia']", Input.fromString(xmlResult).build()).isEmpty());
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);
@@ -231,14 +250,18 @@ public class TransformersTest {
             assertNotNull(contents);
             String xmlResult = new String(contents, "UTF-8");
 //            System.out.println(xmlResult);
-            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
-                put("m", ModsConstants.NS);
-            }}));
+
+            HashMap<String, String> namespaces = new HashMap<String, String>();
+            namespaces.put("m", ModsConstants.NS);
+
+            JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+            xpathEngine.setNamespaceContext(namespaces);
+
             // 653
-            XMLAssert.assertXpathExists("/m:mods/m:subject[not(@authority)]/m:topic[text()='kočky' and @lang='cze']", xmlResult);
-            XMLAssert.assertXpathExists("/m:mods/m:subject[not(@authority)]/m:topic[text()='cats' and @lang='eng']", xmlResult);
-            XMLAssert.assertXpathNotExists("/m:mods/m:subject/m:name/m:namePart[text()='kočky']", xmlResult);
-            XMLAssert.assertXpathNotExists("/m:mods/m:subject/m:name/m:namePart[text()='cats']", xmlResult);
+            assertFalse(xpathEngine.evaluate("/m:mods/m:subject[not(@authority)]/m:topic[text()='kočky' and @lang='cze']", Input.fromString(xmlResult).build()).isEmpty());
+            assertFalse(xpathEngine.evaluate("/m:mods/m:subject[not(@authority)]/m:topic[text()='cats' and @lang='eng']", Input.fromString(xmlResult).build()).isEmpty());
+            assertTrue(xpathEngine.evaluate("/m:mods/m:subject/m:name/m:namePart[text()='kočky']", Input.fromString(xmlResult).build()).isEmpty());
+            assertTrue(xpathEngine.evaluate("/m:mods/m:subject/m:name/m:namePart[text()='cats']", Input.fromString(xmlResult).build()).isEmpty());
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);
@@ -261,12 +284,16 @@ public class TransformersTest {
             assertNotNull(contents);
             String xmlResult = new String(contents, "UTF-8");
 //            System.out.println(xmlResult);
-            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
-                put("m", ModsConstants.NS);
-            }}));
-            XMLAssert.assertXpathEvaluatesTo("Umění", "/m:mods/m:subject[@authority='Konspekt']/m:topic", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo("7.01/.09", "/m:mods/m:classification[@authority='udc' and @edition='Konspekt']", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo("21", "/m:mods/m:classification[@authority='Konspekt']", xmlResult);
+
+            HashMap<String, String> namespaces = new HashMap<String, String>();
+            namespaces.put("m", ModsConstants.NS);
+
+            JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+            xpathEngine.setNamespaceContext(namespaces);
+
+            assertEquals("Umění", xpathEngine.evaluate("/m:mods/m:subject[@authority='Konspekt']/m:topic", Input.fromString(xmlResult).build()));
+            assertEquals("7.01/.09", xpathEngine.evaluate("/m:mods/m:classification[@authority='udc' and @edition='Konspekt']", Input.fromString(xmlResult).build()));
+            assertEquals("21", xpathEngine.evaluate("/m:mods/m:classification[@authority='Konspekt']", Input.fromString(xmlResult).build()));
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);
@@ -289,32 +316,36 @@ public class TransformersTest {
             assertNotNull(contents);
             String xmlResult = new String(contents, "UTF-8");
 //            System.out.println(xmlResult);
-            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
-                put("m", ModsConstants.NS);
-            }}));
+
+            HashMap<String, String> namespaces = new HashMap<String, String>();
+            namespaces.put("m", ModsConstants.NS);
+
+            JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+            xpathEngine.setNamespaceContext(namespaces);
+
             // test 100 1# $a Kocina, Jan, $d 1960- $4 aut $7 xx0113245
-            XMLAssert.assertXpathExists("/m:mods/m:name[@type='personal'"
-                        + " and @authorityURI='http://aut.nkp.cz'"
-                        + " and @valueURI='http://aut.nkp.cz/xx0113245']"
+            assertFalse(xpathEngine.evaluate("/m:mods/m:name[@type='personal'"
+                    + " and @authorityURI='http://aut.nkp.cz'"
+                    + " and @valueURI='http://aut.nkp.cz/xx0113245']"
                     + "/m:namePart[@type='family' and text()='Kocina']"
                     + "/../m:namePart[@type='given' and text()='Jan']"
                     + "/../m:namePart[@type='date' and text()='1960-']"
-                    + "/../m:role/m:roleTerm[text()='aut']", xmlResult);
+                    + "/../m:role/m:roleTerm[text()='aut']", Input.fromString(xmlResult).build()).isEmpty());
             // test 700 1# $a Honzík, Bohumil, $d 1972- $4 aut $7 jn20020422016
-            XMLAssert.assertXpathExists("/m:mods/m:name[@type='personal'"
-                        + " and @authorityURI='http://aut.nkp.cz'"
-                        + " and @valueURI='http://aut.nkp.cz/jn20020422016']"
+            assertFalse(xpathEngine.evaluate("/m:mods/m:name[@type='personal'"
+                    + " and @authorityURI='http://aut.nkp.cz'"
+                    + " and @valueURI='http://aut.nkp.cz/jn20020422016']"
                     + "/m:namePart[@type='family' and text()='Honzík']"
                     + "/../m:namePart[@type='given' and text()='Bohumil']"
                     + "/../m:namePart[@type='date' and text()='1972-']"
-                    + "/../m:role/m:roleTerm[text()='aut']", xmlResult);
+                    + "/../m:role/m:roleTerm[text()='aut']", Input.fromString(xmlResult).build()).isEmpty());
             // test 700 1# $a Test Without AuthorityId $d 1972- $4 aut
-            XMLAssert.assertXpathExists("/m:mods/m:name[@type='personal'"
-                        + " and not(@authorityURI)"
-                        + " and not(@valueURI)]"
+            assertFalse(xpathEngine.evaluate("/m:mods/m:name[@type='personal'"
+                    + " and not(@authorityURI)"
+                    + " and not(@valueURI)]"
                     + "/m:namePart[text()='Test Without AuthorityId']"
                     + "/../m:namePart[@type='date' and text()='1972-']"
-                    + "/../m:role/m:roleTerm[text()='aut']", xmlResult);
+                    + "/../m:role/m:roleTerm[text()='aut']", Input.fromString(xmlResult).build()).isEmpty());
 
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
@@ -338,20 +369,24 @@ public class TransformersTest {
             assertNotNull(contents);
             String xmlResult = new String(contents, "UTF-8");
 //            System.out.println(xmlResult);
-            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
-                put("m", ModsConstants.NS);
-            }}));
+
+            HashMap<String, String> namespaces = new HashMap<String, String>();
+            namespaces.put("m", ModsConstants.NS);
+
+            JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+            xpathEngine.setNamespaceContext(namespaces);
+
             // test 510 4# $a Knihopis 1 $c K01416
-            XMLAssert.assertXpathExists("/m:mods/m:relatedItem[@type='isReferencedBy']"
-                    + "/m:titleInfo/m:title[text()='Knihopis 1']", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo("K01416", "/m:mods/m:relatedItem[@type='isReferencedBy']"
-                    + "/m:titleInfo/m:title[text()='Knihopis 1']/../../m:part/m:detail[@type='part']/m:number", xmlResult);
+            assertFalse(xpathEngine.evaluate("/m:mods/m:relatedItem[@type='isReferencedBy']"
+                    + "/m:titleInfo/m:title[text()='Knihopis 1']", Input.fromString(xmlResult).build()).isEmpty());
+            assertEquals("K01416", xpathEngine.evaluate("/m:mods/m:relatedItem[@type='isReferencedBy']"
+                    + "/m:titleInfo/m:title[text()='Knihopis 1']/../../m:part/m:detail[@type='part']/m:number", Input.fromString(xmlResult).build()));
 
             // test 510 0# $a Knihopis 2
-            XMLAssert.assertXpathExists("/m:mods/m:relatedItem[@type='isReferencedBy']"
-                    + "/m:titleInfo/m:title[text()='Knihopis 2']", xmlResult);
-            XMLAssert.assertXpathNotExists("/m:mods/m:relatedItem[@type='isReferencedBy']"
-                    + "/m:titleInfo/m:title[text()='Knihopis 2']/../../m:part", xmlResult);
+            assertFalse(xpathEngine.evaluate("/m:mods/m:relatedItem[@type='isReferencedBy']"
+                    + "/m:titleInfo/m:title[text()='Knihopis 2']", Input.fromString(xmlResult).build()).isEmpty());
+            assertTrue(xpathEngine.evaluate("/m:mods/m:relatedItem[@type='isReferencedBy']"
+                    + "/m:titleInfo/m:title[text()='Knihopis 2']/../../m:part", Input.fromString(xmlResult).build()).isEmpty());
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);
@@ -374,22 +409,26 @@ public class TransformersTest {
             assertNotNull(contents);
             String xmlResult = new String(contents, "UTF-8");
 //            System.out.println(xmlResult);
-            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
-                put("m", ModsConstants.NS);
-            }}));
+
+            HashMap<String, String> namespaces = new HashMap<String, String>();
+            namespaces.put("m", ModsConstants.NS);
+
+            JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+            xpathEngine.setNamespaceContext(namespaces);
+
             // test 78708 |i Recenze na: |a Čeřovský, Jan |t Jak jsme zachraňovali svět aneb Půl století ve službách ochrany přírody |d Praha : Nakladatelství Academia, 2014 |4 kniha
-            XMLAssert.assertXpathEvaluatesTo(
-                    "Jak jsme zachraňovali svět aneb Půl století ve službách ochrany přírody",
-                    "/m:mods/m:relatedItem[not(@type) and @displayLabel='Recenze na:']"
-                    + "/m:titleInfo/m:title/text()", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo(
-                    "Čeřovský, Jan",
-                    "/m:mods/m:relatedItem[not(@type) and @displayLabel='Recenze na:']"
-                    + "/m:name/m:namePart/text()", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo(
-                    "Praha : Nakladatelství Academia, 2014",
-                    "/m:mods/m:relatedItem[not(@type) and @displayLabel='Recenze na:']"
-                    + "/m:originInfo/m:publisher/text()", xmlResult);
+            assertEquals(
+                    "Jak jsme zachraňovali svět aneb Půl století ve službách ochrany přírody", xpathEngine.evaluate(
+                            "/m:mods/m:relatedItem[not(@type) and @displayLabel='Recenze na:']"
+                                    + "/m:titleInfo/m:title/text()", Input.fromString(xmlResult).build()));
+            assertEquals(
+                    "Čeřovský, Jan", xpathEngine.evaluate(
+                            "/m:mods/m:relatedItem[not(@type) and @displayLabel='Recenze na:']"
+                                    + "/m:name/m:namePart/text()", Input.fromString(xmlResult).build()));
+            assertEquals(
+                    "Praha : Nakladatelství Academia, 2014", xpathEngine.evaluate(
+                            "/m:mods/m:relatedItem[not(@type) and @displayLabel='Recenze na:']"
+                                    + "/m:originInfo/m:publisher/text()", Input.fromString(xmlResult).build()));
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);
@@ -412,12 +451,16 @@ public class TransformersTest {
             assertNotNull(contents);
             String xmlResult = new String(contents, "UTF-8");
 //            System.out.println(xmlResult);
-            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
-                put("m", ModsConstants.NS);
-            }}));
-            XMLAssert.assertXpathExists("/m:mods/m:abstract[@lang='cze' and @type='Abstract' and text()='Text cze']", xmlResult);
-            XMLAssert.assertXpathExists("/m:mods/m:abstract[@lang='eng' and @type='Abstract' and text()='Text eng']", xmlResult);
-            XMLAssert.assertXpathExists("/m:mods/m:abstract[not(@lang) and @type='Abstract' and text()='Text no lang']", xmlResult);
+
+            HashMap<String, String> namespaces = new HashMap<String, String>();
+            namespaces.put("m", ModsConstants.NS);
+
+            JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+            xpathEngine.setNamespaceContext(namespaces);
+
+            assertFalse(xpathEngine.evaluate("/m:mods/m:abstract[@lang='cze' and @type='Abstract' and text()='Text cze']", Input.fromString(xmlResult).build()).isEmpty());
+            assertFalse(xpathEngine.evaluate("/m:mods/m:abstract[@lang='eng' and @type='Abstract' and text()='Text eng']", Input.fromString(xmlResult).build()).isEmpty());
+            assertFalse(xpathEngine.evaluate("/m:mods/m:abstract[not(@lang) and @type='Abstract' and text()='Text no lang']", Input.fromString(xmlResult).build()).isEmpty());
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);
@@ -429,7 +472,7 @@ public class TransformersTest {
      * See issue 298.
      */
     @Test
-    public void testMarcAsMods_Mapping264_ind4_Issue298() throws Exception{
+    public void testMarcAsMods_Mapping264_ind4_Issue298() throws Exception {
         InputStream xmlIS = TransformersTest.class.getResourceAsStream("marc_originInfo_264_ind4.xml");
         assertNotNull(xmlIS);
         StreamSource streamSource = new StreamSource(xmlIS);
@@ -440,13 +483,17 @@ public class TransformersTest {
             assertNotNull(contents);
             String xmlResult = new String(contents, "UTF-8");
 //            System.out.println(xmlResult);
-            XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(new HashMap() {{
-                put("m", ModsConstants.NS);
-            }}));
-            XMLAssert.assertXpathExists("/m:mods/m:originInfo[@eventType='copyright']", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo("Praha","/m:mods/m:originInfo[@eventType='copyright']/m:place/m:placeTerm", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo("Albatros","/m:mods/m:originInfo[@eventType='copyright']/m:publisher", xmlResult);
-            XMLAssert.assertXpathEvaluatesTo("2015", "/m:mods/m:originInfo[@eventType='copyright']/m:copyrightDate", xmlResult);
+
+            HashMap<String, String> namespaces = new HashMap<String, String>();
+            namespaces.put("m", ModsConstants.NS);
+
+            JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+            xpathEngine.setNamespaceContext(namespaces);
+
+            assertFalse(xpathEngine.evaluate("/m:mods/m:originInfo[@eventType='copyright']", Input.fromString(xmlResult).build()).isEmpty());
+            assertEquals("Praha", xpathEngine.evaluate("/m:mods/m:originInfo[@eventType='copyright']/m:place/m:placeTerm", Input.fromString(xmlResult).build()));
+            assertEquals("Albatros", xpathEngine.evaluate("/m:mods/m:originInfo[@eventType='copyright']/m:publisher", Input.fromString(xmlResult).build()));
+            assertEquals("2015", xpathEngine.evaluate("/m:mods/m:originInfo[@eventType='copyright']/m:copyrightDate", Input.fromString(xmlResult).build()));
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);
@@ -466,7 +513,16 @@ public class TransformersTest {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.OaimarcAsMarc21slim);
             assertNotNull(contents);
 //            System.out.println(new String(contents, "UTF-8"));
-            XMLAssert.assertXMLEqual(new InputSource(goldenIS), new InputSource(new ByteArrayInputStream(contents)));
+
+            Diff diff = DiffBuilder.compare(new InputSource(goldenIS))
+                    .withTest(new InputSource(new ByteArrayInputStream(contents)))
+                    .ignoreWhitespace()
+                    .ignoreComments()
+                    .checkForSimilar()
+                    .build();
+
+            assertFalse(diff.hasDifferences(), diff.toString());
+
         } finally {
             close(xmlIS);
             close(goldenIS);
@@ -486,7 +542,16 @@ public class TransformersTest {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.AlephOaiMarcFix);
             assertNotNull(contents);
 //            System.out.println(new String(contents, "UTF-8"));
-            XMLAssert.assertXMLEqual(new InputSource(goldenIS), new InputSource(new ByteArrayInputStream(contents)));
+
+            Diff diff = DiffBuilder.compare(new InputSource(goldenIS))
+                    .withTest(new InputSource(new ByteArrayInputStream(contents)))
+                    .ignoreWhitespace()
+                    .ignoreComments()
+                    .checkForSimilar()
+                    .build();
+
+            assertFalse(diff.hasDifferences(), diff.toString());
+
         } finally {
             close(xmlIS);
             close(goldenIS);
@@ -533,7 +598,9 @@ public class TransformersTest {
                 modsAsFedoraLabel(PageMapperTest.class.getResourceAsStream("volume_mods.xml"), "model:periodicalvolume"));
     }
 
-    /** Tests label with date but missing volume number. */
+    /**
+     * Tests label with date but missing volume number.
+     */
     @Test
     public void testModsAsFedoraLabel_Volume_issue222() throws Exception {
         assertEquals("1893",
@@ -575,7 +642,7 @@ public class TransformersTest {
         v.setErrorHandler(handler);
         v.validate(source);
         List<String> errors = handler.getValidationErrors();
-        assertTrue(errors.toString(), errors.isEmpty());
+        assertTrue(errors.isEmpty(), () -> errors.toString());
     }
 
     private static void close(InputStream is) {

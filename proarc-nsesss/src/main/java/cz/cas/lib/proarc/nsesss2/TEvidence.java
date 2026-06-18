@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro evidenci spisů nebo dokumentů.
- * 
+ *
  * <p>Java class for tEvidence complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tEvidence">
  *   &lt;complexContent>
@@ -35,15 +35,15 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tEvidence", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "evidencniCislo",
-    "poradoveCislo",
-    "urceneCasoveObdobi",
-    "nazevEvidenceDokumentu"
+        "evidencniCislo",
+        "poradoveCislo",
+        "urceneCasoveObdobi",
+        "nazevEvidenceDokumentu"
 })
 public class TEvidence {
 
@@ -58,11 +58,10 @@ public class TEvidence {
 
     /**
      * Gets the value of the evidencniCislo property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getEvidencniCislo() {
         return evidencniCislo;
@@ -70,11 +69,10 @@ public class TEvidence {
 
     /**
      * Sets the value of the evidencniCislo property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setEvidencniCislo(String value) {
         this.evidencniCislo = value;
@@ -82,11 +80,10 @@ public class TEvidence {
 
     /**
      * Gets the value of the poradoveCislo property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Integer }
-     *     
+     *
+     * @return possible object is
+     * {@link Integer }
+     *
      */
     public Integer getPoradoveCislo() {
         return poradoveCislo;
@@ -94,11 +91,10 @@ public class TEvidence {
 
     /**
      * Sets the value of the poradoveCislo property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Integer }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link Integer }
+     *
      */
     public void setPoradoveCislo(Integer value) {
         this.poradoveCislo = value;
@@ -106,11 +102,10 @@ public class TEvidence {
 
     /**
      * Gets the value of the urceneCasoveObdobi property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TUrceneCasoveObdobi }
-     *     
+     *
+     * @return possible object is
+     * {@link TUrceneCasoveObdobi }
+     *
      */
     public TUrceneCasoveObdobi getUrceneCasoveObdobi() {
         return urceneCasoveObdobi;
@@ -118,11 +113,10 @@ public class TEvidence {
 
     /**
      * Sets the value of the urceneCasoveObdobi property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TUrceneCasoveObdobi }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TUrceneCasoveObdobi }
+     *
      */
     public void setUrceneCasoveObdobi(TUrceneCasoveObdobi value) {
         this.urceneCasoveObdobi = value;
@@ -130,11 +124,10 @@ public class TEvidence {
 
     /**
      * Gets the value of the nazevEvidenceDokumentu property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getNazevEvidenceDokumentu() {
         return nazevEvidenceDokumentu;
@@ -142,11 +135,10 @@ public class TEvidence {
 
     /**
      * Sets the value of the nazevEvidenceDokumentu property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setNazevEvidenceDokumentu(String value) {
         this.nazevEvidenceDokumentu = value;

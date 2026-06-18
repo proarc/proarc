@@ -17,25 +17,24 @@
 package cz.cas.lib.proarc.common.process.export.archive;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
+import cz.cas.lib.proarc.common.object.DigitalObjectElement;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.process.export.ExportResultLog;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
-import cz.cas.lib.proarc.common.object.DigitalObjectElement;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mets.MetsType;
+import jakarta.xml.bind.JAXB;
 import java.io.File;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXB;
 
 /**
  * It produces archive packages.
@@ -55,9 +54,7 @@ public class ArchiveProducer {
         this.akubraConfiguration = akubraConfiguration;
         SearchView searchView = null;
         try {
-            if (Storage.FEDORA.equals(appConfig.getTypeOfStorage())) {
-                searchView = FedoraStorage.getInstance().getSearch();
-            } else if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
                 searchView = AkubraStorage.getInstance(akubraConfiguration).getSearch();
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
@@ -135,6 +132,7 @@ public class ArchiveProducer {
 
     /**
      * It selects object hierarchies to build archive packages of them.
+     *
      * @param pids a list of PIDS to archive
      * @return the result folder that contains folders with archive packages.
      * @throws IllegalStateException failure. See {@link #getResultLog() } for details.

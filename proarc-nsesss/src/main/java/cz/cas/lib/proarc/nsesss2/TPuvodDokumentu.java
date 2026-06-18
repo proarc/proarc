@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Metadatový kontejner pro zaznamenání doručení nebo vzniku dokumentu.
- * 
+ *
  * <p>Java class for tPuvodDokumentu complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tPuvodDokumentu">
  *   &lt;complexContent>
@@ -33,13 +33,13 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tPuvodDokumentu", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "dorucenyDokument",
-    "vlastniDokument"
+        "dorucenyDokument",
+        "vlastniDokument"
 })
 public class TPuvodDokumentu {
 
@@ -50,11 +50,10 @@ public class TPuvodDokumentu {
 
     /**
      * Gets the value of the dorucenyDokument property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TDorucenyDokument }
-     *     
+     *
+     * @return possible object is
+     * {@link TDorucenyDokument }
+     *
      */
     public TDorucenyDokument getDorucenyDokument() {
         return dorucenyDokument;
@@ -62,11 +61,10 @@ public class TPuvodDokumentu {
 
     /**
      * Sets the value of the dorucenyDokument property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TDorucenyDokument }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TDorucenyDokument }
+     *
      */
     public void setDorucenyDokument(TDorucenyDokument value) {
         this.dorucenyDokument = value;
@@ -74,11 +72,10 @@ public class TPuvodDokumentu {
 
     /**
      * Gets the value of the vlastniDokument property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TVlastniDokument }
-     *     
+     *
+     * @return possible object is
+     * {@link TVlastniDokument }
+     *
      */
     public TVlastniDokument getVlastniDokument() {
         return vlastniDokument;
@@ -86,11 +83,10 @@ public class TPuvodDokumentu {
 
     /**
      * Sets the value of the vlastniDokument property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TVlastniDokument }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TVlastniDokument }
+     *
      */
     public void setVlastniDokument(TVlastniDokument value) {
         this.vlastniDokument = value;

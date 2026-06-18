@@ -43,7 +43,7 @@ public class OutputConsumer extends Thread {
     public void run() {
         BufferedReader reader = new BufferedReader(new InputStreamReader(input));
         try {
-            for(String line; (line = reader.readLine()) != null;) {
+            for (String line; (line = reader.readLine()) != null; ) {
                 if (output.length() > 0) {
                     output.append('\n');
                 }

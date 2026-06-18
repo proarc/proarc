@@ -8,19 +8,19 @@
 
 package cz.cas.lib.proarc.nsesss2;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
  * Sada elementů pro věcný popis komponenty.
- * 
+ *
  * <p>Java class for tPopisKomponenty complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType name="tPopisKomponenty">
  *   &lt;complexContent>
@@ -35,15 +35,15 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "tPopisKomponenty", namespace = "http://www.mvcr.cz/nsesss/v2", propOrder = {
-    "nazev",
-    "komentar",
-    "verze",
-    "klicovaSlova"
+        "nazev",
+        "komentar",
+        "verze",
+        "klicovaSlova"
 })
 public class TPopisKomponenty {
 
@@ -58,11 +58,10 @@ public class TPopisKomponenty {
 
     /**
      * Gets the value of the nazev property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getNazev() {
         return nazev;
@@ -70,11 +69,10 @@ public class TPopisKomponenty {
 
     /**
      * Sets the value of the nazev property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setNazev(String value) {
         this.nazev = value;
@@ -82,11 +80,10 @@ public class TPopisKomponenty {
 
     /**
      * Gets the value of the komentar property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getKomentar() {
         return komentar;
@@ -94,11 +91,10 @@ public class TPopisKomponenty {
 
     /**
      * Sets the value of the komentar property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setKomentar(String value) {
         this.komentar = value;
@@ -106,11 +102,10 @@ public class TPopisKomponenty {
 
     /**
      * Gets the value of the verze property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
+     *
      */
     public String getVerze() {
         return verze;
@@ -118,11 +113,10 @@ public class TPopisKomponenty {
 
     /**
      * Sets the value of the verze property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
+     *
      */
     public void setVerze(String value) {
         this.verze = value;
@@ -130,11 +124,10 @@ public class TPopisKomponenty {
 
     /**
      * Gets the value of the klicovaSlova property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TKlicovaSlova }
-     *     
+     *
+     * @return possible object is
+     * {@link TKlicovaSlova }
+     *
      */
     public TKlicovaSlova getKlicovaSlova() {
         return klicovaSlova;
@@ -142,11 +135,10 @@ public class TPopisKomponenty {
 
     /**
      * Sets the value of the klicovaSlova property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TKlicovaSlova }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TKlicovaSlova }
+     *
      */
     public void setKlicovaSlova(TKlicovaSlova value) {
         this.klicovaSlova = value;

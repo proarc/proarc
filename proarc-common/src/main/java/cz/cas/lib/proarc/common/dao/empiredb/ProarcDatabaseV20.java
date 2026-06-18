@@ -116,7 +116,7 @@ public class ProarcDatabaseV20 extends DBDatabase {
             driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.volumeInt, script);
 
             LOG.fine(script.toString());
-            script.run(driver, conn);
+            script.executeAll(driver, conn);
 
             Statement statement = conn.createStatement();
             statement.addBatch("UPDATE PROARC_WF_PHYSICAL_DOCUMENT SET ISSUE_INT = CASE WHEN ISSUE ~ '^[0-9]+$' THEN ISSUE::bigint ELSE NULL END;");

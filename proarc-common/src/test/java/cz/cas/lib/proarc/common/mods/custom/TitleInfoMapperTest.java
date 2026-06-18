@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2012 Jan Pokorsky
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,9 +21,9 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.hamcrest.core.Is;
-import static org.junit.Assert.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  *
@@ -33,11 +33,11 @@ public class TitleInfoMapperTest {
 
     private static final String XML =
             "  <mods xmlns='http://www.loc.gov/mods/v3'>"
-            + "<titleInfo type='alternative'><title>ATITLE[0][0]</title><title>ATITLE[0][1]</title></titleInfo>"
-            + "<titleInfo><title>MTITLE[1][0]</title><subTitle>STITLE[1][0]</subTitle></titleInfo>"
-            + "<titleInfo type='alternative' displayLabel='Klíčový název'><title>KTITLE[2][0]</title></titleInfo>"
-            + "<titleInfo type='uniform'><title>UNSUPPORTED</title></titleInfo>"
-            + "</mods>";
+                    + "<titleInfo type='alternative'><title>ATITLE[0][0]</title><title>ATITLE[0][1]</title></titleInfo>"
+                    + "<titleInfo><title>MTITLE[1][0]</title><subTitle>STITLE[1][0]</subTitle></titleInfo>"
+                    + "<titleInfo type='alternative' displayLabel='Klíčový název'><title>KTITLE[2][0]</title></titleInfo>"
+                    + "<titleInfo type='uniform'><title>UNSUPPORTED</title></titleInfo>"
+                    + "</mods>";
 
     @Test
     public void testSetTitles() {
@@ -63,10 +63,10 @@ public class TitleInfoMapperTest {
         List<String> alternativeExpected = Arrays.asList("ATITLE[0][new[0]]");
         List<String> keyExpected = Arrays.asList("KTITLE[2][0]-update", "KTITLE[2][new[1]]");
 
-        assertThat(titleResult, Is.is(titleExpected));
-        assertThat(subtitleResult, Is.is(subtitleExpected));
-        assertThat(alternativeResult, Is.is(alternativeExpected));
-        assertThat(keyResult, Is.is(keyExpected));
+        assertEquals(titleResult, titleExpected);
+        assertEquals(subtitleResult, subtitleExpected);
+        assertEquals(alternativeResult, alternativeExpected);
+        assertEquals(keyResult, keyExpected);
         System.out.println(ModsUtils.toXml(mods, true));
     }
 
@@ -85,10 +85,10 @@ public class TitleInfoMapperTest {
         List<String> alternativeExpected = Arrays.asList("ATITLE[0][0]", "ATITLE[0][1]");
         List<String> keyExpected = Arrays.asList("KTITLE[2][0]");
 
-        assertThat(titleResult, Is.is(titleExpected));
-        assertThat(subtitleResult, Is.is(subtitleExpected));
-        assertThat(alternativeResult, Is.is(alternativeExpected));
-        assertThat(keyResult, Is.is(keyExpected));
+        assertEquals(titleResult, titleExpected);
+        assertEquals(subtitleResult, subtitleExpected);
+        assertEquals(alternativeResult, alternativeExpected);
+        assertEquals(keyResult, keyExpected);
     }
 
     @Test
@@ -105,10 +105,10 @@ public class TitleInfoMapperTest {
         List<String> alternativeExpected = Collections.emptyList();
         List<String> keyExpected = Collections.emptyList();
 
-        assertThat(titleResult, Is.is(titleExpected));
-        assertThat(subtitleResult, Is.is(subtitleExpected));
-        assertThat(alternativeResult, Is.is(alternativeExpected));
-        assertThat(keyResult, Is.is(keyExpected));
+        assertEquals(titleResult, titleExpected);
+        assertEquals(subtitleResult, subtitleExpected);
+        assertEquals(alternativeResult, alternativeExpected);
+        assertEquals(keyResult, keyExpected);
     }
 
 }

@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.info;
 
-import com.sun.xml.ws.util.StringUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.io.BufferedReader;
@@ -25,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import org.apache.commons.lang.StringUtils;
 
 public class ApplicationInfo {
 
@@ -34,14 +34,14 @@ public class ApplicationInfo {
     String rdflowVersion;
     String storage;
     String database;
-    String stableConfigFile;
-    Boolean stableConfig;
-    String stableLanguageCsFile;
-    Boolean stableLanguageCs;
-    String stableLanguageCsEnFile;
-    Boolean stableLanguageCsEn;
-    String stableLanguageEnFile;
-    Boolean stableLanguageEn;
+    String configFile;
+    Boolean config;
+    String languageCsFile;
+    Boolean languageCs;
+    String languageCsEnFile;
+    Boolean languageCsEn;
+    String languageEnFile;
+    Boolean languageEn;
     String error;
 
     public void initValues(AppConfiguration config, Boolean fullLoad) throws IOException {
@@ -51,30 +51,30 @@ public class ApplicationInfo {
         this.revision = config.getNdkExportOptions().getRevision();
         this.rdflowVersion = WorkflowProfiles.getInstance().getProfiles().getVersion();
         this.storage = StringUtils.capitalize(config.getTypeOfStorage().name().toLowerCase());
-        this.stableConfig = isExistingFile(config.getClientOptions().getPathConfig());
-        this.stableLanguageCs = isExistingFile(config.getClientOptions().getPathLanguageCs());
-        this.stableLanguageCsEn = isExistingFile(config.getClientOptions().getPathLanguageCsEn());
-        this.stableLanguageEn = isExistingFile(config.getClientOptions().getPathLanguageEn());
+        this.config = isExistingFile(config.getClientOptions().getPathConfig());
+        this.languageCs = isExistingFile(config.getClientOptions().getPathLanguageCs());
+        this.languageCsEn = isExistingFile(config.getClientOptions().getPathLanguageCsEn());
+        this.languageEn = isExistingFile(config.getClientOptions().getPathLanguageEn());
         if (fullLoad != null && fullLoad) {
-            if (this.stableConfig) {
-                this.stableConfigFile = loadFileContent(new File(config.getClientOptions().getPathConfig()));
+            if (this.config) {
+                this.configFile = loadFileContent(new File(config.getClientOptions().getPathConfig()));
             } else {
-                this.stableConfigFile = "";
+                this.configFile = "";
             }
-            if (this.stableLanguageCs) {
-                this.stableLanguageCsFile = loadFileContent(new File(config.getClientOptions().getPathLanguageCs()));
+            if (this.languageCs) {
+                this.languageCsFile = loadFileContent(new File(config.getClientOptions().getPathLanguageCs()));
             } else {
-                this.stableLanguageCsFile = "";
+                this.languageCsFile = "";
             }
-            if (this.stableConfig) {
-                this.stableLanguageCsEnFile = loadFileContent(new File(config.getClientOptions().getPathLanguageCsEn()));
+            if (this.languageCsEn) {
+                this.languageCsEnFile = loadFileContent(new File(config.getClientOptions().getPathLanguageCsEn()));
             } else {
-                this.stableLanguageCsEnFile = null;
+                this.languageCsEnFile = null;
             }
-            if (this.stableConfig) {
-                this.stableLanguageEnFile = loadFileContent(new File(config.getClientOptions().getPathLanguageEn()));
+            if (this.languageEn) {
+                this.languageEnFile = loadFileContent(new File(config.getClientOptions().getPathLanguageEn()));
             } else {
-                this.stableLanguageEnFile = null;
+                this.languageEnFile = null;
             }
         }
     }
@@ -86,7 +86,7 @@ public class ApplicationInfo {
             switch (type) {
                 case "config":
                     if (isExistingFile(config.getClientOptions().getPathConfig())) {
-                        this.stableConfigFile = loadFileContent(new File(config.getClientOptions().getPathConfig()));
+                        this.configFile = loadFileContent(new File(config.getClientOptions().getPathConfig()));
                     } else {
                         this.error = "File " + config.getClientOptions().getPathConfig() + " is not available to read!";
                     }
@@ -94,7 +94,7 @@ public class ApplicationInfo {
                 case "languageCs":
                 case "cs":
                     if (isExistingFile(config.getClientOptions().getPathLanguageCs())) {
-                        this.stableLanguageCsFile = loadFileContent(new File(config.getClientOptions().getPathLanguageCs()));
+                        this.languageCsFile = loadFileContent(new File(config.getClientOptions().getPathLanguageCs()));
                     } else {
                         this.error = "File " + config.getClientOptions().getPathLanguageCs() + " is not available to read!";
                     }
@@ -102,7 +102,7 @@ public class ApplicationInfo {
                 case "languageEn":
                 case "en":
                     if (isExistingFile(config.getClientOptions().getPathLanguageEn())) {
-                        this.stableLanguageEnFile = loadFileContent(new File(config.getClientOptions().getPathLanguageEn()));
+                        this.languageEnFile = loadFileContent(new File(config.getClientOptions().getPathLanguageEn()));
                     } else {
                         this.error = "File " + config.getClientOptions().getPathLanguageEn() + " is not available to read!";
                     }
@@ -111,7 +111,7 @@ public class ApplicationInfo {
                 case "csen":
                 case "cs-en":
                     if (isExistingFile(config.getClientOptions().getPathLanguageCsEn())) {
-                        this.stableLanguageCsEnFile = loadFileContent(new File(config.getClientOptions().getPathLanguageCsEn()));
+                        this.languageCsEnFile = loadFileContent(new File(config.getClientOptions().getPathLanguageCsEn()));
                     } else {
                         this.error = "File " + config.getClientOptions().getPathLanguageCsEn() + " is not available to read!";
                     }
@@ -168,36 +168,36 @@ public class ApplicationInfo {
         return database;
     }
 
-    public String getStableConfigFile() {
-        return stableConfigFile;
+    public String getConfigFile() {
+        return configFile;
     }
 
-    public Boolean getStableConfig() {
-        return stableConfig;
+    public Boolean getConfig() {
+        return config;
     }
 
-    public String getStableLanguageCsFile() {
-        return stableLanguageCsFile;
+    public String getLanguageCsFile() {
+        return languageCsFile;
     }
 
-    public Boolean getStableLanguageCs() {
-        return stableLanguageCs;
+    public Boolean getLanguageCs() {
+        return languageCs;
     }
 
-    public String getStableLanguageCsEnFile() {
-        return stableLanguageCsEnFile;
+    public String getLanguageCsEnFile() {
+        return languageCsEnFile;
     }
 
-    public Boolean getStableLanguageCsEn() {
-        return stableLanguageCsEn;
+    public Boolean getLanguageCsEn() {
+        return languageCsEn;
     }
 
-    public String getStableLanguageEnFile() {
-        return stableLanguageEnFile;
+    public String getLanguageEnFile() {
+        return languageEnFile;
     }
 
-    public Boolean getStableLanguageEn() {
-        return stableLanguageEn;
+    public Boolean getLanguageEn() {
+        return languageEn;
     }
 
     public String getError() {

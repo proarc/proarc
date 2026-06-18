@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.object.ndk;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yourmediashelf.fedora.client.FedoraClientException;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -58,11 +57,11 @@ import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
-import cz.cas.lib.proarc.common.storage.fedora.FedoraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import jakarta.xml.bind.DataBindingException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Arrays;
@@ -74,7 +73,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.xml.bind.DataBindingException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Validator;
 import org.xml.sax.SAXException;
@@ -197,7 +195,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             } catch (DataBindingException | SAXException | IOException ex) {
                 checkValidation(errHandler, xmlData);
                 throw new DigitalObjectValidationException(xmlData.getPid(),
-                            xmlData.getBatchId(), ModsStreamEditor.DATASTREAM_ID, null, ex)
+                        xmlData.getBatchId(), ModsStreamEditor.DATASTREAM_ID, null, ex)
                         .addValidation("mods", ex.getMessage(), true);
             }
         } else {
@@ -249,7 +247,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             } catch (DataBindingException | SAXException | IOException ex) {
                 checkValidation(errHandler, xmlData);
                 throw new DigitalObjectValidationException(xmlData.getPid(),
-                            xmlData.getBatchId(), ModsStreamEditor.DATASTREAM_ID, null, ex)
+                        xmlData.getBatchId(), ModsStreamEditor.DATASTREAM_ID, null, ex)
                         .addValidation("mods", ex.getMessage(), true);
             }
         }
@@ -378,7 +376,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
             if (!ex.getValidations().isEmpty()) {
                 throw ex;
             }
-            return ;
+            return;
         }
         DigitalObjectValidationException ex = new DigitalObjectValidationException(fobject.getPid(), null,
                 DESCRIPTION_DATASTREAM_ID, "MODS validation", null);
@@ -434,16 +432,16 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         checkDoiDuplicity(mods, ex);
     }
 
-    /** issue 443. */
+    /**
+     * issue 443.
+     */
     private void checkDoiDuplicity(ModsDefinition mods, DigitalObjectValidationException ex) throws DigitalObjectException {
         if (ex == null) {
-            return ;
+            return;
         }
         SearchView search = null;
         try {
-            if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                search = FedoraStorage.getInstance().getSearch();
-            } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+            if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
                 search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
             } else {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
@@ -464,8 +462,6 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
                             }
                             ex.addValidation("mods.identifier", ERR_NDK_DOI_DUPLICITY, true, doi);
                         }
-                    } catch (FedoraClientException ex1) {
-                        throw new DigitalObjectException(fobject.getPid(), ex1);
                     } catch (IOException ex1) {
                         throw new DigitalObjectException(fobject.getPid(), ex1);
                     }
@@ -481,7 +477,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     }
 
     protected void write(String modelId, ModsDefinition mods,
-            DescriptionMetadata<?> options, String message, String typeRecord) throws DigitalObjectException {
+                         DescriptionMetadata<?> options, String message, String typeRecord) throws DigitalObjectException {
         ModsDefinition oldMods = null;
         long timestamp = options.getTimestamp();
         if (timestamp < 0) {
@@ -563,15 +559,13 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public DigitalObjectCrawler getCrawler() {
         if (crawler == null) {
             try {
-                if (Storage.FEDORA.equals(appConfiguration.getTypeOfStorage())) {
-                    crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), FedoraStorage.getInstance().getSearch());
-                } else if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+                if (Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
                     crawler = new DigitalObjectCrawler(DigitalObjectManager.getDefault(), AkubraStorage.getInstance(akubraConfiguration).getSearch());
                 } else {
                     throw new IllegalStateException("Unsupported type of storage: " + appConfiguration.getTypeOfStorage());
                 }
             } catch (Exception ex) {
-              throw new IllegalStateException(ex);
+                throw new IllegalStateException(ex);
             }
         }
         return crawler;

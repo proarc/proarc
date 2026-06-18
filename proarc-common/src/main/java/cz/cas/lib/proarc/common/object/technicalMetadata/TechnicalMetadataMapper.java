@@ -19,27 +19,27 @@ package cz.cas.lib.proarc.common.object.technicalMetadata;
 import cz.cas.lib.proarc.aes57.Aes57Utils;
 import cz.cas.lib.proarc.codingHistory.CodingHistoryUtils;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
-import cz.cas.lib.proarc.common.storage.AesEditor;
-import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
-import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.LocalStorage;
-import cz.cas.lib.proarc.common.storage.MixEditor;
-import cz.cas.lib.proarc.common.storage.PremisEditor;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.storage.AesEditor;
+import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.DigitalObjectException;
+import cz.cas.lib.proarc.common.storage.LocalStorage;
+import cz.cas.lib.proarc.common.storage.MixEditor;
+import cz.cas.lib.proarc.common.storage.PremisEditor;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
+import edu.harvard.hul.ois.xml.ns.jhove.Property;
 import java.io.IOException;
 import java.io.StringReader;
 import javax.xml.transform.stream.StreamSource;
 import org.aes.audioobject.AudioObject;
-import edu.harvard.hul.ois.xml.ns.jhove.Property;
 
 public class TechnicalMetadataMapper {
 
@@ -171,7 +171,7 @@ public class TechnicalMetadataMapper {
         dm.setPid(fobject.getPid());
         dm.setTimestamp(codingHistoryEditor.getLastModified());
         dm.setData(codingHistoryEditor.readCodingHistory());
-        if (dm.getData() == null  && !(fobject instanceof LocalStorage.LocalObject)) {
+        if (dm.getData() == null && !(fobject instanceof LocalStorage.LocalObject)) {
             dm.setData(codingHistoryEditor.generate(fobject, config, akubraConfiguration, importName));
         }
 
@@ -206,7 +206,7 @@ public class TechnicalMetadataMapper {
         AesEditor aesEditor = AesEditor.ndkArchival(fobject);
 
         AudioObject aes = aesEditor.readAes();
-        if (aes == null  && !(fobject instanceof LocalStorage.LocalObject)) {
+        if (aes == null && !(fobject instanceof LocalStorage.LocalObject)) {
             aes = aesEditor.generate(fobject, config, akubraConfiguration, importFile);
         }
 
@@ -221,7 +221,7 @@ public class TechnicalMetadataMapper {
         CodingHistoryEditor codingHistoryEditor = CodingHistoryEditor.ndkArchival(fobject);
 
         Property codingHistory = codingHistoryEditor.readCodingHistory();
-        if (codingHistory == null  && !(fobject instanceof LocalStorage.LocalObject)) {
+        if (codingHistory == null && !(fobject instanceof LocalStorage.LocalObject)) {
             codingHistory = codingHistoryEditor.generate(fobject, config, akubraConfiguration, importFile);
         }
         if (codingHistory != null) {
@@ -234,7 +234,7 @@ public class TechnicalMetadataMapper {
         PremisEditor premisEditor = PremisEditor.ndkArchival(fobject);
 
         Mets mets = premisEditor.readMets();
-        if (mets == null  && !(fobject instanceof LocalStorage.LocalObject)) {
+        if (mets == null && !(fobject instanceof LocalStorage.LocalObject)) {
             mets = premisEditor.generate(fobject, config, akubraConfiguration, importFile);
         }
         if (mets != null) {

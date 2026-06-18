@@ -20,7 +20,7 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
-import org.codehaus.jettison.json.JSONException;
+import org.json.JSONException;
 
 /**
  * @author Lukáš Sýkora
