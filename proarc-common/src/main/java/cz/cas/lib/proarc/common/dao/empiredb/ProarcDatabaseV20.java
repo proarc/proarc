@@ -32,7 +32,6 @@ import org.apache.empire.data.DataMode;
 import org.apache.empire.data.DataType;
 import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBColumn;
-import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBDatabase;
 import org.apache.empire.db.DBDatabaseDriver;
 import org.apache.empire.db.DBRecord;
@@ -40,11 +39,9 @@ import org.apache.empire.db.DBRelation;
 import org.apache.empire.db.DBSQLScript;
 import org.apache.empire.db.DBTable;
 import org.apache.empire.db.DBTableColumn;
-import org.apache.empire.db.exceptions.QueryFailedException;
-import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
 
 /**
- * Database schema version 19. It adds user permission.
+ * Database schema version 20. It adds scheduled batch.
  *
  * <p><b>Warning:</b> declare sequence names the same way like PostgreSql
  * ({@code {tablename}_{column_name}_seq}).
@@ -52,12 +49,12 @@ import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
  * @author Lukas Sykora
  */
 @Deprecated
-public class ProarcDatabaseV19 extends DBDatabase {
+public class ProarcDatabaseV20 extends DBDatabase {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger LOG = Logger.getLogger(ProarcDatabaseV19.class.getName());
+    private static final Logger LOG = Logger.getLogger(ProarcDatabaseV20.class.getName());
     /** the schema version */
-    public static final int VERSION = 19;
+    public static final int VERSION = 20;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -81,13 +78,13 @@ public class ProarcDatabaseV19 extends DBDatabase {
     public final DBRelation relationWorkflowMaterialInTask_MaterialId_Fk;
     public final DBRelation relationWorkflowMaterialInTask_TaskId_Fk;
 
-    public static int upgradeToVersion20(
-            int currentSchemaVersion,
+    public static int upgradeToVersion21(
+            int currentSchemaVersion, ProarcDatabase schema,
             Connection conn, EmpireConfiguration conf) throws SQLException {
 
         if (currentSchemaVersion < VERSION) {
             LOG.log(Level.INFO, "Upgrading ProArc schema from version " + currentSchemaVersion + ".");
-            currentSchemaVersion = ProarcDatabaseV18.upgradeToVersion19(currentSchemaVersion, conn, conf);
+            currentSchemaVersion = ProarcDatabaseV19.upgradeToVersion20(currentSchemaVersion, conn, conf);
         }
         if (currentSchemaVersion > VERSION) {
             // ignore higher versions
@@ -95,7 +92,7 @@ public class ProarcDatabaseV19 extends DBDatabase {
         } else if (currentSchemaVersion != VERSION) {
             throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
         }
-        ProarcDatabaseV20 schema = new ProarcDatabaseV20();
+//        ProarcDatabaseVXX schema = new ProarcDatabaseVXX();
         try {
             schema.open(conf.getDriver(), conn);
             upgradeDdl(schema, conn);
@@ -109,22 +106,30 @@ public class ProarcDatabaseV19 extends DBDatabase {
         }
     }
 
-    private static void upgradeDdl(ProarcDatabaseV20 schema, Connection conn) throws SQLException {
+    private static void upgradeDdl(ProarcDatabase schema, Connection conn) throws SQLException {
         try {
             conn.setAutoCommit(true);
             DBDatabaseDriver driver = schema.getDriver();
             DBSQLScript script = new DBSQLScript();
 
-            driver.getDDLScript(DBCmdType.CREATE, schema.tableBatch.nightOnly, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.issueInt, script);
+            driver.getDDLScript(DBCmdType.CREATE, schema.tableWorkflowPhysicalDoc.volumeInt, script);
 
             LOG.fine(script.toString());
             script.run(driver, conn);
 
             Statement statement = conn.createStatement();
-            statement.addBatch("UPDATE proarc_batch SET night_only = FALSE;");
-            statement.addBatch("ALTER TABLE proarc_batch ALTER COLUMN night_only SET DEFAULT FALSE;");
+            statement.addBatch("UPDATE PROARC_WF_PHYSICAL_DOCUMENT SET ISSUE_INT = CASE WHEN ISSUE ~ '^[0-9]+$' THEN ISSUE::bigint ELSE NULL END;");
+            statement.addBatch("CREATE OR REPLACE FUNCTION fce_wf_pd_issue_num() RETURNS trigger AS $$ BEGIN NEW.issue_int := CASE WHEN NEW.issue ~ '^[0-9]+$' THEN NEW.issue::bigint ELSE NULL END; RETURN NEW; END; $$ LANGUAGE plpgsql;");
+            statement.addBatch("CREATE TRIGGER trg_wf_pd_issue_num BEFORE INSERT OR UPDATE OF issue ON PROARC_WF_PHYSICAL_DOCUMENT FOR EACH ROW EXECUTE FUNCTION fce_wf_pd_issue_num();");
+
+            statement.addBatch("UPDATE PROARC_WF_PHYSICAL_DOCUMENT SET VOLUME_INT = CASE WHEN VOLUME ~ '^[0-9]+$' THEN VOLUME::bigint ELSE NULL END;");
+            statement.addBatch("CREATE OR REPLACE FUNCTION fce_wf_pd_volume_num() RETURNS trigger AS $$ BEGIN NEW.volume_int := CASE WHEN NEW.volume ~ '^[0-9]+$' THEN NEW.volume::bigint ELSE NULL END; RETURN NEW; END; $$ LANGUAGE plpgsql;");
+            statement.addBatch("CREATE TRIGGER trg_wf_pd_volume_num BEFORE INSERT OR UPDATE OF volume ON PROARC_WF_PHYSICAL_DOCUMENT FOR EACH ROW EXECUTE FUNCTION fce_wf_pd_volume_num();");
+
             LOG.fine(statement.toString());
             statement.executeBatch();
+
         } finally {
             conn.setAutoCommit(false);
         }
@@ -167,6 +172,7 @@ public class ProarcDatabaseV19 extends DBDatabase {
         public final DBTableColumn log;
         public final DBTableColumn profileId;
         public final DBTableColumn priority;
+        public final DBTableColumn nightOnly;
         public final DBTableColumn params;
 
         public BatchTable(DBDatabase db) {
@@ -193,6 +199,8 @@ public class ProarcDatabaseV19 extends DBDatabase {
             itemUpdated.setBeanPropertyName("itemUpdated");
             updated = addColumn("UPDATED", DataType.DATETIME, 0, false);
             updated.setBeanPropertyName("updated");
+            nightOnly = addColumn("NIGHT_ONLY", DataType.BOOL, 0, false);
+
             setPrimaryKey(id);
             addIndex(String.format("%s_IDX", getName()), false, new DBColumn[] { create, state, title, userId });
         }
@@ -633,7 +641,7 @@ public class ProarcDatabaseV19 extends DBDatabase {
         }
     }
 
-    public ProarcDatabaseV19() {
+    public ProarcDatabaseV20() {
         addRelation(tableBatch.userId.referenceOn(tableUser.id));
         addRelation(tableBatchItem.batchId.referenceOn(tableBatch.id));
         // users
@@ -657,53 +665,8 @@ public class ProarcDatabaseV19 extends DBDatabase {
                 addRelation(tableWorkflowMaterialInTask.taskId.referenceOn(tableWorkflowTask.id));
     }
 
-//    void init(EmpireConfiguration conf) throws SQLException {
-//        DBDatabaseDriver drv = conf.getDriver();
-//        Connection conn = conf.getConnection();
-//        open(drv, conn);
-//        try {
-//            int schemaVersion = schemaExists(this, conn);
-//            if (schemaVersion > 0) {
-//                LOG.log(Level.INFO, "Upgrading ProArc schema from version " + schemaVersion + ".");
-//                schemaVersion = ProarcDatabaseV18.upgradeToVersion19(
-//                        schemaVersion, this, conn, conf);
-//                if (schemaVersion != VERSION) {
-//                    throw new SQLException("Invalid schema version " + schemaVersion);
-//                }
-//            } else {
-//                createSchema(this, conn);
-//            }
-//        } finally {
-//            conn.close();
-//        }
-//    }
-
-    static int schemaExists(ProarcDatabaseV19 db, Connection c) {
-        try {
-            DBCommand cmd = db.createCommand();
-            cmd.select(db.tableProarcVersion.schemaVersion);
-            int version = db.querySingleInt(cmd, -1, c);
-            return version;
-        } catch (QueryFailedException ex) {
-            return -1;
-        }
-    }
-
-    private static void createSchema(ProarcDatabaseV19 db, Connection conn) throws SQLException {
-        if (db.getDriver() instanceof DBDatabaseDriverPostgreSQL) {
-            conn.setAutoCommit(true);
-        }
-        DBSQLScript script = new DBSQLScript();
-        db.getCreateDDLScript(db.getDriver(), script);
-        LOG.fine(script.toString());
-        script.run(db.getDriver(), conn);
-        db.initVersion(conn, null);
-        db.commit(conn);
-        conn.setAutoCommit(false);
-    }
-
     int initVersion(Connection conn, Integer oldVersion) {
-        ProarcDatabaseV19 db = this;
+        ProarcDatabaseV20 db = this;
         DBRecord dbRecord = new DBRecord();
         if (oldVersion != null) {
             dbRecord.init(db.tableProarcVersion, new Integer[] {0}, false);

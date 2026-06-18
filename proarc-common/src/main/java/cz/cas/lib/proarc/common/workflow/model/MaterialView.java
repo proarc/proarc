@@ -58,10 +58,14 @@ public class MaterialView extends Material {
     private String detail;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_ISSUE)
     private String issue;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_ISSUE_INT)
+    private String issueInt;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_SIGLA)
     private String sigla;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_VOLUME)
     private String volume;
+    @XmlElement(name = WorkflowModelConsts.MATERIAL_VOLUME_INT)
+    private String volumeInt;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_YEAR)
     private String year;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_EDITION)
@@ -219,4 +223,19 @@ public class MaterialView extends Material {
         this.year = year;
     }
 
+    public String getIssueInt() {
+        return issueInt;
+    }
+
+    public void setIssueInt(String issueInt) {
+        this.issueInt = issueInt;
+    }
+
+    public String getVolumeInt() {
+        return volumeInt;
+    }
+
+    public void setVolumeInt(String volumeInt) {
+        this.volumeInt = volumeInt;
+    }
 }

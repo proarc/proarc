@@ -57,7 +57,7 @@ public class JobDefinitionView extends WorkflowItemView {
                 .collect(Collectors.toList());
     }
 
-    @XmlElement(name = WorkflowProfileConsts.WORKFLOW_MODEL_EL)
+    @XmlElement(name = "models")
     public List<WorkflowItemView> getModels() {
         return item.getModel().stream()
                 .map(modelDefinition ->

@@ -113,11 +113,11 @@ class EmpireUtils {
         cmd.orderBy(sortByCol, descending);
     }
 
-    private static boolean isDescendingSort(String prefixedBeanPropertyName) {
+    protected static boolean isDescendingSort(String prefixedBeanPropertyName) {
         return prefixedBeanPropertyName.charAt(0) == '-';
     }
 
-    private static DBColumnExpr findSelection(List<? extends DBColumnExpr> selections, String prefixedBeanPropertyName) {
+    protected static DBColumnExpr findSelection(List<? extends DBColumnExpr> selections, String prefixedBeanPropertyName) {
         if (prefixedBeanPropertyName == null) {
             return null;
         }

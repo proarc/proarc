@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Logger;
@@ -276,6 +277,12 @@ public final class InternalExternalProcess implements Runnable {
         // if necessary reset old computed batch items
         InternalExternalProcess process = InternalExternalProcess.prepare(config, akubraConfiguration, batch, ibm, user, "Resume internal process", new Locale("cs", "CZ"));
         return process;
+    }
+
+    public static void cancelPlannedBatch(Batch batch, BatchManager importManager, AppConfiguration appConfig, AkubraConfiguration akubraConfiguration) {
+        batch.setState(Batch.State.STOPPED);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
+        importManager.update(batch);
     }
 
     public static final class InternalExternalOptions {
