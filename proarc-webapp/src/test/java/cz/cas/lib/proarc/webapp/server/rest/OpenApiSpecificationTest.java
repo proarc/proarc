@@ -2,14 +2,25 @@ package cz.cas.lib.proarc.webapp.server.rest;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OpenApiSpecificationTest {
+
+    private static final Set<String> HTTP_METHODS = Set.of("get", "post", "put", "delete", "patch");
 
     @Test
     void proarcOpenApiDocumentsCurrentRestV2Contract() throws Exception {
@@ -233,6 +244,109 @@ class OpenApiSpecificationTest {
         assertEquals("response", response.getJSONObject("xml").getString("name"));
     }
 
+    @Test
+    void allDocumentedEndpointsHaveOperationsAndResponses() throws Exception {
+        JSONObject paths = loadSpec().getJSONObject("paths");
+        Set<String> operationIds = new HashSet<>();
+        int operationCount = 0;
+        int responseCount = 0;
+
+        for (String path : paths.keySet()) {
+            JSONObject pathItem = paths.getJSONObject(path);
+            assertTrue(path.startsWith("/"), path);
+            assertFalse(path.contains("//"), path);
+
+            int pathOperationCount = 0;
+            for (String method : pathItem.keySet()) {
+                if (!HTTP_METHODS.contains(method)) {
+                    continue;
+                }
+
+                String operationName = method.toUpperCase() + " " + path;
+                JSONObject operation = pathItem.getJSONObject(method);
+                operationCount++;
+                pathOperationCount++;
+
+                assertTrue(operation.has("operationId"), operationName);
+                assertFalse(operation.getString("operationId").isBlank(), operationName);
+                assertTrue(operationIds.add(operation.getString("operationId")), operationName);
+                assertTrue(operation.has("responses"), operationName);
+
+                JSONObject responses = operation.getJSONObject("responses");
+                assertTrue(responses.has("default"), operationName);
+                assertFalse(responses.isEmpty(), operationName);
+
+                for (String responseStatus : responses.keySet()) {
+                    String responseName = operationName + " response " + responseStatus;
+                    JSONObject response = responses.getJSONObject(responseStatus);
+                    responseCount++;
+
+                    assertTrue(response.has("description"), responseName);
+                    assertFalse(response.getString("description").isBlank(), responseName);
+                    assertTrue(response.has("content"), responseName);
+
+                    JSONObject content = response.getJSONObject("content");
+                    assertFalse(content.isEmpty(), responseName);
+                    for (String mediaType : content.keySet()) {
+                        String contentName = responseName + " " + mediaType;
+                        assertFalse(mediaType.isBlank(), contentName);
+                        if (!"*/*".equals(mediaType) && !mediaType.startsWith("image/")) {
+                            assertTrue(content.getJSONObject(mediaType).has("schema"), contentName);
+                            assertFalse(content.getJSONObject(mediaType).getJSONObject("schema").isEmpty(), contentName);
+                        }
+                    }
+                }
+            }
+
+            assertTrue(pathOperationCount > 0, path);
+        }
+
+        assertEquals(199, operationCount);
+        assertEquals(199, responseCount);
+    }
+
+    @Test
+    void openApiContractSnapshotContainsSameOperationsAndSchemas() throws Exception {
+        JSONObject current = loadSpec();
+        JSONObject snapshot = loadSnapshot();
+
+        assertEquals(operations(snapshot.getJSONObject("paths")).keySet(), operations(current.getJSONObject("paths")).keySet(),
+                "OpenAPI operations changed. Review added/removed endpoint methods, then update the contract snapshot if the change is intentional.");
+        assertEquals(snapshot.getJSONObject("components").getJSONObject("schemas").keySet(),
+                current.getJSONObject("components").getJSONObject("schemas").keySet(),
+                "OpenAPI schemas changed. Review added/removed DTO schemas, then update the contract snapshot if the change is intentional.");
+    }
+
+    @TestFactory
+    List<DynamicTest> documentedEndpointContractsMatchSnapshot() throws Exception {
+        Map<String, JSONObject> currentOperations = operations(loadSpec().getJSONObject("paths"));
+        Map<String, JSONObject> expectedOperations = operations(loadSnapshot().getJSONObject("paths"));
+
+        List<DynamicTest> tests = new ArrayList<>();
+        for (Map.Entry<String, JSONObject> expected : expectedOperations.entrySet()) {
+            tests.add(DynamicTest.dynamicTest(expected.getKey(), () -> assertEquals(
+                    canonicalJson(expected.getValue()),
+                    canonicalJson(currentOperations.get(expected.getKey())),
+                    "OpenAPI operation changed: " + expected.getKey())));
+        }
+        return tests;
+    }
+
+    @TestFactory
+    List<DynamicTest> documentedSchemaContractsMatchSnapshot() throws Exception {
+        JSONObject currentSchemas = loadSpec().getJSONObject("components").getJSONObject("schemas");
+        JSONObject expectedSchemas = loadSnapshot().getJSONObject("components").getJSONObject("schemas");
+
+        List<DynamicTest> tests = new ArrayList<>();
+        for (String schema : expectedSchemas.keySet()) {
+            tests.add(DynamicTest.dynamicTest(schema, () -> assertEquals(
+                    canonicalJson(expectedSchemas.getJSONObject(schema)),
+                    canonicalJson(currentSchemas.getJSONObject(schema)),
+                    "OpenAPI schema changed: " + schema)));
+        }
+        return tests;
+    }
+
     private static void assertDefaultJsonResponse(JSONObject operation, String schemaRef) {
         assertEquals(schemaRef, operation.getJSONObject("responses")
                 .getJSONObject("default")
@@ -257,12 +371,69 @@ class OpenApiSpecificationTest {
     }
 
     private static JSONObject loadSpec() throws Exception {
-        String resource = "cz/cas/lib/proarc/webapp/server/rest/proarc_openapi.json";
+        return loadJsonResource("cz/cas/lib/proarc/webapp/server/rest/proarc_openapi.json");
+    }
+
+    private static JSONObject loadSnapshot() throws Exception {
+        return loadJsonResource("cz/cas/lib/proarc/webapp/server/rest/proarc_openapi_snapshot.json");
+    }
+
+    private static JSONObject loadJsonResource(String resource) throws Exception {
         try (InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resource)) {
             if (stream == null) {
                 throw new IllegalStateException(resource);
             }
             return new JSONObject(new String(stream.readAllBytes(), StandardCharsets.UTF_8));
         }
+    }
+
+    private static Map<String, JSONObject> operations(JSONObject paths) {
+        Map<String, JSONObject> operations = new LinkedHashMap<>();
+        List<String> sortedPaths = new ArrayList<>(paths.keySet());
+        sortedPaths.sort(String::compareTo);
+
+        for (String path : sortedPaths) {
+            JSONObject pathItem = paths.getJSONObject(path);
+            for (String method : HTTP_METHODS) {
+                if (pathItem.has(method)) {
+                    operations.put(method.toUpperCase() + " " + path, pathItem.getJSONObject(method));
+                }
+            }
+        }
+        return operations;
+    }
+
+    private static String canonicalJson(Object value) {
+        if (value instanceof JSONObject object) {
+            List<String> keys = new ArrayList<>(object.keySet());
+            keys.sort(String::compareTo);
+
+            StringBuilder result = new StringBuilder("{");
+            for (int i = 0; i < keys.size(); i++) {
+                if (i > 0) {
+                    result.append(',');
+                }
+                String key = keys.get(i);
+                result.append(JSONObject.quote(key)).append(':').append(canonicalJson(object.get(key)));
+            }
+            return result.append('}').toString();
+        }
+        if (value instanceof JSONArray array) {
+            StringBuilder result = new StringBuilder("[");
+            for (int i = 0; i < array.length(); i++) {
+                if (i > 0) {
+                    result.append(',');
+                }
+                result.append(canonicalJson(array.get(i)));
+            }
+            return result.append(']').toString();
+        }
+        if (JSONObject.NULL.equals(value)) {
+            return "null";
+        }
+        if (value instanceof String string) {
+            return JSONObject.quote(string);
+        }
+        return String.valueOf(value);
     }
 }
