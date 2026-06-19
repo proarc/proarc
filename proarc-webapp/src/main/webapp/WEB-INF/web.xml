@@ -53,6 +53,16 @@
         <url-pattern>/isLogged</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>Swagger</servlet-name>
+        <servlet-class>cz.cas.lib.proarc.webapp.server.SwaggerServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Swagger</servlet-name>
+        <url-pattern>/swagger/*</url-pattern>
+    </servlet-mapping>
+
     <!--REST-->
     <servlet>
         <servlet-name>Jersey Web Application</servlet-name>

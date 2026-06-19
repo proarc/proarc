@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>ProArc Swagger</title>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css">
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            background: #f7f8fa;
+        }
+
+        .topbar {
+            display: none;
+        }
+
+        #swagger-ui {
+            min-height: 100%;
+        }
+
+        .swagger-auth-status {
+            border-bottom: 1px solid #d8dde3;
+            box-sizing: border-box;
+            font-family: sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            min-height: 18px;
+            padding: 10px 16px;
+        }
+
+        .swagger-auth-status.logged {
+            background: rgb(69, 106, 165);
+            color: white;
+        }
+
+        .swagger-auth-status.nologged {
+            background: #ffd7d7;
+            color: #7f1d1d;
+        }
+
+        .swagger-auth-status.unknown {
+            background: #ffffff;
+            color: #57606a;
+        }
+    </style>
+</head>
+<body>
+<div id="swagger-auth-status" class="swagger-auth-status"></div>
+<div id="swagger-ui"></div>
+
+<script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+<script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-standalone-preset.js"></script>
+<script>
+    window.onload = () => {
+        const appPath = window.location.pathname.split('/swagger')[0];
+        const basePath = `${appPath}/swagger`;
+        const loginUrl = `${appPath}/proarclogin`;
+        const isLoggedUrl = `${appPath}/isLogged`;
+        const authStatus = document.getElementById('swagger-auth-status');
+        let lastAuthorization = null;
+        let loginPromise = null;
+
+        const setStatus = (message, state) => {
+            authStatus.textContent = message;
+            authStatus.classList.remove('logged', 'nologged', 'unknown');
+            authStatus.classList.add(state || 'unknown');
+        };
+
+        const refreshLoginState = async () => {
+            try {
+                const response = await fetch(isLoggedUrl, {credentials: 'same-origin'});
+                const data = await response.json();
+                if (data.state === 'logged') {
+                    setStatus(`Přihlášen: ${data.login}. Cookie je uložena v prohlížeči.`, 'logged');
+                } else {
+                    setStatus('Nepřihlášen!', 'nologged');
+                }
+            } catch (error) {
+                setStatus('Stav přihlášení nelze načíst.', 'unknown');
+            }
+        };
+
+        const loginWithAuthorization = async (authorization) => {
+            if (!authorization || authorization === lastAuthorization) {
+                return;
+            }
+
+            const credentials = atob(authorization.replace(/^Basic\s+/i, ''));
+            const separator = credentials.indexOf(':');
+            const user = separator >= 0 ? credentials.substring(0, separator) : credentials;
+            const pass = separator >= 0 ? credentials.substring(separator + 1) : '';
+            const body = new URLSearchParams();
+            body.set('j_username', user);
+            body.set('j_password', pass);
+
+            const response = await fetch(loginUrl, {
+                method: 'POST',
+                body,
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
+                }
+            });
+            if (!response.ok) {
+                setStatus('Prihlaseni selhalo', 'nologged');
+                return;
+            }
+
+            lastAuthorization = authorization;
+            await refreshLoginState();
+        };
+
+        SwaggerUIBundle({
+            url: `${basePath}/proarc_openapi.json`,
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            requestInterceptor: async (request) => {
+                request.credentials = 'same-origin';
+                const authorization = request.headers.Authorization || request.headers.authorization;
+                if (authorization) {
+                    delete request.headers.Authorization;
+                    delete request.headers.authorization;
+                    loginPromise = loginPromise || loginWithAuthorization(authorization).finally(() => {
+                        loginPromise = null;
+                    });
+                    await loginPromise;
+                }
+                return request;
+            },
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIStandalonePreset
+            ],
+            layout: 'StandaloneLayout'
+        });
+        refreshLoginState();
+    };
+</script>
+</body>
+</html>
