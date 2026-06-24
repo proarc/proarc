@@ -86,7 +86,7 @@ public class JhoveUtilityTest {
 
         String toXml = MixUtils.toXml(mix, true);
 //        System.out.println(toXml);
-        assertEquals(toXml, "image/tiff", mix.getBasicDigitalObjectInformation()
-                .getFormatDesignation().getFormatName().getValue());
+        assertEquals("image/tiff", mix.getBasicDigitalObjectInformation()
+                .getFormatDesignation().getFormatName().getValue(), toXml);
     }
 }

@@ -37,6 +37,7 @@ import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  *
@@ -82,7 +83,9 @@ public class ImportFileScannerTest {
         File tempFileC = new File(tempFolderB, ImportFileScanner.IMPORT_STATE_FILENAME);
         tempFileC.createNewFile();
 
-        File tiff = new File(tempFileC, "scan1.tiff");
+        File tempFolderC = new File(tempDir, "C");
+        tempFolderC.mkdir();
+        File tiff = new File(tempFolderC, "scan1.tiff");
 
         tiff.createNewFile();
 
@@ -106,14 +109,14 @@ public class ImportFileScannerTest {
     public void testScanFileNotFound() throws Exception {
         File folder = new File(tempDir, "A");
         ImportFileScanner instance = new ImportFileScanner();
-        List<Folder> result = instance.findSubfolders(folder, new FileSetImport());
+        assertThrows(Exception.class, () -> instance.findSubfolders(folder, new FileSetImport()));
     }
 
     @Test
     public void testScanFileAsParameter() throws Exception {
         File file = new File(tempDir, "illegal.param");
         ImportFileScanner instance = new ImportFileScanner();
-        List<Folder> result = instance.findSubfolders(file, new FileSetImport());
+        assertThrows(Exception.class, () -> instance.findSubfolders(file, new FileSetImport()));
     }
 
     private boolean isWindows() {
@@ -123,7 +126,7 @@ public class ImportFileScannerTest {
     @Test
     public void testFolderSort() throws Exception {
 //        tmpFolder.setDeleteOnExit(false);
-        if (!isWindows()) {
+        {
             File tempFolderB = new File(tempDir, "B");
             tempFolderB.mkdir();
 

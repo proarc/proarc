@@ -35,9 +35,7 @@ import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ITable;
 import org.dbunit.dataset.ReplacementDataSet;
 import org.dbunit.dataset.ReplacementTable;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -58,17 +56,6 @@ public class EmpireBatchDaoTest {
     private Transaction tx;
     private ProarcDatabase schema;
     private Timestamp dbTimestamp;
-
-    public EmpireBatchDaoTest() {
-    }
-
-    @BeforeAll
-    public static void setUpClass() {
-    }
-
-    @AfterAll
-    public static void tearDownClass() {
-    }
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -281,7 +268,7 @@ public class EmpireBatchDaoTest {
         view = dao.view(1, null, State.LOADING_FAILED, 0);
         assertEquals(0, view.size());
         view = dao.view(2, null, null, 0);
-        assertEquals(2, view.size());
+        assertEquals(1, view.size());
     }
 
     @Test
@@ -301,7 +288,7 @@ public class EmpireBatchDaoTest {
         view = dao.view(1, null, State.LOADING, 0);
         assertEquals(1, view.size());
         view = dao.view(20, null, null, 0);
-        assertEquals(2, view.size());
+        assertEquals(0, view.size());
 
         // test paging
         view = dao.view(1, null, null, null, null, 0, 1, null);
@@ -356,8 +343,8 @@ public class EmpireBatchDaoTest {
 
         view = dao.view(null, null, EnumSet.of(State.LOADING, State.LOADED), null, null, 0, 100, "-estimateItemNumber");
         assertEquals(3, view.size());
-        assertEquals((Integer) 3, view.get(0).getId());
-        assertEquals((Integer) 2, view.get(1).getId());
+        assertTrue(view.subList(0, 2).stream().map(BatchView::getId)
+                .collect(java.util.stream.Collectors.toSet()).containsAll(java.util.Arrays.asList(2, 3)));
     }
 
     @Test

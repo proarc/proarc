@@ -103,6 +103,7 @@ public class InputUtilsTest {
     @Test
     public void testIsTiffEmptyFile() throws Exception {
         File result = new File(tempDir, "empty.tif");
+        assertTrue(result.createNewFile(), () -> result.toString());
         assertFalse(InputUtils.isTiff(result), () -> result.getName());
     }
 

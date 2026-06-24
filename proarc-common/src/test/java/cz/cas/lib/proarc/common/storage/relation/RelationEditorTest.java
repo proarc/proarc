@@ -71,7 +71,7 @@ public class RelationEditorTest {
     @Test
     public void testReadWrite() throws Exception {
         LocalStorage storage = new LocalStorage();
-        File foxml = tempDir;
+        File foxml = new File(tempDir, "object.xml");
         LocalObject lobject = storage.create(foxml);
         RelationEditor instance = new RelationEditor(lobject);
         String model = "mode:page";

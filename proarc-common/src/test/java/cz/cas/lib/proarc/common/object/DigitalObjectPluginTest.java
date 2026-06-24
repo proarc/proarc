@@ -31,6 +31,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
+import org.apache.commons.io.FileUtils;
 import org.easymock.EasyMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,10 @@ public class DigitalObjectPluginTest {
     public void setUp() throws Exception {
         ServiceLoader<DigitalObjectPlugin> pluginLoader = ServiceLoader.load(DigitalObjectPlugin.class);
 
+        FileUtils.writeStringToFile(new File(tempDir, AppConfiguration.CONFIG_FILE_NAME),
+                "proarc.storage=LOCAL\n"
+                        + "proarc.users.home=" + tempDir.getAbsolutePath().replace("\\", "\\\\") + "\n",
+                "UTF-8");
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, tempDir.getPath());
         }});
@@ -85,7 +90,7 @@ public class DigitalObjectPluginTest {
                 UserProfile userProfile = new UserProfile();
                 userProfile.setUserName("junit");
                 DigitalObjectManager.CreateHandler createHandler = dom.create(metaModel.getPid(), null, null, userProfile, null, "");
-                createHandler.createDigitalObject(true, true);
+                createHandler.createDigitalObject(false, true);
             }
 
         }

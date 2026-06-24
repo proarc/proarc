@@ -23,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  *
@@ -49,9 +50,8 @@ public class ResolverClientTest {
         String user = System.getProperty("proarc-urnnbn.ResolverClient.user");
         String passwd = System.getProperty("proarc-urnnbn.ResolverClient.passwd");
         String registrar = "";
-        assertNotNull(serviceUrl);
-        assertNotNull(user);
-        assertNotNull(passwd);
+        assumeTrue(isConfigured(serviceUrl) && isConfigured(user) && isConfigured(passwd),
+                "ResolverClientTest requires proarc-urnnbn.ResolverClient.url/user/passwd");
         client = new ResolverClient(serviceUrl, registrar, null, user, passwd);
     }
 
@@ -64,6 +64,10 @@ public class ResolverClientTest {
         client.setDebug(true);
         String response = client.getDigitalInstances();
         assertNotNull(response);
+    }
+
+    private static boolean isConfigured(String value) {
+        return value != null && !value.isBlank();
     }
 
 }

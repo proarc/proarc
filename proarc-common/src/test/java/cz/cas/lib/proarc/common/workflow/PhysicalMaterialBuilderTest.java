@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.workflow;
 
 import cz.cas.lib.proarc.common.catalog.Z3950Catalog;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.workflow.model.PhysicalMaterial;
 import java.nio.charset.StandardCharsets;
 import org.apache.commons.configuration2.BaseConfiguration;
@@ -63,10 +64,12 @@ public class PhysicalMaterialBuilderTest {
             addProperty(CatalogConfiguration.PROPERTY_TYPE, Z3950Catalog.TYPE);
         }});
         String xml = IOUtils.toString(WorkflowManagerTest.class.getResource("rdczmods.xml"), StandardCharsets.UTF_8);
-        PhysicalMaterial pm = new PhysicalMaterialBuilder().build(xml, c);
-        assertEquals(xml, pm.getMetadata());
+        PhysicalMaterial pm = new PhysicalMaterialBuilder()
+                .setCatalog(c)
+                .setMetadata(xml, NdkPlugin.MODEL_MONOGRAPHUNIT)
+                .build();
         assertEquals(c.getUrl(), pm.getSource());
-        assertEquals("Nová vlna = : La nouvelle vague : Truffaut, Godard, Chabrol, Rohmer, Rivette", pm.getLabel());
+        assertEquals("Nová vlna =: La nouvelle vague : Truffaut, Godard, Chabrol, Rohmer, Rivette", pm.getLabel());
 
     }
 

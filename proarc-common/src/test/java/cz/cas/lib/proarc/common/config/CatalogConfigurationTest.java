@@ -73,7 +73,10 @@ public class CatalogConfigurationTest {
         conf.addProperty(prefix + '.' + CatalogConfiguration.PROPERTY_URL, "catalog2URL");
         conf.addProperty(prefix + '.' + CatalogConfiguration.PROPERTY_TYPE, "catalog2Type");
         // catalogs declaration
-        conf.addProperty(Catalogs.PROPERTY_CATALOGS, "catalog1, catalogInvalid, catalogMissing, catalog2");
+        conf.addProperty(Catalogs.PROPERTY_CATALOGS, "catalog1");
+        conf.addProperty(Catalogs.PROPERTY_CATALOGS, "catalogInvalid");
+        conf.addProperty(Catalogs.PROPERTY_CATALOGS, "catalogMissing");
+        conf.addProperty(Catalogs.PROPERTY_CATALOGS, "catalog2");
         conf.addProperty("dummyProperty", "dummy");
     }
 

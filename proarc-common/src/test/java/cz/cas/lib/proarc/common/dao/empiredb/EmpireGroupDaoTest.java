@@ -23,9 +23,7 @@ import java.util.List;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -43,17 +41,6 @@ public class EmpireGroupDaoTest {
     private SqlTransaction tx;
     private GroupDao dao;
     private Timestamp dbTimestamp;
-
-    public EmpireGroupDaoTest() {
-    }
-
-    @BeforeAll
-    public static void setUpClass() {
-    }
-
-    @AfterAll
-    public static void tearDownClass() {
-    }
 
     @BeforeEach
     public void setUp() {

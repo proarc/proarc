@@ -90,7 +90,7 @@ public class EmpireWorkflowParameterDaoTest {
         List<TaskParameter> params = Arrays.asList(dao.create().addParamRef("param.p1").addValue(ValueType.STRING, "p1Val"),
                 dao.create().addParamRef("param.p2").addValue(ValueType.NUMBER, "1"),
                 dao.create().addParamRef("param.p3").addValue(ValueType.NUMBER, null),
-                dao.create().addParamRef("param.p4").addValue(ValueType.DATETIME, "2011-12-31T15:05:50+0100"),
+                dao.create().addParamRef("param.p4").addValue(ValueType.DATETIME, "2011-12-31T15:05:50+01:00"),
                 dao.create().addParamRef("param.p5").addValue(ValueType.NUMBER, "1.01"),
                 dao.create().addParamRef("param.p6").addValue(ValueType.NUMBER, "0")
         );
@@ -107,7 +107,7 @@ public class EmpireWorkflowParameterDaoTest {
         assertTrue(map.containsKey("param.p3"));
         assertEquals(null, map.get("param.p3"));
         assertTrue(map.containsKey("param.p4"));
-        assertEquals("2011-12-31T14:05:50.000Z", map.get("param.p4"));
+        assertEquals("2011-12-31T14:05:50Z", map.get("param.p4"));
         assertEquals("1.01", map.get("param.p5"));
         assertEquals("0", map.get("param.p6"));
 

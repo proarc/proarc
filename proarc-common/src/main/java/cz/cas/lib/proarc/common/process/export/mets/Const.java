@@ -113,7 +113,6 @@ public class Const {
     public static final String TITLE = "TITLE";
 
     public final static String DC_URI = "http://www.openarchives.org/OAI/2.0/oai_dc/";
-    public final static String NSESSS_URI = "http://www.mvcr.cz/nsesss/v2";
     public final static String URNNBN = "urnnbn";
     public final static String UUID = "uuid";
     public final static String CCNB = "ccnb";

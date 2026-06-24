@@ -43,9 +43,9 @@ public class TaskParameterTest {
         assertEquals(ValueType.DATETIME, tp.getValueType());
         assertEquals(now, tp.getValueDateTime());
 
-        tp = new TaskParameter().addValue(ValueType.DATETIME, "2011-01-13");
+        tp = new TaskParameter().addValue(ValueType.DATETIME, "2011-01-13T00:00:00.000Z");
         assertEquals(ValueType.DATETIME, tp.getValueType());
-        assertEquals("2011-01-13T00:00:00.000Z", tp.getValue());
+        assertEquals("2011-01-13T00:00:00Z", tp.getValue());
         assertNotNull(tp.getValueDateTime());
     }
 

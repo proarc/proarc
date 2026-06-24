@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -71,11 +72,11 @@ public class ExportUtilsTest {
         File parent = tempDir;
         String name = FoxmlUtils.pidAsUuid("uuid:0bcf9933-84e5-460f-9e94-d798b724d394");
         File expResult = new File(parent, name);
-        File result = ExportUtils.createFolder(parent, name, appConfig.getExportParams().isOverwritePackage());
+        File result = ExportUtils.createFolder(parent, name, false);
         assertEquals(expResult, result);
 
         expResult = new File(parent, name + "_1");
-        result = ExportUtils.createFolder(parent, name, appConfig.getExportParams().isOverwritePackage());
+        result = ExportUtils.createFolder(parent, name, false);
         assertEquals(expResult, result);
     }
 
@@ -83,7 +84,7 @@ public class ExportUtilsTest {
     public void testCreateFolderFailure() {
         File parent = tempDir;
         String name = "uuid:0bcf9933-84e5-460f-9e94-d798b724d394";
-        ExportUtils.createFolder(parent, name, appConfig.getExportParams().isOverwritePackage());
+        assertThrows(IllegalArgumentException.class, () -> ExportUtils.createFolder(parent, name, false));
     }
 
     @Test

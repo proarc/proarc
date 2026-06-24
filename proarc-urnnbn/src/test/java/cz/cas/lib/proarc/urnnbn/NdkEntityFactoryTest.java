@@ -80,14 +80,14 @@ public class NdkEntityFactoryTest {
         assertNotNull(imp);
         PeriodicalIssue pi = imp.getPeriodicalIssue();
         assertNotNull(pi, "PeriodicalIssue");
-        assertEquals("ccnb", "cnb002372844", pi.getCcnb());
+        assertEquals("cnb002372844", pi.getCcnb(), "ccnb");
         assertNull(pi.getIssn(), "issn");
         assertNull(pi.getOtherOriginator(), "otherOriginator");
 
         PrimaryOriginator primaryOriginator = pi.getPrimaryOriginator();
         assertNotNull(primaryOriginator, "primaryOriginator");
         assertEquals(OriginatorTypeType.CORPORATION, primaryOriginator.getType(), "primaryOriginator.type");
-        assertEquals("primaryOriginator.value", "Okresní pedagogické středisko Hradec Králové", primaryOriginator.getValue());
+        assertEquals("Okresní pedagogické středisko Hradec Králové", primaryOriginator.getValue(), "primaryOriginator.value");
 
         Publication pub = pi.getPublication();
         assertNotNull(pub, "publication");
@@ -113,8 +113,8 @@ public class NdkEntityFactoryTest {
         assertEquals("1.0", tm.getFormat().getVersion());
         assertEquals(new BigInteger("2721"), tm.getPictureSize().getHeight());
         assertEquals(new BigInteger("1985"), tm.getPictureSize().getWidth());
-        assertEquals(new BigInteger("118"), tm.getResolution().getHorizontal());
-        assertEquals(new BigInteger("118"), tm.getResolution().getVertical());
+        assertEquals(new BigInteger("299"), tm.getResolution().getHorizontal());
+        assertEquals(new BigInteger("299"), tm.getResolution().getVertical());
 //        JAXB.marshal(imp, new StreamResult(System.out));
     }
 
@@ -129,9 +129,9 @@ public class NdkEntityFactoryTest {
         assertNotNull(imp);
         PeriodicalIssue pi = imp.getPeriodicalIssue();
         assertNotNull(pi);
-        assertEquals("ccnb", "cnb000356910", pi.getCcnb());
-        assertEquals("issn", "0862-6545", pi.getIssn());
-        assertNull("otherOriginator", pi.getOtherOriginator());
+        assertEquals("cnb000356910", pi.getCcnb(), "ccnb");
+        assertEquals("0862-6545", pi.getIssn(), "issn");
+        assertNull(pi.getOtherOriginator(), "otherOriginator");
 
         TitleInfo titleInfo = pi.getTitleInfo();
         assertNotNull(titleInfo);

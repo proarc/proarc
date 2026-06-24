@@ -38,7 +38,7 @@ public class MetsLSResolver implements LSResourceResolver {
         URL_MAP.put("http://www.w3.org/2001/03/xml.xsd", "/cz/cas/lib/proarc/mods/xml.xsd");
         URL_MAP.put("http://www.loc.gov/standards/xlink/xlink.xsd", "/cz/cas/lib/proarc/mods/xlink.xsd");
         URL_MAP.put("http://www.loc.gov/mods/xml.xsd", "/cz/cas/lib/proarc/mods/xml.xsd");
-        URL_MAP.put("http://hul.harvard.edu/ois/xml/xsd/jhove/1.4/jhoveConfig.xsd", "/cz/cas/lib/proarc/common/export/mets/jhoveConfig.xsd");
+        URL_MAP.put("http://hul.harvard.edu/ois/xml/xsd/jhove/1.4/jhoveConfig.xsd", "/cz/cas/lib/proarc/common/process/export/mets/jhoveConfig.xsd");
         URL_MAP.put("http://www.loc.gov/standards/mets/mets.xsd", "/cz/cas/lib/proarc/mets/mets.xsd");
     }
 

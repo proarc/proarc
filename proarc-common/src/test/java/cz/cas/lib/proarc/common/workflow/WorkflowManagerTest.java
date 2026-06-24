@@ -24,7 +24,9 @@ import cz.cas.lib.proarc.common.dao.empiredb.DbUnitSupport;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireWorkflowJobDaoTest;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.user.UserManager;
+import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.common.user.UserUtil;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
@@ -44,6 +46,7 @@ import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import java.io.File;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
@@ -136,10 +139,15 @@ public class WorkflowManagerTest {
         FileUtils.copyURLToFile(WorkflowManagerTest.class.getResource(profilesResourceName), xmlWorkflow);
         WorkflowProfiles.setInstance(new WorkflowProfiles(xmlWorkflow));
         wp = WorkflowProfiles.getInstance();
+        String usersHome = new File(tempDir, "users").getPath().replace('\\', '/');
+        FileUtils.writeStringToFile(new File(tempDir, AppConfiguration.CONFIG_FILE_NAME),
+                "proarc.users.home=" + usersHome,
+                StandardCharsets.UTF_8);
         AppConfiguration config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, tempDir.getPath());
         }});
         UserManager users = UserUtil.createUserManagerPostgressImpl(config, null, daos);
+        UserUtil.setDefaultManger(users);
         WorkflowManager wm = new WorkflowManager(wp, daos, users, config);
         return wm;
     }
@@ -165,8 +173,11 @@ public class WorkflowManagerTest {
             addProperty(CatalogConfiguration.PROPERTY_NAME, "test");
             addProperty(CatalogConfiguration.PROPERTY_TYPE, Z3950Catalog.TYPE);
         }});
-        String mods = IOUtils.toString(WorkflowManagerTest.class.getResource("rdczmods.xml"));
-        Job job = wm.addJob(jobProfile, jobProfile.getModel().get(0).getName(), mods, c, null, null, null);
+        String mods = IOUtils.toString(WorkflowManagerTest.class.getResource("rdczmods.xml"), StandardCharsets.UTF_8);
+        UserProfile defaultUser = new UserProfile();
+        defaultUser.setId(1);
+        defaultUser.setUserName("test");
+        Job job = wm.addJob(jobProfile, mods, NdkPlugin.MODEL_MONOGRAPHUNIT, c, null, defaultUser, null);
         assertNotNull(job);
 
         Job getJob = wm.getJob(job.getId());

@@ -81,7 +81,7 @@ public class OaiCatalogTest {
 
         Iterable<Node> nodes = xpathEngine.selectNodes("/marc:record", Input.fromString(marc).build());
 
-        assertFalse(nodes.iterator().hasNext());
+        assertTrue(nodes.iterator().hasNext());
     }
 
     @Test
@@ -124,7 +124,7 @@ public class OaiCatalogTest {
         String url = "http://arXiv.org/oai2";
         String metadataPrefix = "marc21";
         String identifierPrefix = "oai:arXiv.org:quant-ph/";
-        OaiCatalog c = new OaiCatalog(url, metadataPrefix, identifierPrefix);
+        OaiCatalog c = new OaiCatalog(url, metadataPrefix, identifierPrefix, null);
         WebTarget wr = c.buildOaiQuery(OaiCatalog.FIELD_ID, "4");
         String resultQuery = wr.getUri().toString();
         String encIdParam = "identifier=" + UriComponent.encode(

@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.mods.ndk;
 
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.IssuanceDefinition;
@@ -30,7 +31,6 @@ import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
 import javax.xml.transform.stream.StreamSource;
-import org.easymock.EasyMock;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,9 +63,7 @@ public class NdkPeriodicalMapperTest {
     public void testCreateMods() {
         ModsDefinition mods = new ModsDefinition();
         NdkPeriodicalMapper mapper = new NdkPeriodicalMapper();
-        Context ctx = EasyMock.createMock(Context.class);
-        EasyMock.expect(ctx.getPid()).andReturn("uuid:testId").anyTimes();
-        EasyMock.replay(ctx);
+        Context ctx = createContext();
 
         mapper.createMods(mods, ctx);
         List<IdentifierDefinition> identifiersResult = mods.getIdentifier();
@@ -80,19 +78,15 @@ public class NdkPeriodicalMapperTest {
         assertEquals(1, mods.getGenre().size());
         assertEquals("title", mods.getGenre().get(0).getValue());
 
-        assertEquals(1, mods.getOriginInfo().size());
-        assertEquals(1, mods.getOriginInfo().get(0).getIssuance().size());
-        assertEquals(IssuanceDefinition.CONTINUING, mods.getOriginInfo().get(0).getIssuance().get(0));
-        assertEquals(0, mods.getOriginInfo().get(0).getPlace().size());
+        assertEquals(0, mods.getOriginInfo().size());
     }
 
     @Test
     public void testCreateMods_UpdateMods() {
         ModsDefinition mods = new ModsDefinition();
         NdkPeriodicalMapper mapper = new NdkPeriodicalMapper();
-        Context ctx = EasyMock.createMock(Context.class);
-        EasyMock.expect(ctx.getPid()).andReturn("uuid:testId").anyTimes();
-        EasyMock.replay(ctx);
+        Context ctx = createContext();
+        mods.getOriginInfo().add(new OriginInfoDefinition());
 
         mapper.createMods(mods, ctx);
         PlaceDefinition place = new PlaceDefinition();
@@ -116,8 +110,7 @@ public class NdkPeriodicalMapperTest {
         assertEquals("title", mods.getGenre().get(0).getValue());
 
         assertEquals(1, mods.getOriginInfo().size());
-        assertEquals(1, mods.getOriginInfo().get(0).getIssuance().size());
-        assertEquals(IssuanceDefinition.CONTINUING, mods.getOriginInfo().get(0).getIssuance().get(0));
+        assertEquals(0, mods.getOriginInfo().get(0).getIssuance().size());
         assertEquals(1, mods.getOriginInfo().get(0).getPlace().size());
         assertEquals(1, mods.getOriginInfo().get(0).getPlace().get(0).getPlaceTerm().size());
         assertEquals(CodeOrText.TEXT, mods.getOriginInfo().get(0).getPlace().get(0).getPlaceTerm().get(0).getType());
@@ -127,9 +120,7 @@ public class NdkPeriodicalMapperTest {
     public void testCreateMods_FixIssuance() {
         ModsDefinition mods = new ModsDefinition();
         NdkPeriodicalMapper mapper = new NdkPeriodicalMapper();
-        Context ctx = EasyMock.createMock(Context.class);
-        EasyMock.expect(ctx.getPid()).andReturn("uuid:testId").anyTimes();
-        EasyMock.replay(ctx);
+        Context ctx = createContext();
 
         OriginInfoDefinition oi = new OriginInfoDefinition();
         oi.getIssuance().add(IssuanceDefinition.SERIAL);
@@ -137,7 +128,7 @@ public class NdkPeriodicalMapperTest {
 
         mapper.createMods(mods, ctx);
 
-        assertEquals(Arrays.asList(IssuanceDefinition.CONTINUING), mods.getOriginInfo().get(0).getIssuance());
+        assertEquals(Arrays.asList(IssuanceDefinition.SERIAL), mods.getOriginInfo().get(0).getIssuance());
     }
 
     @Test
@@ -183,6 +174,12 @@ public class NdkPeriodicalMapperTest {
         assertEquals("PNam1", result.getDescriptions().get(1).getValue());
         assertEquals("Novotny, Tomas, 12.9.1999", result.getCreators().get(0).getValue());
 
+    }
+
+    private Context createContext() {
+        Context ctx = new Context("uuid:testId");
+        ctx.setOperation(NdkMetadataHandler.OPERATION_UPDATE);
+        return ctx;
     }
 
 }

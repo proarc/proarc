@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.dao.BatchItemDao;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.Transaction;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -51,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -63,13 +65,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.xml.sax.InputSource;
-import org.xmlunit.xpath.JAXPXPathEngine;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.xmlunit.assertj.XmlAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  *
@@ -134,8 +136,20 @@ public class TiffImporterTest {
         FileUtils.copyURLToFile(resource, uc1);
         assertTrue(uc1.length() > 0);
 
+        File configDir = new File(tempDir, "config");
+        assertTrue(configDir.mkdir());
+        FileUtils.writeStringToFile(new File(configDir, AppConfiguration.CONFIG_FILE_NAME),
+                "proarc.storage=LOCAL\n"
+                        + "proarc.users.home=" + tempDir.getAbsolutePath().replace("\\", "\\\\") + "\n"
+                        + ImportProfile.PROFILES + "=" + ConfigurationProfile.DEFAULT + "\n"
+                        + ImportProfile.PREVIEW_MAX_HEIGHT + "=1000\n"
+                        + ImportProfile.PREVIEW_MAX_WIDTH + "=1000\n"
+                        + ImportProfile.THUMBNAIL_MAX_HEIGHT + "=100\n"
+                        + ImportProfile.THUMBNAIL_MAX_WIDTH + "=100\n"
+                        + ImportProfile.REQUIRED_DATASTREAM + "=" + AltoDatastream.ALTO_ID + "\n",
+                "UTF-8");
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, tempDir.getPath());
+            put(AppConfiguration.PROPERTY_APP_HOME, configDir.getPath());
         }});
         if (Storage.AKUBRA.equals(config.getTypeOfStorage())) {
             this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(config.getConfigHome());
@@ -180,6 +194,7 @@ public class TiffImporterTest {
         Batch batch = new Batch();
         batch.setId(1);
         batch.setFolder(ibm.relativizeBatchFile(tiff1.getParentFile()));
+        batch.setProfileId(ConfigurationProfile.DEFAULT);
         ctx.setBatch(batch);
         FileSet fileSet = ImportFileScanner.getFileSets(Arrays.asList(tiff1, ocr1, alto1, ac1, uc1)).get(0);
         ctx.setJhoveContext(jhoveContext);
@@ -208,34 +223,27 @@ public class TiffImporterTest {
 
         // validate FOXML
         SchemaFactory sfactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-        URL foxmlXsdUrl = ObjectFactory.class.getResource("/xsd/foxml/foxml1-1.xsd");
+        URL foxmlXsdUrl = ObjectFactory.class.getResource("/cz/cas/lib/proarc/foxml/foxml1-1.xsd");
         assertNotNull(foxmlXsdUrl);
         Schema foxmlXsd = sfactory.newSchema(foxmlXsdUrl);
         foxmlXsd.newValidator().validate(new StreamSource(foxml));
 
-        // check datastreams with xpath
-        HashMap<String, String> namespaces = new HashMap<String, String>();
-        namespaces.put("f", "info:fedora/fedora-system:def/foxml#");
-        JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
-        xpathEngine.setNamespaceContext(namespaces);
+        Document foxmlDocument = readXml(foxml);
+        assertDatastream(foxmlDocument, ModsStreamEditor.DATASTREAM_ID);
+        assertDatastream(foxmlDocument, DcStreamEditor.DATASTREAM_ID);
+        assertDatastream(foxmlDocument, StringEditor.OCR_ID);
+        assertDatastream(foxmlDocument, AltoDatastream.ALTO_ID);
+        assertDatastream(foxmlDocument, RelationEditor.DATASTREAM_ID);
+        assertDatastream(foxmlDocument, BinaryEditor.FULL_ID);
+        assertDatastream(foxmlDocument, BinaryEditor.PREVIEW_ID);
+        assertDatastream(foxmlDocument, BinaryEditor.THUMB_ID);
+        assertDatastream(foxmlDocument, BinaryEditor.RAW_ID);
+        assertDatastream(foxmlDocument, MixEditor.RAW_ID);
+        assertDatastream(foxmlDocument, BinaryEditor.NDK_ARCHIVAL_ID);
+        assertDatastream(foxmlDocument, BinaryEditor.NDK_USER_ID);
+        assertDatastream(foxmlDocument, MixEditor.NDK_ARCHIVAL_ID);
 
-        String foxmlSystemId = foxml.toURI().toASCIIString();
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(ModsStreamEditor.DATASTREAM_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(DcStreamEditor.DATASTREAM_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(StringEditor.OCR_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(AltoDatastream.ALTO_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(RelationEditor.DATASTREAM_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.FULL_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.PREVIEW_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.THUMB_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.RAW_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(MixEditor.RAW_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.NDK_ARCHIVAL_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.NDK_USER_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(MixEditor.NDK_ARCHIVAL_ID));
-
-        String rootSystemId = rootFoxml.toURI().toASCIIString();
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(RelationEditor.DATASTREAM_ID));
+        assertDatastream(readXml(rootFoxml), RelationEditor.DATASTREAM_ID);
         EasyMock.verify(toVerify.toArray());
     }
 
@@ -256,6 +264,7 @@ public class TiffImporterTest {
         Batch batch = new Batch();
         batch.setId(1);
         batch.setFolder(ibm.relativizeBatchFile(tiff1.getParentFile()));
+        batch.setProfileId(ConfigurationProfile.DEFAULT);
         ctx.setBatch(batch);
         FileSet fileSet = ImportFileScanner.getFileSets(Arrays.asList(tiff1, ocr1, ac1, uc1)).get(0);
         ctx.setJhoveContext(jhoveContext);
@@ -269,8 +278,20 @@ public class TiffImporterTest {
         assertTrue(log.contains("Missing ALTO"), () -> log);
     }
 
-    private static String streamXPath(String dsId) {
-        return "f:digitalObject/f:datastream[@ID='" + dsId + "']";
+    private static Document readXml(File file) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
+        return factory.newDocumentBuilder().parse(file);
+    }
+
+    private static void assertDatastream(Document foxmlDocument, String dsId) {
+        NodeList datastreams = foxmlDocument.getElementsByTagNameNS("info:fedora/fedora-system:def/foxml#", "datastream");
+        for (int i = 0; i < datastreams.getLength(); i++) {
+            if (dsId.equals(datastreams.item(i).getAttributes().getNamedItem("ID").getNodeValue())) {
+                return;
+            }
+        }
+        fail("Missing datastream: " + dsId);
     }
 
     private DaoFactory createMockDaoFactory() {

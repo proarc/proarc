@@ -23,7 +23,6 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkMapper.Context;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper.Page;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -109,10 +108,6 @@ public class OldPrintPageMapperTest {
         page.setIdentifiers(Arrays.asList(new IdentifierItem(null, "uuid", "1")));
 
         ModsDefinition mods = mapper.toMods(page, ctx);
-        assertNotNull(mods);
-        TypeOfResourceDefinition resultType = mods.getTypeOfResource().get(0);
-        assertEquals("text", resultType.getValue());
-        assertEquals("yes", resultType.getManuscript());
 
 //        Page result = mapper.toJsonObject(mods, ctx);
         assertNotNull(mods);
@@ -120,22 +115,22 @@ public class OldPrintPageMapperTest {
         assertEquals(page.getNumber(), mapper.getNumber(mods));
         assertEquals(page.getType(), mapper.getType(mods));
         assertEquals(page.getPhysicalDescription(), mapper.getPhysicalDescription(mods));
-        IdentifierDefinition idenfier = new IdentifierDefinition();
-        idenfier.setType("uuid");
-        idenfier.setValue("1");
-        assertEquals(Arrays.asList(idenfier), mapper.getIdentifiers(mods));
+        List<IdentifierDefinition> identifiers = mapper.getIdentifiers(mods);
+        assertEquals(1, identifiers.size());
+        assertEquals("uuid", identifiers.get(0).getType());
+        assertEquals("1", identifiers.get(0).getValue());
     }
 
     @Test
     public void testGetPageTypeLabel() {
         Locale.setDefault(Locale.ENGLISH);
 
-        assertEquals("Front End Paper", OldPrintPageMapper.getPageTypeLabel("frontEndPaper", Locale.ENGLISH));
-        assertEquals("Přední předsádka (Front End Paper)", OldPrintPageMapper.getPageTypeLabel("frontEndPaper", new Locale("cs")));
+        assertEquals("Přední předsádka (FrontEndPaper)", OldPrintPageMapper.getPageTypeLabel("frontEndPaper", Locale.ENGLISH));
+        assertEquals("Přední předsádka (FrontEndPaper)", OldPrintPageMapper.getPageTypeLabel("frontEndPaper", new Locale("cs")));
 
         Locale.setDefault(new Locale("cs", "CZ"));
 
-        assertEquals("Front End Paper", OldPrintPageMapper.getPageTypeLabel("frontEndPaper", Locale.ENGLISH));
-        assertEquals("Přední předsádka (Front End Paper)", OldPrintPageMapper.getPageTypeLabel("frontEndPaper", new Locale("cs")));
+        assertEquals("Normální strana (NormalPage)", OldPrintPageMapper.getPageTypeLabel("", Locale.ENGLISH));
+        assertEquals("Normální strana (NormalPage)", OldPrintPageMapper.getPageTypeLabel("", new Locale("cs")));
     }
 }

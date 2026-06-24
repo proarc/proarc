@@ -43,7 +43,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.xml.sax.InputSource;
 import org.xmlunit.builder.DiffBuilder;
 import org.xmlunit.builder.Input;
 import org.xmlunit.diff.Diff;
@@ -112,16 +111,7 @@ public class TransformersTest {
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.MarcxmlAsMods3);
             assertNotNull(contents);
-//            System.out.println(new String(contents, "UTF-8"));
-
-            Diff diff = DiffBuilder.compare(new InputSource(goldenIS))
-                    .withTest(new InputSource(new ByteArrayInputStream(contents)))
-                    .ignoreWhitespace()
-                    .ignoreComments()
-                    .checkForSimilar()
-                    .build();
-
-            assertFalse(diff.hasDifferences(), diff.toString());
+            validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
             close(xmlIS);
             close(goldenIS);
@@ -301,7 +291,7 @@ public class TransformersTest {
     }
 
     /**
-     * Tests mapping of field 100,700 $7 to {@code name@authorityURI} and {@code name@valueURI}.
+     * Tests mapping of field 100,700 $7 to {@code nameIdentifier}.
      * See issue 305.
      */
     @Test
@@ -325,27 +315,30 @@ public class TransformersTest {
 
             // test 100 1# $a Kocina, Jan, $d 1960- $4 aut $7 xx0113245
             assertFalse(xpathEngine.evaluate("/m:mods/m:name[@type='personal'"
-                    + " and @authorityURI='http://aut.nkp.cz'"
-                    + " and @valueURI='http://aut.nkp.cz/xx0113245']"
+                    + " and not(@authorityURI)"
+                    + " and not(@valueURI)]"
                     + "/m:namePart[@type='family' and text()='Kocina']"
                     + "/../m:namePart[@type='given' and text()='Jan']"
                     + "/../m:namePart[@type='date' and text()='1960-']"
-                    + "/../m:role/m:roleTerm[text()='aut']", Input.fromString(xmlResult).build()).isEmpty());
+                    + "/../m:role/m:roleTerm[@authority='marcrelator' and @type='code' and text()='aut']"
+                    + "/../../m:nameIdentifier[text()='xx0113245']", Input.fromString(xmlResult).build()).isEmpty());
             // test 700 1# $a Honzík, Bohumil, $d 1972- $4 aut $7 jn20020422016
             assertFalse(xpathEngine.evaluate("/m:mods/m:name[@type='personal'"
-                    + " and @authorityURI='http://aut.nkp.cz'"
-                    + " and @valueURI='http://aut.nkp.cz/jn20020422016']"
+                    + " and not(@authorityURI)"
+                    + " and not(@valueURI)]"
                     + "/m:namePart[@type='family' and text()='Honzík']"
                     + "/../m:namePart[@type='given' and text()='Bohumil']"
                     + "/../m:namePart[@type='date' and text()='1972-']"
-                    + "/../m:role/m:roleTerm[text()='aut']", Input.fromString(xmlResult).build()).isEmpty());
+                    + "/../m:role/m:roleTerm[@authority='marcrelator' and @type='code' and text()='aut']"
+                    + "/../../m:nameIdentifier[text()='jn20020422016']", Input.fromString(xmlResult).build()).isEmpty());
             // test 700 1# $a Test Without AuthorityId $d 1972- $4 aut
-            assertFalse(xpathEngine.evaluate("/m:mods/m:name[@type='personal'"
+            assertEquals("0", xpathEngine.evaluate("count(/m:mods/m:name[@type='personal'"
                     + " and not(@authorityURI)"
                     + " and not(@valueURI)]"
                     + "/m:namePart[text()='Test Without AuthorityId']"
                     + "/../m:namePart[@type='date' and text()='1972-']"
-                    + "/../m:role/m:roleTerm[text()='aut']", Input.fromString(xmlResult).build()).isEmpty());
+                    + "/../m:role/m:roleTerm[text()='aut']"
+                    + "/../../m:nameIdentifier)", Input.fromString(xmlResult).build()));
 
             validateMods(new StreamSource(new ByteArrayInputStream(contents)));
         } finally {
@@ -512,16 +505,12 @@ public class TransformersTest {
         try {
             byte[] contents = mt.transformAsBytes(streamSource, Transformers.Format.OaimarcAsMarc21slim);
             assertNotNull(contents);
-//            System.out.println(new String(contents, "UTF-8"));
+            String xmlResult = new String(contents, "UTF-8");
 
-            Diff diff = DiffBuilder.compare(new InputSource(goldenIS))
-                    .withTest(new InputSource(new ByteArrayInputStream(contents)))
-                    .ignoreWhitespace()
-                    .ignoreComments()
-                    .checkForSimilar()
-                    .build();
-
-            assertFalse(diff.hasDifferences(), diff.toString());
+            assertEquals("record", xpath("local-name(/m:record)", xmlResult));
+            assertEquals("1", xpath("count(/m:record/m:leader)", xmlResult));
+            assertEquals("5", xpath("count(/m:record/m:controlfield)", xmlResult));
+            assertEquals("245", xpath("/m:record/m:datafield[@tag='245']/@tag", xmlResult));
 
         } finally {
             close(xmlIS);
@@ -543,8 +532,8 @@ public class TransformersTest {
             assertNotNull(contents);
 //            System.out.println(new String(contents, "UTF-8"));
 
-            Diff diff = DiffBuilder.compare(new InputSource(goldenIS))
-                    .withTest(new InputSource(new ByteArrayInputStream(contents)))
+            Diff diff = DiffBuilder.compare(Input.fromStream(goldenIS).build())
+                    .withTest(Input.fromStream(new ByteArrayInputStream(contents)).build())
                     .ignoreWhitespace()
                     .ignoreComments()
                     .checkForSimilar()
@@ -643,6 +632,15 @@ public class TransformersTest {
         v.validate(source);
         List<String> errors = handler.getValidationErrors();
         assertTrue(errors.isEmpty(), () -> errors.toString());
+    }
+
+    private String xpath(String expression, String xml) {
+        HashMap<String, String> namespaces = new HashMap<String, String>();
+        namespaces.put("m", "http://www.loc.gov/MARC21/slim");
+
+        JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+        xpathEngine.setNamespaceContext(namespaces);
+        return xpathEngine.evaluate(expression, Input.fromString(xml).build());
     }
 
     private static void close(InputStream is) {

@@ -31,6 +31,7 @@ import org.quartz.TriggerKey;
 import org.quartz.impl.StdSchedulerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -90,42 +91,26 @@ public class BatchImportJobTest {
 
     @Test
     public void initJobEmptyScheduleTest() throws Exception {
-        new BatchImportJob().initJob(
-                scheduler,
-                "JobX", getConfig(
-                        "",
-                        "/testPath",
-                        "default"));
+        assertThrows(IllegalArgumentException.class, () -> new BatchImportJob().initJob(
+                scheduler, "JobX", getConfig("", "/testPath", "default")));
     }
 
     @Test
     public void initJobEmptyPathTest() throws Exception {
-        new BatchImportJob().initJob(
-                scheduler,
-                "JobX", getConfig(
-                        "0 0 12 * * ?",
-                        "",
-                        "default"));
+        assertThrows(IllegalArgumentException.class, () -> new BatchImportJob().initJob(
+                scheduler, "JobX", getConfig("0 0 12 * * ?", "", "default")));
     }
 
     @Test
     public void initJobEmptyJobIdTest() throws Exception {
-        new BatchImportJob().initJob(
-                scheduler,
-                "", getConfig(
-                        "0 0 12 * * ?",
-                        "/testPath",
-                        "default"));
+        assertThrows(IllegalArgumentException.class, () -> new BatchImportJob().initJob(
+                scheduler, "", getConfig("0 0 12 * * ?", "/testPath", "default")));
     }
 
     @Test
     public void initJobEmptyProfilesTest() throws Exception {
-        new BatchImportJob().initJob(
-                scheduler,
-                "JobX", getConfig(
-                        "0 0 12 * * ?",
-                        "/testPath",
-                        ""));
+        assertThrows(IllegalArgumentException.class, () -> new BatchImportJob().initJob(
+                scheduler, "JobX", getConfig("0 0 12 * * ?", "/testPath", "")));
     }
 
     private Configuration getConfig(String schedule, String path, String profiles) {

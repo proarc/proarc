@@ -103,9 +103,6 @@ public class UserManagerSqlTest {
 
         EasyMock.replay(dataSource);
         manager = new UserManagerSql(dataSource, configuration, daos);
-
-        EasyMock.replay(dataSource);
-        manager = new UserManagerSql(dataSource, configuration, daos);
     }
 
     @AfterEach
@@ -158,6 +155,10 @@ public class UserManagerSqlTest {
             manager.addGroup(group, Arrays.asList(Permissions.REPO_SEARCH_GROUPOWNER),
                     "testGroup", "add remote group");
         }
+        assertNotNull(group.getId());
+        assertEquals(remoteGroupName, group.getRemoteName());
+        assertEquals(remoteType, group.getRemoteType());
+
         UserProfile user = manager.find(remoteUserName, remoteType);
         if (user == null) {
             user = UserProfile.createRemote(remoteUserName, remoteType, "Datel");
@@ -166,6 +167,11 @@ public class UserManagerSqlTest {
             user.setDefaultGroup(group.getId());
             manager.add(user, Arrays.asList(group), "test2", "add remote user");
         }
+        assertNotNull(user.getId());
+        assertEquals(remoteUserName, user.getRemoteName());
+        assertEquals(remoteType, user.getRemoteType());
+        assertEquals(group.getId(), user.getDefaultGroup());
+        assertNull(user.getUserPassword());
     }
 
 }

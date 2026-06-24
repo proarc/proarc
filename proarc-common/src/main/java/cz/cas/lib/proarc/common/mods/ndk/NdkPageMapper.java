@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper.IdentifierItem;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
@@ -109,7 +110,8 @@ public class NdkPageMapper extends NdkMapper {
     @Override
     public Page toJsonObject(ModsDefinition mods, Context ctx) {
         Page page = new Page();
-        if (NdkPlugin.MODEL_NDK_PAGE.equals(super.getModelId())) {
+        if (NdkPlugin.MODEL_NDK_PAGE.equals(super.getModelId()) || OldPrintPlugin.MODEL_PAGE.equals(super.getModelId())) {
+
             for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
                 page.setTitle(getTitleDefinitionValue(titleInfo, "title"));
                 page.setSubtitle(getTitleDefinitionValue(titleInfo, "subtitle"));

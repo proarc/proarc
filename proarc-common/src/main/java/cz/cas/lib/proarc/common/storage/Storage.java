@@ -2,7 +2,7 @@ package cz.cas.lib.proarc.common.storage;
 
 public enum Storage {
 
-    LOCAL, FEDORA, AKUBRA;
+    LOCAL, AKUBRA;
 
     public static Storage fromString(String value) {
         if (value != null) {

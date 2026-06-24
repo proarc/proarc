@@ -56,6 +56,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class NdkSipExportTest {
 
@@ -73,6 +74,11 @@ public class NdkSipExportTest {
 
     @BeforeEach
     public void setUp() throws Exception {
+        assumeTrue(Boolean.getBoolean("proarc.test.akubra.sip"),
+                "NdkSipExportTest requires a configured Akubra repository with fixed SIP export fixture UUIDs. Enable with -Dproarc.test.akubra.sip=true.");
+        assumeTrue(Storage.AKUBRA.equals(appConfig.getTypeOfStorage()),
+                "NdkSipExportTest requires AKUBRA storage.");
+
         if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             this.akubraConfiguration = AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome());
         } else {

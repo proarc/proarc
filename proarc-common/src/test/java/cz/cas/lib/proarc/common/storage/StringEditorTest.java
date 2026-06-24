@@ -54,7 +54,7 @@ public class StringEditorTest {
     @Test
     public void testReadWrite() throws Exception {
         LocalStorage storage = new LocalStorage();
-        File foxml = tempDir;
+        File foxml = new File(tempDir, "object.xml");
         LocalObject local = storage.create(foxml);
         StringEditor instance = StringEditor.ocr(local);
         final String content = "ocr";

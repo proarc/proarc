@@ -22,8 +22,10 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkNewPageMapper;
 import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
 import cz.cas.lib.proarc.mods.PhysicalDescriptionNote;
+import cz.cas.lib.proarc.mods.Text;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -74,6 +76,15 @@ public class OldPrintPageMapper extends NdkNewPageMapper {
                 }
             }
         }
+
+        for (PartDefinition part : mods.getPart()) {
+            for (Text text : part.getText()) {
+                if (text.getValue() != null && !text.getValue().isEmpty()) {
+                    return text.getValue();
+                }
+            }
+        }
+
         return null;
     }
 

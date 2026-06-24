@@ -225,6 +225,9 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
                 table.create, table.parentPid, table.timestamp, table.log, table.profileId, table.estimateItemNumber, table.priority, table.updated, table.itemUpdated, table.nightOnly);
         cmd.select(ut.username);
         cmd.join(table.userId, ut.id);
+        if (filter.getUserId() != null) {
+            cmd.where(table.userId.is(filter.getUserId()));
+        }
         if (filter.getCreatorId() != null) {
             cmd.where(ut.id.is(filter.getCreatorId()));
         }
@@ -305,7 +308,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
             if (!reader.skipRows(filter.getOffset())) {
                 return Collections.emptyList();
             }
-            ArrayList<BatchView> viewItems = new ArrayList<BatchView>(filter.getMaxCount());
+            ArrayList<BatchView> viewItems = new ArrayList<BatchView>();
             for (Iterator<DBRecordData> it = reader.iterator(filter.getMaxCount()); it.hasNext();) {
                 DBRecordData rec = it.next();
                 BatchView view = new BatchView();

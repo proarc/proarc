@@ -21,10 +21,20 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.ServerSocket;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+import org.apache.empire.db.DBCmdType;
 import org.apache.empire.db.DBCommand;
+import org.apache.empire.db.DBDatabaseDriver;
+import org.apache.empire.db.DBRelation;
+import org.apache.empire.db.DBSQLScript;
+import org.apache.empire.db.DBTable;
 import org.dbunit.DatabaseUnitException;
 import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.DatabaseConnection;
@@ -35,6 +45,7 @@ import org.dbunit.dataset.xml.FlatXmlDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.dbunit.ext.postgresql.PostgresqlDataTypeFactory;
 import org.dbunit.operation.DatabaseOperation;
+import org.opentest4j.TestAbortedException;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -44,19 +55,32 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public class DbUnitSupport {
 
+    private static final String JDBC_DRIVER = "org.postgresql.Driver";
+    private static final String EMPIRE_DRIVER = "org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL";
+    private static final String POSTGRES_IMAGE = "postgres:16-alpine";
+    private static final String POSTGRES_DATABASE = "proarc";
+    private static final String POSTGRES_USER = "proarcAdmin";
+    private static final String POSTGRES_PASSWORD = "proarc";
+    private static final DockerPostgres POSTGRES = new DockerPostgres();
+
     private final EmpireConfiguration emireCfg;
     private static String dtdSchema;
 
     public DbUnitSupport() {
-            assertNotNull(System.getProperty("proarc-common.DbUnitSupport.jdbc.user"));
+        POSTGRES.start();
         emireCfg = new EmpireConfiguration(
-                System.getProperty("proarc-common.DbUnitSupport.jdbc.driver"),
-                System.getProperty("proarc-common.DbUnitSupport.jdbc.url"),
-                System.getProperty("proarc-common.DbUnitSupport.jdbc.user"),
-                System.getProperty("proarc-common.DbUnitSupport.jdbc.passwd"),
-                System.getProperty("proarc-common.DbUnitSupport.empiredb.driver"),
+                JDBC_DRIVER,
+                POSTGRES.getJdbcUrl(),
+                POSTGRES_USER,
+                POSTGRES_PASSWORD,
+                EMPIRE_DRIVER,
                 null
         );
+        try {
+            resetDatabase();
+        } catch (Exception ex) {
+            throw abort("Cannot reset Docker PostgreSQL test database.", ex);
+        }
     }
 
     public EmpireConfiguration getEmireCfg() {
@@ -144,6 +168,32 @@ public class DbUnitSupport {
         dtdSchema = null;
     }
 
+    private void resetDatabase() throws Exception {
+        dtdSchema = null;
+        ProarcDatabase schema = getEmireCfg().getSchema();
+        DBDatabaseDriver driver = getEmireCfg().getDriver();
+        Connection conn = getEmireCfg().getConnection();
+        try {
+            schema.open(driver, conn);
+            DBSQLScript script = new DBSQLScript();
+            for (DBRelation relation : schema.getRelations()) {
+                EmpireUtils.dropRelation(relation, driver, script);
+            }
+            for (DBTable table : schema.getTables()) {
+                driver.getDDLScript(DBCmdType.DROP, table, script);
+            }
+            conn.setAutoCommit(true);
+            try {
+                script.executeAll(driver, conn, true);
+            } finally {
+                conn.setAutoCommit(false);
+            }
+        } finally {
+            conn.close();
+        }
+        schema.init(getEmireCfg());
+    }
+
     private Reader getDtdSchema(boolean resetDtdSchema) throws Exception {
         if (resetDtdSchema || dtdSchema == null) {
             Connection c = getEmireCfg().getConnection();
@@ -159,6 +209,96 @@ public class DbUnitSupport {
             }
         }
         return new StringReader(dtdSchema);
+    }
+
+    private static final class DockerPostgres {
+
+        private String containerName;
+        private int port;
+        private boolean started;
+        private TestAbortedException unavailable;
+
+        synchronized void start() {
+            if (started) {
+                return;
+            }
+            if (unavailable != null) {
+                throw unavailable;
+            }
+            port = findFreePort();
+            containerName = "proarc-dbunit-" + ProcessHandle.current().pid() + "-" + port;
+            try {
+                runDocker(Arrays.asList(
+                        "docker", "run", "--rm", "--name", containerName,
+                        "-e", "POSTGRES_DB=" + POSTGRES_DATABASE,
+                        "-e", "POSTGRES_USER=" + POSTGRES_USER,
+                        "-e", "POSTGRES_PASSWORD=" + POSTGRES_PASSWORD,
+                        "-p", "127.0.0.1:" + port + ":5432",
+                        "-d", POSTGRES_IMAGE
+                ), Duration.ofMinutes(3));
+                Runtime.getRuntime().addShutdownHook(new Thread(() ->
+                        runDocker(Arrays.asList("docker", "rm", "-f", containerName), Duration.ofSeconds(30))));
+                waitForDatabase();
+                started = true;
+            } catch (TestAbortedException ex) {
+                unavailable = ex;
+                throw ex;
+            }
+        }
+
+        String getJdbcUrl() {
+            return "jdbc:postgresql://127.0.0.1:" + port + "/" + POSTGRES_DATABASE;
+        }
+
+        private void waitForDatabase() {
+            long deadline = System.currentTimeMillis() + Duration.ofSeconds(60).toMillis();
+            while (System.currentTimeMillis() < deadline) {
+                try (Connection ignored = DriverManager.getConnection(getJdbcUrl(), POSTGRES_USER, POSTGRES_PASSWORD)) {
+                    return;
+                } catch (SQLException ex) {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                        throw abort("Interrupted while waiting for Docker PostgreSQL.", interrupted);
+                    }
+                }
+            }
+            throw abort("Docker PostgreSQL did not start in time.", null);
+        }
+
+        private static int findFreePort() {
+            try (ServerSocket socket = new ServerSocket(0)) {
+                socket.setReuseAddress(false);
+                return socket.getLocalPort();
+            } catch (Exception ex) {
+                throw abort("Cannot allocate local port for Docker PostgreSQL.", ex);
+            }
+        }
+
+        private static void runDocker(List<String> command, Duration timeout) {
+            try {
+                Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
+                boolean finished = process.waitFor(timeout.toMillis(), java.util.concurrent.TimeUnit.MILLISECONDS);
+                if (!finished) {
+                    process.destroyForcibly();
+                    throw abort("Docker command timed out: " + command, null);
+                }
+                if (process.exitValue() != 0) {
+                    String output = new String(process.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                    throw abort("Docker command failed: " + command + "\n" + output, null);
+                }
+            } catch (Exception ex) {
+                throw abort("DbUnit Docker PostgreSQL tests require runnable Docker CLI: " + command, ex);
+            }
+        }
+
+    }
+
+    private static TestAbortedException abort(String message, Throwable cause) {
+        return cause == null
+                ? new TestAbortedException(message)
+                : new TestAbortedException(message, cause);
     }
 
 }

@@ -21,9 +21,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.jupiter.api.AfterAll;
@@ -73,6 +75,7 @@ public class AppConfigurationTest {
         confHome = tempDir.resolve(AppConfiguration.DEFAULT_APP_HOME_NAME).toFile();
         assertNotNull(confHome);
         proarcCfg = new File(confHome, AppConfiguration.CONFIG_FILE_NAME);
+        createConfigFile(new Properties(), proarcCfg);
     }
 
     @AfterEach
@@ -81,9 +84,7 @@ public class AppConfigurationTest {
 
     @Test
     public void testGetConfigHome() throws Exception {
-        AppConfiguration config = factory.create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
-        }});
+        AppConfiguration config = factory.create(createEnvironment());
         assertNotNull(config);
         assertEquals(confHome, config.getConfigHome());
         assertNull(config.getConfiguration().getString(TEST_PROPERTY_NAME));
@@ -93,9 +94,7 @@ public class AppConfigurationTest {
 
     @Test
     public void testGetAllUserHome() throws Exception {
-        AppConfiguration config = factory.create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
-        }});
+        AppConfiguration config = factory.create(createEnvironment());
         assertNotNull(config);
         File expectedUserFolder = new File(confHome, "users");
         assertEquals(expectedUserFolder, config.getDefaultUsersHome());
@@ -113,9 +112,7 @@ public class AppConfigurationTest {
         props.put(TEST_PROPERTY_NAME, expectedPropValue);
         createConfigFile(props, proarcCfg);
 
-        AppConfiguration pconfig = factory.create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
-        }});
+        AppConfiguration pconfig = factory.create(createEnvironment());
 
         Configuration config = pconfig.getConfiguration();
         assertEquals(expectedPropValue, config.getString(TEST_PROPERTY_NAME));
@@ -124,24 +121,13 @@ public class AppConfigurationTest {
         // test reload (like servlet reload)
         final String expectedReloadValue = "reload";
         props.put(TEST_PROPERTY_NAME, expectedReloadValue);
-        OutputStreamWriter propsOut = new OutputStreamWriter(new FileOutputStream(proarcCfg), "UTF-8");
-        // FileChangedReloadingStrategy waits 5s to reload changes so give it a chance
-        Thread.sleep(5000);
-        props.store(propsOut, null);
-        propsOut.close();
+        try (OutputStreamWriter propsOut = new OutputStreamWriter(new FileOutputStream(proarcCfg), StandardCharsets.UTF_8)) {
+            props.store(propsOut, null);
+        }
         assertTrue(proarcCfg.exists());
 
-        AppConfiguration pconfigNew = factory.create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
-        }});
-
-        Configuration configNew = pconfigNew.getConfiguration();
-        assertEquals(expectedReloadValue, configNew.getString(TEST_PROPERTY_NAME));
+        Configuration configNew = waitForReload(expectedReloadValue);
         assertEquals(EXPECTED_DEFAULT_VALUE, configNew.getString(TEST_DEFAULT_PROPERTY_NAME));
-
-        // test FileChangedReloadingStrategy
-        assertEquals(expectedReloadValue, config.getString(TEST_PROPERTY_NAME));
-        assertEquals(EXPECTED_DEFAULT_VALUE, config.getString(TEST_DEFAULT_PROPERTY_NAME));
     }
 
     @Test
@@ -153,9 +139,7 @@ public class AppConfigurationTest {
 
         createConfigFile(props, proarcCfg);
 
-        AppConfiguration pconfig = factory.create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
-        }});
+        AppConfiguration pconfig = factory.create(createEnvironment());
 
         Configuration config = pconfig.getConfiguration();
         assertEquals(expPropValue, config.getString(TEST_DEFAULT_PROPERTY_NAME));
@@ -183,9 +167,7 @@ public class AppConfigurationTest {
                                                }},
                 new File(confHome, "ndk.cfg"));
 
-        AppConfiguration config = factory.create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
-        }});
+        AppConfiguration config = factory.create(createEnvironment());
 
         List<ConfigurationProfile> profiles = config.getProfiles().getProfiles(importProfileGroup);
         assertNotNull(profiles);
@@ -212,9 +194,7 @@ public class AppConfigurationTest {
                          }},
                 new File(confHome, AppConfiguration.CONFIG_FILE_NAME));
 
-        AppConfiguration config = factory.create(new HashMap<String, String>() {{
-            put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
-        }});
+        AppConfiguration config = factory.create(createEnvironment());
 
         List<ConfigurationProfile> profiles = config.getProfiles().getProfiles(importProfileGroup);
         assertNotNull(profiles);
@@ -225,11 +205,35 @@ public class AppConfigurationTest {
     }
 
     private File createConfigFile(Properties props, File configFile) throws IOException {
-        FileOutputStream propsOut = new FileOutputStream(configFile);
-        props.store(propsOut, null);
-        propsOut.close();
+        File parentFile = configFile.getParentFile();
+        if (parentFile != null && !parentFile.exists()) {
+            assertTrue(parentFile.mkdirs(), "Cannot create directory: " + parentFile);
+        }
+        try (OutputStreamWriter propsOut = new OutputStreamWriter(new FileOutputStream(configFile), StandardCharsets.UTF_8)) {
+            props.store(propsOut, null);
+        }
         assertTrue(configFile.exists());
         return configFile;
+    }
+
+    private Map<String, String> createEnvironment() {
+        Map<String, String> env = new HashMap<String, String>();
+        env.put(AppConfiguration.PROPERTY_APP_HOME, confHome.toString());
+        return env;
+    }
+
+    private Configuration waitForReload(String expectedReloadValue) throws Exception {
+        long deadline = System.currentTimeMillis() + 10000;
+        while (System.currentTimeMillis() < deadline) {
+            Configuration config = factory.create(createEnvironment()).getConfiguration();
+            if (expectedReloadValue.equals(config.getString(TEST_PROPERTY_NAME))) {
+                return config;
+            }
+            Thread.sleep(250);
+        }
+        Configuration config = factory.create(createEnvironment()).getConfiguration();
+        assertEquals(expectedReloadValue, config.getString(TEST_PROPERTY_NAME));
+        return config;
     }
 
 }

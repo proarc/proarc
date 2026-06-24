@@ -184,7 +184,8 @@ public class AlephXServerTest {
             addProperty(CatalogConfiguration.PROPERTY_URL, "http://aleph.nkp.cz/X?base=nkc");
             addProperty(CatalogConfiguration.PROPERTY_NAME, "test");
             addProperty(CatalogConfiguration.PROPERTY_TYPE, AlephXServer.TYPE);
-            addProperty(CatalogConfiguration.PROPERTY_FIELDS, "sg, issn");
+            addProperty(CatalogConfiguration.PROPERTY_FIELDS, "sg");
+            addProperty(CatalogConfiguration.PROPERTY_FIELDS, "issn");
             addProperty(CatalogConfiguration.FIELD_PREFIX + ".sg.title", "Short Signature");
             addProperty(CatalogConfiguration.FIELD_PREFIX + ".issn.title", "ISSN");
             addProperty(CatalogConfiguration.FIELD_PREFIX + ".sg.query", "sg");

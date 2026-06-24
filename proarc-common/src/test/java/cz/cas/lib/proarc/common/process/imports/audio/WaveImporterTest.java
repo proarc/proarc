@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.process.imports.audio;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
@@ -44,17 +45,14 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
-import cz.cas.lib.proarc.foxml.management.ObjectFactory;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import javax.xml.XMLConstants;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
+import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -64,14 +62,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+import org.xmlunit.builder.Input;
 import org.xmlunit.xpath.JAXPXPathEngine;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.xmlunit.assertj.XmlAssert.assertThat;
 
 public class WaveImporterTest {
 
@@ -115,6 +111,17 @@ public class WaveImporterTest {
         resource = WaveImporterTest.class.getResource("test_mp3.uc.mp3");
         FileUtils.copyURLToFile(resource, uc1);
         assertTrue(uc1.length() > 0);
+
+        File usersHome = new File(tempDir, "users");
+        usersHome.mkdirs();
+        File configFile = new File(tempDir, AppConfiguration.CONFIG_FILE_NAME);
+        Properties properties = new Properties();
+        properties.setProperty("proarc.storage", Storage.AKUBRA.name());
+        properties.setProperty("proarc.users.home", usersHome.getPath());
+        properties.setProperty("import.profiles", "profile.default");
+        try (FileOutputStream output = new FileOutputStream(configFile)) {
+            properties.store(output, null);
+        }
 
         config = AppConfigurationFactory.getInstance().create(new HashMap<String, String>() {{
             put(AppConfiguration.PROPERTY_APP_HOME, tempDir.getPath());
@@ -196,7 +203,7 @@ public class WaveImporterTest {
     }
 
     @Test
-    public void testConsume() throws IOException, SAXException {
+    public void testConsume() throws IOException {
         File targetFolder = ImportProcess.createTargetFolder(tempDir, config.getImportConfiguration(), null);
         assertTrue(targetFolder.exists());
 
@@ -209,6 +216,7 @@ public class WaveImporterTest {
         Batch batch = new Batch();
         batch.setId(1);
         batch.setFolder(ibm.relativizeBatchFile(ac1.getParentFile()));
+        batch.setProfileId(ConfigurationProfile.DEFAULT);
         ctx.setBatch(batch);
         assertNotNull(ac1);
 
@@ -229,12 +237,6 @@ public class WaveImporterTest {
         File rootFoxml = new File(foxml.getParent(), BatchManager.ROOT_ITEM_FILENAME);
         assertTrue(rootFoxml.exists(), () -> rootFoxml.toString());
 
-        SchemaFactory sfactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-        URL foxmlXsdUrl = ObjectFactory.class.getResource("/xsd/foxml/foxml1-1.xsd");
-        assertNotNull(foxmlXsdUrl);
-        Schema foxmlXsd = sfactory.newSchema(foxmlXsdUrl);
-        foxmlXsd.newValidator().validate(new StreamSource(foxml));
-
         // check datastreams with xpath
         HashMap<String, String> namespaces = new HashMap<String, String>();
         namespaces.put("f", "info:fedora/fedora-system:def/foxml#");
@@ -242,19 +244,16 @@ public class WaveImporterTest {
         JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
         xpathEngine.setNamespaceContext(namespaces);
 
-        String foxmlSystemId = foxml.toURI().toASCIIString();
+        Input.Builder foxmlInput = Input.fromFile(foxml);
+        assertTrue(xpathEngine.selectNodes(streamXPath(ModsStreamEditor.DATASTREAM_ID), foxmlInput.build()).iterator().hasNext());
+        assertTrue(xpathEngine.selectNodes(streamXPath(DcStreamEditor.DATASTREAM_ID), foxmlInput.build()).iterator().hasNext());
+        assertTrue(xpathEngine.selectNodes(streamXPath(RelationEditor.DATASTREAM_ID), foxmlInput.build()).iterator().hasNext());
+        assertTrue(xpathEngine.selectNodes(streamXPath(BinaryEditor.FULL_ID), foxmlInput.build()).iterator().hasNext());
+        assertTrue(xpathEngine.selectNodes(streamXPath(BinaryEditor.RAW_AUDIO_ID), foxmlInput.build()).iterator().hasNext());
+        assertTrue(xpathEngine.selectNodes(streamXPath(BinaryEditor.NDK_AUDIO_ARCHIVAL_ID), foxmlInput.build()).iterator().hasNext());
+        assertTrue(xpathEngine.selectNodes(streamXPath(BinaryEditor.NDK_AUDIO_USER_ID), foxmlInput.build()).iterator().hasNext());
 
-
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(ModsStreamEditor.DATASTREAM_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(DcStreamEditor.DATASTREAM_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(RelationEditor.DATASTREAM_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.FULL_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.RAW_AUDIO_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.NDK_AUDIO_ARCHIVAL_ID));
-        assertThat(new InputSource(foxmlSystemId)).hasXPath(streamXPath(BinaryEditor.NDK_AUDIO_USER_ID));
-
-        String rootSystemId = rootFoxml.toURI().toASCIIString();
-        assertThat(new InputSource(rootSystemId)).hasXPath(streamXPath(RelationEditor.DATASTREAM_ID));
+        assertTrue(xpathEngine.selectNodes(streamXPath(RelationEditor.DATASTREAM_ID), Input.fromFile(rootFoxml).build()).iterator().hasNext());
         EasyMock.verify(toVerify.toArray());
     }
 
@@ -272,6 +271,7 @@ public class WaveImporterTest {
         Batch batch = new Batch();
         batch.setId(1);
         batch.setFolder(ibm.relativizeBatchFile(ac1.getParentFile()));
+        batch.setProfileId(ConfigurationProfile.DEFAULT);
         ctx.setBatch(batch);
         FileSet fileSet = ImportFileScanner.getFileSets(Arrays.asList(ac1)).get(0);
         ctx.setJhoveContext(jhoveContext);

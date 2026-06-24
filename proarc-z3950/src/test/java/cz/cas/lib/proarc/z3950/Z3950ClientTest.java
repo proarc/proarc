@@ -26,12 +26,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.JdkVersion;
 import org.w3c.dom.Document;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * See src/test/resources/log4j.properties to configure jzkit logging
@@ -42,6 +41,7 @@ public class Z3950ClientTest {
     private String host;
     private String port;
     private String base;
+    private String recordCharset;
 
     public Z3950ClientTest() {
     }
@@ -59,10 +59,9 @@ public class Z3950ClientTest {
         host = System.getProperty("Z3950ClientTest.host");
         port = System.getProperty("Z3950ClientTest.port");
         base = System.getProperty("Z3950ClientTest.base");
-        assertNotNull(host);
-        assertNotNull(port);
-        assertNotNull(base);
-        assertEquals(JdkVersion.JAVA_17, JdkVersion.getMajorJavaVersion());
+        recordCharset = System.getProperty("Z3950ClientTest.recordCharset");
+        assumeTrue(isConfigured(host) && isConfigured(port) && isConfigured(base) && isConfigured(recordCharset),
+                "Z3950ClientTest requires Z3950ClientTest.host/port/base/recordCharset");
     }
 
     @AfterEach
@@ -72,7 +71,7 @@ public class Z3950ClientTest {
     @Test
     public void testSearch() throws Exception {
         String query = System.getProperty("Z3950ClientTest.testSearch.query");
-        assertNotNull(query);
+        assumeTrue(isConfigured(query), "Z3950ClientTest requires Z3950ClientTest.testSearch.query");
         Z3950Client client = new Z3950Client(host, Integer.parseInt(port), base);
         try {
             Iterable<byte[]> search = client.search(query);
@@ -80,7 +79,7 @@ public class Z3950ClientTest {
             assertTrue(search.iterator().hasNext());
             Transformer t = TransformerFactory.newInstance().newTransformer();
             for (byte[] content : search) {
-                Document marcxml = Z3950Client.toMarcXml(content, "cp1250");
+                Document marcxml = Z3950Client.toMarcXml(content, recordCharset);
                 StringWriter dump = new StringWriter();
                 t.transform(new DOMSource(marcxml), new StreamResult(dump));
                 System.out.println("MarcXML:\n" + dump);
@@ -90,6 +89,10 @@ public class Z3950ClientTest {
             client.close();
         }
 
+    }
+
+    private static boolean isConfigured(String value) {
+        return value != null && !value.isBlank();
     }
 
 }

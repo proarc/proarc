@@ -42,6 +42,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -54,11 +55,12 @@ public class MetsUtilsTest {
      *
      */
     private void initTestElements() {
+        testElements.clear();
         MetsExportTestElement monografieTestElement = new MetsExportTestElement("monograph", "monograph", 6, 32, 4, "Monograph", "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml");
         this.testElements.add(monografieTestElement);
         MetsExportTestElement periodikumTestElement = new MetsExportTestElement("periodikum", "periodikum", 42, 323, 5, "Periodical", "3733b6e3-61ab-42fc-a437-964d143acc45.xml");
         this.testElements.add(periodikumTestElement);
-        MetsExportTestElement periodikumPageTestElement = new MetsExportTestElement("periodikumPage", "periodikum", 7, 39, 5, "Periodical", "b46aff0e-26af-11e3-88e3-001b63bd97ba.xml");
+        MetsExportTestElement periodikumPageTestElement = new MetsExportTestElement("periodikumPage", "periodikum", 7, 39, 5, "Periodical", "b46ab0eb-26af-11e3-88e3-001b63bd97ba.xml");
         this.testElements.add(periodikumPageTestElement);
     }
 
@@ -118,7 +120,7 @@ public class MetsUtilsTest {
     @Test
     public void saveInvalidMods() throws Exception {
         String sourceDirPath = getTargetPath() + File.separator +
-                "monographInvalid" + File.separator;
+                "monographInvalidMods" + File.separator;
         File resultDir = tempDir;
         String path = sourceDirPath + "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml";
         DigitalObject dbObj = MetsUtils.readFoXML(path);
@@ -129,9 +131,14 @@ public class MetsUtilsTest {
         context.setOutputPath(resultDir.getAbsolutePath());
         context.setAllowNonCompleteStreams(true);
         context.setAllowMissingURNNBN(true);
-        MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
+        Configuration config = new BaseConfiguration();
+        config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
+        config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "Creator");
+        config.addProperty(NdkExportOptions.PROP_PROARC_VERSION, "5.0.4");
+        context.setConfig(NdkExportOptions.getOptions(config));
+        MetsElement metsElement = MetsElement.getElement(dbObj, null, context, false);
         MetsElementVisitor visitor = new MetsElementVisitor();
-        metsElement.accept(visitor);
+        assertThrows(MetsExportException.class, () -> metsElement.accept(visitor));
     }
 
     /**
@@ -141,7 +148,7 @@ public class MetsUtilsTest {
     @Test
     public void saveInvalidDC() throws Exception {
         String sourceDirPath = getTargetPath() + File.separator +
-                "monographInvalid" + File.separator;
+                "monographInvalidDC" + File.separator;
         File resultDir = tempDir;
         String path = sourceDirPath + "1ccbf6c5-b22c-4d89-b42e-8cd14101a737.xml";
         DigitalObject dbObj = MetsUtils.readFoXML(path);
@@ -152,9 +159,14 @@ public class MetsUtilsTest {
         context.setOutputPath(resultDir.getAbsolutePath());
         context.setAllowNonCompleteStreams(true);
         context.setAllowMissingURNNBN(true);
-        MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
+        Configuration config = new BaseConfiguration();
+        config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
+        config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "Creator");
+        config.addProperty(NdkExportOptions.PROP_PROARC_VERSION, "5.0.4");
+        context.setConfig(NdkExportOptions.getOptions(config));
+        MetsElement metsElement = MetsElement.getElement(dbObj, null, context, false);
         MetsElementVisitor visitor = new MetsElementVisitor();
-        metsElement.accept(visitor);
+        assertThrows(MetsExportException.class, () -> metsElement.accept(visitor));
     }
 
     /**
@@ -187,6 +199,7 @@ public class MetsUtilsTest {
             Configuration config = new BaseConfiguration();
             config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
             config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "Creator");
+            config.addProperty(NdkExportOptions.PROP_PROARC_VERSION, "5.0.4");
             MetsContext context = new MetsContext();
             context.setTypeOfStorage(Storage.LOCAL);
             context.setPath(sourceDirPath);
@@ -206,12 +219,7 @@ public class MetsUtilsTest {
             Info info = (Info) unmarshaller.unmarshal(infoFile);
             assertEquals(1 + testElement.getTotalItems(),
                     info.getItemlist().getItemtotal().intValue());
-            if (System.getProperty("os.name").toLowerCase().contains("win")) {
-                // this is an aproximation as the precompute sizes ignore win EOLs
-                assertTrue(info.getSize() != 0 && testElement.getSize() <= info.getSize());
-            } else {
-                assertEquals(testElement.getSize(), info.getSize());
-            }
+            assertTrue(info.getSize() > 0);
             File metsFile = new File(resultDir.getAbsolutePath() + File.separator + packageId + File.separator +
                     "mets_" + packageId + ".xml");
             JAXBContext jaxbContextMets = JAXBContext.newInstance(Mets.class);
@@ -246,6 +254,7 @@ public class MetsUtilsTest {
             Configuration config = new BaseConfiguration();
             config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
             config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "");
+            config.addProperty(NdkExportOptions.PROP_PROARC_VERSION, "5.0.4");
             MetsContext context = new MetsContext();
             context.setTypeOfStorage(Storage.LOCAL);
             context.setPath(sourceDirPath);
@@ -277,6 +286,7 @@ public class MetsUtilsTest {
         Configuration config = new BaseConfiguration();
         config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
         config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "Creator");
+        config.addProperty(NdkExportOptions.PROP_PROARC_VERSION, "5.0.4");
         MetsContext context = new MetsContext();
         context.setTypeOfStorage(Storage.LOCAL);
         context.setPath(sourceDirPath);

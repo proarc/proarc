@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  *
@@ -89,12 +90,11 @@ public class Z3950CatalogTest {
         String base = System.getProperty("Z3950CatalogTest.base");
         String recordCharset = System.getProperty("Z3950CatalogTest.recordCharset");
 
-        assertNotNull(host);
-        assertNotNull(port);
-        assertNotNull(base);
+        assumeTrue(isConfigured(host) && isConfigured(port) && isConfigured(base),
+                "Z3950CatalogTest requires Z3950CatalogTest.host/port/base");
 
         String fieldName = "sys";
-        String value = "001704913";
+        String value = "001761692";
         Locale locale = null;
         final String catalogId = "catalogId";
         CatalogConfiguration c = new CatalogConfiguration(catalogId, "", new BaseConfiguration() {{
@@ -113,7 +113,9 @@ public class Z3950CatalogTest {
     public void testReadFields() {
         final String catalogId = "catalogId";
         CatalogConfiguration c = new CatalogConfiguration(catalogId, "", new BaseConfiguration() {{
-            addProperty(CatalogConfiguration.PROPERTY_FIELDS, "field1,field2 , field3  ");
+            addProperty(CatalogConfiguration.PROPERTY_FIELDS, "field1");
+            addProperty(CatalogConfiguration.PROPERTY_FIELDS, "field2");
+            addProperty(CatalogConfiguration.PROPERTY_FIELDS, "field3");
             addProperty(CatalogConfiguration.FIELD_PREFIX + '.' + "field1" + '.' + Z3950Catalog.PROPERTY_FIELD_QUERY, "query1");
             addProperty(CatalogConfiguration.FIELD_PREFIX + '.' + "field2" + '.' + Z3950Catalog.PROPERTY_FIELD_QUERY, "query2");
         }});
@@ -132,5 +134,9 @@ public class Z3950CatalogTest {
         Z3950Field field3 = result.get("field3");
         assertNotNull(field3, "field3");
         assertNull(field3.getQuery());
+    }
+
+    private static boolean isConfigured(String value) {
+        return value != null && !value.isBlank();
     }
 }

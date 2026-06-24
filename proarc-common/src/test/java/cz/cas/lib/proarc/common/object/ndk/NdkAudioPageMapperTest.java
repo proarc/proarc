@@ -53,11 +53,11 @@ public class NdkAudioPageMapperTest {
     @Test
     public void testGetPageTypeLabel() {
         Locale.setDefault(Locale.ENGLISH);
-        assertEquals("Normal Page", NdkAudioPageMapper.getPageTypeLabel("normalPage", Locale.getDefault()));
-        assertEquals("NormalPage", NdkAudioPageMapper.getPageTypeLabel("", Locale.getDefault()));
+        assertEquals("Audio", NdkAudioPageMapper.getPageTypeLabel("audio", Locale.getDefault()));
+        assertEquals("audio", NdkAudioPageMapper.getPageTypeLabel("", Locale.getDefault()));
 
         Locale.setDefault(new Locale("cs", "CZ"));
-        assertEquals("Normální strana", NdkAudioPageMapper.getPageTypeLabel("normalPage", Locale.getDefault()));
-        assertEquals("NormalPage", NdkAudioPageMapper.getPageTypeLabel("", Locale.getDefault()));
+        assertEquals("Zvuková nahrávka", NdkAudioPageMapper.getPageTypeLabel("audio", Locale.getDefault()));
+        assertEquals("audio", NdkAudioPageMapper.getPageTypeLabel("", Locale.getDefault()));
     }
 }

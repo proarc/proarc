@@ -1099,6 +1099,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                     } else {
                                         fileMd5Info = md5InfosMap.get(streamName);
                                     }
+                                    fileMd5Info.setFileName(dataStream + Const.mimeToExtensionMap.get(dv.getMIMETYPE()));
                                     fileMd5Info.setCreated(dv.getCREATED());
                                 }
                                 if (dv.getBinaryContent() != null) {
@@ -1110,6 +1111,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                                     } else {
                                         fileMd5Info = md5InfosMap.get(streamName);
                                     }
+                                    fileMd5Info.setFileName(dataStream + Const.mimeToExtensionMap.get(dv.getMIMETYPE()));
                                     fileMd5Info.setCreated(dv.getCREATED());
                                 }
                             }
@@ -1144,14 +1146,41 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                 } catch (JAXBException | IOException | TransformerException e) {
                     throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
                 }
+            } else if (Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage())) {
+                Iterator<DatastreamVersionType> dvIter = rawDS.getDatastreamVersion().iterator();
+                while (dvIter.hasNext()) {
+                    DatastreamVersionType dv = dvIter.next();
+                    if (dv.getBinaryContent() != null) {
+                        is = new ByteArrayInputStream(dv.getBinaryContent());
+                    } else if (dv.getContentLocation() != null && dv.getContentLocation().getREF() != null) {
+                        try {
+                            File file = new File(URI.create(dv.getContentLocation().getREF()));
+                            if (file.isFile()) {
+                                is = new FileInputStream(file);
+                            }
+                        } catch (IllegalArgumentException e) {
+                            if (!metsElement.getMetsContext().isAllowNonCompleteStreams()) {
+                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
+                            }
+                        } catch (FileNotFoundException e) {
+                            if (!metsElement.getMetsContext().isAllowNonCompleteStreams()) {
+                                throw new MetsExportException(metsElement.getOriginalPid(), "Unable to read raw datastream content", false, e);
+                            }
+                        }
+                    }
+                }
             }
 
+            if (is == null && metsElement.getMetsContext().isAllowNonCompleteStreams()) {
+                return null;
+            }
             try {
                 rawInfo = MetsUtils.getDigest(is);
             } catch (Exception e) {
                 throw new MetsExportException("Unable to process raw file for pid " + metsElement.getOriginalPid(), false, e);
             }
             rawInfo.setMimeType(rawDS.getDatastreamVersion().get(0).getMIMETYPE());
+            rawInfo.setFileName("RAW" + Const.mimeToExtensionMap.get(rawInfo.getMimeType()));
             rawInfo.setCreated(rawDS.getDatastreamVersion().get(0).getCREATED());
         }
         return rawInfo;
@@ -1652,9 +1681,11 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             PremisEditor premisEditor = null;
             try {
                 DigitalObjectManager dom = DigitalObjectManager.getDefault();
-                ProArcObject fObject = dom.find(metsElement.getOriginalPid(), null);
-                premisEditor = PremisEditor.ndkArchival(fObject);
-                premisMets = premisEditor.readMets();
+                if (dom != null) {
+                    ProArcObject fObject = dom.find(metsElement.getOriginalPid(), null);
+                    premisEditor = PremisEditor.ndkArchival(fObject);
+                    premisMets = premisEditor.readMets();
+                }
             } catch (Exception e) {
                 LOG.log(Level.WARNING, e.getMessage() + " " + e.getStackTrace().toString());
             }
@@ -1970,16 +2001,27 @@ public class MetsElementVisitor implements IMetsElementVisitor {
 
 
     private ModsDefinition getMods(IMetsElement metsElement) throws MetsExportException {
+        if (Storage.LOCAL.equals(metsElement.getMetsContext().getTypeOfStorage()) && metsElement.getModsStream() != null) {
+            Document modsDocument = MetsUtils.getDocumentFromList(metsElement.getModsStream());
+            return ModsUtils.unmarshalModsType(new DOMSource(modsDocument));
+        }
         try {
             DigitalObjectManager dom = DigitalObjectManager.getDefault();
-            ProArcObject foNew = dom.find(metsElement.getOriginalPid(), null);
-            XmlStreamEditor streamEditorNew = foNew.getEditor(FoxmlUtils.inlineProfile(
-                    MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
-            ModsStreamEditor modsStreamEditorNew = new ModsStreamEditor(streamEditorNew, foNew);
-            return modsStreamEditorNew.read();
+            if (dom != null) {
+                ProArcObject foNew = dom.find(metsElement.getOriginalPid(), null);
+                XmlStreamEditor streamEditorNew = foNew.getEditor(FoxmlUtils.inlineProfile(
+                        MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS, MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
+                ModsStreamEditor modsStreamEditorNew = new ModsStreamEditor(streamEditorNew, foNew);
+                return modsStreamEditorNew.read();
+            }
         } catch (DigitalObjectException ex) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Nepodařilo se zkontrolovat index a pořadí strany", false, null);
         }
+        if (metsElement.getModsStream() != null) {
+            Document modsDocument = MetsUtils.getDocumentFromList(metsElement.getModsStream());
+            return ModsUtils.unmarshalModsType(new DOMSource(modsDocument));
+        }
+        throw new MetsExportException(metsElement.getOriginalPid(), "Nepodařilo se načíst MODS pro kontrolu indexu a pořadí strany", false, null);
     }
 
     protected boolean isMandatoryStream(String streamName) {

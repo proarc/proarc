@@ -102,7 +102,9 @@ public class CejshBuilderTest {
         File file = new File(folder, CejshBuilder.IMPORT_PROPERTIES_FILENAME);
         assertTrue(file.exists());
         Properties props = new Properties();
-        props.load(new InputStreamReader(new FileInputStream(file), Charsets.UTF_8));
+        try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), Charsets.UTF_8)) {
+            props.load(reader);
+        }
         assertEquals(String.valueOf(articleCount), props.getProperty(CejshBuilder.PROP_IMPORT_OBJECTS));
         assertEquals("1", props.getProperty(CejshBuilder.PROP_IMPORT_BWMETA_FILES));
         assertEquals("0", props.getProperty(CejshBuilder.PROP_IMPORT_CONTENT_FILES));
@@ -110,7 +112,7 @@ public class CejshBuilderTest {
         assertNotNull(resultDate);
         String expDated = DatatypeConverter.printDateTime(
                 new GregorianCalendar(CejshBuilder.UTC)).substring(0, 14);
-        assertEquals(resultDate, expDated, resultDate.substring(0, 14));
+        assertEquals(expDated, resultDate.substring(0, 14));
     }
 
     @Test
@@ -131,11 +133,12 @@ public class CejshBuilderTest {
         CejshBuilder cb = new CejshBuilder(conf, appConfig.getExportParams());
         Document articleDoc = cb.getDocumentBuilder().parse(CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());
         // issn must match some cejsh_journals.xml/cejsh/journal[@issn=$issn]
-        final String pkgIssn = "0231-5955";
+        final String pkgIssn = "1210-0250";
         Issue issue = new Issue();
         issue.setIssn(pkgIssn);
         issue.setIssueId("uuid-issue");
         issue.setIssueNumber("issue1");
+        issue.setDateIssued("1985");
         Volume volume = new Volume();
         volume.setVolumeId("uuid-volume");
         volume.setVolumeNumber("volume1");
@@ -162,7 +165,7 @@ public class CejshBuilderTest {
         assertNotNull(xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.ebfd7bf2-169d-476e-a230-0cc39f01764c']", cejshRootNode, XPathConstants.NODE));
         assertEquals("volume1", xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.uuid-volume']/b:name", cejshRootNode, XPathConstants.STRING));
         assertEquals("issue1", xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.uuid-issue']/b:name", cejshRootNode, XPathConstants.STRING));
-        assertEquals("1985", xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.9358223b-b135-388f-a71e-24ac2c8422c7-1985']/b:name", cejshRootNode, XPathConstants.STRING));
+        assertEquals("1985", xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.16ebeaab-2e83-11e2-b94f-005056a60003-1985']/b:name", cejshRootNode, XPathConstants.STRING));
     }
 
     @Test
@@ -171,7 +174,7 @@ public class CejshBuilderTest {
         CejshBuilder cb = new CejshBuilder(conf, appConfig.getExportParams());
         Document articleDoc = cb.getDocumentBuilder().parse(CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());
         // issn must match some cejsh_journals.xml/cejsh/journal[@issn=$issn]
-        final String pkgIssn = "0231-5955";
+        final String pkgIssn = "1210-0250";
         Title title = new Title();
         title.setIssn(pkgIssn);
         Volume volume = new Volume();
@@ -200,7 +203,7 @@ public class CejshBuilderTest {
         assertNotNull(xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.ebfd7bf2-169d-476e-a230-0cc39f01764c']", cejshRootNode, XPathConstants.NODE));
         assertEquals("volume1", xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.uuid-volume']/b:name", cejshRootNode, XPathConstants.STRING));
 //        assertEquals("issue1", xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.uuid-issue']/b:name", cejshRootNode, XPathConstants.STRING));
-        assertEquals("1985", xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.9358223b-b135-388f-a71e-24ac2c8422c7-1985']/b:name", cejshRootNode, XPathConstants.STRING));
+        assertEquals("1985", xpath.evaluate("/b:bwmeta/b:element[@id='bwmeta1.element.16ebeaab-2e83-11e2-b94f-005056a60003-1985']/b:name", cejshRootNode, XPathConstants.STRING));
     }
 
     @Test
@@ -213,6 +216,7 @@ public class CejshBuilderTest {
         issue.setIssn(pkgIssn);
         issue.setIssueId("uuid-issue");
         issue.setIssueNumber("issue1");
+        issue.setDateIssued("1985");
         Volume volume = new Volume();
         volume.setVolumeId("uuid-volume");
         volume.setVolumeNumber("volume1");
@@ -281,11 +285,13 @@ public class CejshBuilderTest {
         cb.getVolume().setVolumeId("uuid-volume");
         cb.getVolume().setYear("1980");
         cb.setIssue(new Issue());
-        cb.getIssue().setIssn("0231-5955");
+        cb.getIssue().setIssn("1210-0250");
         cb.getIssue().setIssueNumber("3");
         cb.getIssue().setIssueId("uuid-issue");
+        cb.getIssue().setDateIssued("1980");
         Document articleDoc = cb.getDocumentBuilder().parse(CejshBuilderTest.class.getResource("article_mods.xml").toExternalForm());
-        Article addArticle = cb.addArticle(articleDoc, DigitalObjectElement.NULL, ctx);
+        Article addArticle = new Article(DigitalObjectElement.NULL, articleDoc.getDocumentElement(), null)
+                .setReviewed(true).setEnglishAbstract(true);
         assertNotNull(addArticle);
         assertTrue(addArticle.isReviewed());
         File resultPkg = cb.writePackage(DigitalObjectElement.NULL, Arrays.asList(addArticle), ctx);
@@ -309,9 +315,10 @@ public class CejshBuilderTest {
         cb.getVolume().setVolumeId("uuid-volume");
         cb.getVolume().setYear("1980");
         cb.setIssue(new Issue());
-        cb.getIssue().setIssn("0231-5955");
+        cb.getIssue().setIssn("1210-0250");
         cb.getIssue().setIssueNumber("3");
         cb.getIssue().setIssueId("uuid-issue");
+        cb.getIssue().setDateIssued("1980");
         Document articleDoc = cb.getDocumentBuilder().parse(CejshBuilderTest.class.getResource("article_not_reviewed_mods.xml").toExternalForm());
         Article addArticle = cb.addArticle(articleDoc, DigitalObjectElement.NULL, ctx);
         assertNotNull(addArticle);

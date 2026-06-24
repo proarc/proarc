@@ -20,6 +20,7 @@ package cz.cas.lib.proarc.common.process.export.mets;
 import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
+import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.mets.MdSecType;
 import cz.cas.lib.proarc.mets.MdSecType.MdWrap.XmlData;
 import cz.cas.lib.proarc.mets.Mets;
@@ -78,7 +79,10 @@ public class NdkExportTest {
         Configuration config = new BaseConfiguration();
         config.addProperty(NdkExportOptions.PROP_NDK_AGENT_CREATOR, "Creator");
         config.addProperty(NdkExportOptions.PROP_NDK_AGENT_ARCHIVIST, "Archivist");
+        config.addProperty(NdkExportOptions.PROP_PROARC_VERSION, "5.0.4");
         MetsContext context = new MetsContext();
+        context.setTypeOfStorage(Storage.LOCAL);
+        context.setProarcVersion("5.0.4");
         context.setPath(sourceDirPath);
         context.setFsParentMap(TestConst.parents);
         context.setOutputPath(resultDir.getAbsolutePath());
@@ -94,7 +98,7 @@ public class NdkExportTest {
         Mets mets = (Mets) unmarshallerMets.unmarshal(amdSecFile);
         assertEquals("PAGE_0001", mets.getAmdSec().get(0).getID());
         List<MdSecType> techMDList = mets.getAmdSec().get(0).getTechMD();
-        assertEquals(4, techMDList.size());
+        assertEquals(3, techMDList.size());
         for (MdSecType techMD : techMDList) {
             if ("MIX_002".equals(techMD.getID())) {
                 XmlData mixData = techMD.getMdWrap().getXmlData();
@@ -106,26 +110,26 @@ public class NdkExportTest {
                 assertEquals("ProArc_URI", mix.getBasicDigitalObjectInformation().getObjectIdentifier().get(0).getObjectIdentifierType().getValue());
                 assertEquals("JPEG", mix.getBasicDigitalObjectInformation().getCompression().get(0).getCompressionScheme().getValue());
                 assertNotNull(mix.getChangeHistory().getImageProcessing().get(0).getDateTimeProcessed().getValue());
+            } else if ("OBJ_001".equals(techMD.getID())) {
+                testObject(techMD, "info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/RAW", "9b0a294cda0508b1a205a57fa66f9568");
             } else if ("OBJ_002".equals(techMD.getID())) {
                 testObject(techMD, "info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/NDK_ARCHIVAL", "9b0a294cda0508b1a205a57fa66f9568", "MC_creation_001");
-            } else if ("OBJ_004".equals(techMD.getID())) {
+            } else if ("OBJ_003".equals(techMD.getID())) {
                 testObject(techMD, "info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/NDK_USER", "9b0a294cda0508b1a205a57fa66f9568", "UC_creation_001");
-            } else if ("OBJ_005".equals(techMD.getID())) {
-                testObject(techMD, "info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/TEXT_OCR", "d41d8cd98f00b204e9800998ecf8427e", "TXT_creation_001");
             } else {
                 fail("Unexpected node:" + techMD.getID());
             }
         }
 
         List<MdSecType> digiProvList = mets.getAmdSec().get(0).getDigiprovMD();
-        assertEquals(4, digiProvList.size());
+        assertEquals(3, digiProvList.size());
         for (MdSecType digiProv : digiProvList) {
-            if ("EVT_002".equals(digiProv.getID())) {
+            if ("EVT_001".equals(digiProv.getID())) {
+                testEvent(digiProv, "digitization_001", "capture", "capture/digitization", "info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/RAW");
+            } else if ("EVT_002".equals(digiProv.getID())) {
                 testEvent(digiProv, "MC_creation_001", "migration", "migration/MC_creation", "info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/NDK_ARCHIVAL");
             } else if ("EVT_004".equals(digiProv.getID())) {
                 testEvent(digiProv, "UC_creation_001", "derivation", "derivation/UC_creation", "info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/NDK_USER");
-            } else if ("EVT_005".equals(digiProv.getID())) {
-                testEvent(digiProv, "TXT_creation_001", "capture", "capture/TXT_creation", "info:fedora/uuid:2ff2dd0c-d438-4d95-940f-690ee0f44a4a/TEXT_OCR");
             } else if ("AGENT_001".equals(digiProv.getID())) {
                 XmlData premisData = digiProv.getMdWrap().getXmlData();
                 DOMSource premisSource = new DOMSource((Node) premisData.getAny().get(0));
@@ -147,14 +151,19 @@ public class NdkExportTest {
      * Tests if the exception is thrown for invalid object mets
      */
     private void testObject(MdSecType techMD, String objectIdentifierValue, String messageDigest, String relatedEventIdentifierValue) {
+        cz.cas.lib.proarc.premis.File premisType = testObject(techMD, objectIdentifierValue, messageDigest);
+        assertEquals("derivation", premisType.getRelationship().get(0).getRelationshipType());
+        assertEquals(relatedEventIdentifierValue, premisType.getRelationship().get(0).getRelatedEventIdentification().get(0).getRelatedEventIdentifierValue());
+    }
+
+    private cz.cas.lib.proarc.premis.File testObject(MdSecType techMD, String objectIdentifierValue, String messageDigest) {
         XmlData premisData = techMD.getMdWrap().getXmlData();
         DOMSource premisSource = new DOMSource((Node) premisData.getAny().get(0));
         cz.cas.lib.proarc.premis.File premisType = PremisUtils.unmarshal(premisSource, cz.cas.lib.proarc.premis.File.class);
         assertEquals(objectIdentifierValue, premisType.getObjectIdentifier().get(0).getObjectIdentifierValue());
         assertEquals(messageDigest, premisType.getObjectCharacteristics().get(0).getFixity().get(0).getMessageDigest());
         assertEquals("ProArc", premisType.getObjectCharacteristics().get(0).getFixity().get(0).getMessageDigestOriginator());
-        assertEquals("derivation", premisType.getRelationship().get(0).getRelationshipType());
-        assertEquals(relatedEventIdentifierValue, premisType.getRelationship().get(0).getRelatedEventIdentification().get(0).getRelatedEventIdentifierValue());
+        return premisType;
     }
 
     /**

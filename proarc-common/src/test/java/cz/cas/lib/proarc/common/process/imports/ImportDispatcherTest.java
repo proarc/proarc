@@ -16,11 +16,20 @@
  */
 package cz.cas.lib.proarc.common.process.imports;
 
+import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.process.BatchManager;
+import java.io.File;
+import java.sql.Timestamp;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import mockit.Delegate;
+import mockit.Expectations;
+import mockit.Mocked;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -34,25 +43,28 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public class ImportDispatcherTest {
 
+    @TempDir
+    File tempDir;
+
     public ImportDispatcherTest() {
     }
 
     @Test
-    public void testSingleThread() throws InterruptedException {
+    public void testSingleThread(@Mocked BatchManager batchManager, @Mocked ImportProfile profile, @Mocked AppConfiguration config) throws Exception {
         ImportDispatcher instance = new ImportDispatcher();
         instance.init();
         final Object monitor = new Object();
         final AtomicInteger taskFinishedCounter = new AtomicInteger(0);
-        final Task[] tasks = new Task[3];
+        final TaskHandler[] tasks = new TaskHandler[3];
 
-        Task task1 = new Task() {
+        TaskHandler task1 = new TaskHandler() {
 
             @Override
-            public void run() {
+            public void start(ImportProcess.ImportOptions importConfig, BatchManager batchManager, AppConfiguration config) throws Exception {
                 assertFalse(tasks[0].started);
                 assertFalse(tasks[1].started);
                 assertFalse(tasks[2].started);
-                super.run();
+                super.start(importConfig, batchManager, config);
                 assertTrue(tasks[0].started);
                 assertTrue(tasks[0].finished);
                 assertEquals(1, taskFinishedCounter.incrementAndGet());
@@ -68,14 +80,14 @@ public class ImportDispatcherTest {
             }
         };
 
-        Task task2 = new Task() {
+        TaskHandler task2 = new TaskHandler() {
 
             @Override
-            public void run() {
+            public void start(ImportProcess.ImportOptions importConfig, BatchManager batchManager, AppConfiguration config) throws Exception {
                 assertTrue(tasks[0].finished);
                 assertFalse(tasks[1].started);
                 assertFalse(tasks[2].started);
-                super.run();
+                super.start(importConfig, batchManager, config);
                 assertTrue(tasks[1].started);
                 assertTrue(tasks[1].finished);
                 assertEquals(2, taskFinishedCounter.incrementAndGet());
@@ -83,14 +95,14 @@ public class ImportDispatcherTest {
             }
         };
 
-        Task task3 = new Task() {
+        TaskHandler task3 = new TaskHandler() {
 
             @Override
-            public void run() {
+            public void start(ImportProcess.ImportOptions importConfig, BatchManager batchManager, AppConfiguration config) throws Exception {
                 assertTrue(tasks[0].finished);
                 assertTrue(tasks[1].finished);
                 assertFalse(tasks[2].started);
-                super.run();
+                super.start(importConfig, batchManager, config);
                 assertTrue(tasks[2].started);
                 assertTrue(tasks[2].finished);
                 assertEquals(3, taskFinishedCounter.incrementAndGet());
@@ -104,9 +116,10 @@ public class ImportDispatcherTest {
         tasks[1] = task2;
         tasks[2] = task3;
 
-        instance.addTask(task1);
-        instance.addTask(task2);
-        instance.addTask(task3);
+        expectProcesses(batchManager, profile, task1, task2, task3);
+        instance.addImport(createProcess(task1, batchManager, profile, config, 1));
+        instance.addImport(createProcess(task2, batchManager, profile, config, 2));
+        instance.addImport(createProcess(task3, batchManager, profile, config, 3));
 
         synchronized (monitor) {
             monitor.wait(1000);
@@ -118,20 +131,20 @@ public class ImportDispatcherTest {
     }
 
     @Test
-    public void testStopSingleThread() throws InterruptedException {
+    public void testStopSingleThread(@Mocked BatchManager batchManager, @Mocked ImportProfile profile, @Mocked AppConfiguration config) throws Exception {
         ImportDispatcher instance = new ImportDispatcher();
         instance.init();
         final Object monitor = new Object();
         final AtomicInteger taskFinishedCounter = new AtomicInteger(0);
-        final Task[] tasks = new Task[2];
+        final TaskHandler[] tasks = new TaskHandler[2];
 
-        Task task1 = new Task() {
+        TaskHandler task1 = new TaskHandler() {
 
             @Override
-            public void run() {
+            public void start(ImportProcess.ImportOptions importConfig, BatchManager batchManager, AppConfiguration config) throws Exception {
                 assertFalse(tasks[0].started);
                 assertFalse(tasks[1].started);
-                super.run();
+                super.start(importConfig, batchManager, config);
                 assertTrue(tasks[0].started);
                 assertTrue(tasks[0].finished);
                 assertEquals(1, taskFinishedCounter.incrementAndGet());
@@ -156,10 +169,10 @@ public class ImportDispatcherTest {
             }
         };
 
-        Task task2 = new Task() {
+        TaskHandler task2 = new TaskHandler() {
 
             @Override
-            public void run() {
+            public void start(ImportProcess.ImportOptions importConfig, BatchManager batchManager, AppConfiguration config) {
                 fail("task 2 should not start, " + Thread.interrupted());
             }
         };
@@ -167,8 +180,9 @@ public class ImportDispatcherTest {
         tasks[0] = task1;
         tasks[1] = task2;
 
-        instance.addTask(task1);
-        instance.addTask(task2);
+        expectProcesses(batchManager, profile, task1, task2);
+        instance.addImport(createProcess(task1, batchManager, profile, config, 1));
+        instance.addImport(createProcess(task2, batchManager, profile, config, 2));
 
         synchronized (monitor) {
             monitor.wait(100);
@@ -182,20 +196,72 @@ public class ImportDispatcherTest {
 
     }
 
-    private static class Task implements Runnable {
+    private ImportProcess createProcess(TaskHandler handler, BatchManager batchManager, ImportProfile profile, AppConfiguration config, int id) {
+        File importFolder = new File(tempDir, "import-" + id);
+        assertTrue(importFolder.mkdir());
+        Batch batch = new Batch();
+        batch.setId(id);
+        batch.setCreate(new Timestamp(System.currentTimeMillis() + id));
+        batch.setFolder(importFolder.getAbsolutePath());
+        batch.setPriority(Batch.PRIORITY_MEDIUM);
+        batch.setState(Batch.State.IMPORT_PLANNED);
+        ImportProcess.ImportOptions options = new ImportProcess.ImportOptions(
+                importFolder, null, null, false, null, profile, Batch.PRIORITY_MEDIUM);
+        options.setBatch(batch);
+        return new ImportProcess(options, batchManager, config);
+    }
+
+    private void expectProcesses(BatchManager batchManager, ImportProfile profile, TaskHandler... handlers) throws Exception {
+        new Expectations() {{
+            profile.createImporter();
+            result = new Delegate<ImportHandler>() {
+                int index;
+
+                ImportHandler createImporter() {
+                    return handlers[index++];
+                }
+            };
+            minTimes = 0;
+            profile.getDefaultImportFolder();
+            result = true;
+            minTimes = 0;
+            batchManager.getFolderStatus((Batch) any);
+            result = null;
+            minTimes = 0;
+            batchManager.update((Batch) any);
+            result = new Delegate<Batch>() {
+                Batch update(Batch batch) {
+                    return batch;
+                }
+            };
+            minTimes = 0;
+        }};
+    }
+
+    private static class TaskHandler implements ImportHandler {
 
         volatile boolean started;
         volatile boolean finished;
         volatile boolean canceled;
 
         @Override
-        public void run() {
+        public void start(ImportProcess.ImportOptions importConfig, BatchManager batchManager, AppConfiguration config) throws Exception {
             started = true;
             try {
                 processTask();
             } finally {
                 finished = true;
             }
+        }
+
+        @Override
+        public int estimateItemNumber(ImportProcess.ImportOptions importConfig) {
+            return 1;
+        }
+
+        @Override
+        public boolean isImportable(File folder) {
+            return true;
         }
 
         protected void processTask() {

@@ -27,14 +27,13 @@ import java.util.List;
 import org.dbunit.dataset.CompositeDataSet;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ReplacementDataSet;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  *
@@ -47,17 +46,6 @@ public class EmpireWorkflowJobDaoTest {
     private SqlTransaction tx;
     private EmpireWorkflowJobDao dao;
     private Timestamp dbTimestamp;
-
-    public EmpireWorkflowJobDaoTest() {
-    }
-
-    @BeforeAll
-    public static void setUpClass() {
-    }
-
-    @AfterAll
-    public static void tearDownClass() {
-    }
 
     @BeforeEach
     public void setUp() {
@@ -152,7 +140,7 @@ public class EmpireWorkflowJobDaoTest {
         JobView job0 = jobs.get(0);
         assertEquals(BigDecimal.ONE, job0.getId());
         assertEquals("job.ndk", job0.getProfileName());
-        assertEquals("test", job0.getUserName());
+        assertNull(job0.getUserName());
     }
 
     @Test
@@ -166,8 +154,8 @@ public class EmpireWorkflowJobDaoTest {
 
         JobFilter filter = new JobFilter();
         filter.setCreated(Arrays.asList(
-                ">", "2015-10-24T23:00:00",
-                "<", "2015-10-26T23:00:00"
+                ">", "2015-10-24 23:00:00.000",
+                "<", "2015-10-26 23:00:00.000"
         ));
         List<JobView> jobs = dao.view(filter);
         assertEquals(1, jobs.size());

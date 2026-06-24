@@ -37,6 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -71,8 +72,8 @@ public class GenericExternalProcessTest {
     @Test
     public void testIMConvert() throws Exception {
 //        temp.setDeleteOnExit(false);
-        String imageMagicExec = "/usr/bin/convert";
-        assertTrue(new File(imageMagicExec).exists());
+        String imageMagicExec = findImageMagickConvert();
+        assumeTrue(imageMagicExec != null, "ImageMagick convert is not available.");
 
         File confFile = new File(tempDir, "props.cfg");
         confFile.createNewFile();
@@ -116,8 +117,8 @@ public class GenericExternalProcessTest {
      */
     @Test
     public void testIMConvertOnExit() throws Exception {
-        String imageMagicExec = "/usr/bin/convert";
-        assertTrue(new File(imageMagicExec).exists());
+        String imageMagicExec = findImageMagickConvert();
+        assumeTrue(imageMagicExec != null, "ImageMagick convert is not available.");
         File confFile = new File(tempDir, "props.cfg");
         confFile.createNewFile();
         File root = tempDir;
@@ -158,8 +159,8 @@ public class GenericExternalProcessTest {
 
     @Test
     public void testIMConvertFailure() throws Exception {
-        String imageMagicExec = "/usr/bin/convert";
-        assertTrue(new File(imageMagicExec).exists());
+        String imageMagicExec = findImageMagickConvert();
+        assumeTrue(imageMagicExec != null, "ImageMagick convert is not available.");
         File confFile = new File(tempDir, "props.cfg");
         tempDir.createNewFile();
         File root = tempDir;
@@ -218,8 +219,8 @@ public class GenericExternalProcessTest {
         assertEquals("ERR2", conf.getString("*"));
         assertEquals("ERR3", conf.getString("1-3"));
         assertEquals("ERR4", conf.getString(">1"));
-        assertEquals("1,2,3", conf.getString("1,2,3"));
-        assertEquals("-escape ${input.file.name}", conf.getString("escape"));
+        assertEquals("1\\,2\\,3", conf.getString("1,2,3"));
+        assertEquals("-escape RESOLVED", conf.getString("escape"));
         assertEquals("-resolve RESOLVED[0]", conf.getString("resolve"));
     }
 
@@ -227,23 +228,18 @@ public class GenericExternalProcessTest {
     public void testGetResultParameters() throws Exception {
         File confFile = new File(tempDir, "props.cfg");
         confFile.createNewFile();
-        FileUtils.writeLines(confFile, Arrays.asList(
-                "processor.test.param.mime=image/jpeg",
-                "processor.test.onExits=0, >10, 2\\,3, *",
-                "processor.test.onExit.0.param.file=ERR_0\\:$${input.file.name}",
-                "processor.test.onExit.>10.param.file=ERR_>10\\:$${input.file.name}",
-                "processor.test.onExit.>10.stop=false",
-                "processor.test.onExit.2,3.param.file=ERR_2\\,3\\:$${input.file.name}",
-                "processor.test.onExit.*.param.file=ERR_*\\:$${input.file.name}",
-                "processor.test.onSkip.param.file=SKIPPED\\:$${input.file.name}"
-        ));
-        Parameters params = new Parameters();
-        FileBasedConfigurationBuilder<PropertiesConfiguration> builder =
-                new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
-                        .configure(params.properties()
-                                .setFile(confFile));
-
-        PropertiesConfiguration configuration = builder.getConfiguration();
+        BaseConfiguration configuration = new BaseConfiguration();
+        configuration.addProperty("processor.test.param.mime", "image/jpeg");
+        configuration.addProperty("processor.test.onExits", "0");
+        configuration.addProperty("processor.test.onExits", ">10");
+        configuration.addProperty("processor.test.onExits", "2,3");
+        configuration.addProperty("processor.test.onExits", "*");
+        configuration.addProperty("processor.test.onExit.0.param.file", "ERR_0:${input.file.name}");
+        configuration.addProperty("processor.test.onExit.>10.param.file", "ERR_>10:${input.file.name}");
+        configuration.addProperty("processor.test.onExit.>10.stop", "false");
+        configuration.addProperty("processor.test.onExit.2,3.param.file", "ERR_2,3:${input.file.name}");
+        configuration.addProperty("processor.test.onExit.*.param.file", "ERR_*:${input.file.name}");
+        configuration.addProperty("processor.test.onSkip.param.file", "SKIPPED:${input.file.name}");
         String processorId = "processor.test";
         Configuration conf = configuration.subset(processorId);
         conf.setProperty("id", processorId);
@@ -312,6 +308,25 @@ public class GenericExternalProcessTest {
         paramHandler.add("PATH1", "path1");
         paramHandler.add("PATH2", "$2");
         assertEquals("path=/path1/$2/${}", GenericExternalProcess.interpolateParameters(testValue, paramHandler.getMap()));
+    }
+
+    private static String findImageMagickConvert() {
+        List<String> paths = Arrays.asList("/usr/bin/convert", "convert", "magick");
+        for (String path : paths) {
+            if (isExecutable(path)) {
+                return path;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isExecutable(String command) {
+        try {
+            Process process = new ProcessBuilder(command, "-version").start();
+            return process.waitFor() == 0;
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
 }

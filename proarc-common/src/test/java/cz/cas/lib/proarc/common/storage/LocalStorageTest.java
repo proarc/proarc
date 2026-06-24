@@ -76,7 +76,7 @@ public class LocalStorageTest {
 
     @Test
     public void testLoad() throws Exception {
-        File foxml = tempDir;
+        File foxml = new File(tempDir, "object.xml");
         String pid = "PID";
         DigitalObject dobj = FoxmlUtils.createFoxml(pid);
         FoxmlUtils.marshal(new StreamResult(foxml), dobj, true);
@@ -130,7 +130,7 @@ public class LocalStorageTest {
 
     @Test
     public void testCreate_File_DigitalObject() throws Exception {
-        File foxml = tempDir;
+        File foxml = new File(tempDir, "object.xml");
         String pid = "PID";
         DigitalObject dobj = FoxmlUtils.createFoxml(pid);
         LocalStorage instance = new LocalStorage();
@@ -144,7 +144,7 @@ public class LocalStorageTest {
 
     @Test
     public void testCreate_File() throws Exception {
-        File foxml = tempDir;
+        File foxml = new File(tempDir, "object.xml");
         LocalStorage instance = new LocalStorage();
         LocalObject result = instance.create(foxml);
         assertLocalObject(result);
@@ -154,7 +154,7 @@ public class LocalStorageTest {
 
     @Test
     public void testCreate_String_File() throws Exception {
-        File foxml = tempDir;
+        File foxml = new File(tempDir, "object.xml");
         String pid = "PID";
         LocalStorage instance = new LocalStorage();
         LocalObject result = instance.create(pid, foxml);
@@ -209,7 +209,7 @@ public class LocalStorageTest {
         assertEquals(mime.toString(), editor.getProfile().getDsMIME());
         assertNull(editor.getProfile().getDsFormatURI());
         byte[] data = "data".getBytes("UTF-8");
-        File attachment = tempDir;
+        File attachment = new File(tempDir, "attachment.bin");
         editor.write(attachment.toURI(), 0, null);
         editor.write(data, editor.getLastModified(), null);
         lobject.flush();
@@ -278,7 +278,7 @@ public class LocalStorageTest {
         assertEquals(mime.toString(), editor.getProfile().getDsMIME());
         assertNull(editor.getProfile().getDsFormatURI());
         byte[] data = "data".getBytes("UTF-8");
-        File attachment = tempDir;
+        File attachment = new File(tempDir, "attachment.bin");
         editor.write(attachment.toURI(), 0, null);
         editor.write(new ByteArrayInputStream(data), editor.getLastModified(), null);
         lobject.flush();
@@ -352,7 +352,7 @@ public class LocalStorageTest {
         assertNotNull(editor.getProfile());
         assertEquals(mime.toString(), editor.getProfile().getDsMIME());
         assertEquals(formatUri, editor.getProfile().getDsFormatURI());
-        File attachment = tempDir;
+        File attachment = new File(tempDir, "attachment.xml");
         editor.write(attachment.toURI(), 0, null);
         XmlData xdata = new XmlData("data");
         EditorResult xmlResult = editor.createResult();
@@ -393,7 +393,7 @@ public class LocalStorageTest {
         assertEquals(mime.toString(), editor.getProfile().getDsMIME());
         assertNull(editor.getProfile().getDsFormatURI());
         byte[] data = "data".getBytes("UTF-8");
-        File attachment = tempDir;
+        File attachment = new File(tempDir, "attachment.bin");
         editor.write(attachment.toURI(), 0, null);
         editor.write(new ByteArrayInputStream(data), editor.getLastModified(), null);
         lobject.flush();

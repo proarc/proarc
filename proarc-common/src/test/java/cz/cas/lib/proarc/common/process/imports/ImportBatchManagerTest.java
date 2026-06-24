@@ -23,9 +23,11 @@ import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import org.easymock.EasyMock;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -65,6 +67,14 @@ public class ImportBatchManagerTest {
         // use temporary configuration
         File configHome = new File(tempDir, AppConfiguration.DEFAULT_APP_HOME_NAME);
         configHome.mkdirs();
+        File usersHome = new File(tempDir, "users");
+        usersHome.mkdirs();
+        File configFile = new File(configHome, AppConfiguration.CONFIG_FILE_NAME);
+        Properties config = new Properties();
+        config.setProperty("proarc.users.home", usersHome.getPath());
+        try (FileOutputStream output = new FileOutputStream(configFile)) {
+            config.store(output, null);
+        }
         Map<String, String> env = new HashMap<String, String>();
         env.put(AppConfiguration.PROPERTY_APP_HOME, configHome.toString());
         appConf = AppConfigurationFactory.getInstance().create(env);

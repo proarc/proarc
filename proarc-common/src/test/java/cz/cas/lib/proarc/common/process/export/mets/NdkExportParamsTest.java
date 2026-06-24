@@ -44,16 +44,16 @@ public class NdkExportParamsTest {
 
         NdkExportOptions result = NdkExportOptions.getOptions(config);
 
-        assertEquals("creator", creator, result.getCreator());
-        assertEquals("archivist", archivist, result.getArchivist());
+        assertEquals(creator, result.getCreator(), "creator");
+        assertEquals(archivist, result.getArchivist(), "archivist");
     }
 
     @Test
     public void testFromEmpyConfig() {
         Configuration config = new BaseConfiguration();
         NdkExportOptions result = NdkExportOptions.getOptions(config);
-        assertNull("The default creator must be empty", result.getCreator());
-        assertNull("The default archivist must be empty", result.getArchivist());
+        assertNull(result.getCreator(), "The default creator must be empty");
+        assertNull(result.getArchivist(), "The default archivist must be empty");
     }
 
 }

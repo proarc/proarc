@@ -24,7 +24,6 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.StringReader;
 import java.util.List;
 import javax.xml.transform.stream.StreamSource;
-import org.easymock.EasyMock;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -62,9 +61,7 @@ public class NdkPeriodicalVolumeMapperTest {
     public void testCreateMods() {
         ModsDefinition mods = new ModsDefinition();
         NdkPeriodicalVolumeMapper mapper = new NdkPeriodicalVolumeMapper();
-        Context ctx = EasyMock.createMock(Context.class);
-        EasyMock.expect(ctx.getPid()).andReturn("uuid:testId").anyTimes();
-        EasyMock.replay(ctx);
+        Context ctx = new Context("uuid:testId");
 
         mapper.createMods(mods, ctx);
         List<IdentifierDefinition> identifiersResult = mods.getIdentifier();
