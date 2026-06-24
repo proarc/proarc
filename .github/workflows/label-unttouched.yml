@@ -59,7 +59,12 @@ jobs:
 
               if (!hasActivityAfterCreation) {
                 console.log(`Adding label to #${issue.number}`);
-                console.log(`[DRY RUN] Would label issue #${issue.number}`);
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  labels: [LABEL]
+                });
               }
             }
 
