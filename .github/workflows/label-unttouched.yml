@@ -18,7 +18,7 @@ jobs:
         with:
           script: |
             const LABEL = "K posouzení";
-            const DAYS = 7;
+            const DAYS = 0.003;
             const now = new Date();
 
             const issues = await github.paginate(
