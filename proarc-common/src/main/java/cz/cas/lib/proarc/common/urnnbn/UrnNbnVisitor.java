@@ -153,6 +153,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             return null;
         }
         try {
+            super.visitChildren(elm, p);
             registeringObject = elm;
             return processNdkEPeriodicalIssue(elm, p);
         } catch (DigitalObjectException ex) {
