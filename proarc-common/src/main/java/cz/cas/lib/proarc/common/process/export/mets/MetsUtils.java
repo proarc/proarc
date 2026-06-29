@@ -1399,6 +1399,9 @@ public class MetsUtils {
             );
 
     public static void setPermission(File targetFile) throws IOException {
+        if (!targetFile.exists()) {
+            return;
+        }
 
         boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
 
