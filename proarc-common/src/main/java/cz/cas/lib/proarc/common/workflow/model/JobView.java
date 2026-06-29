@@ -156,6 +156,12 @@ public class JobView extends Job {
         return getTimestamp().getTime();
     }
 
+    @JsonProperty(WorkflowModelConsts.JOB_MODIFIED)
+    @Override
+    public void setTimestamp(Timestamp timestamp) {
+        super.setTimestamp(timestamp);
+    }
+
     public String getBarcode() {
         return barcode;
     }

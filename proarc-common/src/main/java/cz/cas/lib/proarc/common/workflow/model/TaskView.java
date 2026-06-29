@@ -125,4 +125,10 @@ public class TaskView extends Task {
         return super.getTimestamp();
     }
 
+    @JsonProperty(WorkflowModelConsts.TASK_MODIFIED)
+    @Override
+    public void setTimestamp(Timestamp timestamp) {
+        super.setTimestamp(timestamp);
+    }
+
 }

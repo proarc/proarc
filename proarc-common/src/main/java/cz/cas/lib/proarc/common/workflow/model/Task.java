@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.workflow.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -159,10 +160,12 @@ public class Task {
         return this;
     }
 
+    @JsonIgnore
     public String getStateAsString() {
         return state == null ? null : state.name();
     }
 
+    @JsonIgnore
     public void setStateAsString(String state) {
         setState(State.valueOf(state));
     }
