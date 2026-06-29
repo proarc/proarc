@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -30,12 +31,15 @@ import java.util.List;
 public class TaskDefinition extends DisplayableType<TaskDefinition> {
 
     @XmlElement(name = WorkflowProfileConsts.TASK_MATERIAL_EL)
+    @JsonProperty(WorkflowProfileConsts.TASK_MATERIAL_EL)
     private List<SetMaterialDefinition> materialSetters;
 
     @XmlElement(name = WorkflowProfileConsts.TASK_PARAM_EL)
+    @JsonProperty(WorkflowProfileConsts.TASK_PARAM_EL)
     private List<ParamDefinition> params;
 
     @XmlElement(name = WorkflowProfileConsts.TASK_ACTION_EL)
+    @JsonProperty(WorkflowProfileConsts.TASK_ACTION_EL)
     private List<ActionDefinition> actions = new ArrayList<>();
 
     public List<SetMaterialDefinition> getMaterialSetters() {

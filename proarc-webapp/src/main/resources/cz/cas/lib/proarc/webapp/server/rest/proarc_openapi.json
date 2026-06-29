@@ -15060,15 +15060,16 @@
               "CANCELED"
             ]
           },
+          "modified": {
+            "type": "string",
+            "format": "date-time"
+          },
           "timestamp": {
             "type": "integer",
             "format": "int64"
           },
-          "userName": {
-            "type": "string",
-            "xml": {
-              "name": "ownerName"
-            }
+          "ownerName": {
+            "type": "string"
           },
           "profileLabel": {
             "type": "string"
@@ -15169,18 +15170,12 @@
               "CANCELED"
             ]
           },
-          "typeRef": {
-            "type": "string",
-            "xml": {
-              "name": "profileName"
-            }
+          "profileName": {
+            "type": "string"
           },
-          "timestamp": {
+          "modified": {
             "type": "string",
-            "format": "date-time",
-            "xml": {
-              "name": "modified"
-            }
+            "format": "date-time"
           },
           "order": {
             "type": "integer",
@@ -15195,11 +15190,8 @@
           "jobLabel": {
             "type": "string"
           },
-          "userName": {
-            "type": "string",
-            "xml": {
-              "name": "ownerName"
-            }
+          "ownerName": {
+            "type": "string"
           },
           "barcode": {
             "type": "string"
@@ -15207,12 +15199,9 @@
           "signature": {
             "type": "string"
           },
-          "timestampAsLong": {
+          "timestamp": {
             "type": "integer",
-            "format": "int64",
-            "xml": {
-              "name": "timestamp"
-            }
+            "format": "int64"
           }
         }
       },
@@ -15497,11 +15486,8 @@
               "CANCELED"
             ]
           },
-          "typeRef": {
-            "type": "string",
-            "xml": {
-              "name": "profileName"
-            }
+          "profileName": {
+            "type": "string"
           },
           "timestamp": {
             "type": "string",

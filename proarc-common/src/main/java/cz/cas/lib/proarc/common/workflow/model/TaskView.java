@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -29,16 +30,22 @@ import java.sql.Timestamp;
 public class TaskView extends Task {
 
     @XmlElement(name = WorkflowModelConsts.TASK_PROFILELABEL)
+    @JsonProperty(WorkflowModelConsts.TASK_PROFILELABEL)
     private String profileLabel;
     @XmlElement(name = WorkflowModelConsts.TASK_PROFILEHINT)
+    @JsonProperty(WorkflowModelConsts.TASK_PROFILEHINT)
     private String profileHint;
     @XmlElement(name = WorkflowModelConsts.TASK_JOBLABEL)
+    @JsonProperty(WorkflowModelConsts.TASK_JOBLABEL)
     private String jobLabel;
     @XmlElement(name = WorkflowModelConsts.TASK_OWNERNAME)
+    @JsonProperty(WorkflowModelConsts.TASK_OWNERNAME)
     private String userName;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_BARCODE)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_BARCODE)
     private String barcode;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_SIGNATURE)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_SIGNATURE)
     private String signature;
 
     public Integer getOrder() {
@@ -50,6 +57,7 @@ public class TaskView extends Task {
     }
 
     @XmlElement(name = WorkflowModelConsts.TASK_ORDER)
+    @JsonProperty(WorkflowModelConsts.TASK_ORDER)
     private Integer order;
 
     public String getProfileLabel() {
@@ -105,11 +113,13 @@ public class TaskView extends Task {
      * Use this instead of {@link #getTimestamp() } for updates.
      */
     @XmlElement(name = WorkflowModelConsts.TASK_TIMESTAMP)
+    @JsonProperty(WorkflowModelConsts.TASK_TIMESTAMP)
     public long getTimestampAsLong() {
         return getTimestamp().getTime();
     }
 
     @XmlElement(name = WorkflowModelConsts.TASK_MODIFIED)
+    @JsonProperty(WorkflowModelConsts.TASK_MODIFIED)
     @Override
     public Timestamp getTimestamp() {
         return super.getTimestamp();

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAttribute;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlID;
@@ -47,9 +48,11 @@ public abstract class DisplayableType<T extends DisplayableType> implements IDis
     private Map<String, String> hints;
 
     @XmlElement(name = WorkflowProfileConsts.HINT_EL)
+    @JsonProperty(WorkflowProfileConsts.HINT_EL)
     public List<I18NString> hints_new;
 
     @XmlElement(name = WorkflowProfileConsts.TITLE_EL)
+    @JsonProperty(WorkflowProfileConsts.TITLE_EL)
     public List<I18NString> titles_new;
 
     @Override
@@ -122,6 +125,7 @@ public abstract class DisplayableType<T extends DisplayableType> implements IDis
     }
 
     @XmlElement(name = WorkflowProfileConsts.TITLE_EL)
+    @JsonProperty(WorkflowProfileConsts.TITLE_EL)
     private void setITitles(List<I18NString> list) {
         this.titles = I18NString.toMap(list);
     }
@@ -131,6 +135,7 @@ public abstract class DisplayableType<T extends DisplayableType> implements IDis
     }
 
     @XmlElement(name = WorkflowProfileConsts.HINT_EL)
+    @JsonProperty(WorkflowProfileConsts.HINT_EL)
     private void setIHints(List<I18NString> list) {
         this.hints = I18NString.toMap(list);
     }

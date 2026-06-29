@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAttribute;
@@ -40,6 +41,7 @@ public class ValueMapDefinition {
     private String source;
 
     @XmlElement(name = WorkflowProfileConsts.VALUEMAP_VALUE_EL)
+    @JsonProperty(WorkflowProfileConsts.VALUEMAP_VALUE_EL)
     private List<ValueMapItemDefinition> items;
 
     public String getId() {

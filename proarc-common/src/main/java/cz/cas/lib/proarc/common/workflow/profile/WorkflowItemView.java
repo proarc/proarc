@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -36,21 +37,25 @@ public class WorkflowItemView {
     }
 
     @XmlElement(name = WorkflowProfileConsts.NAME)
+    @JsonProperty(WorkflowProfileConsts.NAME)
     public String getName() {
         return item.getName();
     }
 
     @XmlElement(name = WorkflowProfileConsts.TITLE_EL)
+    @JsonProperty(WorkflowProfileConsts.TITLE_EL)
     public String getTitle() {
         return item.getTitle(lang, getName());
     }
 
     @XmlElement(name = WorkflowProfileConsts.HINT_EL)
+    @JsonProperty(WorkflowProfileConsts.HINT_EL)
     public String getHint() {
         return item.getHint(lang, null);
     }
 
     @XmlElement(name = WorkflowProfileConsts.DISABLED)
+    @JsonProperty(WorkflowProfileConsts.DISABLED)
     public boolean isDisabled() {
         return item.isDisabled();
     }

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.workflow.model.Job.State;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
@@ -38,68 +39,100 @@ public class JobFilter {
             "([-+]?)(" + WorkflowModelConsts.JOB_FILTER_MODIFIED + ")");
 
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_CREATED)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_CREATED)
     private List<String> created;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_ID)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_ID)
     private BigDecimal id;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_LABEL)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_LABEL)
     private String label;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_BARCODE)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_BARCODE)
     private String materialBarcode;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_FINANCED)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_FINANCED)
     private String financed;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_DETAIL)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_DETAIL)
     private String materialDetail;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_FIELD001)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_FIELD001)
     private String materialField001;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_ISSUE)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_ISSUE)
     private String materialIssue;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGLA)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGLA)
     private String materialSigla;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGNATURE)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGNATURE)
     private String materialSignature;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_VOLUME)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_VOLUME)
     private String materialVolume;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR)
     private String materialYear;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MODIFIED)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MODIFIED)
     private List<String> modified;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_PRIORITY)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_PRIORITY)
     private Integer priority;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_OWNERID)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_OWNERID)
     private BigDecimal userId;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_PARENTID)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_PARENTID)
     private BigDecimal parentId;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_PROFILENAME)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_PROFILENAME)
     private String profileName;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_STATE)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_STATE)
     private State state;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID)
     private String pid;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION)
     private String materialEdition;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_RAW_PATH)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_RAW_PATH)
     private String rawPath;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_NAME)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_NAME)
     private String taskName;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_HINT)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_HINT)
     private String taskHint;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_LABEL)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_LABEL)
     private String taskLabel;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_DATE)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_CHANGE_DATE)
     private List<String> taskDate;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_USER)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_CHANGE_USER)
     private String taskUser;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME)
     private String taskUsername;
     @XmlElement(name = WorkflowModelConsts.JOB_DEVICE_ID)
+    @JsonProperty(WorkflowModelConsts.JOB_DEVICE_ID)
     private String deviceId;
     @XmlElement(name = WorkflowModelConsts.JOB_NOTE)
+    @JsonProperty(WorkflowModelConsts.JOB_NOTE)
     private String note;
     @XmlElement(name = WorkflowModelConsts.JOB_MODEL)
+    @JsonProperty(WorkflowModelConsts.JOB_MODEL)
     private String model;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_SORTBY)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_SORTBY)
     private String sortBy;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_OFFSET)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_OFFSET)
     private int offset = 0;
 
     private List<BigDecimal> ids;

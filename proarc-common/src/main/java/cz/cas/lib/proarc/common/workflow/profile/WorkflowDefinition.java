@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -34,18 +35,23 @@ import java.util.List;
 public class WorkflowDefinition {
 
     @XmlElement(name = WorkflowProfileConsts.WORKFLOW_VERSION)
+    @JsonProperty(WorkflowProfileConsts.WORKFLOW_VERSION)
     private String version;
 
     @XmlElement(name = WorkflowProfileConsts.WORKFLOW_JOB_EL)
+    @JsonProperty(WorkflowProfileConsts.WORKFLOW_JOB_EL)
     private List<JobDefinition> jobs;
 
     @XmlElement(name = WorkflowProfileConsts.WORKFLOW_MATERIAL_EL)
+    @JsonProperty(WorkflowProfileConsts.WORKFLOW_MATERIAL_EL)
     private List<MaterialDefinition> materials;
 
     @XmlElement(name = WorkflowProfileConsts.WORKFLOW_TASK_EL)
+    @JsonProperty(WorkflowProfileConsts.WORKFLOW_TASK_EL)
     private List<TaskDefinition> tasks;
 
     @XmlElement(name = WorkflowProfileConsts.WORKFLOW_VALUEMAP_EL)
+    @JsonProperty(WorkflowProfileConsts.WORKFLOW_VALUEMAP_EL)
     private List<ValueMapDefinition> valueMaps;
 
     public String getVersion() {

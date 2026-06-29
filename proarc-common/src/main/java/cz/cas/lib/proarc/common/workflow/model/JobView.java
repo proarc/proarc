@@ -31,49 +31,71 @@ import java.sql.Timestamp;
 public class JobView extends Job {
 
     @XmlElement(name = WorkflowModelConsts.JOB_OWNERNAME)
+    @JsonProperty(WorkflowModelConsts.JOB_OWNERNAME)
     private String userName;
     @XmlElement(name = WorkflowModelConsts.JOB_PROFILELABEL)
+    @JsonProperty(WorkflowModelConsts.JOB_PROFILELABEL)
     private String profileLabel;
     @XmlElement(name = WorkflowModelConsts.JOB_PROFILEHINT)
+    @JsonProperty(WorkflowModelConsts.JOB_PROFILEHINT)
     private String profileHint;
     // properties of the physical document
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_BARCODE)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_BARCODE)
     private String barcode;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_DETAIL)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_DETAIL)
     private String detail;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_FIELD001)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_FIELD001)
     private String field001;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_ISSUE)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_ISSUE)
     private String issue;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGLA)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGLA)
     private String sigla;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGNATURE)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_SIGNATURE)
     private String signature;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_VOLUME)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_VOLUME)
     private String volume;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_YEAR)
     private String year;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_DIGOBJ_PID)
     private String pid;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_MATERIAL_EDITION)
     private String edition;
     @XmlElement(name = WorkflowModelConsts.JOB_FILTER_RAW_PATH)
+    @JsonProperty(WorkflowModelConsts.JOB_FILTER_RAW_PATH)
     private String rawPath;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_NAME)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_NAME)
     private String taskName;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_HINT)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_HINT)
     private String taskHint;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_LABEL)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_LABEL)
     private String taskLabel;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_DATE)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_CHANGE_DATE)
     private Timestamp taskDate;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_USER)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_CHANGE_USER)
     private String taskUser;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_CHANGE_USERNAME)
     private String taskUsername;
     @XmlElement(name = WorkflowModelConsts.JOB_DEVICE_ID)
+    @JsonProperty(WorkflowModelConsts.JOB_DEVICE_ID)
     private String deviceId;
     @XmlElement(name = WorkflowModelConsts.JOB_DEVICE_LABEL)
+    @JsonProperty(WorkflowModelConsts.JOB_DEVICE_LABEL)
     private String deviceLabel;
 
     public String getRawPath() {

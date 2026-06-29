@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.workflow.model.Task.State;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
@@ -40,36 +41,51 @@ public class TaskFilter {
             "([-+]?)(" + WorkflowModelConsts.TASK_FILTER_MODIFIED + ")");
 
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_CREATED)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_CREATED)
     private List<String> created;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_MODIFIED)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_MODIFIED)
     private List<String> modified;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_ID)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_ID)
     private BigDecimal id;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_JOBID)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_JOBID)
     private BigDecimal jobId;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_JOBLABEL)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_JOBLABEL)
     private String jobLabel;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_OWNERID)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_OWNERID)
     private List<BigDecimal> userId;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_PRIORITY)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_PRIORITY)
     private List<Integer> priority;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_PROFILENAME)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_PROFILENAME)
     private List<String> profileName;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_STATE)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_STATE)
     private List<State> state;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_SORTBY)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_SORTBY)
     private String sortBy;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_OFFSET)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_OFFSET)
     private int offset = 0;
     private int maxCount = 100;
     private Locale locale;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_BARCODE)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_BARCODE)
     private String barcode;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_SIGNATURE)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_SIGNATURE)
     private String signature;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_NOTE)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_NOTE)
     private String note;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_ORDER)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_ORDER)
     private BigInteger order;
 
     private List<BigDecimal> ids;

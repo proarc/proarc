@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -30,27 +31,37 @@ import java.sql.Timestamp;
 public class Task {
 
     @XmlElement(name = WorkflowModelConsts.TASK_CREATED)
+    @JsonProperty(WorkflowModelConsts.TASK_CREATED)
     private Timestamp created;
     @XmlElement(name = WorkflowModelConsts.TASK_ID)
+    @JsonProperty(WorkflowModelConsts.TASK_ID)
     private BigDecimal id;
     @XmlElement(name = WorkflowModelConsts.TASK_JOBID)
+    @JsonProperty(WorkflowModelConsts.TASK_JOBID)
     private BigDecimal jobId;
     @XmlElement(name = WorkflowModelConsts.TASK_NOTE)
+    @JsonProperty(WorkflowModelConsts.TASK_NOTE)
     private String note;
     @XmlElement(name = WorkflowModelConsts.TASK_OWNERID)
+    @JsonProperty(WorkflowModelConsts.TASK_OWNERID)
     private BigDecimal ownerId;
     @XmlElement(name = WorkflowModelConsts.TASK_PRIORITY)
+    @JsonProperty(WorkflowModelConsts.TASK_PRIORITY)
     private Integer priority;
     @XmlElement(name = WorkflowModelConsts.TASK_STATE)
+    @JsonProperty(WorkflowModelConsts.TASK_STATE)
     private State state;
     /**
      * The name of a task type in workflow profile.
      */
     @XmlElement(name = WorkflowModelConsts.TASK_PROFILENAME)
+    @JsonProperty(WorkflowModelConsts.TASK_PROFILENAME)
     private String typeRef;
     @XmlElement(name = WorkflowModelConsts.TASK_TIMESTAMP)
+    @JsonProperty(WorkflowModelConsts.TASK_TIMESTAMP)
     private Timestamp timestamp;
     @XmlElement(name = WorkflowModelConsts.TASK_ORDER)
+    @JsonProperty(WorkflowModelConsts.TASK_ORDER)
     private Integer order;
 
     public Integer getOrder() {

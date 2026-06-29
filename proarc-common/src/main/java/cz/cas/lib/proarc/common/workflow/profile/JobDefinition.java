@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAttribute;
@@ -32,18 +33,22 @@ import java.util.List;
 public class JobDefinition extends DisplayableType<JobDefinition> {
 
     @XmlElement(name = WorkflowProfileConsts.JOB_WORKER_EL)
+    @JsonProperty(WorkflowProfileConsts.JOB_WORKER_EL)
     private WorkerDefinition worker;
 
     @XmlElement(name = WorkflowProfileConsts.WORKFLOW_MODEL_EL)
+    @JsonProperty(WorkflowProfileConsts.WORKFLOW_MODEL_EL)
     private List<ModelDefinition> model;
 
     @XmlAttribute(name = WorkflowProfileConsts.JOB_PRIORITY_AT)
     private Integer priority;
 
     @XmlElement(name = WorkflowProfileConsts.JOB_STEP_EL)
+    @JsonProperty(WorkflowProfileConsts.JOB_STEP_EL)
     private List<StepDefinition> steps;
 
     @XmlElement(name = WorkflowProfileConsts.JOB_SUBJOB_EL)
+    @JsonProperty(WorkflowProfileConsts.JOB_SUBJOB_EL)
     private List<SubjobDefinition> subjobs;
 
     private transient List<String> taskNamesSortedByBlockers;

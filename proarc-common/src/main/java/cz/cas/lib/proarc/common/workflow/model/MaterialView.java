@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.workflow.profile.Way;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
@@ -31,44 +32,64 @@ import java.math.BigDecimal;
 public class MaterialView extends Material {
 
     @XmlElement(name = WorkflowModelConsts.MATERIAL_PROFILELABEL)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_PROFILELABEL)
     private String profileLabel;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_JOB_ID)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_JOB_ID)
     private BigDecimal jobId;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_TASKID)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_TASKID)
     private BigDecimal taskId;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_WAY)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_WAY)
     private Way way;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_PATH)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_PATH)
     private String path;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_PID)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_PID)
     private String pid;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_BARCODE)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_BARCODE)
     private String barcode;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_FIELD001)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_FIELD001)
     private String field001;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_RDCZID)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_RDCZID)
     private BigDecimal rdczId;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_CATALOG)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_CATALOG)
     private String source;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_SIGNATURE)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_SIGNATURE)
     private String signature;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_METADATA)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_METADATA)
     private String metadata;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_DETAIL)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_DETAIL)
     private String detail;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_ISSUE)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_ISSUE)
     private String issue;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_ISSUE_INT)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_ISSUE_INT)
     private String issueInt;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_SIGLA)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_SIGLA)
     private String sigla;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_VOLUME)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_VOLUME)
     private String volume;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_VOLUME_INT)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_VOLUME_INT)
     private String volumeInt;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_YEAR)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_YEAR)
     private String year;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_EDITION)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_EDITION)
     private String edition;
 
     public String getEdition() {

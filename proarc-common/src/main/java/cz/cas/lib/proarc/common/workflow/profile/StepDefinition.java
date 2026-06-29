@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAttribute;
@@ -39,15 +40,19 @@ public class StepDefinition {
     private boolean optional;
 
     @XmlElement(name = WorkflowProfileConsts.STEP_WORKER_EL)
+    @JsonProperty(WorkflowProfileConsts.STEP_WORKER_EL)
     private WorkerDefinition worker;
 
     @XmlElement(name = WorkflowProfileConsts.STEP_PARAM_EL)
+    @JsonProperty(WorkflowProfileConsts.STEP_PARAM_EL)
     private List<SetParamDefinition> paramSetters;
 
     @XmlElement(name = WorkflowProfileConsts.STEP_BLOCKER_EL)
+    @JsonProperty(WorkflowProfileConsts.STEP_BLOCKER_EL)
     private List<BlockerDefinition> blockers;
 
     @XmlElement(name = WorkflowProfileConsts.STEP_MAIN_BLOCKER_EL)
+    @JsonProperty(WorkflowProfileConsts.STEP_MAIN_BLOCKER_EL)
     private List<MainBlockerDefinition> mainBlockers;
 
     public TaskDefinition getTask() {

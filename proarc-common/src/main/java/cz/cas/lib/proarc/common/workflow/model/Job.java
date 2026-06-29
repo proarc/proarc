@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAttribute;
@@ -31,28 +32,39 @@ import java.sql.Timestamp;
 public class Job {
 
     @XmlElement(name = WorkflowModelConsts.JOB_CREATED)
+    @JsonProperty(WorkflowModelConsts.JOB_CREATED)
     private Timestamp created;
     @XmlAttribute(name = WorkflowModelConsts.JOB_ID)
     private BigDecimal id;
     @XmlElement(name = WorkflowModelConsts.JOB_FINANCED)
+    @JsonProperty(WorkflowModelConsts.JOB_FINANCED)
     private String financed;
     @XmlElement(name = WorkflowModelConsts.JOB_LABEL)
+    @JsonProperty(WorkflowModelConsts.JOB_LABEL)
     private String label;
     @XmlElement(name = WorkflowModelConsts.JOB_NOTE)
+    @JsonProperty(WorkflowModelConsts.JOB_NOTE)
     private String note;
     @XmlElement(name = WorkflowModelConsts.JOB_OWNERID)
+    @JsonProperty(WorkflowModelConsts.JOB_OWNERID)
     private BigDecimal ownerId;
     @XmlElement(name = WorkflowModelConsts.JOB_PARENTID)
+    @JsonProperty(WorkflowModelConsts.JOB_PARENTID)
     private BigDecimal parentId;
     @XmlElement(name = WorkflowModelConsts.JOB_PRIORITY)
+    @JsonProperty(WorkflowModelConsts.JOB_PRIORITY)
     private int priority;
     @XmlElement(name = WorkflowModelConsts.JOB_PROFILENAME)
+    @JsonProperty(WorkflowModelConsts.JOB_PROFILENAME)
     private String profileName;
     @XmlElement(name = WorkflowModelConsts.JOB_MODEL)
+    @JsonProperty(WorkflowModelConsts.JOB_MODEL)
     private String model;
     @XmlElement(name = WorkflowModelConsts.JOB_STATE)
+    @JsonProperty(WorkflowModelConsts.JOB_STATE)
     private State state;
     @XmlElement(name = WorkflowModelConsts.JOB_MODIFIED)
+    @JsonProperty(WorkflowModelConsts.JOB_MODIFIED)
     private Timestamp timestamp;
 
     public Timestamp getCreated() {

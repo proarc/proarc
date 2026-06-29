@@ -16,6 +16,7 @@
 
 package cz.cas.lib.proarc.common.workflow.profile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAttribute;
@@ -35,6 +36,7 @@ public class ActionDefinition {
     private String command;
 
     @XmlElement(name = WorkflowProfileConsts.ACTION_COMMAND_ARG)
+    @JsonProperty(WorkflowProfileConsts.ACTION_COMMAND_ARG)
     private List<String> args = new ArrayList<>();
 
     public String getCommand() {

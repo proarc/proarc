@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlElement;
 import java.math.BigDecimal;
 import java.util.Locale;
@@ -28,18 +29,25 @@ import java.util.Locale;
 public class MaterialFilter {
 
     @XmlElement(name = WorkflowModelConsts.MATERIALFILTER_ID)
+    @JsonProperty(WorkflowModelConsts.MATERIALFILTER_ID)
     private BigDecimal id;
     @XmlElement(name = WorkflowModelConsts.MATERIALFILTER_JOBID)
+    @JsonProperty(WorkflowModelConsts.MATERIALFILTER_JOBID)
     private BigDecimal jobId;
     @XmlElement(name = WorkflowModelConsts.MATERIALFILTER_TASKID)
+    @JsonProperty(WorkflowModelConsts.MATERIALFILTER_TASKID)
     private BigDecimal taskId;
     @XmlElement(name = WorkflowModelConsts.MATERIALFILTER_TYPE)
+    @JsonProperty(WorkflowModelConsts.MATERIALFILTER_TYPE)
     private MaterialType type;
     @XmlElement(name = WorkflowModelConsts.MATERIALFILTER_SORTBY)
+    @JsonProperty(WorkflowModelConsts.MATERIALFILTER_SORTBY)
     private String sortBy;
     @XmlElement(name = WorkflowModelConsts.MATERIALFILTER_OFFSET)
+    @JsonProperty(WorkflowModelConsts.MATERIALFILTER_OFFSET)
     private int offset = 0;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_PID)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_PID)
     private String pid;
     private int maxCount = 100;
     private Locale locale;

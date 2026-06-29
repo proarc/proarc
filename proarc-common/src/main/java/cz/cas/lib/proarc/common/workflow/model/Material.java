@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -29,19 +30,25 @@ import java.math.BigDecimal;
 public class Material {
 
     @XmlElement(name = WorkflowModelConsts.MATERIAL_ID)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_ID)
     private BigDecimal id;
     /**
      * The description of a material's value
      */
     @XmlElement(name = WorkflowModelConsts.MATERIAL_LABEL)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_LABEL)
     private String label;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_NAME)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_NAME)
     private String name;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_NOTE)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_NOTE)
     private String note;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_STATE)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_STATE)
     private String state;
     @XmlElement(name = WorkflowModelConsts.MATERIAL_TYPE)
+    @JsonProperty(WorkflowModelConsts.MATERIAL_TYPE)
     private MaterialType type;
 
     public BigDecimal getId() {

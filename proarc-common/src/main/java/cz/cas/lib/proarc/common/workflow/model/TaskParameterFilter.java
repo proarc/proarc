@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.workflow.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlElement;
 import java.math.BigDecimal;
 import java.util.Locale;
@@ -30,11 +31,13 @@ public class TaskParameterFilter {
     private BigDecimal jobId;
     private String profileName;
     @XmlElement(name = WorkflowModelConsts.TASK_FILTER_OFFSET)
+    @JsonProperty(WorkflowModelConsts.TASK_FILTER_OFFSET)
     private int offset = 0;
     private int maxCount = 100;
     private Locale locale;
 
     @XmlElement(name = WorkflowModelConsts.PARAMETERPROFILE_TASKID)
+    @JsonProperty(WorkflowModelConsts.PARAMETERPROFILE_TASKID)
     public BigDecimal getTaskId() {
         return taskId;
     }
