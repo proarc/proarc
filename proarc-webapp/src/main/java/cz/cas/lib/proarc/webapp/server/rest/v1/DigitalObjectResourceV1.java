@@ -165,6 +165,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.MissingResourceException;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -2668,9 +2669,11 @@ public class DigitalObjectResourceV1 {
         for (String pid : pids) {
             ProArcObject fobject = findFedoraObject(pid, batchId);
             AtmEditor editor = new AtmEditor(fobject, search);
+            AtmItem oldAtm = editor.read();
+            boolean updateChildren = updateAtmChildren(oldAtm, organization, userName, status, donator);
             editor.write(deviceId, softwareId, organization, userName, status, donator, archivalCopiesPath, session.asFedoraLog());
             fobject.flush();
-            if (!(model != null && model.length() > 0 && model.contains("page"))) {
+            if (updateChildren && !(model != null && model.length() > 0 && model.contains("page"))) {
                 editor.setChild(pid, organization, userName, status, donator, appConfig, akubraConfiguration, search, session.asFedoraLog());
             }
             AtmItem atm = editor.read();
@@ -2678,6 +2681,31 @@ public class DigitalObjectResourceV1 {
             result.add(atm);
         }
         return new SmartGwtResponse<AtmItem>(result);
+    }
+
+    private boolean updateAtmChildren(AtmItem oldAtm, String organization, String userName, String status, String donator) {
+        return updateAtmChildrenValue(oldAtm.getOrganization(), organization)
+                || updateAtmChildrenValue(oldAtm.getUser(), userName)
+                || updateAtmChildrenValue(oldAtm.getStatus(), status)
+                || updateAtmChildrenDonator(oldAtm.getDonator(), donator);
+    }
+
+    private boolean updateAtmChildrenValue(String oldValue, String newValue) {
+        if (newValue == null || newValue.isEmpty()) {
+            return false;
+        }
+        return !Objects.equals(oldValue, AtmEditor.NULL.equals(newValue) ? null : newValue);
+    }
+
+    private boolean updateAtmChildrenDonator(String oldValue, String newValue) {
+        return !Objects.equals(oldValue, normalizeAtmDonator(newValue));
+    }
+
+    private String normalizeAtmDonator(String value) {
+        if (value == null || value.isEmpty() || AtmEditor.NULL.equals(value) || "undefined".equals(value)) {
+            return null;
+        }
+        return value.startsWith("donator:") ? value.substring(8) : value;
     }
 
     @POST
