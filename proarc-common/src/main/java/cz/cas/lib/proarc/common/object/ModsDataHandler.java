@@ -108,9 +108,16 @@ public class ModsDataHandler {
                 String signaturaVal = objectHandler.getParameter(DigitalObjectHandler.PARAM_SIGNATURA);
                 replaceShelfLocator(defaultMods, signaturaVal);
             }
-        } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId)) {
+        } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(modelId)) {
             // issue 137
             ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_PERIODICAL, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
+            if (titleMods != null) {
+                inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+            }
+            titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICAL, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
