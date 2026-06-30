@@ -52,6 +52,8 @@ public class ConfigurationProfile {
     public static final String NDK_EMONOGRAPH_TITLE_KRAMERIUS_IMPORT = "profile.ndk_emonograph_title_kramerius_import";
     /** The ID of the ndk ePeriodical kramerius import profile that is based on (@code proarc.cfg]. */
     public static final String NDK_EPERIODICAL_KRAMERIUS_IMPORT = "profile.ndk_eperiodical_kramerius_import";
+    /** The ID of the Metacheck profile */
+    public static final String METACHECK_IMPORT = "profile.metacheck_import";
     /** The ID of profile that only generates ALTO and OCR. */
     public static final String GENERATE_ALTO_OCR = "profile.generate";
     /** The ID of profile that replace stream according to file name. */

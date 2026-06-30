@@ -253,6 +253,8 @@ public class ImportResourceV1 {
                     case ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT:
                         states.add(new ProfileStates(profile.getId(), subfolder.getStatusSoundrecording(appConfig).name()));
                         break;
+                    case ConfigurationProfile.METACHECK_IMPORT:
+                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusMetacheckImport(appConfig).name()));
                     default:
                         states.add(new ProfileStates(profile.getId(), subfolder.getStatusDefault(appConfig).name()));
                 }

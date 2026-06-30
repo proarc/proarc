@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.common.process.imports.archive.ArchiveImport;
 import cz.cas.lib.proarc.common.process.imports.audio.SoundRecordingImport;
 import cz.cas.lib.proarc.common.process.imports.kramerius.FileReader;
 import cz.cas.lib.proarc.common.process.imports.kramerius.KrameriusImport;
+import cz.cas.lib.proarc.common.process.imports.metacheck.MetaCheckImport;
 import cz.cas.lib.proarc.common.process.imports.ndk.NdkImport;
 import cz.cas.lib.proarc.common.process.imports.replaceStream.ReplaceStreamImport;
 import java.util.List;
@@ -144,6 +145,8 @@ public final class ImportProfile {
                 return new GeneratorAltoOcr();
             case ConfigurationProfile.REPLACE_STREAM_IMPORT:
                 return new ReplaceStreamImport();
+            case ConfigurationProfile.METACHECK_IMPORT:
+                return new MetaCheckImport();
             default:
                 return new FileSetImport();
         }

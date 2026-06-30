@@ -212,6 +212,7 @@ public final class ImportFileScanner {
         private State statusKrameriusNdkEPeriodical;
         private State statusKrameriusStt;
         private State statusSoundrecording;
+        private State statusMetacheckImport;
         private transient ImportHandler importer;
 
 
@@ -320,6 +321,13 @@ public final class ImportFileScanner {
                 statusSoundrecording = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT));
             }
             return statusSoundrecording;
+        }
+
+        public State getStatusMetacheckImport(AppConfiguration appConfig) {
+            if (statusMetacheckImport == null) {
+                statusMetacheckImport = folderImportState(handle, createImporter(appConfig, ConfigurationProfile.METACHECK_IMPORT));
+            }
+            return statusMetacheckImport;
         }
 
         private ImportHandler createImporter(AppConfiguration appConfig, String profileId) {
