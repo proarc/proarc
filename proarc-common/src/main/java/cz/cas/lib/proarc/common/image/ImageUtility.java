@@ -4,12 +4,15 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
+import javax.imageio.ImageReader;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.metadata.IIOMetadata;
@@ -27,7 +30,31 @@ public class ImageUtility {
         }
 
         // Všechny formáty podporované TwelveMonkeys lze načíst přes ImageIO.read
-        BufferedImage img = ImageIO.read(url);
+        BufferedImage img = null;
+        try {
+            img = ImageIO.read(url);
+        } catch (IOException ex) {
+            File originalFile = new File(url.getFile());
+            ImageReader reader = ImageIO.getImageReaders(ImageIO.createImageInputStream(originalFile)).next();
+            reader.setInput(ImageIO.createImageInputStream(originalFile), true, true);
+
+            ImageReadParam param = reader.getDefaultReadParam();
+
+            // dynamický výpočet subsamplingu
+            int width = reader.getWidth(0);
+            int height = reader.getHeight(0);
+
+            // cílový max počet pixelů (např. pro preview)
+            long maxPixels = 50_000_000; // ~50 MPx
+
+            long totalPixels = (long) width * height;
+            int subsampling = (int) Math.ceil(Math.sqrt((double) totalPixels / maxPixels));
+
+            param.setSourceSubsampling(subsampling, subsampling, 0, 0);
+
+            img = reader.read(0, param);
+        }
+
         if (img == null) {
             throw new IllegalArgumentException("Unsupported or corrupted image: " + type.getMimeType());
         }
