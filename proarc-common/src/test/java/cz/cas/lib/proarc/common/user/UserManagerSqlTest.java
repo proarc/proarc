@@ -26,6 +26,8 @@ import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import javax.sql.DataSource;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.CompositeDataSet;
@@ -52,7 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 public class UserManagerSqlTest {
 
     @TempDir
-    File tempDir;
+    static File tempDir;
 
     private AppConfiguration configuration;
     private DbUnitSupport db;
@@ -72,7 +74,12 @@ public class UserManagerSqlTest {
     @BeforeEach
     public void setUp() throws Exception {
         // fedora init
-        configuration = AppConfigurationFactory.getInstance().defaultInstance();
+        File appHome = new File(tempDir, "proarc-home");
+        appHome.mkdirs();
+        new File(appHome, AppConfiguration.CONFIG_FILE_NAME).createNewFile();
+        Map<String, String> testConfig = new HashMap<String, String>();
+        testConfig.put(AppConfiguration.PROPERTY_APP_HOME, appHome.getAbsolutePath());
+        configuration = AppConfigurationFactory.getInstance().create(testConfig);
 
         // rdbms init
         db = new DbUnitSupport();
