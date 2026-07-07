@@ -558,7 +558,7 @@ public class TiffImporter implements ImageImporter {
                 originalFilename, endRead / 1000000, endFull / 1000000, endPreview / 1000000, endThumb / 1000000));
     }
 
-    private BufferedImage removeAlphaChannel(BufferedImage bufferedImage) {
+    public static BufferedImage removeAlphaChannel(BufferedImage bufferedImage) {
         if (bufferedImage == null) {
             return null;
         }

@@ -361,7 +361,7 @@ public class BatchManager {
         }
     }
 
-    public Batch add(File folder, String title, UserProfile user, int itemNumber, Integer peroOcrEngine, Boolean isNightOnly, ImportProcess.ImportOptions options) {
+    public Batch add(File folder, String title, UserProfile user, int itemNumber, Integer peroOcrEngine, Integer metakatEngine, Boolean isNightOnly, ImportProcess.ImportOptions options) {
         Batch batch = new Batch();
         batch.setCreate(new Timestamp(System.currentTimeMillis()));
         batch.setDevice(options.getDevice());
@@ -381,6 +381,7 @@ public class BatchManager {
 
         BatchParams params = new BatchParams();
         params.setPeroOcrEngine(peroOcrEngine);
+        params.setMetakatEngine(metakatEngine);
         batch.setParamsFromObject(params);
 
         Batch updated = update(batch);

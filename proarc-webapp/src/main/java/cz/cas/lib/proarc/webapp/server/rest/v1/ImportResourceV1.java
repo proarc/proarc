@@ -218,64 +218,62 @@ public class ImportResourceV1 {
             for (ConfigurationProfile profile : profiles) {
                 switch (profile.getId()) {
                     case ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT:
-                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusArchive(appConfig).name()));
+                        states.add(createProfileStates(profile, subfolder.getStatusArchive(appConfig).name(), false, false, false));
                         break;
                     case ConfigurationProfile.DEFAULT_NDK_IMPORT:
-                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusNdk(appConfig).name()));
+                        states.add(createProfileStates(profile, subfolder.getStatusNdk(appConfig).name(), false, false, false));
                         break;
                     case ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT:
-                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusK4(appConfig).name()));
+                        states.add(createProfileStates(profile, subfolder.getStatusKrameriusK4(appConfig).name(), true, false, false));
                         break;
                     case ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT:
-                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusNdkMonograph(appConfig).name()));
+                        states.add(createProfileStates(profile, subfolder.getStatusKrameriusNdkMonograph(appConfig).name(), true, true, false));
                         break;
                     case ConfigurationProfile.NDK_MONOGRAPH_TITLE_KRAMERIUS_IMPORT:
-                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusNdkMonographTitle(appConfig).name()));
+                        states.add(createProfileStates(profile, subfolder.getStatusKrameriusNdkMonographTitle(appConfig).name(), true, true, false));
                         break;
                     case ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT:
-                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusNdkPeriodical(appConfig).name()));
+                        states.add(createProfileStates(profile, subfolder.getStatusKrameriusNdkPeriodical(appConfig).name(), true, false, false));
                         break;
                     case ConfigurationProfile.STT_KRAMERIUS_IMPORT:
-                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusStt(appConfig).name()));
+                        states.add(createProfileStates(profile, subfolder.getStatusKrameriusStt(appConfig).name(), true, false, false));
                         break;
                     case ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT:
-                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusNdkEMonograph(appConfig).name()));
+                        states.add(createProfileStates(profile, subfolder.getStatusKrameriusNdkEMonograph(appConfig).name(), false, false, false));
                         break;
                     case ConfigurationProfile.NDK_EMONOGRAPH_TITLE_KRAMERIUS_IMPORT:
-                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusNdkEMonographTitle(appConfig).name()));
+                        states.add(createProfileStates(profile, subfolder.getStatusKrameriusNdkEMonographTitle(appConfig).name(), false, false, false));
                         break;
                     case ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT:
-                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusKrameriusNdkEPeriodical(appConfig).name()));
+                        states.add(createProfileStates(profile, subfolder.getStatusKrameriusNdkEPeriodical(appConfig).name(), false, false, false));
                         break;
                     case ConfigurationProfile.REPLACE_STREAM_IMPORT:
-                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusReplaceStream(appConfig).name()));
+                        states.add(createProfileStates(profile, subfolder.getStatusReplaceStream(appConfig).name(), true, true, false));
                         break;
                     case ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT:
-                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusSoundrecording(appConfig).name()));
+                        states.add(createProfileStates(profile, subfolder.getStatusSoundrecording(appConfig).name(), true, true, true));
                         break;
                     case ConfigurationProfile.METACHECK_IMPORT:
-                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusMetacheckImport(appConfig).name()));
+                        states.add(createProfileStates(profile, subfolder.getStatusMetacheckImport(appConfig).name(), true, true, true));
                     default:
-                        states.add(new ProfileStates(profile.getId(), subfolder.getStatusDefault(appConfig).name()));
+                        states.add(createProfileStates(profile, subfolder.getStatusDefault(appConfig).name(), true, true, true));
                 }
             }
-//            states.add(new ProfileStates(ConfigurationProfile.DEFAULT, subfolder.getStatusDefault(appConfig).name()));
-//            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_ARCHIVE_IMPORT, subfolder.getStatusArchive(appConfig).name()));
-//            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_NDK_IMPORT, subfolder.getStatusNdk(appConfig).name()));
-//            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_NDK_IMPORT, subfolder.getStatusNdk(appConfig).name()));
-//            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusK4(appConfig).name()));
-//            states.add(new ProfileStates(ConfigurationProfile.NDK_MONOGRAPH_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkMonograph(appConfig).name()));
-//            states.add(new ProfileStates(ConfigurationProfile.NDK_MONOGRAPH_TITLE_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkMonographTitle(appConfig).name()));
-//            states.add(new ProfileStates(ConfigurationProfile.NDK_PERIODICAL_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkPeriodical(appConfig).name()));
-//            states.add(new ProfileStates(ConfigurationProfile.STT_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusStt(appConfig).name()));
-//            states.add(new ProfileStates(ConfigurationProfile.NDK_EMONOGRAPH_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkEMonograph(appConfig).name()));
-//            states.add(new ProfileStates(ConfigurationProfile.NDK_EMONOGRAPH_TITLE_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkEMonographTitle(appConfig).name()));
-//            states.add(new ProfileStates(ConfigurationProfile.NDK_EPERIODICAL_KRAMERIUS_IMPORT, subfolder.getStatusKrameriusNdkEPeriodical(appConfig).name()));
-//            states.add(new ProfileStates(ConfigurationProfile.REPLACE_STREAM_IMPORT, subfolder.getStatusReplaceStream(appConfig).name()));
-//            states.add(new ProfileStates(ConfigurationProfile.DEFAULT_SOUNDRECORDING_IMPORT, subfolder.getStatusSoundrecording(appConfig).name()));
             result.add(new ImportFolder(subfolderName, subfolderStatus, parentPath, subfolderPath, states));
         }
         return result;
+    }
+
+    private ProfileStates createProfileStates(ConfigurationProfile profile, String state, boolean device, boolean software, boolean index) {
+        return new ProfileStates(profile.getId(), state, createProfileParams(profile, device, software, index));
+    }
+
+    private ProfileStates.Params createProfileParams(ConfigurationProfile profile, boolean device, boolean software, boolean index) {
+        ImportProfile importProfile = appConfig.getImportConfiguration(profile);
+        boolean ocrEngine = importProfile.getOcrGenProcessor().getKeys().hasNext();
+        String metaCheckApiUrl = importProfile.getMetaCheckApiUrl();
+        boolean metakatEngine = metaCheckApiUrl != null && !metaCheckApiUrl.trim().isEmpty();
+        return new ProfileStates.Params(device, software, ocrEngine, metakatEngine, index);
     }
 
     @POST
@@ -291,6 +289,7 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_METAKAT_ENGINE) Integer metakatEngine,
             @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws URISyntaxException, IOException {
 
@@ -310,7 +309,7 @@ public class ImportResourceV1 {
             for (File importFile : folder.listFiles()) {
                 if (importFile.exists() && importFile.isDirectory()) {
                     ImportProcess process = ImportProcess.prepare(importFile, importFile.getName(), user,
-                            importManager, device, software, indices, true, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
+                            importManager, device, software, indices, true, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
                     ImportDispatcher.getDefault().addImport(process);
                     listBatches.add(process.getBatch());
                 }
@@ -318,7 +317,7 @@ public class ImportResourceV1 {
             return new ProArcResponse<BatchView>();
         } else {
             ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                    importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
+                    importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
             ImportDispatcher.getDefault().addImport(process);
             Batch batch = process.getBatch();
             return new ProArcResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -341,7 +340,7 @@ public class ImportResourceV1 {
         File importFolder = new File(folderUri);
         ConfigurationProfile profile = findImportProfile(null, ConfigurationProfile.GENERATE_ALTO_OCR);
         ImportProcess process = ImportProcess.prepare(importFolder, folderPath, user,
-                importManager, null, null, false, null, false, false, null, false, appConfig.getImportConfiguration(profile), appConfig);
+                importManager, null, null, false, null, false, false, null, null, false, appConfig.getImportConfiguration(profile), appConfig);
         ImportDispatcher.getDefault().addImport(process);
         Batch batch = process.getBatch();
         return new ProArcResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -361,6 +360,7 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_METAKAT_ENGINE) Integer metakatEngine,
             @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws URISyntaxException, IOException {
 
@@ -381,7 +381,7 @@ public class ImportResourceV1 {
                 File folder = new File(folderUri);
                 ConfigurationProfile profile = findImportProfile(null, profileId);
                 ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                        importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
+                        importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
                 ImportDispatcher.getDefault().addImport(process);
                 listBatches.add(process.getBatch());
             } catch (IOException ex) {

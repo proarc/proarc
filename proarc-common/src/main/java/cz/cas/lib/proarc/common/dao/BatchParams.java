@@ -32,6 +32,7 @@ public class BatchParams {
     private Boolean restore;
     private String type;
     private Integer peroOcrEngine;
+    private Integer metakatEngine;
     private String notBefore;
     private String notAfter;
 
@@ -290,6 +291,15 @@ public class BatchParams {
 
     public void setPeroOcrEngine(Integer peroOcrEngine) {
         this.peroOcrEngine = peroOcrEngine;
+    }
+
+    @XmlElement(name = "metakatEngine")
+    public Integer getMetakatEngine() {
+        return this.metakatEngine;
+    }
+
+    public void setMetakatEngine(Integer metakatEngine) {
+        this.metakatEngine = metakatEngine;
     }
 
     @XmlElement(name = "notBefore")

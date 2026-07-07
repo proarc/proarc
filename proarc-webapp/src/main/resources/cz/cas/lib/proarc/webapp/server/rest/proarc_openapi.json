@@ -1284,6 +1284,10 @@
                     "type": "integer",
                     "format": "int32"
                   },
+                  "metakatEngine": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
                   "nightOnly": {
                     "type": "boolean",
                     "default": false
@@ -1560,6 +1564,10 @@
                     "default": false
                   },
                   "peroOcrEngine": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "metakatEngine": {
                     "type": "integer",
                     "format": "int32"
                   },
@@ -14762,6 +14770,26 @@
           },
           "state": {
             "type": "string"
+          },
+          "params": {
+            "type": "object",
+            "properties": {
+              "device": {
+                "type": "boolean"
+              },
+              "software": {
+                "type": "boolean"
+              },
+              "ocrEngine": {
+                "type": "boolean"
+              },
+              "metakatEngine": {
+                "type": "boolean"
+              },
+              "generateIndex": {
+                "type": "boolean"
+              }
+            }
           }
         }
       },

@@ -111,10 +111,11 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_METAKAT_ENGINE) Integer metakatEngine,
             @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         try {
-            return super.newBatch(path, device, software, indices, profileId, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly);
+            return super.newBatch(path, device, software, indices, profileId, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);
@@ -149,10 +150,11 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_METAKAT_ENGINE) Integer metakatEngine,
             @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         try {
-            return super.newBatches(pathes, device, software, indices, profileId, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly);
+            return super.newBatches(pathes, device, software, indices, profileId, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);

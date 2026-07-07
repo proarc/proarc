@@ -198,6 +198,36 @@ class OpenApiSpecificationTest {
     }
 
     @Test
+    void importDocumentsMetaCheckBatchParameters() throws Exception {
+        JSONObject paths = loadSpec().getJSONObject("paths");
+
+        JSONObject newBatchProperties = formRequestProperties(paths
+                .getJSONObject("/import/batch")
+                .getJSONObject("post"));
+        assertTrue(newBatchProperties.has("peroOcrEngine"));
+        assertEquals("int32", newBatchProperties.getJSONObject("peroOcrEngine").getString("format"));
+        assertTrue(newBatchProperties.has("metakatEngine"));
+        assertEquals("int32", newBatchProperties.getJSONObject("metakatEngine").getString("format"));
+
+        JSONObject newBatchesProperties = formRequestProperties(paths
+                .getJSONObject("/import/batches")
+                .getJSONObject("post"));
+        assertTrue(newBatchesProperties.has("peroOcrEngine"));
+        assertTrue(newBatchesProperties.has("metakatEngine"));
+
+        JSONObject profileStateParams = loadSpec()
+                .getJSONObject("components")
+                .getJSONObject("schemas")
+                .getJSONObject("ProfileStates")
+                .getJSONObject("properties")
+                .getJSONObject("params")
+                .getJSONObject("properties");
+        assertTrue(profileStateParams.has("software"));
+        assertTrue(profileStateParams.has("ocrEngine"));
+        assertTrue(profileStateParams.has("metakatEngine"));
+    }
+
+    @Test
     void userAndWorkflowDocumentsAdministrativeContracts() throws Exception {
         JSONObject user = loadSpec()
                 .getJSONObject("paths")
@@ -354,6 +384,14 @@ class OpenApiSpecificationTest {
                 .getJSONObject("application/json")
                 .getJSONObject("schema")
                 .getString("$ref"));
+    }
+
+    private static JSONObject formRequestProperties(JSONObject operation) {
+        return operation.getJSONObject("requestBody")
+                .getJSONObject("content")
+                .getJSONObject("*/*")
+                .getJSONObject("schema")
+                .getJSONObject("properties");
     }
 
     private static int countOperations(JSONObject paths) {

@@ -85,10 +85,10 @@ public final class ImportProcess implements Runnable {
             File importFolder, String description,
             UserProfile user, BatchManager batchManager,
             String device, String software, boolean generateIndices, String priority,
-            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, Boolean isNightOnly,
+            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, Integer metakatEngine, Boolean isNightOnly,
             ImportProfile profile, AppConfiguration config
     ) throws IOException {
-        return prepare(importFolder, description, user, batchManager, device, software, generateIndices, false, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, isNightOnly, profile, config);
+        return prepare(importFolder, description, user, batchManager, device, software, generateIndices, false, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, profile, config);
     }
 
     /**
@@ -99,13 +99,13 @@ public final class ImportProcess implements Runnable {
             File importFolder, String description,
             UserProfile user, BatchManager batchManager,
             String device, String software, boolean generateIndices, boolean generatePageNumber, String priority,
-            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, Boolean isNightOnly, ImportProfile profile, AppConfiguration config
+            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, Integer metakatEngine, Boolean isNightOnly, ImportProfile profile, AppConfiguration config
     ) throws IOException {
 
         ImportOptions options = new ImportOptions(importFolder, device, software,
                 generateIndices, generatePageNumber, user, profile, priority, useNewMetadata, useOriginalMetadata);
         ImportProcess process = new ImportProcess(options, batchManager, config);
-        process.prepare(description, user, peroOcrEngine, isNightOnly);
+        process.prepare(description, user, peroOcrEngine, metakatEngine, isNightOnly);
         return process;
     }
 
@@ -191,7 +191,7 @@ public final class ImportProcess implements Runnable {
         return profile;
     }
 
-    private void prepare(String description, UserProfile user, Integer peroOcrEngine, Boolean isNightOnly) throws IOException {
+    private void prepare(String description, UserProfile user, Integer peroOcrEngine, Integer metakatEngine, Boolean isNightOnly) throws IOException {
         // validate import folder
         File importFolder = importConfig.getImportFolder();
         ImportFileScanner.validateImportFolder(importFolder);
@@ -213,6 +213,7 @@ public final class ImportProcess implements Runnable {
                     user,
                     estimateItemNumber,
                     peroOcrEngine,
+                    metakatEngine,
                     isNightOnly,
                     importConfig);
             importConfig.setBatch(batch);
