@@ -3,13 +3,18 @@ package cz.cas.lib.proarc.common.process.imports.metacheck;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
+import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.image.ImageMimeType;
 import cz.cas.lib.proarc.common.metacheck.MetaCheckBatch;
 import cz.cas.lib.proarc.common.metacheck.MetaCheckClient;
+import cz.cas.lib.proarc.common.object.DescriptionMetadata;
+import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
+import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.external.ExternalProcess;
 import cz.cas.lib.proarc.common.process.external.PeroOcrProcessor;
 import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
+import cz.cas.lib.proarc.common.process.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.process.imports.FileSet;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.process.imports.ImportHandler;
@@ -17,14 +22,24 @@ import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.process.imports.InputUtils;
 import cz.cas.lib.proarc.common.process.imports.TiffImporter;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import static cz.cas.lib.proarc.common.image.ImageUtility.readImage;
 
@@ -101,6 +116,7 @@ public class MetaCheckImport implements ImportHandler {
             importConfig.setConsumedFileCounter(importConfig.getConsumedFileCounter() + 1);
         }
 
+        createPackageInfo(importConfig, config);
         callMetaCheckApi(importConfig, config);
 
         if (batch.getState() == Batch.State.LOADING) {
@@ -193,6 +209,104 @@ public class MetaCheckImport implements ImportHandler {
         } catch (NullPointerException ex) {
             return 1;
         }
+    }
+
+    void createPackageInfo(ImportProcess.ImportOptions importConfig, AppConfiguration config) throws Exception {
+        List<String> selectedPids = getSelectedPids(importConfig);
+        if (selectedPids == null || selectedPids.isEmpty()) {
+            LOG.warning("No selected PIDs found. Skipping packageInfo.json generation.");
+            return;
+        }
+
+        DigitalObjectManager dom = getDigitalObjectManager();
+        if (dom == null) {
+            throw new IllegalStateException("DigitalObjectManager is not initialized.");
+        }
+
+        Set<String> pids = new LinkedHashSet<>();
+        Set<String> visitedPids = new HashSet<>();
+        for (String pid : selectedPids) {
+            addPackageInfoPids(dom, pid, pids, visitedPids);
+        }
+
+        JSONArray objects = new JSONArray();
+        String packageType = "other";
+
+        for (String pid : pids) {
+            ProArcObject object = dom.find(pid, null);
+            DigitalObjectHandler handler = dom.createHandler(object);
+            String model = handler.relations().getModel();
+            packageType = resolvePackageType(packageType, model);
+            DescriptionMetadata<String> metadata = handler.metadata().getMetadataAsXml();
+
+            JSONObject packageObject = new JSONObject();
+            packageObject.put("pid", pid);
+            packageObject.put("model", toPackageInfoModel(model, config.getKramerius4Export()));
+            packageObject.put("metadata", metadata.getData());
+            objects.put(packageObject);
+        }
+
+        JSONObject packageInfo = new JSONObject();
+        packageInfo.put("type", packageType);
+        packageInfo.put("objects", objects);
+
+        File packageInfoFile = new File(importConfig.getImportFolder(), "packageInfo.json");
+        Files.write(packageInfoFile.toPath(), packageInfo.toString(2).getBytes(StandardCharsets.UTF_8));
+    }
+
+    DigitalObjectManager getDigitalObjectManager() {
+        return DigitalObjectManager.getDefault();
+    }
+
+    private List<String> getSelectedPids(ImportProcess.ImportOptions importConfig) {
+        BatchParams params = importConfig.getBatch().getParamsAsObject();
+        return params == null ? null : params.getPids();
+    }
+
+    private void addPackageInfoPids(DigitalObjectManager dom, String pid, Set<String> pids, Set<String> visitedPids) throws Exception {
+        if (pid == null || !visitedPids.add(pid)) {
+            return;
+        }
+
+        ProArcObject object = dom.find(pid, null);
+        DigitalObjectHandler handler = dom.createHandler(object);
+        String model = handler.relations().getModel();
+        if (!isPageModel(model)) {
+            pids.add(pid);
+        }
+        for (String childPid : handler.relations().getMembers()) {
+            addPackageInfoPids(dom, childPid, pids, visitedPids);
+        }
+    }
+
+    private boolean isPageModel(String model) {
+        return model != null && model.toLowerCase(Locale.ROOT).contains("page");
+    }
+
+    private String resolvePackageType(String currentPackageType, String model) {
+        if (model == null) {
+            return currentPackageType;
+        }
+        String lowerModel = model.toLowerCase(Locale.ROOT);
+        if (lowerModel.contains("periodical")) {
+            return "periodical";
+        }
+        if ("other".equals(currentPackageType) && lowerModel.contains("monograph")) {
+            return "monograph";
+        }
+        return currentPackageType;
+    }
+
+    private String toPackageInfoModel(String model, Kramerius4ExportOptions kramerius4ExportOptions) {
+        Map<String, String> modelMap = kramerius4ExportOptions.getModelMap();
+        String mappedModel = modelMap.get(model);
+        if (mappedModel == null) {
+            mappedModel = model;
+        }
+        if (mappedModel != null && mappedModel.startsWith("model:")) {
+            return mappedModel.substring("model:".length());
+        }
+        return mappedModel;
     }
 
     private void callMetaCheckApi(ImportProcess.ImportOptions importConfig, AppConfiguration config) throws IOException, JSONException {

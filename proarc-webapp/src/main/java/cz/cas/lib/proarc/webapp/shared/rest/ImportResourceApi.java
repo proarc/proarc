@@ -76,6 +76,7 @@ public final class ImportResourceApi {
     public static final String IMPORT_BATCH_USE_ORIGINAL_METADATA = "useOriginalMetadata";
     public static final String IMPORT_BATCH_PERO_OCR_ENGINE = "peroOcrEngine";
     public static final String IMPORT_BATCH_METAKAT_ENGINE = "metakatEngine";
+    public static final String IMPORT_BATCH_PIDS = "pids";
     public static final String IMPORT_BATCH_PARAMETERS = "parameters";
     public static final String IMPORT_BATCH_PAGECOUNT = "pageCount";
     public static final String IMPORT_START_ROW_PARAM = "_startRow";

@@ -290,7 +290,8 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
             @FormParam(ImportResourceApi.IMPORT_BATCH_METAKAT_ENGINE) Integer metakatEngine,
-            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PIDS) List<String> pids
     ) throws URISyntaxException, IOException {
 
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}, software: {3}",
@@ -309,7 +310,7 @@ public class ImportResourceV1 {
             for (File importFile : folder.listFiles()) {
                 if (importFile.exists() && importFile.isDirectory()) {
                     ImportProcess process = ImportProcess.prepare(importFile, importFile.getName(), user,
-                            importManager, device, software, indices, true, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
+                            importManager, device, software, indices, true, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, createListOfPids(pids), appConfig.getImportConfiguration(profile), appConfig);
                     ImportDispatcher.getDefault().addImport(process);
                     listBatches.add(process.getBatch());
                 }
@@ -317,7 +318,7 @@ public class ImportResourceV1 {
             return new ProArcResponse<BatchView>();
         } else {
             ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                    importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
+                    importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, createListOfPids(pids), appConfig.getImportConfiguration(profile), appConfig);
             ImportDispatcher.getDefault().addImport(process);
             Batch batch = process.getBatch();
             return new ProArcResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -340,7 +341,7 @@ public class ImportResourceV1 {
         File importFolder = new File(folderUri);
         ConfigurationProfile profile = findImportProfile(null, ConfigurationProfile.GENERATE_ALTO_OCR);
         ImportProcess process = ImportProcess.prepare(importFolder, folderPath, user,
-                importManager, null, null, false, null, false, false, null, null, false, appConfig.getImportConfiguration(profile), appConfig);
+                importManager, null, null, false, null, false, false, null, null, false, null, appConfig.getImportConfiguration(profile), appConfig);
         ImportDispatcher.getDefault().addImport(process);
         Batch batch = process.getBatch();
         return new ProArcResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -361,7 +362,8 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
             @FormParam(ImportResourceApi.IMPORT_BATCH_METAKAT_ENGINE) Integer metakatEngine,
-            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PIDS) List<String> pids
     ) throws URISyntaxException, IOException {
 
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
@@ -381,7 +383,7 @@ public class ImportResourceV1 {
                 File folder = new File(folderUri);
                 ConfigurationProfile profile = findImportProfile(null, profileId);
                 ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                        importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, appConfig.getImportConfiguration(profile), appConfig);
+                        importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, createListOfPids(pids), appConfig.getImportConfiguration(profile), appConfig);
                 ImportDispatcher.getDefault().addImport(process);
                 listBatches.add(process.getBatch());
             } catch (IOException ex) {
@@ -412,6 +414,29 @@ public class ImportResourceV1 {
             }
         }
         return pathes;
+    }
+
+    private List<String> createListOfPids(List<String> pids) {
+        if (pids == null || pids.isEmpty()) {
+            return null;
+        }
+
+        List<String> result = new ArrayList<>();
+        for (String pid : pids) {
+            pid = trim(pid, "{", "}");
+            pid = trim(pid, "[", "]");
+            if (pid == null || pid.trim().isEmpty()) {
+                continue;
+            }
+            String[] pidArray = pid.split(",");
+            for (String onePid : pidArray) {
+                onePid = onePid.trim();
+                if (!onePid.isEmpty()) {
+                    result.add(onePid);
+                }
+            }
+        }
+        return result.isEmpty() ? null : result;
     }
 
     private String trim(String value, String start, String end) {

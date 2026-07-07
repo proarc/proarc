@@ -85,10 +85,10 @@ public final class ImportProcess implements Runnable {
             File importFolder, String description,
             UserProfile user, BatchManager batchManager,
             String device, String software, boolean generateIndices, String priority,
-            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, Integer metakatEngine, Boolean isNightOnly,
+            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, Integer metakatEngine, Boolean isNightOnly, List<String> pids,
             ImportProfile profile, AppConfiguration config
     ) throws IOException {
-        return prepare(importFolder, description, user, batchManager, device, software, generateIndices, false, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, profile, config);
+        return prepare(importFolder, description, user, batchManager, device, software, generateIndices, false, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, pids, profile, config);
     }
 
     /**
@@ -99,13 +99,13 @@ public final class ImportProcess implements Runnable {
             File importFolder, String description,
             UserProfile user, BatchManager batchManager,
             String device, String software, boolean generateIndices, boolean generatePageNumber, String priority,
-            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, Integer metakatEngine, Boolean isNightOnly, ImportProfile profile, AppConfiguration config
+            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, Integer metakatEngine, Boolean isNightOnly, List<String> pids, ImportProfile profile, AppConfiguration config
     ) throws IOException {
 
         ImportOptions options = new ImportOptions(importFolder, device, software,
                 generateIndices, generatePageNumber, user, profile, priority, useNewMetadata, useOriginalMetadata);
         ImportProcess process = new ImportProcess(options, batchManager, config);
-        process.prepare(description, user, peroOcrEngine, metakatEngine, isNightOnly);
+        process.prepare(description, user, peroOcrEngine, metakatEngine, isNightOnly, pids);
         return process;
     }
 
@@ -191,7 +191,7 @@ public final class ImportProcess implements Runnable {
         return profile;
     }
 
-    private void prepare(String description, UserProfile user, Integer peroOcrEngine, Integer metakatEngine, Boolean isNightOnly) throws IOException {
+    private void prepare(String description, UserProfile user, Integer peroOcrEngine, Integer metakatEngine, Boolean isNightOnly, List<String> pids) throws IOException {
         // validate import folder
         File importFolder = importConfig.getImportFolder();
         ImportFileScanner.validateImportFolder(importFolder);
@@ -215,6 +215,7 @@ public final class ImportProcess implements Runnable {
                     peroOcrEngine,
                     metakatEngine,
                     isNightOnly,
+                    pids,
                     importConfig);
             importConfig.setBatch(batch);
             transactionFailed = false;
@@ -426,6 +427,7 @@ public final class ImportProcess implements Runnable {
         private String priority;
         private boolean useNewMetadata;
         private boolean useOriginalMetadata;
+        private List<String> pids;
 
         // parametry kvuli auto migraci z k4 na ndk
         private List<String> pidsToUpdate;
@@ -593,6 +595,14 @@ public final class ImportProcess implements Runnable {
 
         public void setUseOriginalMetadata(boolean useOriginalMetadata) {
             this.useOriginalMetadata = useOriginalMetadata;
+        }
+
+        public List<String> getPids() {
+            return pids;
+        }
+
+        public void setPids(List<String> pids) {
+            this.pids = pids;
         }
 
         public List<String> getPidsToUpdate() {
