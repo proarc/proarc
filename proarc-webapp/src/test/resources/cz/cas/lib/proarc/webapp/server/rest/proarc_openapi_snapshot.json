@@ -7933,6 +7933,26 @@
         }
       }
     },
+    "/valuemap/metakat": {
+      "get": {
+        "tags": [
+          "Valuemap"
+        ],
+        "operationId": "getMetakatEngines",
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/workflow": {
       "delete": {
         "tags": [

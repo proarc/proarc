@@ -19,11 +19,13 @@ package cz.cas.lib.proarc.webapp.server.rest.v1;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.metacheck.MetaCheckClient;
 import cz.cas.lib.proarc.common.object.DigitalObjectPlugin;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.process.external.PeroOcrProcessor;
+import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowProfiles;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
@@ -35,9 +37,11 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import org.json.JSONException;
 
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 
@@ -102,6 +106,22 @@ public class ValueMapResourceV1 {
 
         PeroOcrProcessor ocrProcessor = new PeroOcrProcessor(appConfig.getImportConfiguration().getOcrGenProcessor(), null);
         result.add(ocrProcessor.getEnginesList());
+        return new ProArcResponse<>(result);
+    }
+
+    @GET
+    @Path(ValueMapResourceApi.METAKAT_ENGINE)
+    @Produces({MediaType.APPLICATION_JSON})
+    public ProArcResponse<ValueMap> getMetakatEngines() throws IOException, JSONException {
+        ValueMap.Context context = new ValueMap.Context();
+        context.setUser(session.getUser());
+        context.setLocale(session.getLocale(httpHeaders));
+
+        ArrayList<ValueMap> result = new ArrayList<ValueMap>();
+        ImportProfile importProfile = appConfig.getImportConfiguration();
+        try (MetaCheckClient client = new MetaCheckClient(importProfile.getMetaCheckApiUrl())) {
+            result.add(client.getEnginesList());
+        }
         return new ProArcResponse<>(result);
     }
 

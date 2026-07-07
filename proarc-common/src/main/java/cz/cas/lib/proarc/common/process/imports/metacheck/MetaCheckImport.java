@@ -312,6 +312,9 @@ public class MetaCheckImport implements ImportHandler {
     private void callMetaCheckApi(ImportProcess.ImportOptions importConfig, AppConfiguration config) throws IOException, JSONException {
         ImportProfile profile = importConfig.getConfig();
         String apiUrl = profile.getMetaCheckApiUrl();
+        if (apiUrl == null || apiUrl.isEmpty()) {
+            apiUrl = config.getImportConfiguration().getMetaCheckApiUrl();
+        }
         if (apiUrl == null || apiUrl.trim().isEmpty()) {
             LOG.warning("MetaCheck API URL is not configured. Skipping MetaCheck API call.");
             return;

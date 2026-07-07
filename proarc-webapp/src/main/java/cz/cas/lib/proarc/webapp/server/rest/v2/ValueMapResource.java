@@ -73,4 +73,16 @@ public class ValueMapResource extends ValueMapResourceV1 {
         }
     }
 
+    @GET
+    @Path(ValueMapResourceApi.METAKAT_ENGINE)
+    @Produces({MediaType.APPLICATION_JSON})
+    public ProArcResponse<ValueMap> getMetakatEngines() {
+        try {
+            return super.getMetakatEngines();
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return ProArcResponse.asError(t);
+        }
+    }
+
 }
