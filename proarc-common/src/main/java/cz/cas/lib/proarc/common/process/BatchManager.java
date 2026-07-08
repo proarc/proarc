@@ -327,6 +327,9 @@ public class BatchManager {
             if (params.getPeroOcrEngine() != null) {
                 sb.append("PeroOCR engine: ").append(params.getPeroOcrEngine()).append("\n");
             }
+            if (params.getMetakatEngine() != null) {
+                sb.append("MetaKat engine: ").append(params.getMetakatEngine()).append("\n");
+            }
         }
         if (params.getNotBefore() != null && params.getNotAfter() != null) {
             sb.append("Naplánováno mezi: ").append(params.getNotBefore()).append(" - ").append(params.getNotAfter()).append("\n");
