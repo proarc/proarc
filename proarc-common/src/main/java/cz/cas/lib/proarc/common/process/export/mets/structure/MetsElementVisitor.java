@@ -107,6 +107,7 @@ import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -141,6 +142,10 @@ import static cz.cas.lib.proarc.common.storage.PremisEditor.addPremisToAmdSec;
 
 public class MetsElementVisitor implements IMetsElementVisitor {
     private final Logger LOG = Logger.getLogger(MetsElementVisitor.class.getName());
+    private static final List<String> MODS_ORIGIN_INFO_DATE_PATHS = Arrays.asList(
+            "//*[local-name()='mods']/*[local-name()='originInfo']/*[local-name()='dateIssued']",
+            "//*[local-name()='mods']/*[local-name()='originInfo']/*[local-name()='dateOther']",
+            "//*[local-name()='mods']/*[local-name()='originInfo']/*[local-name()='dateCreated']");
     protected Mets mets;
     protected StructMapType logicalStruct;
     protected StructMapType physicalStruct;
@@ -214,7 +219,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * Inits the Mets header info
      */
     protected void initHeader(IMetsElement metsElement) throws MetsExportException {
-        mets.setLabel1(getTitle(metsElement) + metsElement.getLabel() + getYear(metsElement));
+        mets.setLabel1(createLabel1(metsElement));
         mets.setMetsHdr(createMetsHdr(metsElement));
 
         if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())
@@ -226,6 +231,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         } else {
             fileGrpMap = MetsUtils.initFileGroups();
         }
+    }
+
+    protected String createLabel1(IMetsElement metsElement) throws MetsExportException {
+        return getTitle(metsElement) + metsElement.getLabel() + getYear(metsElement);
     }
 
     /**
@@ -243,18 +252,24 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     /**
      * Returns date od publication if element is monograph volume or unit
      */
-    public static String getYear(IMetsElement metsElement) throws MetsExportException {
-        if (isMonograph(metsElement)) {
-            Node dateIssuedNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='originInfo']/*[local-name()='dateIssued']");
-            if (dateIssuedNode == null) {
-                dateIssuedNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='originInfo']/*[local-name()='dateOther']");
-                if (dateIssuedNode == null) {
-                    throw new MetsExportException("Error - missing date issued.");
-                }
-            }
-            return ", " + dateIssuedNode.getTextContent();
+    public static String getYear(MetsElement metsElement) throws MetsExportException {
+        return new MetsElementVisitor().getYear((IMetsElement) metsElement);
+    }
+
+    protected String getYear(IMetsElement metsElement) throws MetsExportException {
+        if (!isMonograph(metsElement)) {
+            return "";
         }
-        return "";
+
+        List<Element> modsStream = metsElement.getModsStream();
+        for (String modsOriginInfoDate : MODS_ORIGIN_INFO_DATE_PATHS) {
+            Node dateNode = MetsUtils.xPathEvaluateNode(modsStream, modsOriginInfoDate);
+            if (dateNode != null) {
+                return ", " + dateNode.getTextContent();
+            }
+        }
+
+        throw new MetsExportException("Error - missing date issued. Please insert it.");
     }
 
     /**
@@ -285,7 +300,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     /**
      * Returns true if element is monograph volume or unit, else return false
      */
-    private static boolean isMonograph(IMetsElement metsElement) {
+    protected boolean isMonograph(IMetsElement metsElement) throws MetsExportException {
         return metsElement.getModel().contains(NdkPlugin.MODEL_MONOGRAPHVOLUME) || metsElement.getModel().contains(NdkPlugin.MODEL_MONOGRAPHUNIT);
     }
 
