@@ -61,7 +61,6 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.w3c.dom.Node;
 
 import static cz.cas.lib.proarc.common.storage.PremisEditor.addPremisNodeToMets;
 import static cz.cas.lib.proarc.common.storage.PremisEditor.getAgent;
@@ -84,8 +83,11 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
     @Override
     protected void initHeader(IMetsElement metsElement) throws MetsExportException {
         super.initHeader(metsElement);
-        String label = mets.getLabel1();
-        mets.setLabel1(label + getDateIssued(metsElement));
+    }
+
+    @Override
+    protected String createLabel1(IMetsElement metsElement) throws MetsExportException {
+        return metsElement.getLabel() + getYear(metsElement);
     }
 
     @Override
@@ -325,23 +327,10 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
     }
 
     /**
-     * Returns the date of titleIssued
+     * Returns true if element is issue or monograph, else return false
      */
-    private String getDateIssued(IMetsElement metsElement) throws MetsExportException {
-        if (isNdkEmonograph(metsElement)) {
-            Node partNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='originInfo']/*[local-name()='dateIssued']");
-            if (partNode == null) {
-                throw new MetsExportException("Error - missing date issued. Please insert it.");
-            }
-            return ", " + partNode.getTextContent();
-        }
-        return "";
-    }
-
-    /**
-     * Returns true if element is issue, else return false
-     */
-    public boolean isNdkEmonograph(IMetsElement metsElement) throws MetsExportException {
+    @Override
+    protected boolean isMonograph(IMetsElement metsElement) throws MetsExportException {
         String type = MetsUtils.xPathEvaluateString(metsElement.getModsStream(), "//*[local-name()='mods']/*[local-name()='genre']");
         return type.equals("electronic title") || type.equals("electronic volume");
     }
