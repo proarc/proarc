@@ -177,6 +177,21 @@ public class VerbisUpdateCatalog extends UpdateCatalog {
         httpPost.setHeader(new BasicHeader("Authorization", String.format("Bearer %s", catalogToken)));
         httpPost.setHeader(new BasicHeader("Content-Type", "application/json; charset=UTF-8"));
 
+        String json = createUpdateRecordJson(bCatalog, field001, uuid);
+
+        httpPost.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
+
+        HttpResponse response = httpClient.execute(httpPost);
+        if (HTTP_OK == response.getStatusLine().getStatusCode()) {
+            HttpEntity entity = response.getEntity();
+            return true;
+        } else {
+            LOG.severe(EntityUtils.toString(response.getEntity()));
+            throw new IOException("Connecing to Catalog ended with code " + response.getStatusLine().getStatusCode());
+        }
+    }
+
+    protected static String createUpdateRecordJson(CatalogConfiguration bCatalog, String field001, String uuid) {
         String json = "{" +
                 "    \"reusing\": [{\"id\": \"f1:" + field001 + "\"}]," +
                 "    \"value\": [" +
@@ -205,17 +220,6 @@ public class VerbisUpdateCatalog extends UpdateCatalog {
                 "        }" +
                 "    ]" +
                 "}";
-
-        json = json.replaceAll("\\s+", " ");
-        httpPost.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
-
-        HttpResponse response = httpClient.execute(httpPost);
-        if (HTTP_OK == response.getStatusLine().getStatusCode()) {
-            HttpEntity entity = response.getEntity();
-            return true;
-        } else {
-            LOG.severe(EntityUtils.toString(response.getEntity()));
-            throw new IOException("Connecing to Catalog ended with code " + response.getStatusLine().getStatusCode());
-        }
+        return json.replaceAll("\\s+", " ");
     }
 }
