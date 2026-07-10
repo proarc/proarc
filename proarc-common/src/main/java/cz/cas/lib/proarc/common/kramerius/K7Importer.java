@@ -23,6 +23,7 @@ import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_PLANNED_V7;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_RUNNING_V7;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
+import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_NOT_RUNNING;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_PLANNED;
 import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_RUNNING;
 import static java.net.HttpURLConnection.HTTP_ACCEPTED;
@@ -125,8 +126,9 @@ public class K7Importer {
         String state = KRAMERIUS_PROCESS_PLANNED;
         String batchState = KRAMERIUS_BATCH_PLANNED_V7;
         int error403counter = 0;
+        int notRunningCounter = 0;
 
-        while (state.equals(KRAMERIUS_PROCESS_PLANNED) || state.equals(KRAMERIUS_PROCESS_RUNNING) || (state.equals(KRAMERIUS_PROCESS_FINISHED) && (batchState.equals(KRAMERIUS_BATCH_PLANNED_V7) || batchState.equals(KRAMERIUS_BATCH_RUNNING_V7)))) {
+        while (true) {
 
             HttpClient httpClient = HttpClients.createDefault();
             HttpGet httpGet = new HttpGet(processQueryUrl);
@@ -167,6 +169,15 @@ public class K7Importer {
             }
             if (state.equals(KRAMERIUS_PROCESS_PLANNED) || state.equals(KRAMERIUS_PROCESS_RUNNING) || (state.equals(KRAMERIUS_PROCESS_FINISHED) && (batchState.equals(KRAMERIUS_BATCH_PLANNED_V7) || batchState.equals(KRAMERIUS_BATCH_RUNNING_V7)))) {
                 TimeUnit.SECONDS.sleep(20);
+            } else if (state.equals(KRAMERIUS_PROCESS_NOT_RUNNING) || batchState.equals(KRAMERIUS_PROCESS_NOT_RUNNING)) {
+                if (notRunningCounter < 5) {
+                    notRunningCounter++;
+                    TimeUnit.SECONDS.sleep(10);
+                } else {
+                    return new KUtils.ImportState(state, batchState);
+                }
+            } else {
+                break;
             }
         }
         return new KUtils.ImportState(state, batchState);
