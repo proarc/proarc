@@ -33,6 +33,7 @@ public class KUtils {
     public static final String KRAMERIUS_PROCESS_ERROR = "ERROR";
     public static final String KRAMERIUS_PROCESS_PLANNED = "PLANNED";
     public static final String KRAMERIUS_PROCESS_RUNNING = "RUNNING";
+    public static final String KRAMERIUS_PROCESS_NOT_RUNNING = "NOT_RUNNING";
 
     public static final String KRAMERIUS_BATCH_NO_BATCH_V5 = "NO_BATCH";
     public static final String KRAMERIUS_BATCH_STARTED_V5 = "BATCH_STARTED";
