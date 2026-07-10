@@ -28,13 +28,12 @@ import static cz.cas.lib.proarc.common.config.CatalogConfiguration.PROPERTY_UPDA
 import static cz.cas.lib.proarc.common.config.CatalogConfiguration.PROPERTY_UPDATE_SUBFIELD_DIGITALIZED;
 import static cz.cas.lib.proarc.common.config.CatalogConfiguration.PROPERTY_UPDATE_SUBFIELD_OBJECT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class VerbisUpdateCatalogTest {
 
     @Test
-    public void createUpdateRecordJsonDoesNotReuseNewSubfields() {
+    public void createUpdateRecordJsonReusesNewSubfields() {
         CatalogConfiguration catalog = createCatalogConfiguration();
 
         JSONObject json = new JSONObject(VerbisUpdateCatalog.createUpdateRecordJson(catalog, "123456", "uuid:abc"));
@@ -49,13 +48,14 @@ public class VerbisUpdateCatalogTest {
 
         JSONArray subfields = fieldValue.getJSONObject("set").getJSONArray("value");
         assertEquals(3, subfields.length());
-        assertSubfield(subfields.getJSONObject(0), "D.856.x", "proarcId");
-        assertSubfield(subfields.getJSONObject(1), "D.856.y", "uuid:abc");
-        assertSubfield(subfields.getJSONObject(2), "D.856.d", "zdigitalizováno");
+        assertReusedSubfield(subfields.getJSONObject(0), "D.856.x", "proarcId");
+        assertReusedSubfield(subfields.getJSONObject(1), "D.856.y", "uuid:abc");
+        assertReusedSubfield(subfields.getJSONObject(2), "D.856.d", "zdigitalizováno");
     }
 
-    private static void assertSubfield(JSONObject subfield, String type, String value) {
-        assertFalse(subfield.has("reusing"));
+    private static void assertReusedSubfield(JSONObject subfield, String type, String value) {
+        assertTrue(subfield.has("reusing"));
+        assertEquals(type, subfield.getJSONArray("reusing").getJSONObject(0).getString("type"));
         assertEquals(type, subfield.getJSONObject("set").getString("type"));
         assertEquals(value, subfield.getJSONObject("set").getString("value"));
     }
