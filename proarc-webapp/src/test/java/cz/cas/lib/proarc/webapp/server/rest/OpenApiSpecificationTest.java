@@ -32,8 +32,8 @@ class OpenApiSpecificationTest {
         assertEquals("../rest/v2", spec.getJSONArray("servers").getJSONObject(0).getString("url"));
 
         JSONObject paths = spec.getJSONObject("paths");
-        assertEquals(164, paths.length());
-        assertEquals(200, countOperations(paths));
+        assertEquals(165, paths.length());
+        assertEquals(201, countOperations(paths));
         assertTrue(paths.has("/authorities"));
         assertTrue(paths.has("/bibliographies/query"));
         assertTrue(paths.has("/device"));
@@ -260,7 +260,7 @@ class OpenApiSpecificationTest {
         JSONObject schemas = loadSpec()
                 .getJSONObject("components")
                 .getJSONObject("schemas");
-        assertEquals(223, schemas.length());
+        assertEquals(224, schemas.length());
 
         JSONObject response = schemas.getJSONObject("response");
         JSONObject properties = response.getJSONObject("properties");
@@ -331,8 +331,8 @@ class OpenApiSpecificationTest {
             assertTrue(pathOperationCount > 0, path);
         }
 
-        assertEquals(200, operationCount);
-        assertEquals(200, responseCount);
+        assertEquals(201, operationCount);
+        assertEquals(201, responseCount);
     }
 
     @Test

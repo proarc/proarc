@@ -246,6 +246,23 @@ public class ImportResource extends ImportResourceV1 {
         }
     }
 
+    @GET
+    @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.BATCH_METACHECK_URL_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<MetaCheckUrlResult> getMetaCheckUrl(
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId
+    ) {
+        if (batchId == null) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ImportResourceApi.IMPORT_BATCH_ID));
+        }
+        try {
+            return super.getMetaCheckUrl(batchId);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return ProArcResponse.asError(t);
+        }
+    }
+
     @PUT
     @Path(ImportResourceApi.BATCH_PATH)
     @Produces(MediaType.APPLICATION_JSON)

@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -72,6 +73,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -641,6 +643,75 @@ public class ImportResourceV1 {
         }
     }
 
+    @GET
+    @Path(ImportResourceApi.BATCH_PATH + '/' + ImportResourceApi.BATCH_METACHECK_URL_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<MetaCheckUrlResult> getMetaCheckUrl(
+            @QueryParam(ImportResourceApi.IMPORT_BATCH_ID) Integer batchId
+    ) {
+        if (batchId == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing parameter: " + ImportResourceApi.IMPORT_BATCH_ID);
+        }
+        Batch batch = importManager.get(batchId);
+        if (batch == null) {
+            throw RestException.plainNotFound(
+                    ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
+        }
+        if (!(isBatchOwner(batch) || hasPermission(user, PERMISSION_FUNCTION_PREPARE_BATCH) || hasPermission(user, PERMISSION_FUNCTION_SYS_ADMIN))) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        if (!ConfigurationProfile.METACHECK_IMPORT.equals(batch.getProfileId())) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Batch " + batchId + " is not a MetaCheck import batch.");
+        }
+        if (batch.getState() != Batch.State.EXTERNAL_EDITING) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Batch " + batchId + " is not ready for external editing. Unexpected state: " + batch.getState());
+        }
+
+        ConfigurationProfile profile = findImportProfile(batchId, batch.getProfileId());
+        ImportProfile importProfile = appConfig.getImportConfiguration(profile);
+        String url = createMetaCheckUrl(batch.getId(), importProfile);
+        if (url == null) {
+            url = createMetaCheckUrl(batch.getId(), appConfig.getImportConfiguration());
+        }
+        if (url == null) {
+            throw RestException.plainText(Status.BAD_REQUEST,
+                    "MetaCheck web URL is not configured. Configure " + ImportProfile.METACHECK_WEB_BATCH_URL
+                            + " or " + ImportProfile.METACHECK_API_URL + ".");
+        }
+        return new ProArcResponse<MetaCheckUrlResult>(new MetaCheckUrlResult(url));
+    }
+
+    private static String createMetaCheckUrl(Integer proarcBatchId, ImportProfile importProfile) {
+        String template = trimToNull(importProfile.getMetaCheckWebBatchUrl());
+        if (template != null) {
+            return template
+                    .replace("{proarcBatchId}", String.valueOf(proarcBatchId));
+        }
+
+        String baseUrl = trimToNull(importProfile.getMetaCheckApiUrl());
+        if (baseUrl == null) {
+            return null;
+        } else {
+            baseUrl =  baseUrl.replace("api/", "").replace("metakat/", "");
+        }
+        return removeTrailingSlashes(baseUrl) + "/batches?proarcBatchId=" + proarcBatchId;
+    }
+
+    private static String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static String removeTrailingSlashes(String value) {
+        while (value.endsWith("/")) {
+            value = value.substring(0, value.length() - 1);
+        }
+        return value;
+    }
+
     protected String returnLocalizedMessage(String key, Object... arguments) {
         Locale locale = session.getLocale(httpHeaders);
         ServerMessages msgs = ServerMessages.get(locale);
@@ -961,4 +1032,17 @@ public class ImportResourceV1 {
         return new ProArcResponse<DigitalObjectResourceV1.InternalExternalProcessResult>(result);
     }
 
+    public static class MetaCheckUrlResult {
+
+        @XmlElement(name = ImportResourceApi.IMPORT_BATCH_METACHECK_URL)
+        @JsonProperty(ImportResourceApi.IMPORT_BATCH_METACHECK_URL)
+        public String url;
+
+        public MetaCheckUrlResult() {
+        }
+
+        public MetaCheckUrlResult(String url) {
+            this.url = url;
+        }
+    }
 }

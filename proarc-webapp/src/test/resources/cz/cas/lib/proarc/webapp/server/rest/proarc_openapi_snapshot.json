@@ -1478,6 +1478,36 @@
         }
       }
     },
+    "/import/batch/metacheckUrl": {
+      "get": {
+        "tags": [
+          "Import"
+        ],
+        "operationId": "getMetaCheckUrl",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/import/batch/unlockFolder": {
       "post": {
         "tags": [
@@ -13861,6 +13891,14 @@
             "format": "int32"
           },
           "msg": {
+            "type": "string"
+          }
+        }
+      },
+      "MetaCheckUrlResult": {
+        "type": "object",
+        "properties": {
+          "url": {
             "type": "string"
           }
         }

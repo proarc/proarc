@@ -96,6 +96,7 @@ public final class ImportProfile {
     public static final String IMPORT_FOXML_FOLDER_PATH = "import.foxml.folder.path";
     public static final String GENERATE_PDFA_PROCESSOR = "generate.pdfA.processor";
     public static final String METACHECK_API_URL = "import.metacheck.api.url";
+    public static final String METACHECK_WEB_BATCH_URL = "import.metacheck.web.batch.url";
 
 
     public static final String[] FILE_EXTENSIONS = new String[]{".xml", ".jp2", ".txt", ".jpg", ".jpeg", ".mp3", ".ogg", ".wav", ".flac", ".tif"};
@@ -344,6 +345,10 @@ public final class ImportProfile {
 
     public String getMetaCheckApiUrl() {
         return config.getString(METACHECK_API_URL);
+    }
+
+    public String getMetaCheckWebBatchUrl() {
+        return config.getString(METACHECK_WEB_BATCH_URL);
     }
 
     public Boolean getCreateModelsHierarchy() {
