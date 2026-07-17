@@ -158,10 +158,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
             <xsl:choose>
                 <xsl:when test="$leader6='a'">
                     <xsl:choose>
-                        <xsl:when
-                                test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'"
-                        >BK
-                        </xsl:when>
+                        <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">BK</xsl:when>
                         <xsl:when test="$leader7='b' or $leader7='i' or $leader7='s'">SE</xsl:when>
                     </xsl:choose>
                 </xsl:when>
@@ -169,12 +166,8 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:when test="$leader6='p'">MM</xsl:when>
                 <xsl:when test="$leader6='m'">CF</xsl:when>
                 <xsl:when test="$leader6='e' or $leader6='f'">MP</xsl:when>
-                <xsl:when test="$leader6='g' or $leader6='k' or $leader6='o' or $leader6='r'"
-                >VM
-                </xsl:when>
-                <xsl:when test="$leader6='c' or $leader6='d' or $leader6='i' or $leader6='j'"
-                >MU
-                </xsl:when>
+                <xsl:when test="$leader6='g' or $leader6='k' or $leader6='o' or $leader6='r'">VM</xsl:when>
+                <xsl:when test="$leader6='c' or $leader6='d' or $leader6='i' or $leader6='j'">MU</xsl:when>
             </xsl:choose>
         </xsl:variable>
 
@@ -777,8 +770,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 </xsl:for-each>
                 <xsl:variable name="dataField260c">
                     <xsl:call-template name="chopPunctuation">
-                        <xsl:with-param name="chopString"
-                                        select="marc:datafield[@tag=260][@ind1=' ']/marc:subfield[@code='c']"/>
+                        <xsl:with-param name="chopString" select="marc:datafield[@tag=260][@ind1=' ']/marc:subfield[@code='c']"/>
                     </xsl:call-template>
                 </xsl:variable>
                 <xsl:variable name="controlField008-7-10"
@@ -884,15 +876,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:for-each select="marc:leader">
                     <issuance>
                         <xsl:choose>
-                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">
-                                multipart monograph
-                            </xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">multipart monograph</xsl:when>
                             <xsl:when test="$leader7='m' and ($leader19=' ')">single unit</xsl:when>
                             <xsl:when test="$leader7='m' and ($leader19='#')">single unit</xsl:when>
                             <xsl:when test="$leader7='i'">integrating resource</xsl:when>
                             <xsl:when test="$leader7='b' or $leader7='s'">serial</xsl:when>
-                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic
-                            </xsl:when>
+                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic</xsl:when>
                         </xsl:choose>
                     </issuance>
                 </xsl:for-each>
@@ -1075,15 +1064,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:for-each select="../marc:leader">
                     <issuance>
                         <xsl:choose>
-                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">
-                                multipart monograph
-                            </xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">multipart monograph</xsl:when>
                             <xsl:when test="$leader7='m' and ($leader19=' ')">single unit</xsl:when>
                             <xsl:when test="$leader7='m' and ($leader19='#')">single unit</xsl:when>
                             <xsl:when test="$leader7='i'">integrating resource</xsl:when>
                             <xsl:when test="$leader7='b' or $leader7='s'">serial</xsl:when>
-                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic
-                            </xsl:when>
+                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic</xsl:when>
                         </xsl:choose>
                     </issuance>
                 </xsl:for-each>
@@ -1130,15 +1116,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:for-each select="../marc:leader">
                     <issuance>
                         <xsl:choose>
-                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">
-                                multipart monograph
-                            </xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">multipart monograph</xsl:when>
                             <xsl:when test="$leader7='m' and ($leader19=' ')">single unit</xsl:when>
                             <xsl:when test="$leader7='m' and ($leader19='#')">single unit</xsl:when>
                             <xsl:when test="$leader7='i'">integrating resource</xsl:when>
                             <xsl:when test="$leader7='b' or $leader7='s'">serial</xsl:when>
-                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic
-                            </xsl:when>
+                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic</xsl:when>
                         </xsl:choose>
                     </issuance>
                 </xsl:for-each>
@@ -1226,15 +1209,13 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:for-each select="../marc:leader">
                     <issuance>
                         <xsl:choose>
-                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">
-                                multipart monograph
+                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">multipart monograph
                             </xsl:when>
                             <xsl:when test="$leader7='m' and ($leader19=' ')">single unit</xsl:when>
                             <xsl:when test="$leader7='m' and ($leader19='#')">single unit</xsl:when>
                             <xsl:when test="$leader7='i'">integrating resource</xsl:when>
                             <xsl:when test="$leader7='b' or $leader7='s'">serial</xsl:when>
-                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic
-                            </xsl:when>
+                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic</xsl:when>
                         </xsl:choose>
                     </issuance>
                 </xsl:for-each>
@@ -1275,15 +1256,12 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                 <xsl:for-each select="../marc:leader">
                     <issuance>
                         <xsl:choose>
-                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">
-                                multipart monograph
-                            </xsl:when>
+                            <xsl:when test="$leader7='m' and ($leader19='a' or $leader19='b' or $leader19='c')">multipart monograph</xsl:when>
                             <xsl:when test="$leader7='m' and ($leader19=' ')">single unit</xsl:when>
                             <xsl:when test="$leader7='m' and ($leader19='#')">single unit</xsl:when>
                             <xsl:when test="$leader7='i'">integrating resource</xsl:when>
                             <xsl:when test="$leader7='b' or $leader7='s'">serial</xsl:when>
-                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic
-                            </xsl:when>
+                            <xsl:when test="$leader7='a' or $leader7='c' or $leader7='d' or $leader7='m'">monographic</xsl:when>
                         </xsl:choose>
                     </issuance>
                 </xsl:for-each>
@@ -2884,18 +2862,10 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     test="starts-with(marc:subfield[@code='u'],'urn:hdl') or starts-with(marc:subfield[@code='u'],'hdl') or starts-with(marc:subfield[@code='u'],'http://hdl.loc.gov') ">
                 <identifier>
                     <xsl:attribute name="type">
-                        <xsl:if
-                                test="starts-with(marc:subfield[@code='u'],'urn:doi') or starts-with(marc:subfield[@code='u'],'doi')"
-                        >doi
-                        </xsl:if>
-                        <xsl:if
-                                test="starts-with(marc:subfield[@code='u'],'urn:hdl') or starts-with(marc:subfield[@code='u'],'hdl') or starts-with(marc:subfield[@code='u'],'http://hdl.loc.gov')"
-                        >hdl
-                        </xsl:if>
+                        <xsl:if test="starts-with(marc:subfield[@code='u'],'urn:doi') or starts-with(marc:subfield[@code='u'],'doi')">doi</xsl:if>
+                        <xsl:if test="starts-with(marc:subfield[@code='u'],'urn:hdl') or starts-with(marc:subfield[@code='u'],'hdl') or starts-with(marc:subfield[@code='u'],'http://hdl.loc.gov')">hdl</xsl:if>
                     </xsl:attribute>
-                    <xsl:value-of
-                            select="concat('hdl:',substring-after(marc:subfield[@code='u'],'http://hdl.loc.gov/'))"
-                    />
+                    <xsl:value-of select="concat('hdl:',substring-after(marc:subfield[@code='u'],'http://hdl.loc.gov/'))"/>
                 </identifier>
             </xsl:if>
             <xsl:if
@@ -2908,9 +2878,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                             </xsl:call-template>
                         </xsl:attribute>
                     </xsl:if>
-                    <xsl:value-of
-                            select="concat('hdl:',substring-after(marc:subfield[@code='u'],'http://hdl.loc.gov/'))"
-                    />
+                    <xsl:value-of select="concat('hdl:',substring-after(marc:subfield[@code='u'],'http://hdl.loc.gov/'))"/>
                 </identifier>
             </xsl:if>
         </xsl:for-each>
@@ -6056,26 +6024,19 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     <!-- 1.41 tmee AQ1.9 added choice protocol for @usage="primary display" -->
                     <xsl:variable name="primary">
                         <xsl:choose>
-                            <xsl:when
-                                    test="@ind2=0 and count(preceding-sibling::marc:datafield[@tag=856] [@ind2=0])=0"
-                            >true
-                            </xsl:when>
+                            <xsl:when test="@ind2=0 and count(preceding-sibling::marc:datafield[@tag=856] [@ind2=0])=0">true</xsl:when>
 
                             <xsl:when
                                     test="@ind2=1 and
                             count(ancestor::marc:record//marc:datafield[@tag=856][@ind2=0])=0 and
-                            count(preceding-sibling::marc:datafield[@tag=856][@ind2=1])=0"
-                            >true
-                            </xsl:when>
+                            count(preceding-sibling::marc:datafield[@tag=856][@ind2=1])=0">true</xsl:when>
 
                             <xsl:when
                                     test="@ind2!=1 and @ind2!=0 and
                             @ind2!=2 and count(ancestor::marc:record//marc:datafield[@tag=856 and
                             @ind2=0])=0 and count(ancestor::marc:record//marc:datafield[@tag=856 and
                             @ind2=1])=0 and
-                            count(preceding-sibling::marc:datafield[@tag=856][@ind2])=0"
-                            >true
-                            </xsl:when>
+                            count(preceding-sibling::marc:datafield[@tag=856][@ind2])=0">true</xsl:when>
                             <xsl:otherwise>false</xsl:otherwise>
                         </xsl:choose>
                     </xsl:variable>
