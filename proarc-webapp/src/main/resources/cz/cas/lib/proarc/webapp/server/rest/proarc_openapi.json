@@ -2410,6 +2410,9 @@
                   "seriesSignatura": {
                     "type": "string"
                   },
+                  "seriesBarcode": {
+                    "type": "string"
+                  },
                   "seriesFrequency": {
                     "type": "string"
                   },

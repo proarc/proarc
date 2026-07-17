@@ -320,7 +320,7 @@ public class DigitalObjectManager {
          * @return the handler
          */
         public CreateHandler issueSeries(LocalDate from, LocalDate to, List<Integer> dayIdxs, Boolean seriesMissingDaysIncluded, List<Integer> daysInRange, Integer partNumberFrom,
-                                         String seriesFrequency, String seriesDateFormat, String seriesSignatura, Integer seriesCount) {
+                                         String seriesFrequency, String seriesDateFormat, String seriesSignatura, String seriesBarcode, Integer seriesCount) {
             this.seriesDateFrom = from;
             if (from != null) {
                 if (to != null) {
@@ -415,6 +415,9 @@ public class DigitalObjectManager {
             }
             if (seriesSignatura != null && !seriesSignatura.isEmpty()) {
                 params.put(DigitalObjectHandler.PARAM_SIGNATURA, seriesSignatura);
+            }
+            if (seriesBarcode != null && !seriesBarcode.isEmpty()) {
+                params.put(DigitalObjectHandler.PARAM_BARCODE, seriesBarcode);
             }
             this.seriesPartNumberFrom = partNumberFrom;
             if (partNumberFrom != null) {

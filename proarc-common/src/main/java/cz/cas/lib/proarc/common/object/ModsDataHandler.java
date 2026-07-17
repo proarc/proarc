@@ -107,6 +107,9 @@ public class ModsDataHandler {
 
                 String signaturaVal = objectHandler.getParameter(DigitalObjectHandler.PARAM_SIGNATURA);
                 replaceShelfLocator(defaultMods, signaturaVal);
+
+                String barcodeVal = objectHandler.getParameter(DigitalObjectHandler.PARAM_BARCODE);
+                addBarcode(defaultMods, barcodeVal);
             }
         } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(modelId)) {
             // issue 137
@@ -312,6 +315,18 @@ public class ModsDataHandler {
         }
 
         return defaultMods;
+    }
+
+    private void addBarcode(ModsDefinition mods, String barcodeVal) {
+        if (barcodeVal == null || barcodeVal.isBlank()) {
+            return;
+        }
+
+        IdentifierDefinition identifierDefinition = new IdentifierDefinition();
+        identifierDefinition.setType("barcode");
+        identifierDefinition.setValue(barcodeVal);
+
+        mods.getIdentifier().add(identifierDefinition);
     }
 
     private void setRules(ModsDefinition mods) {
