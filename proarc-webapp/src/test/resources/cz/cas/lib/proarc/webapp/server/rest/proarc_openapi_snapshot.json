@@ -2410,6 +2410,9 @@
                   "seriesSignatura": {
                     "type": "string"
                   },
+                  "seriesSigla": {
+                    "type": "string"
+                  },
                   "seriesBarcode": {
                     "type": "string"
                   },
