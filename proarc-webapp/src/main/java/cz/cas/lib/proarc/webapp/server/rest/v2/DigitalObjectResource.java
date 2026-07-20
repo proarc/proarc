@@ -148,6 +148,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @DefaultValue("false") @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_MISSING_DAYS_INCLUDED_PARAM) boolean seriesMissingDaysIncluded,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM) Integer seriesPartNumberFrom,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_SIGNATURA) String seriesSignatura,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_BARCODE) String seriesBarcode,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_FREQUENCY) String seriesFrequency,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_TOTAL_OBJECTS) Integer seriesCount,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DATE_FORMAT) String seriesDateFormat,
@@ -175,7 +176,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
                 }
             }
             return super.newObject(modelId, pid, parentPid, seriesDateFrom, seriesDateTo, seriesDaysIncluded, seriesDaysInRange, seriesMissingDaysIncluded,
-                    seriesPartNumberFrom, seriesSignatura, seriesFrequency, seriesCount, seriesDateFormat, xmlMetadata, workflowJobId, catalogId, createObject, validation);
+                    seriesPartNumberFrom, seriesSignatura, seriesBarcode, seriesFrequency, seriesCount, seriesDateFormat, xmlMetadata, workflowJobId, catalogId, createObject, validation);
         } catch (DigitalObjectException ex) {
                 LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
                 return ProArcResponse.asError(ex.getMyMessage());

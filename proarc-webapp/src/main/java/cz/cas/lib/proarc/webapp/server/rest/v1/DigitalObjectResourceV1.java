@@ -304,6 +304,7 @@ public class DigitalObjectResourceV1 {
             @DefaultValue("false") @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_MISSING_DAYS_INCLUDED_PARAM) boolean seriesMissingDaysIncluded,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM) Integer seriesPartNumberFrom,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_SIGNATURA) String seriesSignatura,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_BARCODE) String seriesBarcode,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_FREQUENCY) String seriesFrequency,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_TOTAL_OBJECTS) Integer seriesCount,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DATE_FORMAT) String seriesDateFormat,
@@ -356,7 +357,7 @@ public class DigitalObjectResourceV1 {
             if (seriesDateFrom != null || seriesCount != null) {
                 handler.issueSeries(seriesDateFrom == null ? null : seriesDateFrom.getLocalDate(),
                         seriesDateTo == null ? null : seriesDateTo.getLocalDate(),
-                        seriesDaysIncluded, seriesMissingDaysIncluded, seriesDaysInRange, seriesPartNumberFrom, seriesFrequency, seriesDateFormat, seriesSignatura, seriesCount);
+                        seriesDaysIncluded, seriesMissingDaysIncluded, seriesDaysInRange, seriesPartNumberFrom, seriesFrequency, seriesDateFormat, seriesSignatura, seriesBarcode, seriesCount);
             }
             List<SearchViewItem> items;
             if (workflowJobId != null) {
