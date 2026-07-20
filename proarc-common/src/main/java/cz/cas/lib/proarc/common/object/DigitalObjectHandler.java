@@ -47,6 +47,7 @@ public final class DigitalObjectHandler {
      * Special Signatura
      */
     public static final String PARAM_SIGNATURA = "series.mods.physicalLocation.signatura";
+    public static final String PARAM_SIGLA = "series.mods.physicalLocation.sigla";
     public static final String PARAM_BARCODE = "series.mods.physicalLocation.barcode";
     public static final String PARAM_ISSUE_DATE_END_OF_RANGE = "series.mods.issueCreated.endOfRange";
     static final String PARAM_PARENT = DigitalObjectHandler.class.getName() + ".parent";

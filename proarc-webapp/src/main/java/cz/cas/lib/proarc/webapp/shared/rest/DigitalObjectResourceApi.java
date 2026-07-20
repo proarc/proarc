@@ -40,6 +40,7 @@ public final class DigitalObjectResourceApi {
     public static final String DIGITALOBJECT_SERIES_DAYS_IN_RANGE_PARAM = "seriesDaysInRange";
     public static final String DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM = "seriesPartNumberFrom";
     public static final String DIGITALOBJECT_SERIES_SIGNATURA = "seriesSignatura";
+    public static final String DIGITALOBJECT_SERIES_SIGLA = "seriesSigla";
     public static final String DIGITALOBJECT_SERIES_BARCODE = "seriesBarcode";
     public static final String DIGITALOBJECT_SERIES_FREQUENCY = "seriesFrequency";
     public static final String DIGITALOBJECT_SERIES_TOTAL_OBJECTS = "seriesTotalNumbers";
