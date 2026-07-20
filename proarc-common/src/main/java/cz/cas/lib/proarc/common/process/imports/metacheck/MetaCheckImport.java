@@ -343,12 +343,17 @@ public class MetaCheckImport implements ImportHandler {
         }
     }
 
-    private String getMetaCheckFolder(File importFolder, File configHome) {
+    String getMetaCheckFolder(File importFolder, File configHome) {
         String path = importFolder.getPath().replace('\\', '/');
         String proarcHome = configHome.getPath().replace('\\', '/');
         if (path.startsWith(proarcHome + "/")) {
-            return path.substring(proarcHome.length() + 1);
+            path = path.substring(proarcHome.length() + 1);
         }
+        int usersFolderIndex = path.indexOf("/users/");
+        if (usersFolderIndex >= 0) {
+            path = path.substring(usersFolderIndex + 1);
+        }
+        LOG.info("Package for MetaCheck: " + path);
         return path;
     }
 }
