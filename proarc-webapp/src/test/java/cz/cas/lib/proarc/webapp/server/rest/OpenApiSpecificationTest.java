@@ -171,6 +171,22 @@ class OpenApiSpecificationTest {
     }
 
     @Test
+    void objectModsEditorObjectsDocumentsBulkUpdateFields() throws Exception {
+        JSONObject put = loadSpec()
+                .getJSONObject("paths")
+                .getJSONObject("/object/mods/editorObjects")
+                .getJSONObject("put");
+
+        assertEquals("updateDescriptionMetadataObjects", put.getString("operationId"));
+        JSONObject properties = formRequestProperties(put);
+        for (String property : List.of("pid", "partNumber", "signatura", "sigla", "title", "subTitle",
+                "partName", "note", "publisher", "place", "dateIssued")) {
+            assertTrue(properties.has(property), property);
+        }
+        assertDefaultJsonResponse(put, "#/components/schemas/response");
+    }
+
+    @Test
     void objectDisseminationDocumentsUploadAndBinaryDownload() throws Exception {
         JSONObject dissemination = loadSpec()
                 .getJSONObject("paths")

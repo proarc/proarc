@@ -1351,7 +1351,14 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PARTNUMBER) String partNumber,
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGNATURA) String signatura,
-            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGLA) String sigla
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGLA) String sigla,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_TITLE) String title,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SUBTITLE) String subTitle,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PARTNAME) String partName,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_NOTE) String note,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PUBLISHER) String publisher,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PLACE) String place,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_DATE_ISSUED) String dateIssued
     ) throws DigitalObjectException, IOException {
 
         LOG.fine(String.format("pids: %s", pids.toArray()));
@@ -1368,8 +1375,10 @@ public class DigitalObjectResourceV1 {
         UpdateObjects updateObjects = new UpdateObjects(appConfig, akubraConfiguration, session.getLocale(httpHeaders));
         updateObjects.createListOfPids(pids);
         updateObjects.createPartNumber(partNumber);
+
         try {
-            updateObjects.updateObjects(signatura, sigla);
+            updateObjects.createDateIssued(dateIssued);
+            updateObjects.updateObjects(signatura, sigla, title, subTitle, partName, note, publisher, place);
             return returnFunctionSuccess();
         } catch (DigitalObjectValidationException ex) {
             return toValidationError(ex, session.getLocale(httpHeaders));

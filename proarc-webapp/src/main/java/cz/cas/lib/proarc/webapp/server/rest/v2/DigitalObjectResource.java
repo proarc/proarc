@@ -619,14 +619,21 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PARTNUMBER) String partNumber,
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGNATURA) String signatura,
-            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGLA) String sigla
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGLA) String sigla,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_TITLE) String title,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SUBTITLE) String subTitle,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PARTNAME) String partName,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_NOTE) String note,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PUBLISHER) String publisher,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PLACE) String place,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_DATE_ISSUED) String dateIssued
     ) {
 
         if (pids == null || pids.isEmpty()) {
             return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
-            return super.updateDescriptionMetadataObjects(pids, partNumber, signatura, sigla);
+            return super.updateDescriptionMetadataObjects(pids, partNumber, signatura, sigla, title, subTitle, partName, note, publisher, place, dateIssued);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
             return ProArcResponse.asError(ex.getMyMessage());
