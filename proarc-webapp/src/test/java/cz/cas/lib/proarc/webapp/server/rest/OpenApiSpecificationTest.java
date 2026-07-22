@@ -32,8 +32,8 @@ class OpenApiSpecificationTest {
         assertEquals("../rest/v2", spec.getJSONArray("servers").getJSONObject(0).getString("url"));
 
         JSONObject paths = spec.getJSONObject("paths");
-        assertEquals(165, paths.length());
-        assertEquals(201, countOperations(paths));
+        assertEquals(166, paths.length());
+        assertEquals(202, countOperations(paths));
         assertTrue(paths.has("/authorities"));
         assertTrue(paths.has("/bibliographies/query"));
         assertTrue(paths.has("/device"));
@@ -276,7 +276,7 @@ class OpenApiSpecificationTest {
         JSONObject schemas = loadSpec()
                 .getJSONObject("components")
                 .getJSONObject("schemas");
-        assertEquals(224, schemas.length());
+        assertEquals(226, schemas.length());
 
         JSONObject response = schemas.getJSONObject("response");
         JSONObject properties = response.getJSONObject("properties");
@@ -288,6 +288,40 @@ class OpenApiSpecificationTest {
         assertTrue(properties.has("errorMessage"));
         assertTrue(properties.has("errors"));
         assertEquals("response", response.getJSONObject("xml").getString("name"));
+    }
+
+    @Test
+    void objectMemberDistributeDocumentsBatchDistribution() throws Exception {
+        JSONObject put = loadSpec()
+                .getJSONObject("paths")
+                .getJSONObject("/object/member/distribute")
+                .getJSONObject("put");
+
+        assertEquals("#/components/schemas/DistributeMembersRequest", put.getJSONObject("requestBody")
+                .getJSONObject("content")
+                .getJSONObject("application/json")
+                .getJSONObject("schema")
+                .getString("$ref"));
+
+        JSONObject requestProperties = loadSpec()
+                .getJSONObject("components")
+                .getJSONObject("schemas")
+                .getJSONObject("DistributeMembersRequest")
+                .getJSONObject("properties");
+        assertTrue(requestProperties.has("targets"));
+        assertTrue(requestProperties.has("runReindex"));
+        assertEquals("#/components/schemas/DistributeMembersTarget", requestProperties
+                .getJSONObject("targets")
+                .getJSONObject("items")
+                .getString("$ref"));
+
+        JSONObject moveProperties = loadSpec()
+                .getJSONObject("components")
+                .getJSONObject("schemas")
+                .getJSONObject("MoveMembersRequest")
+                .getJSONObject("properties");
+        assertFalse(moveProperties.has("targets"));
+        assertFalse(moveProperties.has("runReindex"));
     }
 
     @Test
@@ -347,8 +381,8 @@ class OpenApiSpecificationTest {
             assertTrue(pathOperationCount > 0, path);
         }
 
-        assertEquals(201, operationCount);
-        assertEquals(201, responseCount);
+        assertEquals(202, operationCount);
+        assertEquals(202, responseCount);
     }
 
     @Test

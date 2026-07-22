@@ -5108,6 +5108,35 @@
         }
       }
     },
+    "/object/member/distribute": {
+      "put": {
+        "tags": [
+          "Object"
+        ],
+        "operationId": "distributeMembers",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DistributeMembersRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/object/member/move": {
       "put": {
         "tags": [
@@ -14296,6 +14325,45 @@
                 "ATM",
                 "TECHNICAL"
               ]
+            }
+          }
+        }
+      },
+      "DistributeMembersRequest": {
+        "type": "object",
+        "properties": {
+          "srcPid": {
+            "type": "string"
+          },
+          "batchId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DistributeMembersTarget"
+            }
+          },
+          "runReindex": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "DistributeMembersTarget": {
+        "type": "object",
+        "properties": {
+          "dstPid": {
+            "type": "string"
+          },
+          "pid": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "xml": {
+                "name": "pid"
+              }
             }
           }
         }

@@ -80,6 +80,10 @@ public class ValidationProcess {
             ChroniclePlugin.MODEL_CHRONICLEVOLUME, ChroniclePlugin.MODEL_CHRONICLESUPPLEMENT
     ));
 
+    public static boolean canContainPage(String model) {
+        return CONTAINS_PAGE.contains(model);
+    }
+
     private static final Set<String> REQUIRED_URNNBN_MODELS = new HashSet<String>(Arrays.asList(
             NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_PERIODICALSUPPLEMENT,
             NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME,
