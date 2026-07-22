@@ -450,6 +450,24 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     }
 
     @PUT
+    @Path(DigitalObjectResourceApi.MEMBERS_PATH + '/' + DigitalObjectResourceApi.MEMBERS_DISTRIBUTE_PATH)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public ProArcResponse<SearchViewItem> distributeMembers(
+            ProArcRequest.DistributeMembersRequest request
+    ) {
+        try {
+            return super.distributeMembers(request);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return ProArcResponse.asError(ex.getMyMessage());
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return ProArcResponse.asError(t);
+        }
+    }
+
+    @PUT
     @Path(DigitalObjectResourceApi.MEMBERS_PATH + '/' + DigitalObjectResourceApi.MEMBERS_MOVE_PATH)
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})

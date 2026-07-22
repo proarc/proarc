@@ -149,6 +149,9 @@ public final class DigitalObjectResourceApi {
     public static final String MEMBERS_MOVE_PATH = "move";
     public static final String MEMBERS_MOVE_SRCPID = "srcPid";
     public static final String MEMBERS_MOVE_DSTPID = "dstPid";
+    public static final String MEMBERS_DISTRIBUTE_PATH = "distribute";
+    public static final String MEMBERS_DISTRIBUTE_TARGETS = "targets";
+    public static final String MEMBERS_DISTRIBUTE_RUN_REINDEX = "runReindex";
 
     // resource /object/metamodel
     public static final String METAMODEL_PATH = "metamodel";

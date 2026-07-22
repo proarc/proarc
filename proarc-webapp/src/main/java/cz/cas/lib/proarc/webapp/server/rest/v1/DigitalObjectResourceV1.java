@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.actions.AddReference;
 import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
 import cz.cas.lib.proarc.common.actions.CopyObject;
+import cz.cas.lib.proarc.common.actions.DistributeObjects;
 import cz.cas.lib.proarc.common.actions.LockObject;
 import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.actions.UpdateObjects;
@@ -1089,6 +1090,120 @@ public class DigitalObjectResourceV1 {
     ) throws IOException, DigitalObjectException {
 
         return moveMembers(request.srcParentPid, request.dstParentPid, request.batchId, request.pids);
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.MEMBERS_PATH + '/' + DigitalObjectResourceApi.MEMBERS_DISTRIBUTE_PATH)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public ProArcResponse<SearchViewItem> distributeMembers(
+            ProArcRequest.DistributeMembersRequest request
+    ) throws IOException, DigitalObjectException {
+
+        if (request == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing request body!");
+        }
+        return distributeMembers(request.srcParentPid, request.batchId, request.targets, request.runReindex);
+    }
+
+    private ProArcResponse<SearchViewItem> distributeMembers(
+            String srcParentPid,
+            Integer batchId,
+            List<ProArcRequest.DistributeMembersTarget> targets,
+            boolean runReindex
+    ) throws IOException, DigitalObjectException {
+
+        if (srcParentPid == null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing source PID!");
+        }
+        if (targets == null || targets.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing move targets!");
+        }
+
+        Set<String> destinationPids = new HashSet<String>();
+        Set<String> movePidSet = new HashSet<String>();
+        List<String> movePids = new ArrayList<String>();
+        for (ProArcRequest.DistributeMembersTarget target : targets) {
+            if (target == null || target.dstParentPid == null) {
+                throw RestException.plainText(Status.BAD_REQUEST, "Missing target PID!");
+            }
+            if (srcParentPid.equals(target.dstParentPid)) {
+                throw RestException.plainText(Status.BAD_REQUEST, "src == dst!");
+            }
+            if (!destinationPids.add(target.dstParentPid)) {
+                throw RestException.plainText(Status.BAD_REQUEST, "Duplicate target PID in the request!");
+            }
+            if (target.pids == null || target.pids.isEmpty()) {
+                throw RestException.plainText(Status.BAD_REQUEST,
+                        "Missing children PIDs for target: " + target.dstParentPid);
+            }
+            for (String pid : target.pids) {
+                if (pid == null || !movePidSet.add(pid)) {
+                    throw RestException.plainText(Status.BAD_REQUEST,
+                            "Duplicate or missing child PID in the request!");
+                }
+                movePids.add(pid);
+            }
+        }
+        for (String destinationPid : destinationPids) {
+            if (movePidSet.contains(destinationPid)) {
+                throw RestException.plainText(Status.BAD_REQUEST, "A target parent is listed as child!");
+            }
+        }
+
+        BatchParams params = new BatchParams(movePids);
+        Batch internalBatch = BatchUtils.addNewBatch(this.importManager,
+                Collections.singletonList(srcParentPid), user, Batch.INTERNAL_OBJECT_DISTRIBUTION,
+                Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, false, params);
+        try {
+            if (isLocked(srcParentPid) || isLocked(new ArrayList<String>(destinationPids)) || isLocked(movePids)) {
+                throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
+            }
+
+            Batch batch = batchId == null ? null : importManager.get(batchId);
+            DigitalObjectHandler srcHandler = findHandler(srcParentPid, batch, false);
+            Map<String, SearchViewItem> memberSearchMap = loadSearchItems(movePidSet);
+            DistributeObjects distribute = new DistributeObjects(
+                    appConfig, akubraConfiguration, user, session.getLocale(httpHeaders),
+                    session.asFedoraLog(), srcHandler, memberSearchMap);
+
+            for (ProArcRequest.DistributeMembersTarget target : targets) {
+                DigitalObjectHandler destinationHandler = findHandler(target.dstParentPid, batch, false);
+                List<DigitalObjectHandler> childHandlers = new ArrayList<DigitalObjectHandler>(target.pids.size());
+                List<BatchItemObject> batchObjects = batchId == null
+                        ? null : new ArrayList<BatchItemObject>(target.pids.size());
+                for (String pid : target.pids) {
+                    childHandlers.add(findHandler(pid, batch, true));
+                    if (batchObjects != null) {
+                        BatchItemObject batchObject = importManager.findBatchObject(batchId, pid);
+                        if (batchObject == null) {
+                            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
+                        }
+                        batchObjects.add(batchObject);
+                    }
+                }
+                distribute.addTarget(destinationHandler, target.pids, childHandlers, batchObjects);
+            }
+
+            List<SearchViewItem> added = distribute.execute(runReindex);
+
+            for (ProArcRequest.DistributeMembersTarget target : targets) {
+                try {
+                    setWorkflow("task.metadataDescriptionInProArc", getIMetsElement(target.dstParentPid, true));
+                } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
+                    LOG.severe("Nepodarilo se ukoncit ukol \"task.metadataDescriptionInProArc\" pro "
+                            + target.dstParentPid + " - " + e.getMessage());
+                }
+            }
+
+            BatchUtils.finishedSuccessfully(this.importManager, internalBatch, internalBatch.getFolder(),
+                    null, Batch.State.INTERNAL_DONE);
+            return new ProArcResponse<SearchViewItem>(added);
+        } catch (IOException | DigitalObjectException | RuntimeException ex) {
+            BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(),
+                    BatchManager.toString(ex), Batch.State.INTERNAL_FAILED);
+            throw ex;
+        }
     }
 
     /**
