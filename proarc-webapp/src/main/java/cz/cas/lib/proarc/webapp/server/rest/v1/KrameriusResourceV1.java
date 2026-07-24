@@ -23,13 +23,9 @@ import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.externalApp.kramerius.K7Authenticator;
-import cz.cas.lib.proarc.common.externalApp.kramerius.K7Downloader;
-import cz.cas.lib.proarc.common.externalApp.kramerius.K7Indexer;
-import cz.cas.lib.proarc.common.externalApp.kramerius.K7Uploader;
 import cz.cas.lib.proarc.common.externalApp.kramerius.KDataHandler;
-import cz.cas.lib.proarc.common.externalApp.kramerius.KImporter;
 import cz.cas.lib.proarc.common.externalApp.kramerius.KUtils;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusClient;
 import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.IdentifierMapper;
@@ -200,12 +196,8 @@ public class KrameriusResourceV1 {
                     try {
                         LOG.fine(String.format("Downloading pid: %s, krameriusInstanceId: %s", pid, instance.getId()));
 
-                        K7Authenticator authenticator = new K7Authenticator(instance);
-                        String token = authenticator.authenticate();
-                        if (token != null || !token.isEmpty()) {
-                            K7Downloader downloader = new K7Downloader(appConfig, instance);
-                            String foxml = downloader.downloadFromK7(pid, token);
-                            downloader.saveFoxml(foxml, pid);
+                        try (KrameriusClient client = new KrameriusClient(instance.getUrl())) {
+                            client.downloadFoxml(appConfig, instance, pid);
                         }
 
                         return viewMods(pid, krameriusInstanceId, false);
@@ -270,8 +262,10 @@ public class KrameriusResourceV1 {
                 return new ProArcResponse<>(result);
             }
             if (NdkPlugin.MODEL_PAGE.equals(relationEditor.getModel()) || NdkPlugin.MODEL_NDK_PAGE.equals(relationEditor.getModel()) || OldPrintPlugin.MODEL_PAGE.equals(relationEditor.getModel())) {
-                K7Authenticator authenticator = new K7Authenticator(instance);
-                String token = authenticator.authenticate();
+                String token;
+                try (KrameriusClient client = new KrameriusClient(instance.getUrl())) {
+                    token = client.authenticate(instance);
+                }
                 String url = instance.getUrl() + instance.getUrlImage() + pid + "/full/max/0/default.jpg";
                 LOG.info("Redirected to " + url);
 //                result.setStatus("Successful");
@@ -502,12 +496,11 @@ public class KrameriusResourceV1 {
                     modsXml = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><mods:modsCollection xmlns:mods=\"http://www.loc.gov/mods/v3\" xmlns:mets=\"http://www.loc.gov/METS/\" xmlns:foxml=\"info:fedora/fedora-system:def/foxml#\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" + modsXml + "</mods:modsCollection>";
                 }
 
-                K7Uploader k7Uploader = new K7Uploader(appConfig, instance);
-                k7Uploader.uploadXml(pid, modsXml, ModsStreamEditor.DATASTREAM_ID);
-                k7Uploader.uploadXml(pid, dcXml, DcStreamEditor.DATASTREAM_ID);
-
-                K7Indexer k7Indexer = new K7Indexer(appConfig, instance);
-                state = k7Indexer.indexDocument(pid);
+                try (KrameriusClient client = new KrameriusClient(instance.getUrl())) {
+                    client.uploadXml(instance, pid, modsXml, ModsStreamEditor.DATASTREAM_ID);
+                    client.uploadXml(instance, pid, dcXml, DcStreamEditor.DATASTREAM_ID);
+                    state = client.indexDocument(instance, pid);
+                }
 
             } else {
                 File sourceFile = dataHandler.getSourceFile(pid, krameriusInstanceId);
@@ -521,8 +514,11 @@ public class KrameriusResourceV1 {
                 if (!FileUtils.copy(sourceFile, destinationFile)) {
                     throw new IOException(ServerMessages.get(locale).getFormattedMessage("KrameriusResource_CantCopyContent", sourceFile.getAbsolutePath(), destinationFile.getAbsolutePath()));
                 }
-                KImporter kImporter = new KImporter(appConfig, instance);
-                state = kImporter.importToKramerius(destinationFile.getParentFile(), true, KUtils.EXPORT_KRAMERIUS, params.getPolicy(), params.getLicense());
+                try (KrameriusClient client = new KrameriusClient(instance.getUrl())) {
+                    state = client.importToKramerius(
+                            instance, destinationFile.getParentFile(), true, KUtils.EXPORT_KRAMERIUS,
+                            params.getPolicy(), params.getLicense());
+                }
                 if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState()) && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
                     if (instance.deleteAfterImport()) {
                         MetsUtils.deleteFolder(destinationFile.getParentFile());

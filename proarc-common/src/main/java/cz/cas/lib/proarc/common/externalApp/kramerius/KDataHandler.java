@@ -24,15 +24,13 @@ import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Logger;
+import java.nio.file.Files;
 
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.findHandler;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.getExportFile;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.getFile;
 
 public class KDataHandler {
-
-    private static final Logger LOG = Logger.getLogger(KDataHandler.class.getName());
 
     private final AppConfiguration appConfig;
 
@@ -42,14 +40,8 @@ public class KDataHandler {
 
     public DescriptionMetadata<String> getDescriptionMetadata(String pid, String instanceId) throws DigitalObjectException {
         DigitalObjectHandler handler = findHandler(pid, instanceId);
-        if (handler != null) {
-            MetadataHandler<?> metadataHandler = handler.metadata();
-            if (metadataHandler != null) {
-                DescriptionMetadata<String> metadataAsXml = metadataHandler.getMetadataAsXml();
-                return metadataAsXml;
-            }
-        }
-        return null;
+        MetadataHandler<?> metadataHandler = handler == null ? null : handler.metadata();
+        return metadataHandler == null ? null : metadataHandler.getMetadataAsXml();
     }
 
     public boolean setDescriptionMetadataToProArc(String pid, DescriptionMetadata<String> metadata, String instanceId) throws DigitalObjectException {
@@ -75,16 +67,10 @@ public class KDataHandler {
     }
 
     public File getSourceFile(String pid, String krameriusInstanceId) throws IOException {
-        File pidFoxml = getFile(appConfig, krameriusInstanceId, pid);
-        return pidFoxml;
+        return getFile(appConfig, krameriusInstanceId, pid);
     }
 
     public File getDestinationFile(String pid, KrameriusOptions.KrameriusInstance instance) throws IOException {
-        File pidFoxml = getExportFile(appConfig, instance, pid);
-        if (!pidFoxml.createNewFile()) {
-            LOG.severe("Can not create file " + pidFoxml.getAbsolutePath());
-            throw new IOException("Can not create file " + pidFoxml.getAbsolutePath());
-        }
-        return pidFoxml;
+        return Files.createFile(getExportFile(instance, pid).toPath()).toFile();
     }
 }

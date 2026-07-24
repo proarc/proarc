@@ -16,19 +16,17 @@
  */
 package cz.cas.lib.proarc.common.externalApp.kramerius;
 
-import cz.cas.lib.proarc.common.config.AppConfiguration;
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import org.apache.commons.io.IOUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,165 +39,123 @@ import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PR
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_RUNNING;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
+import static java.net.HttpURLConnection.HTTP_ACCEPTED;
+import static java.net.HttpURLConnection.HTTP_CREATED;
+import static java.net.HttpURLConnection.HTTP_OK;
 
-
-public class K5Importer {
+final class K5Importer extends AbstractKrameriusImporter {
 
     private static final Logger LOG = Logger.getLogger(K5Importer.class.getName());
+    private static final int CONNECT_TIMEOUT_MILLIS = 5_000;
+    private static final int MAX_FORBIDDEN_RETRIES = 25;
 
-    private final AppConfiguration appConfig;
-    private final KrameriusOptions.KrameriusInstance instance;
+    private final String authorization;
 
-    public K5Importer(AppConfiguration appConfig, KrameriusOptions.KrameriusInstance instance) {
-        this.appConfig = appConfig;
-        this.instance = instance;
-    }
-
-    public KUtils.ImportState importToKramerius(File exportFolder, boolean updateExisting, String exportType, String policy) throws JSONException, IOException, InterruptedException {
+    K5Importer(KrameriusOptions.KrameriusInstance instance) {
+        super(instance);
         String credentials = instance.getUsername() + ":" + instance.getPassword();
+        authorization = "Basic " + Base64.getEncoder()
+                .encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+    }
 
-        String proarcExport = "";
-        String query = "";
-        String json = "";
+    @Override
+    public KUtils.ImportState importToKramerius(
+            File exportFolder,
+            boolean updateExisting,
+            String exportType,
+            String policy,
+            String license
+    ) throws JSONException, IOException, InterruptedException {
+        ImportRequest importRequest = createImportRequest(exportFolder, updateExisting, exportType, policy);
+        try (CloseableHttpClient client = HttpClients.custom()
+                .setDefaultRequestConfig(org.apache.http.client.config.RequestConfig.custom()
+                        .setConnectTimeout(CONNECT_TIMEOUT_MILLIS)
+                        .build())
+                .build()) {
+            String response = post(
+                    client, importRequest.url(), importRequest.payload(), HTTP_OK, HTTP_CREATED, HTTP_ACCEPTED);
+            String processUuid = new JSONObject(response).optString("uuid");
+            if (processUuid.isBlank()) {
+                throw new IOException("Kramerius did not return the import process UUID.");
+            }
+            KUtils.ImportState state = pollState(
+                    client, instance.getUrl() + instance.getUrlStateQuery() + processUuid);
+            LOG.info("Kramerius import finished with process state " + state.getProcessState()
+                    + " and batch state " + state.getBatchState() + ".");
+            return state;
+        }
+    }
 
+    private ImportRequest createImportRequest(
+            File exportFolder,
+            boolean updateExisting,
+            String exportType,
+            String policy
+    ) {
+        JSONObject mapping = new JSONObject();
+        String url;
         if (KUtils.EXPORT_KRAMERIUS.equals(exportType)) {
-            query =  instance.getUrl() + instance.getUrlParametrizedImportQuery();
-            proarcExport = instance.getExportFoxmlFolder() + exportFolder.getName();
-            String krameriusFoxmlImport = proarcExport.replace(instance.getExportFoxmlFolder(), instance.getKrameriusImportFoxmlFolder());
-            json =
-                    "{" +
-                            "\"mapping\":" +
-                            "{" +
-                            "\"importDirectory\":\"" + krameriusFoxmlImport + "\"," +
-                            "\"startIndexer\":\"true\"," +
-                            "\"updateExisting\":\"" + updateExisting + "\"" +
-                            "}" +
-                            "}";
-        } else if (KUtils.EXPORT_NDK.equals(exportType)) {
-            query = instance.getUrl() + instance.getUrlConvertImportQuery();
-            proarcExport = instance.getExportNdkFolder() + exportFolder.getName();
-            String ndkImport = proarcExport.replace(instance.getExportNdkFolder(), instance.getKrameriusConvertNdkFolder());
-            json = "{" +
-                        "\"mapping\":" +
-                        "{" +
-                            "\"convertDirectory\":\"" + ndkImport + "\"," +
-                            "\"convertTargetDirectory\":\"" + instance.getKrameriusTargetConvertedFolder() + "\"," +
-                            "\"ingestSkip\":\"false\"," +
-                            "\"startIndexer\":\"true\"," +
-                            "\"defaultRights\":\"" + String.valueOf(getPolicy(policy)) + "\"" +
-                        "}" +
-                    "}";
+            url = instance.getUrl() + instance.getUrlParametrizedImportQuery();
+            mapping.put("importDirectory", instance.getKrameriusImportFoxmlFolder() + exportFolder.getName());
+            mapping.put("startIndexer", "true");
+            mapping.put("updateExisting", Boolean.toString(updateExisting));
+        } else {
+            url = instance.getUrl() + instance.getUrlConvertImportQuery();
+            mapping.put("convertDirectory", instance.getKrameriusConvertNdkFolder() + exportFolder.getName());
+            mapping.put("convertTargetDirectory", instance.getKrameriusTargetConvertedFolder());
+            mapping.put("ingestSkip", "false");
+            mapping.put("startIndexer", "true");
+            mapping.put("defaultRights", Boolean.toString("PUBLIC".equalsIgnoreCase(policy)));
         }
-
-        URL url = new URL(query);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setConnectTimeout(5000);
-        String encoded = Base64.getEncoder().encodeToString((credentials).getBytes(StandardCharsets.UTF_8));
-        conn.setRequestProperty("Authorization", "Basic " + encoded);
-        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-        conn.setDoOutput(true);
-        conn.setDoInput(true);
-        conn.setRequestMethod("POST");
-
-        OutputStream os = conn.getOutputStream();
-        os.write(json.getBytes("UTF-8"));
-        os.close();
-
-        int status = conn.getResponseCode();
-        InputStream in = null;
-        KUtils.ImportState state = null;
-
-        try {
-            if (status < HTTP_BAD_REQUEST) {
-                in = new BufferedInputStream(conn.getInputStream());
-                String result = IOUtils.toString(in, StandardCharsets.UTF_8);
-                LOG.info("Kramerius response is " + result);
-                in.close();
-                conn.disconnect();
-
-                // zjištění uuid procesu
-                JSONObject object = new JSONObject(result);
-                String processUuid = object.get("uuid").toString();
-                query = instance.getUrl() + instance.getUrlStateQuery() + processUuid;
-                state = getState(query, credentials);
-                LOG.info("Requesting Kramerius import success, server response is (process: " + state.getProcessState() + ", batch: " + state.getBatchState() + ").");
-                return state;
-            } else {
-                if (conn.getErrorStream() == null) {
-                    in = new BufferedInputStream(conn.getInputStream());
-                } else {
-                    in = new BufferedInputStream(conn.getErrorStream());
-                }
-                String result = IOUtils.toString(in, "UTF-8");
-                in.close();
-                conn.disconnect();
-                LOG.warning("Requesting Kramerius import failed, server response was : " + result);
-                throw new IllegalArgumentException("Requesting Kramerius import failed, server response was : " + result);
-            }
-        } finally {
-            if (in != null) {
-                in.close();
-            }
-            conn.disconnect();
-        }
+        return new ImportRequest(url, new JSONObject().put("mapping", mapping));
     }
 
-    private boolean getPolicy(String policy) {
-        return "PUBLIC".equalsIgnoreCase(policy);
-    }
-
-    public static KUtils.ImportState getState(String query, String credentials) throws IOException, InterruptedException, JSONException {
-        String state = KRAMERIUS_PROCESS_PLANNED;
+    private KUtils.ImportState pollState(
+            CloseableHttpClient client,
+            String url
+    ) throws IOException, InterruptedException, JSONException {
+        String processState = KRAMERIUS_PROCESS_PLANNED;
         String batchState = KRAMERIUS_BATCH_NO_BATCH_V5;
-        int error403counter = 0;
+        int forbiddenRetries = 0;
 
-        while (state.equals(KRAMERIUS_PROCESS_PLANNED) || state.equals(KRAMERIUS_PROCESS_RUNNING) || (state.equals(KRAMERIUS_PROCESS_FINISHED) && batchState.equals(KRAMERIUS_BATCH_STARTED_V5))) {
-            URL url = new URL(query);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setConnectTimeout(5000);
-            url = new URL(query);
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setConnectTimeout(5000);
-            String encoded = Base64.getEncoder().encodeToString((credentials).getBytes(StandardCharsets.UTF_8));
-            conn.setRequestProperty("Authorization", "Basic " + encoded);
-            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            conn.setDoOutput(true);
-            conn.setDoInput(true);
-            conn.setRequestMethod("GET");
-            int status = conn.getResponseCode();
-            InputStream in = new BufferedInputStream(conn.getInputStream());
-
-            if (status < HTTP_BAD_REQUEST) {
-                error403counter = 0;
-                String result = IOUtils.toString(in, StandardCharsets.UTF_8);
-                JSONObject object = (new JSONArray(result)).getJSONObject(0);
-                state = object.get("state").toString();
-                batchState = object.get("batchState").toString();
-                LOG.info("Kramerius response to query " + query + " is " + state);
-                in.close();
-                conn.disconnect();
-            } else {
-                if (status == HTTP_FORBIDDEN) {
-                    if (error403counter < 25) {
-                        error403counter++;
-                        TimeUnit.SECONDS.sleep(30);
-                    } else {
-                        in.close();
-                        conn.disconnect();
-                        state = KRAMERIUS_BATCH_FAILED_V5;
-                        break;
+        while (isRunning(processState, batchState)) {
+            HttpGet request = new HttpGet(url);
+            addHeaders(request);
+            try (CloseableHttpResponse response = client.execute(request)) {
+                int status = response.getStatusLine().getStatusCode();
+                if (status < HTTP_BAD_REQUEST) {
+                    forbiddenRetries = 0;
+                    JSONArray result = new JSONArray(readBody(response.getEntity()));
+                    if (result.isEmpty()) {
+                        throw new IOException("Kramerius returned an empty process state.");
                     }
+                    JSONObject state = result.getJSONObject(0);
+                    processState = state.getString("state");
+                    batchState = state.getString("batchState");
+                } else if (status == HTTP_FORBIDDEN && forbiddenRetries++ < MAX_FORBIDDEN_RETRIES) {
+                    TimeUnit.SECONDS.sleep(30);
+                    continue;
                 } else {
-                    in.close();
-                    conn.disconnect();
-                    state = KRAMERIUS_BATCH_FAILED_V5;
+                    processState = KRAMERIUS_BATCH_FAILED_V5;
                     break;
                 }
             }
-            if (state.equals(KRAMERIUS_PROCESS_PLANNED) || state.equals(KRAMERIUS_PROCESS_RUNNING) || (state.equals(KRAMERIUS_PROCESS_FINISHED) && batchState.equals(KRAMERIUS_BATCH_STARTED_V5))) {
+            if (isRunning(processState, batchState)) {
                 TimeUnit.SECONDS.sleep(20);
             }
         }
-        return new KUtils.ImportState(state, batchState);
+        return new KUtils.ImportState(processState, batchState);
+    }
+
+    private boolean isRunning(String processState, String batchState) {
+        return KRAMERIUS_PROCESS_PLANNED.equals(processState)
+                || KRAMERIUS_PROCESS_RUNNING.equals(processState)
+                || (KRAMERIUS_PROCESS_FINISHED.equals(processState)
+                && KRAMERIUS_BATCH_STARTED_V5.equals(batchState));
+    }
+
+    @Override
+    protected void addAuthorizationHeaders(HttpRequestBase request) {
+        request.setHeader("Authorization", authorization);
     }
 }

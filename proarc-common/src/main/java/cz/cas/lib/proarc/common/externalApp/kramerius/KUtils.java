@@ -24,6 +24,8 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class KUtils {
 
@@ -49,6 +51,9 @@ public class KUtils {
     public static final String EXPORT_KRAMERIUS = "kramerius";
     public static final String EXPORT_NDK = "ndk";
 
+    private KUtils() {
+    }
+
     public static DigitalObjectHandler findHandler(String pid, String krameriusInstanceId)
             throws DigitalObjectNotFoundException {
         DigitalObjectManager dom = DigitalObjectManager.getDefault();
@@ -65,75 +70,51 @@ public class KUtils {
 
     public static String transformKrameriusModel(AppConfiguration config, String model) {
         String newModel = config.getKramerius4Export().getReverseModelMap().get(model);
-        if (newModel == null || newModel.isEmpty()) {
-            return model;
-        } else {
-            return newModel;
-        }
+        return newModel == null || newModel.isEmpty() ? model : newModel;
     }
 
     public static String getExpectedSourcePath(AppConfiguration appConfig, String instanceId, String pid) {
-        return appConfig.getConfigHome().getAbsolutePath() + File.separator + "krameriusEdit" + File.separator + instanceId + File.separator + getPidAsFile(pid) + ".xml";
+        return appConfig.getConfigHome().toPath()
+                .resolve("krameriusEdit")
+                .resolve(instanceId)
+                .resolve(getPidAsFile(pid) + ".xml")
+                .toString();
     }
 
     public static File getFile(AppConfiguration appConfig, String instanceId, String pid) throws IOException {
-        File configHome = appConfig.getConfigHome();
-        if (configHome.exists()) {
-            File krameriusEdit = new File(configHome, "krameriusEdit");
-            if (!krameriusEdit.exists()) {
-                if (!krameriusEdit.mkdir()) {
-                    throw new IOException("KrameriusEdit folder can not be created (" + krameriusEdit.getAbsolutePath() + ")");
-                }
-            }
-            File k7Instance = new File(krameriusEdit, instanceId);
-            if (!k7Instance.exists()) {
-                if (!k7Instance.mkdir()) {
-                    throw new IOException("KrameriusEdit folder can not be created (" + k7Instance.getAbsolutePath() + ")");
-                }
-            }
-            File pidFoxml = new File(k7Instance, getPidAsFile(pid) + ".xml");
-            return pidFoxml;
-        } else {
-            throw new IOException("Config home does not exists!");
+        Path configHome = appConfig.getConfigHome().toPath();
+        if (!Files.isDirectory(configHome)) {
+            throw new IOException("Config home does not exist: " + configHome);
         }
+        Path instanceFolder = configHome.resolve("krameriusEdit").resolve(instanceId);
+        Files.createDirectories(instanceFolder);
+        return instanceFolder.resolve(getPidAsFile(pid) + ".xml").toFile();
     }
 
     public static String getExpectedDestinationPath(KrameriusOptions.KrameriusInstance instance, String pid) {
-        if (instance.getExportFoxmlFolder().endsWith("/") || instance.getExportFoxmlFolder().endsWith("\\")) {
-            return instance.getExportFoxmlFolder() + "k7_edit_" + getPidAsFile(pid) + File.separator + getPidAsFile(pid) + ".xml";
-        } else {
-            return instance.getExportFoxmlFolder() + File.separator + "k7_edit_" + getPidAsFile(pid) + File.separator + getPidAsFile(pid) + ".xml";
-        }
+        String filePid = getPidAsFile(pid);
+        return Path.of(instance.getExportFoxmlFolder())
+                .resolve("k7_edit_" + filePid)
+                .resolve(filePid + ".xml")
+                .toString();
     }
 
-    public static File getExportFile(AppConfiguration appConfiguration, KrameriusOptions.KrameriusInstance instance, String pid) throws IOException {
-        File exportRoot = new File(instance.getExportFoxmlFolder());
-        if (!exportRoot.exists()) {
-            if (!exportRoot.mkdir()) {
-                throw new IOException("Kramerius export folder can not be created (" + exportRoot.getAbsolutePath() + ")");
-            }
+    public static File getExportFile(KrameriusOptions.KrameriusInstance instance, String pid) throws IOException {
+        String filePid = getPidAsFile(pid);
+        Path exportRoot = Path.of(instance.getExportFoxmlFolder());
+        Files.createDirectories(exportRoot);
+        Path exportFolder = exportRoot.resolve("k7_edit_" + filePid);
+        if (Files.exists(exportFolder)) {
+            MetsUtils.deleteFolder(exportFolder.toFile());
         }
-        File exportFolder = new File(exportRoot, "k7_edit_" + getPidAsFile(pid));
-        if (exportFolder.exists()) {
-            MetsUtils.deleteFolder(exportFolder);
-        }
-
-        if (!exportFolder.exists()) {
-            if (!exportFolder.mkdir()) {
-                throw new IOException("Kramerius export folder can not be created (" + exportFolder.getAbsolutePath() + ")");
-            } else {
-                File pidFoxml = new File(exportFolder, getPidAsFile(pid) + ".xml");
-                return pidFoxml;
-            }
-        } else {
-            throw new IOException("Old export folder still exists (" + exportFolder.getAbsolutePath() + ")");
-        }
+        Files.createDirectories(exportFolder);
+        return exportFolder.resolve(filePid + ".xml").toFile();
     }
 
 
     public static class RedirectedResult {
 
-        private String pid;
+        private final String pid;
         private String status;
         private String message;
         private String url;
@@ -174,8 +155,8 @@ public class KUtils {
 
     public static class ImportResult {
 
-        private String pid;
-        private String instance;
+        private final String pid;
+        private final String instance;
         private String status;
         private String reason;
 
@@ -217,8 +198,8 @@ public class KUtils {
 
     public static class ImportState {
 
-        private String processState;
-        private String batchState;
+        private final String processState;
+        private final String batchState;
 
         public ImportState(String processState, String batchState) {
             this.processState = processState;

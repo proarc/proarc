@@ -26,8 +26,8 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.externalApp.kramerius.KImporter;
 import cz.cas.lib.proarc.common.externalApp.kramerius.KUtils;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusClient;
 import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
@@ -220,8 +220,11 @@ public final class Kramerius4Export {
 
             if (!(krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId))) {
                 KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
-                KImporter kImporter = new KImporter(appConfig, instance);
-                KUtils.ImportState state = kImporter.importToKramerius(krameriusResult.getFile(), false, KUtils.EXPORT_KRAMERIUS, policy, license);
+                KUtils.ImportState state;
+                try (KrameriusClient client = new KrameriusClient(instance.getUrl())) {
+                    state = client.importToKramerius(
+                            instance, krameriusResult.getFile(), false, KUtils.EXPORT_KRAMERIUS, policy, license);
+                }
                 if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState()) && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
                     if (instance.deleteAfterImport()) {
                         MetsUtils.deleteFolder(krameriusResult.getFile());

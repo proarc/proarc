@@ -22,7 +22,7 @@ public abstract class HttpAbstractClient implements AutoCloseable {
 
     protected HttpAbstractClient(String apiUrl, String apiKey) {
         if (apiUrl == null || apiUrl.trim().isEmpty()) {
-            throw new IllegalArgumentException("MetaCheck API URL is not configured.");
+            throw new IllegalArgumentException("External  API URL is not configured.");
         }
         this.apiUrl = normalizeApiUrl(apiUrl);
         this.apiKey = apiKey;
@@ -31,7 +31,7 @@ public abstract class HttpAbstractClient implements AutoCloseable {
 
     protected HttpAbstractClient(String apiUrl) {
         if (apiUrl == null || apiUrl.trim().isEmpty()) {
-            throw new IllegalArgumentException("MetaCheck API URL is not configured.");
+            throw new IllegalArgumentException("External API URL is not configured.");
         }
         this.apiUrl = normalizeApiUrl(apiUrl);
         this.httpClient = HttpClients.createDefault();
@@ -52,7 +52,7 @@ public abstract class HttpAbstractClient implements AutoCloseable {
         return new JSONObject(response);
     }
 
-    private URI resolve(String path) {
+    protected final URI resolve(String path) {
         String normalizedPath = path.startsWith("/") ? path.substring(1) : path;
         return URI.create(apiUrl + "/" + normalizedPath);
     }
@@ -64,7 +64,7 @@ public abstract class HttpAbstractClient implements AutoCloseable {
         }
     }
 
-    private String execute(HttpRequestBase request, int... expectedStatusCodes) throws IOException {
+    protected final String execute(HttpRequestBase request, int... expectedStatusCodes) throws IOException {
         HttpResponse response = httpClient.execute(request);
         int statusCode = response.getStatusLine().getStatusCode();
         String responseBody = response.getEntity() == null ? "" : EntityUtils.toString(response.getEntity(), "UTF-8");
@@ -73,7 +73,7 @@ public abstract class HttpAbstractClient implements AutoCloseable {
                 return responseBody;
             }
         }
-        throw new IOException("MetaCheck API call failed with status " + statusCode + ". " + responseBody);
+        throw new IOException("External API call failed with status " + statusCode + ". " + responseBody);
     }
 
     private String normalizeApiUrl(String apiUrl) {
