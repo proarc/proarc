@@ -27,6 +27,7 @@ public class BatchParams {
     private String noTifAvailableMessage;
     private String additionalInfoMessage;
     private String license;
+    private List<String> collections;
     private Boolean updateMods;
     private Boolean extendedArchivePackage;
     private Boolean purge;
@@ -247,6 +248,15 @@ public class BatchParams {
 
     public void setLicense(String license) {
         this.license = license;
+    }
+
+    @XmlElement(name = "collections")
+    public List<String> getCollections() {
+        return collections;
+    }
+
+    public void setCollections(List<String> collections) {
+        this.collections = collections;
     }
 
     @XmlElement(name = "updateMods")

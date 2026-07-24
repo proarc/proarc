@@ -20,7 +20,10 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -114,6 +117,35 @@ public final class KrameriusClient extends HttpAbstractClient {
                     license.optString("description")));
         }
         return licenses;
+    }
+
+    public List<KrameriusCollection> getCollections(
+            KrameriusOptions.KrameriusInstance instance
+    ) throws IOException, JSONException {
+        requireVersion(instance, KrameriusVersion.V7);
+        HttpGet request = new HttpGet(resolve(instance.getUrlCollections()));
+        addCommonHeaders(request);
+        addBearerToken(request, getAccessToken(instance));
+
+        JSONObject response = new JSONObject(execute(request, HTTP_OK));
+        JSONArray values = response.optJSONArray("collections");
+        if (values == null) {
+            throw new IOException("Kramerius collections response does not contain collections.");
+        }
+
+        List<KrameriusCollection> collections = new ArrayList<>(values.length());
+        for (int i = 0; i < values.length(); i++) {
+            JSONObject value = values.getJSONObject(i);
+            JSONObject jsonNames = value.optJSONObject("names");
+            Map<String, String> names = new LinkedHashMap<>();
+            if (jsonNames != null) {
+                for (String key : jsonNames.keySet()) {
+                    names.put(key, jsonNames.optString(key));
+                }
+            }
+            collections.add(new KrameriusCollection(value.optString("pid"), names));
+        }
+        return collections;
     }
 
     public String downloadFoxml(
@@ -216,7 +248,7 @@ public final class KrameriusClient extends HttpAbstractClient {
             String license
     ) throws JSONException, IOException, InterruptedException {
         return importToKramerius(
-                instance, exportFolder, updateExisting, exportType, policy, license, false);
+                instance, exportFolder, updateExisting, exportType, policy, license, false, Collections.emptyList());
     }
 
     public KUtils.ImportState importToKramerius(
@@ -228,7 +260,35 @@ public final class KrameriusClient extends HttpAbstractClient {
             String license,
             boolean updateMods
     ) throws JSONException, IOException, InterruptedException {
+        return importToKramerius(
+                instance,
+                exportFolder,
+                updateExisting,
+                exportType,
+                policy,
+                license,
+                updateMods,
+                Collections.emptyList());
+    }
+
+    public KUtils.ImportState importToKramerius(
+            KrameriusOptions.KrameriusInstance instance,
+            File exportFolder,
+            boolean updateExisting,
+            String exportType,
+            String policy,
+            String license,
+            boolean updateMods,
+            List<String> collections
+    ) throws JSONException, IOException, InterruptedException {
         allowSupportedVersion(instance);
+        List<String> selectedCollections = normalizeCollections(collections);
+        if (updateMods && !selectedCollections.isEmpty()) {
+            throw new IllegalArgumentException("Collections cannot be used when updateMods is enabled.");
+        }
+        if (instance.getMajorVersion() != KrameriusVersion.V7 && !selectedCollections.isEmpty()) {
+            throw new IllegalArgumentException("Collections are supported only for Kramerius 7.x.");
+        }
         prepareExportFolder(exportFolder);
         validateExportType(exportType);
         KrameriusImporter importer = switch (instance.getMajorVersion()) {
@@ -237,7 +297,18 @@ public final class KrameriusClient extends HttpAbstractClient {
             case UNSUPPORTED -> throw unsupportedVersion(instance);
         };
         return importer.importToKramerius(
-                exportFolder, updateExisting, exportType, policy, license, updateMods);
+                exportFolder, updateExisting, exportType, policy, license, updateMods, selectedCollections);
+    }
+
+    private List<String> normalizeCollections(List<String> collections) {
+        if (collections == null || collections.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return collections.stream()
+                .filter(value -> value != null && !value.isBlank())
+                .map(String::trim)
+                .distinct()
+                .toList();
     }
 
     private void prepareExportFolder(File exportFolder) throws IOException {

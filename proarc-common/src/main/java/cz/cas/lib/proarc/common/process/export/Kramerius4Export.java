@@ -153,6 +153,7 @@ public final class Kramerius4Export {
 
     private final String policy;
     private final String license;
+    private final List<String> collections;
     private final boolean updateMods;
     private String mainObjectModel;
 
@@ -170,12 +171,32 @@ public final class Kramerius4Export {
             boolean isArchive,
             boolean updateMods
     ) throws IOException {
+        this(
+                appConfiguration,
+                akubraConfiguration,
+                policy,
+                license,
+                isArchive,
+                updateMods,
+                Collections.emptyList());
+    }
+
+    public Kramerius4Export(
+            AppConfiguration appConfiguration,
+            AkubraConfiguration akubraConfiguration,
+            String policy,
+            String license,
+            boolean isArchive,
+            boolean updateMods,
+            List<String> collections
+    ) throws IOException {
         this.appConfig = appConfiguration;
         this.akubraConfiguration = akubraConfiguration;
         this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
         this.exportParams = appConfiguration.getExportParams();
         this.isArchive = isArchive;
         this.updateMods = updateMods;
+        this.collections = collections == null ? Collections.emptyList() : List.copyOf(collections);
 
         if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             this.search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
@@ -242,7 +263,8 @@ public final class Kramerius4Export {
                             KUtils.EXPORT_KRAMERIUS,
                             policy,
                             license,
-                            updateMods);
+                            updateMods,
+                            collections);
                 }
                 if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState()) && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
                     if (instance.deleteAfterImport()) {

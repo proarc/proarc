@@ -50,6 +50,7 @@ import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
@@ -100,6 +101,25 @@ public class NdkExport {
                                boolean hierarchy, boolean keepResult, Boolean overwrite,
                                boolean ignoreMissingUrnNbn, String log, String krameriusInstanceId,
                                String policy, String license, Batch batch) throws ExportException {
+        return export(
+                exportsFolder,
+                pids,
+                hierarchy,
+                keepResult,
+                overwrite,
+                ignoreMissingUrnNbn,
+                log,
+                krameriusInstanceId,
+                policy,
+                license,
+                Collections.emptyList(),
+                batch);
+    }
+
+    public List<Result> export(File exportsFolder, List<String> pids,
+                               boolean hierarchy, boolean keepResult, Boolean overwrite,
+                               boolean ignoreMissingUrnNbn, String log, String krameriusInstanceId,
+                               String policy, String license, List<String> collections, Batch batch) throws ExportException {
         Validate.notEmpty(pids, "Pids to export are empty");
 
         ExportResultLog reslog = new ExportResultLog();
@@ -132,7 +152,14 @@ public class NdkExport {
                     KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
                     try (KrameriusClient client = new KrameriusClient(instance.getUrl())) {
                         state = client.importToKramerius(
-                                instance, result.getTargetFolder(), false, KUtils.EXPORT_NDK, policy, license);
+                                instance,
+                                result.getTargetFolder(),
+                                false,
+                                KUtils.EXPORT_NDK,
+                                policy,
+                                license,
+                                false,
+                                collections);
                     }
                     LOG.fine("PROCESS " + state.getProcessState() + " BATCH " + state.getBatchState() + " DELETE " + instance.deleteAfterImport());
                     if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState()) && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {

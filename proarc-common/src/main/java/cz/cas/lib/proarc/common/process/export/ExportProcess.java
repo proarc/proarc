@@ -694,7 +694,19 @@ public final class ExportProcess implements Runnable {
             }
 
             File exportFolder = KrameriusOptions.getExportFolder(params.getKrameriusInstanceId(), user.getExportFolder(), config, KUtils.EXPORT_NDK);
-            List<NdkExport.Result> ndkResults = export.export(exportFolder, params.getPids(), true, true, null, params.isIgnoreMissingUrnNbn(), exportOptions.getLog(), params.getKrameriusInstanceId(), params.getPolicy(), params.getLicense(), batch);
+            List<NdkExport.Result> ndkResults = export.export(
+                    exportFolder,
+                    params.getPids(),
+                    true,
+                    true,
+                    null,
+                    params.isIgnoreMissingUrnNbn(),
+                    exportOptions.getLog(),
+                    params.getKrameriusInstanceId(),
+                    params.getPolicy(),
+                    params.getLicense(),
+                    params.getCollections(),
+                    batch);
             for (NdkExport.Result r : ndkResults) {
                 if (r.getError() != null) {
                     String exportPath = MetsUtils.renameFolder(exportFolder, r.getTargetFolder(), null);
@@ -808,7 +820,8 @@ public final class ExportProcess implements Runnable {
                     params.getPolicy(),
                     params.getLicense(),
                     params.isArchive(),
-                    Boolean.TRUE.equals(params.isUpdateMods()));
+                    Boolean.TRUE.equals(params.isUpdateMods()),
+                    params.getCollections());
             File exportFolder = KrameriusOptions.getExportFolder(params.getKrameriusInstanceId(), user.getExportFolder(), config, KUtils.EXPORT_KRAMERIUS);
             Kramerius4Export.Result k4Result = export.export(exportFolder, params.getHierarchy(), exportOptions.getLog(), params.getKrameriusInstanceId(), batch, params.getPids().toArray(new String[params.getPids().size()]));
             if (k4Result.getException() != null) {

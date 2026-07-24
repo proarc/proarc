@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -65,7 +66,8 @@ final class K5Importer extends AbstractKrameriusImporter {
             String exportType,
             String policy,
             String license,
-            boolean updateMods
+            boolean updateMods,
+            List<String> collections
     ) throws JSONException, IOException, InterruptedException {
         ImportRequest importRequest = createImportRequest(exportFolder, updateExisting, exportType, policy);
         try (CloseableHttpClient client = HttpClients.custom()

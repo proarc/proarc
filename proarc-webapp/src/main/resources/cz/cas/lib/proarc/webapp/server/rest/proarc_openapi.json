@@ -696,6 +696,12 @@
                   "license": {
                     "type": "string"
                   },
+                  "collection": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
                   "hierarchy": {
                     "type": "boolean",
                     "default": true
@@ -829,6 +835,12 @@
                   },
                   "license": {
                     "type": "string"
+                  },
+                  "collection": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   },
                   "nightOnly": {
                     "type": "boolean",
@@ -14814,6 +14826,12 @@
             "items": {
               "$ref": "#/components/schemas/KrameriusLicenseDescriptor"
             }
+          },
+          "krameriusInstanceCollections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KrameriusCollection"
+            }
           }
         }
       },
@@ -14828,6 +14846,20 @@
           },
           "krameriusInstanceLicenseDescription": {
             "type": "string"
+          }
+        }
+      },
+      "KrameriusCollection": {
+        "type": "object",
+        "properties": {
+          "pid": {
+            "type": "string"
+          },
+          "names": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           }
         }
       },

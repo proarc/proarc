@@ -2,6 +2,7 @@ package cz.cas.lib.proarc.common.externalApp.kramerius;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -45,10 +46,11 @@ final class K7Importer extends AbstractKrameriusImporter {
             String exportType,
             String policy,
             String license,
-            boolean updateMods
+            boolean updateMods,
+            List<String> collections
     ) throws JSONException, IOException, InterruptedException {
         ImportRequest importRequest = createImportRequest(
-                exportFolder, updateExisting, exportType, policy, license, updateMods);
+                exportFolder, updateExisting, exportType, policy, license, updateMods, collections);
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             String response = post(
                     client, importRequest.url(), importRequest.payload(), HTTP_OK, HTTP_CREATED, HTTP_ACCEPTED);
@@ -79,7 +81,8 @@ final class K7Importer extends AbstractKrameriusImporter {
             String exportType,
             String policy,
             String license,
-            boolean updateMods
+            boolean updateMods,
+            List<String> collections
     ) {
         JSONObject params = new JSONObject();
         String definition;
@@ -98,6 +101,9 @@ final class K7Importer extends AbstractKrameriusImporter {
             params.put("license", license);
             params.put("startIndexer", true);
             params.put("useIIPServer", true);
+        }
+        if (!collections.isEmpty()) {
+            params.put("collections", String.join(";", collections));
         }
         params.put("pathtype", instance.getPathType());
         return new ImportRequest(url, new JSONObject()
