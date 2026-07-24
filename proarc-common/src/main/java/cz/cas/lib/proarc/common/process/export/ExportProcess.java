@@ -802,7 +802,13 @@ public final class ExportProcess implements Runnable {
                 }
             }
 
-            Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy(), params.getLicense(), params.isArchive());
+            Kramerius4Export export = new Kramerius4Export(
+                    config,
+                    akubraConfiguration,
+                    params.getPolicy(),
+                    params.getLicense(),
+                    params.isArchive(),
+                    Boolean.TRUE.equals(params.isUpdateMods()));
             File exportFolder = KrameriusOptions.getExportFolder(params.getKrameriusInstanceId(), user.getExportFolder(), config, KUtils.EXPORT_KRAMERIUS);
             Kramerius4Export.Result k4Result = export.export(exportFolder, params.getHierarchy(), exportOptions.getLog(), params.getKrameriusInstanceId(), batch, params.getPids().toArray(new String[params.getPids().size()]));
             if (k4Result.getException() != null) {
@@ -865,7 +871,13 @@ public final class ExportProcess implements Runnable {
     }
 
     private URI runK4Export(String path, BatchParams params, String exportPageContext, Batch batch) throws Exception {
-        Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy(), params.getLicense(), params.isArchive());
+        Kramerius4Export export = new Kramerius4Export(
+                config,
+                akubraConfiguration,
+                params.getPolicy(),
+                params.getLicense(),
+                params.isArchive(),
+                Boolean.TRUE.equals(params.isUpdateMods()));
         if (path == null || path.isEmpty()) {
             path = user.getExportFolder().getPath();
         }

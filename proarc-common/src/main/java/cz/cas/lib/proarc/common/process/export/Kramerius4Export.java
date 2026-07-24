@@ -153,16 +153,29 @@ public final class Kramerius4Export {
 
     private final String policy;
     private final String license;
+    private final boolean updateMods;
     private String mainObjectModel;
 
     private String exportPageContext;
 
     public Kramerius4Export(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration, String policy, String license, boolean isArchive) throws IOException {
+        this(appConfiguration, akubraConfiguration, policy, license, isArchive, false);
+    }
+
+    public Kramerius4Export(
+            AppConfiguration appConfiguration,
+            AkubraConfiguration akubraConfiguration,
+            String policy,
+            String license,
+            boolean isArchive,
+            boolean updateMods
+    ) throws IOException {
         this.appConfig = appConfiguration;
         this.akubraConfiguration = akubraConfiguration;
         this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
         this.exportParams = appConfiguration.getExportParams();
         this.isArchive = isArchive;
+        this.updateMods = updateMods;
 
         if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             this.search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
@@ -223,7 +236,13 @@ public final class Kramerius4Export {
                 KUtils.ImportState state;
                 try (KrameriusClient client = new KrameriusClient(instance.getUrl())) {
                     state = client.importToKramerius(
-                            instance, krameriusResult.getFile(), false, KUtils.EXPORT_KRAMERIUS, policy, license);
+                            instance,
+                            krameriusResult.getFile(),
+                            false,
+                            KUtils.EXPORT_KRAMERIUS,
+                            policy,
+                            license,
+                            updateMods);
                 }
                 if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState()) && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
                     if (instance.deleteAfterImport()) {

@@ -12,10 +12,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
+import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.json.JSONObject;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -116,6 +116,50 @@ class KrameriusClientTest {
     }
 
     @Test
+    void updatesModsInKramerius7(@TempDir Path exportFolder) throws Exception {
+        AtomicReference<String> payload = new AtomicReference<>();
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/login", exchange -> respond(exchange, 200, "{\"access_token\":\"test-token\"}"));
+        server.createContext("/import", exchange -> {
+            payload.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            respond(exchange, 200, "{\"uuid\":\"process-update\"}");
+        });
+        server.createContext(
+                "/state/process-update",
+                exchange -> respond(
+                        exchange,
+                        200,
+                        "{\"process\":{\"state\":\"FINISHED\"},\"batch\":{\"state\":\"FINISHED\"}}"));
+        server.start();
+
+        String apiUrl = "http://localhost:" + server.getAddress().getPort();
+        KrameriusOptions.KrameriusInstance instance = createInstance(apiUrl, "7.0");
+        try (KrameriusClient client = new KrameriusClient(apiUrl)) {
+            KUtils.ImportState state = client.importToKramerius(
+                    instance,
+                    exportFolder.toFile(),
+                    false,
+                    KUtils.EXPORT_KRAMERIUS,
+                    null,
+                    null,
+                    true);
+            assertEquals(KUtils.KRAMERIUS_PROCESS_FINISHED, state.getProcessState());
+            assertEquals(KUtils.KRAMERIUS_BATCH_FINISHED_V7, state.getBatchState());
+        }
+
+        JSONObject request = new JSONObject(payload.get());
+        JSONObject params = request.getJSONObject("params");
+        assertEquals("update", request.getString("defid"));
+        assertEquals(2, request.length());
+        assertEquals(4, params.length());
+        assertEquals(
+                "/kramerius/import/" + exportFolder.getFileName(),
+                params.getString("inputDataDir"));
+        assertEquals(true, params.getBoolean("startIndexer"));
+        assertEquals("relative", params.getString("pathtype"));
+    }
+
+    @Test
     void importsToKramerius5(@TempDir Path exportFolder) throws Exception {
         AtomicReference<String> authorization = new AtomicReference<>();
         AtomicReference<String> payload = new AtomicReference<>();
@@ -137,7 +181,7 @@ class KrameriusClientTest {
         KrameriusOptions.KrameriusInstance instance = createInstance(apiUrl, "5.4");
         try (KrameriusClient client = new KrameriusClient(apiUrl)) {
             KUtils.ImportState state = client.importToKramerius(
-                    instance, exportFolder.toFile(), false, KUtils.EXPORT_KRAMERIUS, null, null);
+                    instance, exportFolder.toFile(), false, KUtils.EXPORT_KRAMERIUS, null, null, true);
             assertEquals(KUtils.KRAMERIUS_PROCESS_FINISHED, state.getProcessState());
             assertEquals(KUtils.KRAMERIUS_BATCH_FINISHED_V5, state.getBatchState());
         }

@@ -244,6 +244,18 @@ class OpenApiSpecificationTest {
     }
 
     @Test
+    void krameriusExportDocumentsModsUpdateParameter() throws Exception {
+        JSONObject properties = formRequestProperties(loadSpec()
+                .getJSONObject("paths")
+                .getJSONObject("/export/kramerius4")
+                .getJSONObject("post"));
+
+        JSONObject updateMods = properties.getJSONObject("updateMods");
+        assertEquals("boolean", updateMods.getString("type"));
+        assertFalse(updateMods.getBoolean("default"));
+    }
+
+    @Test
     void userAndWorkflowDocumentsAdministrativeContracts() throws Exception {
         JSONObject user = loadSpec()
                 .getJSONObject("paths")

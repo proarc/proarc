@@ -215,6 +215,19 @@ public final class KrameriusClient extends HttpAbstractClient {
             String policy,
             String license
     ) throws JSONException, IOException, InterruptedException {
+        return importToKramerius(
+                instance, exportFolder, updateExisting, exportType, policy, license, false);
+    }
+
+    public KUtils.ImportState importToKramerius(
+            KrameriusOptions.KrameriusInstance instance,
+            File exportFolder,
+            boolean updateExisting,
+            String exportType,
+            String policy,
+            String license,
+            boolean updateMods
+    ) throws JSONException, IOException, InterruptedException {
         allowSupportedVersion(instance);
         prepareExportFolder(exportFolder);
         validateExportType(exportType);
@@ -224,7 +237,7 @@ public final class KrameriusClient extends HttpAbstractClient {
             case UNSUPPORTED -> throw unsupportedVersion(instance);
         };
         return importer.importToKramerius(
-                exportFolder, updateExisting, exportType, policy, license);
+                exportFolder, updateExisting, exportType, policy, license, updateMods);
     }
 
     private void prepareExportFolder(File exportFolder) throws IOException {

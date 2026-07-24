@@ -300,6 +300,7 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
+            @DefaultValue("false") @FormParam(ExportResourceApi.KRAMERIUS4_UPDATE_MODS_PARAM) boolean updateMods,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws Exception {
 
@@ -319,6 +320,7 @@ public class ExportResourceV1 {
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid), policy, hierarchy, krameriusInstanceId, isBagit, license);
+            params.setUpdateMods(updateMods);
             Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_KRAMERIUS, isNightOnly, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));

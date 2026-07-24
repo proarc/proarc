@@ -707,6 +707,10 @@
                     "type": "boolean",
                     "default": false
                   },
+                  "updateMods": {
+                    "type": "boolean",
+                    "default": false
+                  },
                   "nightOnly": {
                     "type": "boolean",
                     "default": false

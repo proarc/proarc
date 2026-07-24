@@ -44,10 +44,11 @@ final class K7Importer extends AbstractKrameriusImporter {
             boolean updateExisting,
             String exportType,
             String policy,
-            String license
+            String license,
+            boolean updateMods
     ) throws JSONException, IOException, InterruptedException {
         ImportRequest importRequest = createImportRequest(
-                exportFolder, updateExisting, exportType, policy, license);
+                exportFolder, updateExisting, exportType, policy, license, updateMods);
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             String response = post(
                     client, importRequest.url(), importRequest.payload(), HTTP_OK, HTTP_CREATED, HTTP_ACCEPTED);
@@ -77,13 +78,14 @@ final class K7Importer extends AbstractKrameriusImporter {
             boolean updateExisting,
             String exportType,
             String policy,
-            String license
+            String license,
+            boolean updateMods
     ) {
         JSONObject params = new JSONObject();
         String definition;
         String url;
         if (KUtils.EXPORT_KRAMERIUS.equals(exportType)) {
-            definition = "import";
+            definition = updateMods ? "update" : "import";
             url = instance.getUrl() + instance.getUrlParametrizedImportQuery();
             params.put("inputDataDir", instance.getKrameriusImportFoxmlFolder() + exportFolder.getName());
             params.put("startIndexer", true);

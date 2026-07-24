@@ -64,7 +64,8 @@ final class K5Importer extends AbstractKrameriusImporter {
             boolean updateExisting,
             String exportType,
             String policy,
-            String license
+            String license,
+            boolean updateMods
     ) throws JSONException, IOException, InterruptedException {
         ImportRequest importRequest = createImportRequest(exportFolder, updateExisting, exportType, policy);
         try (CloseableHttpClient client = HttpClients.custom()

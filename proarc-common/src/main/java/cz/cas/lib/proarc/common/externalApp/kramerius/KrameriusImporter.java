@@ -11,6 +11,7 @@ interface KrameriusImporter {
             boolean updateExisting,
             String exportType,
             String policy,
-            String license
+            String license,
+            boolean updateMods
     ) throws JSONException, IOException, InterruptedException;
 }

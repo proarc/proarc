@@ -53,6 +53,7 @@ public final class ExportResourceApi {
     public static final String KRAMERIUS4_HIERARCHY_PARAM = "hierarchy";
     public static final String KRAMERIUS4_POLICY_PARAM = "policy";
     public static final String KRAMERIUS4_LICENSE_PARAM = "license";
+    public static final String KRAMERIUS4_UPDATE_MODS_PARAM = "updateMods";
 
     public static final String KRAMERIUS_INSTANCE = "krameriusInstance";
     public static final String KRAMERIUS_INSTANCE_PARAM = "krameriusInstanceParam";
