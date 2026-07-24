@@ -19,7 +19,7 @@ package cz.cas.lib.proarc.webapp.server.rest.v2;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchView;
-import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.ExportResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
@@ -41,8 +41,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
-import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusInstance;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions.findKrameriusInstance;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_MISSING_PARAMETER;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_2;
@@ -167,6 +167,7 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
+            @DefaultValue("false") @FormParam(ExportResourceApi.KRAMERIUS4_UPDATE_MODS_PARAM) boolean updateMods,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (pids.isEmpty()) {
@@ -177,7 +178,7 @@ public class ExportResource extends ExportResourceV1 {
             return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
-            return super.kramerius4(pids, policy, license, hierarchy, krameriusInstanceId, isBagit, isNightOnly);
+            return super.kramerius4(pids, policy, license, hierarchy, krameriusInstanceId, isBagit, updateMods, isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);

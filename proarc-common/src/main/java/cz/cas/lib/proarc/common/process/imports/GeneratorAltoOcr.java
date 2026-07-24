@@ -2,7 +2,7 @@ package cz.cas.lib.proarc.common.process.imports;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.process.BatchManager;
-import cz.cas.lib.proarc.common.process.external.PeroOcrProcessor;
+import cz.cas.lib.proarc.common.externalApp.peroOcr.PeroOcrProcessor;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;

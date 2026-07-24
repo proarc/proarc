@@ -14,13 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.kramerius;
+package cz.cas.lib.proarc.common.externalApp.kramerius;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.configuration2.Configuration;
 
@@ -59,134 +60,88 @@ public class KrameriusOptions {
     }
 
     public static KrameriusInstance findKrameriusInstance(List<KrameriusInstance> listOfInstances, String id) {
-        if (id != null) {
-            for (KrameriusInstance krameriusInstance : listOfInstances) {
-                if (id.equals(krameriusInstance.getId())) {
-                    return krameriusInstance;
-                }
-            }
+        if (id == null || listOfInstances == null) {
+            return null;
         }
-        return null;
+        return listOfInstances.stream()
+                .filter(instance -> id.equals(instance.getId()))
+                .findFirst()
+                .orElse(null);
     }
 
     public static File getExportFolder(String krameriusInstanceId, URI exportUri, AppConfiguration appConfig, String type) {
-        if (krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
+        if (isBlank(krameriusInstanceId) || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId)) {
             return new File(exportUri);
-        } else {
-            KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
-            if (KUtils.EXPORT_KRAMERIUS.equals(type)) {
-                File exportFile = new File(instance.getExportFoxmlFolder());
-                if (!exportFile.exists() || !exportFile.isDirectory() || !exportFile.canRead() || !exportFile.canWrite()) {
-                    throw new IllegalArgumentException("Error s nakonfigurovanou cestou: " + instance.getExportFoxmlFolder() + " (zkontrolujte, ze cesta existuje a mate do ni prava na cteni a zapis.");
-                } else {
-                    return exportFile;
-                }
-            } else if (KUtils.EXPORT_NDK.equals(type)) {
-                File exportFile = new File(instance.getExportNdkFolder());
-                if (!exportFile.exists() || !exportFile.isDirectory() || !exportFile.canRead() || !exportFile.canWrite()) {
-                    throw new IllegalArgumentException("Error s nakonfigurovanou cestou: " + instance.getExportNdkFolder() + " (zkontrolujte, ze cesta existuje a mate do ni prava na cteni a zapis.");
-                } else {
-                    return exportFile;
-                }
-            } else {
-                throw new IllegalArgumentException("Nepodporovany typ exportu: " + type);
-            }
         }
+        KrameriusInstance instance = findKrameriusInstance(
+                appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
+        if (instance == null) {
+            throw new IllegalArgumentException("Unknown Kramerius instance: " + krameriusInstanceId);
+        }
+        String configuredPath = switch (type) {
+            case KUtils.EXPORT_KRAMERIUS -> instance.getExportFoxmlFolder();
+            case KUtils.EXPORT_NDK -> instance.getExportNdkFolder();
+            default -> throw new IllegalArgumentException("Unsupported export type: " + type);
+        };
+        File exportFolder = new File(configuredPath);
+        if (!exportFolder.isDirectory() || !exportFolder.canRead() || !exportFolder.canWrite()) {
+            throw new IllegalArgumentException(
+                    "Kramerius export folder is not a readable and writable directory: " + configuredPath);
+        }
+        return exportFolder;
     }
 
     private static boolean valid(KrameriusInstance conf) {
         boolean ok = true;
-        int version = 0;
         if (KRAMERIUS_INSTANCE_LOCAL.equals(conf.getId())) {
             return true; // pro local neni potreba zadna konfigurace
         }
-        if (conf.getTitle() == null || conf.getTitle().isEmpty()) {
+        if (isBlank(conf.getTitle())) {
             warning(conf, KrameriusInstance.PROPERTY_TITLE);
         }
-        if (conf.getVersion() == null || conf.getVersion().isEmpty()) {
+        if (isBlank(conf.getVersion())) {
             warning(conf, KrameriusInstance.PROPERTY_VERSION);
             return false;
-        } else {
-            String tmpVersion = conf.getVersion();
-            tmpVersion = tmpVersion.replaceAll("[^0-9]", "");
-            if (tmpVersion.startsWith("5")) {
-                version = 5;
-            } else if (tmpVersion.startsWith("7")) {
-                version = 7;
-            } else {
-                LOG.warning(String.format("Unsupported value %s.%s.%s = %s in proarc.cfg",
-                        PREFIX_KRAMERIUS_INSTANCE, conf.getId(), KrameriusInstance.PROPERTY_VERSION, conf.getVersion()));
-                return false;
-            }
         }
-        if (conf.getType() == null || conf.getType().isEmpty()) {
-            warning(conf, KrameriusInstance.PROPERTY_TYPE);
-            ok = false;
+        if (conf.getMajorVersion() == KrameriusVersion.UNSUPPORTED) {
+            LOG.warning(String.format("Unsupported value %s.%s.%s = %s in proarc.cfg",
+                    PREFIX_KRAMERIUS_INSTANCE, conf.getId(), KrameriusInstance.PROPERTY_VERSION, conf.getVersion()));
+            return false;
         }
-        if (conf.getUrl() == null) {
-            warning(conf, KrameriusInstance.PROPERTY_URL);
-            ok = false;
-        }
-        if (conf.getUrlParametrizedImportQuery() == null && conf.getUrlConvertImportQuery() == null) {
+        ok &= present(conf, conf.getType(), KrameriusInstance.PROPERTY_TYPE);
+        ok &= present(conf, conf.getUrl(), KrameriusInstance.PROPERTY_URL);
+        if (isBlank(conf.getUrlParametrizedImportQuery()) && isBlank(conf.getUrlConvertImportQuery())) {
             warning(conf, KrameriusInstance.PROPERTY_URL_PARAMETRIZED_IMPORT_QUERY);
             warning(conf, KrameriusInstance.PROPERTY_URL_CONVERT_IMPORT_QUERY);
             ok = false;
         }
-        if (conf.getUrlStateQuery() == null) {
-            warning(conf, KrameriusInstance.PROPERTY_URL_STATE_QUERY);
-            ok = false;
-        }
-        if (conf.getPassword() == null) {
-            warning(conf, KrameriusInstance.PROPERTY_PASSWORD);
-            ok = false;
-        }
-        if (conf.getUsername() == null) {
-            warning(conf, KrameriusInstance.PROPERTY_USERNAME);
-            ok = false;
-        }
-        if (conf.getExportFoxmlFolder() == null && conf.getExportNdkFolder() == null) {
+        ok &= present(conf, conf.getUrlStateQuery(), KrameriusInstance.PROPERTY_URL_STATE_QUERY);
+        ok &= present(conf, conf.getPassword(), KrameriusInstance.PROPERTY_PASSWORD);
+        ok &= present(conf, conf.getUsername(), KrameriusInstance.PROPERTY_USERNAME);
+        if (isBlank(conf.getExportFoxmlFolder()) && isBlank(conf.getExportNdkFolder())) {
             warning(conf, KrameriusInstance.PROPERTY_EXPORT_FOXML_FOLDER);
             warning(conf, KrameriusInstance.PROPERTY_EXPORT_NDK_FOLDER);
             ok = false;
         }
-        if (conf.getKrameriusImportFoxmlFolder() == null && conf.getKrameriusConvertNdkFolder() == null) {
+        if (isBlank(conf.getKrameriusImportFoxmlFolder()) && isBlank(conf.getKrameriusConvertNdkFolder())) {
             warning(conf, KrameriusInstance.PROPERTY_KRAMERIUS_IMPORT_FOXML_FOLDER);
             warning(conf, KrameriusInstance.PROPERTY_KRAMERIUS_CONVERT_NDK_FOLDER);
             ok = false;
         }
-        if (7 == version) {
-            if (conf.getUrlLogin() == null) {
-                warning(conf, KrameriusInstance.PROPERTY_URL_LOGIN);
-                ok = false;
-            }
-            if (conf.getUrlDownloadFoxml() == null) {
-                warning(conf, KrameriusInstance.PROPERTY_URL_DOWNLOAD_FOXML);
-                ok = false;
-            }
-            if (conf.getUrlImage() == null) {
-                warning(conf, KrameriusInstance.PROPERTY_URL_IMAGE);
-                ok = false;
-            }
-            if (conf.getClientId() == null) {
-                warning(conf, KrameriusInstance.PROPERTY_CLIENT_ID);
-                ok = false;
-            }
-            if (conf.getClientSecret() == null) {
-                warning(conf, KrameriusInstance.PROPERTY_CLIENT_SECRET);
-                ok = false;
-            }
-            if (conf.getGrantType() == null) {
-                warning(conf, KrameriusInstance.PROPERTY_GRANT_TYPE);
-                ok = false;
-            }
-            if (conf.getUrlLicense() == null) {
-                warning(conf, KrameriusInstance.PROPERTY_URL_LICENSE);
-                ok = false;
-            }
-        } else if (5 == version) {
-            if (conf.getKrameriusConvertNdkFolder() != null && conf.getKrameriusTargetConvertedFolder() == null) {
-                warning(conf, KrameriusInstance.PROPERTY_KRAMERIUS_TARGET_CONVERTED_FOLDER);
-                ok = false;
+        if (conf.getMajorVersion() == KrameriusVersion.V7) {
+            ok &= present(conf, conf.getUrlLogin(), KrameriusInstance.PROPERTY_URL_LOGIN);
+            ok &= present(conf, conf.getUrlDownloadFoxml(), KrameriusInstance.PROPERTY_URL_DOWNLOAD_FOXML);
+            ok &= present(conf, conf.getUrlImage(), KrameriusInstance.PROPERTY_URL_IMAGE);
+            ok &= present(conf, conf.getClientId(), KrameriusInstance.PROPERTY_CLIENT_ID);
+            ok &= present(conf, conf.getClientSecret(), KrameriusInstance.PROPERTY_CLIENT_SECRET);
+            ok &= present(conf, conf.getGrantType(), KrameriusInstance.PROPERTY_GRANT_TYPE);
+            ok &= present(conf, conf.getUrlLicense(), KrameriusInstance.PROPERTY_URL_LICENSE);
+        } else if (conf.getMajorVersion() == KrameriusVersion.V5) {
+            if (!isBlank(conf.getKrameriusConvertNdkFolder())) {
+                ok &= present(
+                        conf,
+                        conf.getKrameriusTargetConvertedFolder(),
+                        KrameriusInstance.PROPERTY_KRAMERIUS_TARGET_CONVERTED_FOLDER);
             }
         }
 
@@ -196,6 +151,18 @@ public class KrameriusOptions {
     private static void warning(KrameriusInstance conf, String propertyName) {
         LOG.warning(String.format("Missing %s.%s.%s in proarc.cfg",
                 PREFIX_KRAMERIUS_INSTANCE, conf.getId(), propertyName));
+    }
+
+    private static boolean present(KrameriusInstance conf, String value, String propertyName) {
+        if (!isBlank(value)) {
+            return true;
+        }
+        warning(conf, propertyName);
+        return false;
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     public static class KrameriusInstance {
@@ -242,6 +209,10 @@ public class KrameriusOptions {
 
         public String getVersion() {
             return config.getString(PROPERTY_VERSION);
+        }
+
+        KrameriusVersion getMajorVersion() {
+            return KrameriusVersion.from(getVersion());
         }
 
         public String getUrlLogin() {
@@ -372,27 +343,24 @@ public class KrameriusOptions {
             } else if (!isVersion7()) {
                 return null;
             } else {
-                K7License licenseHandler = new K7License();
                 List<KrameriusLicense> licenses = null;
-                try {
-                    licenses = licenseHandler.getLicenses(this.getUrl() + this.getUrlLicense());
+                try (KrameriusClient client = new KrameriusClient(this.getUrl())) {
+                    licenses = client.getLicenses(this);
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    LOG.log(Level.WARNING, "Cannot load licenses from Kramerius " + getId() + ".", ex);
                 }
                 return licenses;
             }
         }
 
         private boolean isVersion7() {
-            String tmpVersion = this.getVersion();
-            tmpVersion = tmpVersion.replaceAll("[^0-9]", "");
-            return tmpVersion.startsWith("7");
+            return getMajorVersion() == KrameriusVersion.V7;
         }
 
         public static class KrameriusLicense {
-            private String id;
-            private String name;
-            private String description;
+            private final String id;
+            private final String name;
+            private final String description;
 
             public KrameriusLicense(String id, String name, String description) {
                 this.id = id;

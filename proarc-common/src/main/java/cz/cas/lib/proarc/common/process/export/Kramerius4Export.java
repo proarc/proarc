@@ -26,9 +26,9 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
-import cz.cas.lib.proarc.common.kramerius.KImporter;
-import cz.cas.lib.proarc.common.kramerius.KUtils;
-import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KUtils;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusClient;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectCrawler;
@@ -97,17 +97,17 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V5;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V7;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V5;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V7;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_KILLED_V7;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_NO_BATCH_V5;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
-import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
-import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusInstance;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V5;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V7;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V5;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V7;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_KILLED_V7;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_NO_BATCH_V5;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions.findKrameriusInstance;
 import static cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin.isNdkAudioModel;
 import static cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor.updateModsNeeded;
 
@@ -153,16 +153,29 @@ public final class Kramerius4Export {
 
     private final String policy;
     private final String license;
+    private final boolean updateMods;
     private String mainObjectModel;
 
     private String exportPageContext;
 
     public Kramerius4Export(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration, String policy, String license, boolean isArchive) throws IOException {
+        this(appConfiguration, akubraConfiguration, policy, license, isArchive, false);
+    }
+
+    public Kramerius4Export(
+            AppConfiguration appConfiguration,
+            AkubraConfiguration akubraConfiguration,
+            String policy,
+            String license,
+            boolean isArchive,
+            boolean updateMods
+    ) throws IOException {
         this.appConfig = appConfiguration;
         this.akubraConfiguration = akubraConfiguration;
         this.kramerius4ExportOptions = appConfiguration.getKramerius4Export();
         this.exportParams = appConfiguration.getExportParams();
         this.isArchive = isArchive;
+        this.updateMods = updateMods;
 
         if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
             this.search = AkubraStorage.getInstance(akubraConfiguration).getSearch();
@@ -220,8 +233,17 @@ public final class Kramerius4Export {
 
             if (!(krameriusInstanceId == null || krameriusInstanceId.isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(krameriusInstanceId))) {
                 KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
-                KImporter kImporter = new KImporter(appConfig, instance);
-                KUtils.ImportState state = kImporter.importToKramerius(krameriusResult.getFile(), false, KUtils.EXPORT_KRAMERIUS, policy, license);
+                KUtils.ImportState state;
+                try (KrameriusClient client = new KrameriusClient(instance.getUrl())) {
+                    state = client.importToKramerius(
+                            instance,
+                            krameriusResult.getFile(),
+                            false,
+                            KUtils.EXPORT_KRAMERIUS,
+                            policy,
+                            license,
+                            updateMods);
+                }
                 if (KRAMERIUS_PROCESS_FINISHED.equals(state.getProcessState()) && (KRAMERIUS_BATCH_FINISHED_V5.equals(state.getBatchState()) || KRAMERIUS_BATCH_FINISHED_V7.equals(state.getBatchState()))) {
                     if (instance.deleteAfterImport()) {
                         MetsUtils.deleteFolder(krameriusResult.getFile());

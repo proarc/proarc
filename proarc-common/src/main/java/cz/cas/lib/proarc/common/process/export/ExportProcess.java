@@ -21,8 +21,8 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
-import cz.cas.lib.proarc.common.kramerius.KUtils;
-import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KUtils;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -88,10 +88,10 @@ import org.apache.commons.io.FileUtils;
 
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExportWithError;
 import static cz.cas.lib.proarc.common.dao.BatchUtils.updateExportingBatch;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
-import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
 import static cz.cas.lib.proarc.common.process.export.bagit.BagitExport.findNdkExportFolder;
 
 /**
@@ -802,7 +802,13 @@ public final class ExportProcess implements Runnable {
                 }
             }
 
-            Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy(), params.getLicense(), params.isArchive());
+            Kramerius4Export export = new Kramerius4Export(
+                    config,
+                    akubraConfiguration,
+                    params.getPolicy(),
+                    params.getLicense(),
+                    params.isArchive(),
+                    Boolean.TRUE.equals(params.isUpdateMods()));
             File exportFolder = KrameriusOptions.getExportFolder(params.getKrameriusInstanceId(), user.getExportFolder(), config, KUtils.EXPORT_KRAMERIUS);
             Kramerius4Export.Result k4Result = export.export(exportFolder, params.getHierarchy(), exportOptions.getLog(), params.getKrameriusInstanceId(), batch, params.getPids().toArray(new String[params.getPids().size()]));
             if (k4Result.getException() != null) {
@@ -865,7 +871,13 @@ public final class ExportProcess implements Runnable {
     }
 
     private URI runK4Export(String path, BatchParams params, String exportPageContext, Batch batch) throws Exception {
-        Kramerius4Export export = new Kramerius4Export(config, akubraConfiguration, params.getPolicy(), params.getLicense(), params.isArchive());
+        Kramerius4Export export = new Kramerius4Export(
+                config,
+                akubraConfiguration,
+                params.getPolicy(),
+                params.getLicense(),
+                params.isArchive(),
+                Boolean.TRUE.equals(params.isUpdateMods()));
         if (path == null || path.isEmpty()) {
             path = user.getExportFolder().getPath();
         }

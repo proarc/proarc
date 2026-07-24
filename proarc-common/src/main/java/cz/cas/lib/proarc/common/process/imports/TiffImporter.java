@@ -30,7 +30,7 @@ import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
 import cz.cas.lib.proarc.common.process.external.ExternalProcess;
 import cz.cas.lib.proarc.common.process.external.KakaduCompress;
-import cz.cas.lib.proarc.common.process.external.PeroOcrProcessor;
+import cz.cas.lib.proarc.common.externalApp.peroOcr.PeroOcrProcessor;
 import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
 import cz.cas.lib.proarc.common.process.imports.FileSet.FileEntry;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess.ImportOptions;
