@@ -1,4 +1,4 @@
-package cz.cas.lib.proarc.common.metacheck;
+package cz.cas.lib.proarc.common.externalApp;
 
 import java.io.IOException;
 import java.net.URI;

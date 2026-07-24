@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.kramerius;
+package cz.cas.lib.proarc.common.externalApp.metacheck.kramerius;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
@@ -26,9 +26,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import static cz.cas.lib.proarc.common.kramerius.KUtils.findHandler;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.getExportFile;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.getFile;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.findHandler;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.getExportFile;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.getFile;
 
 public class KDataHandler {
 

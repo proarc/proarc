@@ -21,9 +21,9 @@ import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
-import cz.cas.lib.proarc.common.kramerius.KImporter;
-import cz.cas.lib.proarc.common.kramerius.KUtils;
-import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KImporter;
+import cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils;
+import cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.ExportException;
@@ -56,17 +56,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.Validate;
 
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V5;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V7;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V5;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V7;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_KILLED_V7;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_NO_BATCH_V5;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
-import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
-import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusInstance;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V5;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V7;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V5;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V7;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_BATCH_KILLED_V7;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_BATCH_NO_BATCH_V5;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KrameriusOptions.findKrameriusInstance;
 
 /**
  * Exports digital object and transforms its data streams to NDK format.

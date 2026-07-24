@@ -1,4 +1,4 @@
-package cz.cas.lib.proarc.common.kramerius;
+package cz.cas.lib.proarc.common.externalApp.metacheck.kramerius;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
@@ -16,7 +16,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static cz.cas.lib.proarc.common.kramerius.K7Importer.getState;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.K7Importer.getState;
 import static java.net.HttpURLConnection.HTTP_ACCEPTED;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_OK;

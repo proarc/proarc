@@ -1,4 +1,4 @@
-package cz.cas.lib.proarc.common.kramerius;
+package cz.cas.lib.proarc.common.externalApp.metacheck.kramerius;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import java.io.File;
@@ -19,13 +19,13 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V7;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_PLANNED_V7;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_BATCH_RUNNING_V7;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_NOT_RUNNING;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_PLANNED;
-import static cz.cas.lib.proarc.common.kramerius.KUtils.KRAMERIUS_PROCESS_RUNNING;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V7;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_BATCH_PLANNED_V7;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_BATCH_RUNNING_V7;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_PROCESS_NOT_RUNNING;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_PROCESS_PLANNED;
+import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_PROCESS_RUNNING;
 import static java.net.HttpURLConnection.HTTP_ACCEPTED;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_CREATED;

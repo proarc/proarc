@@ -1,4 +1,4 @@
-package cz.cas.lib.proarc.common.kramerius;
+package cz.cas.lib.proarc.common.externalApp.metacheck.kramerius;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

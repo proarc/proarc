@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.process.external;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.externalApp.peroOcr.PeroOcrProcessor;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.export.DataStreamExport;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;

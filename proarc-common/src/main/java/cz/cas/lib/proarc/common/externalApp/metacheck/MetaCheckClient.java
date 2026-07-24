@@ -1,5 +1,6 @@
-package cz.cas.lib.proarc.common.metacheck;
+package cz.cas.lib.proarc.common.externalApp.metacheck;
 
+import cz.cas.lib.proarc.common.externalApp.HttpAbstractClient;
 import cz.cas.lib.proarc.common.object.ValueMap;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
