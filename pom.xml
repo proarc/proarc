@@ -51,7 +51,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Dependencies -->
-        <com.fasterxml.jackson.jaxrs.version>2.18.6</com.fasterxml.jackson.jaxrs.version>
+        <com.fasterxml.jackson.jaxrs.version>2.18.9</com.fasterxml.jackson.jaxrs.version>
         <junit.jupiter.version>5.11.0</junit.jupiter.version>
         <org.akubraproject.version>0.4.0</org.akubraproject.version>
         <org.apache.cxf.version>4.1.4</org.apache.cxf.version>
