@@ -164,6 +164,7 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
+            @FormParam(ExportResourceApi.KRAMERIUS4_COLLECTION_PARAM) List<String> collections,
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
@@ -178,7 +179,16 @@ public class ExportResource extends ExportResourceV1 {
             return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
-            return super.kramerius4(pids, policy, license, hierarchy, krameriusInstanceId, isBagit, updateMods, isNightOnly);
+            return super.kramerius4(
+                    pids,
+                    policy,
+                    license,
+                    collections,
+                    hierarchy,
+                    krameriusInstanceId,
+                    isBagit,
+                    updateMods,
+                    isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);
@@ -198,13 +208,25 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
+            @FormParam(ExportResourceApi.KRAMERIUS4_COLLECTION_PARAM) List<String> collections,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (pids.isEmpty()) {
             return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.NDK_PID_PARAM));
         }
         try {
-            return super.newNdkExport(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy, license, isNightOnly);
+            return super.newNdkExport(
+                    pids,
+                    typeOfPackage,
+                    ignoreMissingUrnNbn,
+                    isBagit,
+                    ltpCesnet,
+                    token,
+                    krameriusInstanceId,
+                    policy,
+                    license,
+                    collections,
+                    isNightOnly);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);

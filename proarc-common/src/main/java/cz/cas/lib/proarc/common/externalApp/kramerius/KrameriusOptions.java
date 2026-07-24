@@ -178,6 +178,7 @@ public class KrameriusOptions {
         static final String PROPERTY_URL_DOWNLOAD_FOXML = "urlDownloadFoxml";
         static final String PROPERTY_URL_IMAGE = "urlImage";
         static final String PROPERTY_URL_LICENSE = "urlLicense";
+        static final String PROPERTY_URL_COLLECTIONS = "urlCollections";
         static final String PROPERTY_URL_UPLOAD_STREAM = "urlUploadStream";
         static final String PROPERTY_URL_INDEX = "urlProcesses";
         static final String PROPERTY_USERNAME = "username";
@@ -279,6 +280,14 @@ public class KrameriusOptions {
             return config.getString(PROPERTY_URL_LICENSE);
         }
 
+        public String getUrlCollections() {
+            String urlCollections = config.getString(PROPERTY_URL_COLLECTIONS);
+            if (urlCollections == null || urlCollections.isEmpty()) {
+                return "/search/api/admin/v7.0/collections";
+            }
+            return urlCollections;
+        }
+
         public String getUrlUploadStream() {
             String urlUploadStram = config.getString(PROPERTY_URL_UPLOAD_STREAM);
             if (urlUploadStram == null || urlUploadStram.isEmpty()) {
@@ -353,8 +362,24 @@ public class KrameriusOptions {
             }
         }
 
+        public List<KrameriusCollection> getCollections() {
+            if (KRAMERIUS_INSTANCE_LOCAL.equals(this.getId()) || !isVersion7()) {
+                return null;
+            }
+            try (KrameriusClient client = new KrameriusClient(this.getUrl())) {
+                return client.getCollections(this);
+            } catch (Exception ex) {
+                LOG.log(Level.WARNING, "Cannot load collections from Kramerius " + getId() + ".", ex);
+                return null;
+            }
+        }
+
         private boolean isVersion7() {
             return getMajorVersion() == KrameriusVersion.V7;
+        }
+
+        public boolean supportsCollections() {
+            return isVersion7();
         }
 
         public static class KrameriusLicense {

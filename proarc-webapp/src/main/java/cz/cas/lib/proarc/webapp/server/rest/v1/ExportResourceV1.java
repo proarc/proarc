@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusCollection;
 import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.process.BatchManager;
@@ -297,6 +298,7 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
+            @FormParam(ExportResourceApi.KRAMERIUS4_COLLECTION_PARAM) List<String> collections,
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
@@ -308,6 +310,8 @@ public class ExportResourceV1 {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
+        List<String> selectedCollections = normalizeCollections(collections);
+        validateCollections(instance, selectedCollections, updateMods);
         if (!KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) && !instance.isTestType() && !user.hasPermissionToImportToProdFunction()) {
                 throw RestException.plainText(Status.BAD_REQUEST, "Permission denied for " + ExportResourceApi.KRAMERIUS_INSTANCE);
         }
@@ -320,6 +324,7 @@ public class ExportResourceV1 {
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid), policy, hierarchy, krameriusInstanceId, isBagit, license);
+            params.setCollections(selectedCollections);
             params.setUpdateMods(updateMods);
             Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_KRAMERIUS, isNightOnly, params);
 
@@ -351,6 +356,7 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
+            @FormParam(ExportResourceApi.KRAMERIUS4_COLLECTION_PARAM) List<String> collections,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws Exception {
         if (pids.isEmpty()) {
@@ -367,9 +373,14 @@ public class ExportResourceV1 {
             result.setIgnoreMissingUrnNbn(true);
             return new ProArcResponse<ExportResult>(result);
         }
+        KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(
+                appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
+        List<String> selectedCollections = normalizeCollections(collections);
+        validateCollections(instance, selectedCollections, false);
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid), typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy, license);
+            params.setCollections(selectedCollections);
             Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_NDK, isNightOnly, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
@@ -378,6 +389,38 @@ public class ExportResourceV1 {
         }
         ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
         return new ProArcResponse<ExportResult>(result);
+    }
+
+    private List<String> normalizeCollections(List<String> collections) {
+        if (collections == null || collections.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return collections.stream()
+                .filter(value -> value != null && !value.isBlank())
+                .map(String::trim)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    private void validateCollections(
+            KrameriusOptions.KrameriusInstance instance,
+            List<String> collections,
+            boolean updateMods
+    ) {
+        if (collections.isEmpty()) {
+            return;
+        }
+        if (instance == null) {
+            throw RestException.plainBadRequest(ExportResourceApi.KRAMERIUS_INSTANCE, null);
+        }
+        if (updateMods) {
+            throw RestException.plainText(
+                    Status.BAD_REQUEST, "Collections cannot be used when updateMods is enabled.");
+        }
+        if (KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) || !instance.supportsCollections()) {
+            throw RestException.plainText(
+                    Status.BAD_REQUEST, "Collections are supported only for Kramerius 7.");
+        }
     }
 
     /**
@@ -539,7 +582,11 @@ public class ExportResourceV1 {
     public static class KrameriusDescriptor {
 
         public static KrameriusDescriptor create(KrameriusOptions.KrameriusInstance krameriusInstance) {
-            return new KrameriusDescriptor(krameriusInstance.getId(), krameriusInstance.getTitle(), krameriusInstance.getLicenses());
+            return new KrameriusDescriptor(
+                    krameriusInstance.getId(),
+                    krameriusInstance.getTitle(),
+                    krameriusInstance.getLicenses(),
+                    krameriusInstance.getCollections());
         }
 
         @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_ID)
@@ -551,11 +598,20 @@ public class ExportResourceV1 {
         @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_LICENSES)
         @JsonProperty(ExportResourceApi.KRAMERIUS_INSTANCE_LICENSES)
         private List<KrameriusLicenseDescriptor> licenses;
+        @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_COLLECTIONS)
+        @JsonProperty(ExportResourceApi.KRAMERIUS_INSTANCE_COLLECTIONS)
+        private List<KrameriusCollection> collections;
 
-        public KrameriusDescriptor(String id, String name, List<KrameriusOptions.KrameriusInstance.KrameriusLicense> licenses) {
+        public KrameriusDescriptor(
+                String id,
+                String name,
+                List<KrameriusOptions.KrameriusInstance.KrameriusLicense> licenses,
+                List<KrameriusCollection> collections
+        ) {
             this.id = id;
             this.name = name;
             this.licenses = createLicense(licenses);
+            this.collections = collections;
         }
 
         private List<KrameriusLicenseDescriptor> createLicense(List<KrameriusOptions.KrameriusInstance.KrameriusLicense> licenses) {

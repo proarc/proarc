@@ -2,6 +2,7 @@ package cz.cas.lib.proarc.common.externalApp.kramerius;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import org.json.JSONException;
 
 interface KrameriusImporter {
@@ -12,6 +13,7 @@ interface KrameriusImporter {
             String exportType,
             String policy,
             String license,
-            boolean updateMods
+            boolean updateMods,
+            List<String> collections
     ) throws JSONException, IOException, InterruptedException;
 }

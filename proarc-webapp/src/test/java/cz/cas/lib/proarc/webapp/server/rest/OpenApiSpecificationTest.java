@@ -244,15 +244,42 @@ class OpenApiSpecificationTest {
     }
 
     @Test
-    void krameriusExportDocumentsModsUpdateParameter() throws Exception {
-        JSONObject properties = formRequestProperties(loadSpec()
-                .getJSONObject("paths")
+    void krameriusExportDocumentsModsUpdateParameterAndCollections() throws Exception {
+        JSONObject spec = loadSpec();
+        JSONObject paths = spec.getJSONObject("paths");
+        JSONObject properties = formRequestProperties(paths
                 .getJSONObject("/export/kramerius4")
                 .getJSONObject("post"));
 
         JSONObject updateMods = properties.getJSONObject("updateMods");
         assertEquals("boolean", updateMods.getString("type"));
         assertFalse(updateMods.getBoolean("default"));
+
+        assertEquals("string", properties.getJSONObject("collection")
+                .getJSONObject("items")
+                .getString("type"));
+        assertEquals("string", formRequestProperties(paths
+                .getJSONObject("/export/ndk")
+                .getJSONObject("post"))
+                .getJSONObject("collection")
+                .getJSONObject("items")
+                .getString("type"));
+
+        JSONObject schemas = spec.getJSONObject("components").getJSONObject("schemas");
+        assertEquals("#/components/schemas/KrameriusCollection", schemas
+                .getJSONObject("KrameriusDescriptor")
+                .getJSONObject("properties")
+                .getJSONObject("krameriusInstanceCollections")
+                .getJSONObject("items")
+                .getString("$ref"));
+        JSONObject collectionProperties = schemas
+                .getJSONObject("KrameriusCollection")
+                .getJSONObject("properties");
+        assertEquals("string", collectionProperties.getJSONObject("pid").getString("type"));
+        assertEquals("string", collectionProperties
+                .getJSONObject("names")
+                .getJSONObject("additionalProperties")
+                .getString("type"));
     }
 
     @Test
@@ -288,7 +315,7 @@ class OpenApiSpecificationTest {
         JSONObject schemas = loadSpec()
                 .getJSONObject("components")
                 .getJSONObject("schemas");
-        assertEquals(226, schemas.length());
+        assertEquals(227, schemas.length());
 
         JSONObject response = schemas.getJSONObject("response");
         JSONObject properties = response.getJSONObject("properties");
