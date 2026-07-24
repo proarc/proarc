@@ -26,7 +26,7 @@ import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
-import cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.AcceptedExports;
@@ -79,8 +79,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
-import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KrameriusOptions.findKrameriusInstance;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions.findKrameriusInstance;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 
 /**

@@ -1,4 +1,4 @@
-package cz.cas.lib.proarc.common.externalApp.metacheck.kramerius;
+package cz.cas.lib.proarc.common.externalApp.kramerius;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;

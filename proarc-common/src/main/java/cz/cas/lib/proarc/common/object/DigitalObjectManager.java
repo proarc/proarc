@@ -21,7 +21,7 @@ import cz.cas.lib.proarc.common.catalog.MetadataItem;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
-import cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package cz.cas.lib.proarc.common.externalApp.metacheck.kramerius;
+package cz.cas.lib.proarc.common.externalApp.kramerius;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import java.io.BufferedInputStream;
@@ -33,12 +33,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V5;
-import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_BATCH_NO_BATCH_V5;
-import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_BATCH_STARTED_V5;
-import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
-import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_PROCESS_PLANNED;
-import static cz.cas.lib.proarc.common.externalApp.metacheck.kramerius.KUtils.KRAMERIUS_PROCESS_RUNNING;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V5;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_NO_BATCH_V5;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_STARTED_V5;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_PLANNED;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_RUNNING;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 
