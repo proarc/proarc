@@ -287,4 +287,25 @@ public class WorkflowManagerTest {
         assertEquals(Task.State.WAITING, tm.findTask(taskFilter, workflow).get(0).getState());
     }
 
+    @Test
+    public void testUpdateTaskOwnerForClosedJob() throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(EmpireWorkflowJobDaoTest.class, "user.xml"),
+                support.loadFlatXmlDataStream(WorkflowManagerTest.class, "WorkflowManagerUpdateTaskState.xml")
+        );
+        final IDatabaseConnection dbcon = support.getConnection();
+        support.cleanInsert(dbcon, db);
+        dbcon.getConnection().commit();
+        dbcon.close();
+
+        WorkflowManager wm = initWorkflowManager("WorkflowManagerUpdateTaskStateProfile.xml");
+        TaskManager tm = wm.tasks();
+        BigDecimal taskId = new BigDecimal(11);
+        BigDecimal newOwnerId = new BigDecimal(2);
+
+        assertEquals(BigDecimal.ONE, tm.getTask(taskId).getOwnerId());
+        assertEquals(newOwnerId, tm.updateTaskOwner(taskId, newOwnerId).getOwnerId());
+        assertEquals(newOwnerId, tm.getTask(taskId).getOwnerId());
+    }
+
 }
