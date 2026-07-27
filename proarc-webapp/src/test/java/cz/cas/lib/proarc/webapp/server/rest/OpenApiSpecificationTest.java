@@ -280,6 +280,10 @@ class OpenApiSpecificationTest {
                 .getJSONObject("names")
                 .getJSONObject("additionalProperties")
                 .getString("type"));
+        assertEquals("string", collectionProperties
+                .getJSONObject("descriptions")
+                .getJSONObject("additionalProperties")
+                .getString("type"));
     }
 
     @Test

@@ -136,16 +136,22 @@ public final class KrameriusClient extends HttpAbstractClient {
         List<KrameriusCollection> collections = new ArrayList<>(values.length());
         for (int i = 0; i < values.length(); i++) {
             JSONObject value = values.getJSONObject(i);
-            JSONObject jsonNames = value.optJSONObject("names");
-            Map<String, String> names = new LinkedHashMap<>();
-            if (jsonNames != null) {
-                for (String key : jsonNames.keySet()) {
-                    names.put(key, jsonNames.optString(key));
-                }
-            }
-            collections.add(new KrameriusCollection(value.optString("pid"), names));
+            Map<String, String> names = getLocalizedValues(value, "names");
+            Map<String, String> descriptions = getLocalizedValues(value, "descriptions");
+            collections.add(new KrameriusCollection(value.optString("pid"), names, descriptions));
         }
         return collections;
+    }
+
+    private Map<String, String> getLocalizedValues(JSONObject value, String property) {
+        JSONObject localizedValues = value.optJSONObject(property);
+        Map<String, String> result = new LinkedHashMap<>();
+        if (localizedValues != null) {
+            for (String key : localizedValues.keySet()) {
+                result.put(key, localizedValues.optString(key));
+            }
+        }
+        return result;
     }
 
     public String downloadFoxml(

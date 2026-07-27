@@ -81,7 +81,9 @@ class KrameriusClientTest {
                     exchange,
                     200,
                     "{\"collections\":["
-                            + "{\"pid\":\"uuid:first\",\"names\":{\"cze\":\"Prvni\",\"eng\":\"First\"}},"
+                            + "{\"pid\":\"uuid:first\","
+                            + "\"names\":{\"cze\":\"Prvni\",\"eng\":\"First\"},"
+                            + "\"descriptions\":{\"cze\":\"Prvni popis\",\"eng\":\"First description\"}},"
                             + "{\"pid\":\"uuid:second\",\"names\":{\"cze\":\"Druha\"}}"
                             + "],\"total_size\":2}");
         });
@@ -96,6 +98,9 @@ class KrameriusClientTest {
             assertEquals("uuid:first", collections.get(0).getPid());
             assertEquals("Prvni", collections.get(0).getNames().get("cze"));
             assertEquals("First", collections.get(0).getNames().get("eng"));
+            assertEquals("Prvni popis", collections.get(0).getDescriptions().get("cze"));
+            assertEquals("First description", collections.get(0).getDescriptions().get("eng"));
+            assertEquals(0, collections.get(1).getDescriptions().size());
         }
         assertEquals("Bearer test-token", authorization.get());
     }

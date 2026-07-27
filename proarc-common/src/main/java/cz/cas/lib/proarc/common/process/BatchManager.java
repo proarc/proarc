@@ -283,7 +283,7 @@ public class BatchManager {
         }
     }
 
-    private String getImportantParams(BatchParams params, String profileId) {
+    static String getImportantParams(BatchParams params, String profileId) {
         if (params == null || profileId == null) {
             return "";
         }
@@ -300,6 +300,12 @@ public class BatchManager {
             }
             if (params.getLicense() != null && !params.getLicense().isEmpty()) {
                 sb.append("Licence: ").append(params.getLicense()).append("\n");
+            }
+            if (params.getCollections() != null && !params.getCollections().isEmpty()) {
+                sb.append("Sbírky: ").append(params.getCollections()).append("\n");
+            }
+            if (params.isUpdateMods() != null) {
+                sb.append("Aktualizace MODS: ").append(getBooleanAs(params.isUpdateMods())).append("\n");
             }
             if (params.isIgnoreMissingUrnNbn() != null) {
                 sb.append("Ignorace chybějícího URN:NBN: ").append(getBooleanAs(params.isIgnoreMissingUrnNbn())).append("\n");
@@ -340,7 +346,7 @@ public class BatchManager {
         return sb.toString();
     }
 
-    private String getBooleanAs(Boolean booleanValue) {
+    private static String getBooleanAs(Boolean booleanValue) {
         return Boolean.TRUE.equals(booleanValue) ? "Ano" : "Ne";
     }
 

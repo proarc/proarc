@@ -14860,6 +14860,12 @@
             "additionalProperties": {
               "type": "string"
             }
+          },
+          "descriptions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           }
         }
       },
