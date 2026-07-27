@@ -147,11 +147,18 @@
         ],
         "responses": {
           "default": {
-            "description": "default response",
+            "description": "Catalog search result. An empty entry array means that no records were found. Catalog failures use catalog.connection-failed, catalog.remote-error, catalog.transformation-failed, or catalog.search-failed error keys.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/metadataCatalogEntries"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/metadataCatalogEntries"
+                    },
+                    {
+                      "$ref": "#/components/schemas/catalogErrorResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -227,11 +234,18 @@
         ],
         "responses": {
           "default": {
-            "description": "default response",
+            "description": "Catalog search result. An empty entry array means that no records were found. Catalog failures use catalog.connection-failed, catalog.remote-error, catalog.transformation-failed, or catalog.search-failed error keys.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/metadataCatalogEntries"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/metadataCatalogEntries"
+                    },
+                    {
+                      "$ref": "#/components/schemas/catalogErrorResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -9166,6 +9180,36 @@
           },
           "dataAsError": {
             "type": "string"
+          }
+        },
+        "xml": {
+          "name": "response"
+        }
+      },
+      "catalogErrorResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "errors"
+        ],
+        "properties": {
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+              -4
+            ],
+            "description": "ProArc validation error status."
+          },
+          "errors": {
+            "type": "object",
+            "description": "The property name is one of catalog.connection-failed, catalog.remote-error, catalog.transformation-failed, or catalog.search-failed.",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ErrorMessage"
+              }
+            }
           }
         },
         "xml": {

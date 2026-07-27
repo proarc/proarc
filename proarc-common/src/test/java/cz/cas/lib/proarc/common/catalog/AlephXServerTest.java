@@ -20,6 +20,8 @@ import cz.cas.lib.proarc.common.catalog.AlephXServer.Criteria;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.SocketAddress;
@@ -97,6 +99,18 @@ public class AlephXServerTest {
         } finally {
             xmlIS.close();
         }
+    }
+
+    @Test
+    public void testFindErrorResponse() throws Exception {
+        InputStream xmlIS = new ByteArrayInputStream(
+                "<find><error>Invalid query</error></find>".getBytes(StandardCharsets.UTF_8));
+        AlephXServer server = new AlephXServer("http://dummyUrl", null);
+
+        AlephXServer.FindResponse found = server.createFindResponse(xmlIS);
+
+        assertTrue(found.hasError());
+        assertEquals("Invalid query", found.getError());
     }
 
     @Test

@@ -169,7 +169,12 @@ public final class Z3950Catalog implements BibliographicCatalog {
             }
             return result;
         } catch (Z3950ClientException ex) {
-            throw new IOException(ex);
+            if (CatalogException.isConnectionFailure(ex)) {
+                throw CatalogException.connectionFailed(catalog, ex);
+            }
+            throw CatalogException.remoteError(catalog, ex);
+        } catch (TransformerException | RuntimeException ex) {
+            throw CatalogException.transformationFailed(catalog, ex);
         } finally {
             client.close();
         }
