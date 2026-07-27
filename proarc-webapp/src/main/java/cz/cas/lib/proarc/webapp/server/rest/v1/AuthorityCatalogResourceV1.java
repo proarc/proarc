@@ -80,6 +80,10 @@ public class AuthorityCatalogResourceV1 {
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
     }
 
+    protected List<Locale> getAcceptableLanguages() {
+        return httpHeaders.getAcceptableLanguages();
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ProArcResponse<CatalogDescriptor> findAuthorityCatalog(
@@ -110,7 +114,7 @@ public class AuthorityCatalogResourceV1 {
     @Path(AuthorityCatalogResourceApi.FIND_PATH)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public MetadataList findAuthority(
+    public Object findAuthority(
             @QueryParam(AuthorityCatalogResourceApi.FIND_CATALOG_PARAM) String catalog,
             @QueryParam(AuthorityCatalogResourceApi.FIND_FIELDNAME_PARAM) String fieldName,
             @QueryParam(AuthorityCatalogResourceApi.FIND_VALUE_PARAM) String value,

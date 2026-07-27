@@ -19,6 +19,8 @@ package cz.cas.lib.proarc.common.catalog;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.xml.Transformers;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
@@ -128,30 +130,40 @@ public class OaiCatalog implements BibliographicCatalog {
 
     @Override
     public List<MetadataItem> find(String catalog, String fieldName, String value, Locale locale) throws TransformerException, IOException {
-        WebTarget query = buildOaiQuery(fieldName, value);
-        String oaiResponse = findOaiRecord(query);
-        ArrayList<MetadataItem> result = new ArrayList<MetadataItem>();
-        if (oaiResponse != null) {
-            DOMResult marcResult = transformOaiResponse(
-                    new StreamSource(new StringReader(oaiResponse)), new DOMResult());
-            if (marcResult != null) {
-                DOMSource source = new DOMSource(marcResult.getNode());
+        try {
+            WebTarget query = buildOaiQuery(fieldName, value);
+            String oaiResponse = findOaiRecord(query);
+            ArrayList<MetadataItem> result = new ArrayList<MetadataItem>();
+            if (oaiResponse != null) {
+                DOMResult marcResult = transformOaiResponse(
+                        new StreamSource(new StringReader(oaiResponse)), new DOMResult());
+                if (marcResult != null) {
+                    DOMSource source = new DOMSource(marcResult.getNode());
 
-                if (LOG.isLoggable(Level.FINE)) {
-                    StringWriter writer = new StringWriter();
-                    TransformerFactory tf = TransformerFactory.newInstance();
-                    Transformer transformer = tf.newTransformer();
-                    transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-                    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                    if (LOG.isLoggable(Level.FINE)) {
+                        StringWriter writer = new StringWriter();
+                        TransformerFactory tf = TransformerFactory.newInstance();
+                        Transformer transformer = tf.newTransformer();
+                        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+                        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-                    transformer.transform(source, new StreamResult(writer));
-                    LOG.fine(writer.toString());
+                        transformer.transform(source, new StreamResult(writer));
+                        LOG.fine(writer.toString());
+                    }
+                    MetadataItem item = createResponse(0, source, locale);
+                    result.add(item);
                 }
-                MetadataItem item = createResponse(0, source, locale);
-                result.add(item);
             }
+            return result;
+        } catch (WebApplicationException ex) {
+            throw CatalogException.remoteError(catalog, ex);
+        } catch (ProcessingException ex) {
+            throw CatalogException.connectionFailed(catalog, ex);
+        } catch (CatalogProtocolException ex) {
+            throw CatalogException.remoteError(catalog, ex);
+        } catch (TransformerException | RuntimeException ex) {
+            throw CatalogException.transformationFailed(catalog, ex);
         }
-        return result;
     }
 
     public String findOaiRecord(String id) {
@@ -245,7 +257,7 @@ public class OaiCatalog implements BibliographicCatalog {
             if (errorListener.containError(XslErrorListener.ERR_ID_DOESNOT_EXIST)) {
                 return null;
             } else if (!errorListener.getMessages().isEmpty()) {
-                throw new TransformerException(errorListener.getMessages().toString(), ex);
+                throw new CatalogProtocolException(errorListener.getMessages().toString(), ex);
             }
             throw ex;
         }

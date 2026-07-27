@@ -120,17 +120,44 @@ public final class AlephXServer implements BibliographicCatalog {
         if (criteria == null) {
             return Collections.emptyList();
         }
-        InputStream is = fetchEntries(criteria);
-        FindResponse found = createFindResponse(is);
-        if (found == null || found.getEntryCount() < 1) {
+        InputStream is;
+        try {
+            is = fetchEntries(criteria);
+        } catch (IOException ex) {
+            throw CatalogException.fromIOException(catalog, ex);
+        }
+
+        FindResponse found;
+        try {
+            found = createFindResponse(is);
+        } catch (RuntimeException ex) {
+            throw CatalogException.remoteError(catalog, ex);
+        }
+        if (found == null) {
+            throw CatalogException.remoteError(catalog, null);
+        }
+        if (found.hasError()) {
+            throw CatalogException.remoteError(catalog, new IOException(found.getError()));
+        }
+        if (found.getEntryCount() < 1) {
             return Collections.emptyList();
         }
 
-        is = fetchDetails(found);
-        return createDetailResponse(is, locale);
+        try {
+            is = fetchDetails(found);
+        } catch (IOException ex) {
+            throw CatalogException.fromIOException(catalog, ex);
+        }
+        try {
+            return createDetailResponse(is, locale);
+        } catch (IOException ex) {
+            throw CatalogException.remoteError(catalog, ex);
+        } catch (TransformerException | RuntimeException ex) {
+            throw CatalogException.transformationFailed(catalog, ex);
+        }
     }
 
-    public List<MetadataItem> createDetailResponse(InputStream is, Locale locale) throws TransformerException {
+    public List<MetadataItem> createDetailResponse(InputStream is, Locale locale) throws TransformerException, IOException {
         try {
             StreamSource fixedOaiMarc = (StreamSource) transformers.transform(new StreamSource(is), Transformers.Format.AlephOaiMarcFix);
 //            StringBuilder sb = new StringBuilder();
@@ -140,7 +167,13 @@ public final class AlephXServer implements BibliographicCatalog {
 
             DetailResponse details = JAXB.unmarshal(fixedOaiMarc.getInputStream(), DetailResponse.class);
             if (details == null) {
-                return Collections.emptyList();
+                throw new IOException("Catalog detail response is empty.");
+            }
+            if (details.hasError() && details.getRecords().isEmpty()) {
+                throw new IOException(details.getError());
+            }
+            if (details.hasError()) {
+                LOG.log(Level.WARNING, "Catalog returned partial results: {0}", details.getError());
             }
             List<MetadataItem> result = new ArrayList<>();
             for (DetailResponse.Record record : details.getRecords()) {
@@ -384,12 +417,22 @@ public final class AlephXServer implements BibliographicCatalog {
 
         @XmlElement
         private List<Record> record;
+        @XmlElement
+        private String error;
 
         public DetailResponse() {
         }
 
         public List<Record> getRecords() {
-            return record;
+            return record == null ? Collections.<Record>emptyList() : record;
+        }
+
+        public String getError() {
+            return error;
+        }
+
+        public boolean hasError() {
+            return error != null && !error.isBlank();
         }
 
 
@@ -465,6 +508,8 @@ public final class AlephXServer implements BibliographicCatalog {
         private int recordCount;
         @XmlElement(name = "no_entries")
         private int entryCount;
+        @XmlElement
+        private String error;
 
         public FindResponse() {
         }
@@ -479,6 +524,14 @@ public final class AlephXServer implements BibliographicCatalog {
 
         public int getRecordCount() {
             return recordCount;
+        }
+
+        public String getError() {
+            return error;
+        }
+
+        public boolean hasError() {
+            return error != null && !error.isBlank();
         }
     }
 
