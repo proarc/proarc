@@ -273,6 +273,35 @@ public class TaskManager {
         }
     }
 
+    public Task updateTaskOwner(BigDecimal taskId, BigDecimal ownerId)
+            throws ConcurrentModificationException, WorkflowException {
+        if (taskId == null || ownerId == null) {
+            throw new IllegalArgumentException("Missing task or owner ID!");
+        }
+        Transaction tx = daoFactory.createTransaction();
+        WorkflowTaskDao taskDao = daoFactory.createWorkflowTaskDao();
+        taskDao.setTransaction(tx);
+        try {
+            Task task = taskDao.find(taskId);
+            if (task == null) {
+                throw new WorkflowException("Task not found: " + taskId).addTaskNotFound(taskId);
+            }
+            task.setOwnerId(ownerId);
+            taskDao.update(task);
+            tx.commit();
+            return task;
+        } catch (ConcurrentModificationException | WorkflowException t) {
+            tx.rollback();
+            throw t;
+        } catch (Throwable t) {
+            tx.rollback();
+            throw new WorkflowException("Cannot update task owner: " + taskId, t)
+                    .addUnexpectedError();
+        } finally {
+            tx.close();
+        }
+    }
+
     private void updateFolderPath(Job job) throws WorkflowException {
         String barcode = null;
         MaterialFilter filter = new MaterialFilter();

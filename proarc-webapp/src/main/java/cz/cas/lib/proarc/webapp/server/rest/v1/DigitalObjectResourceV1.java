@@ -5154,15 +5154,14 @@ public class DigitalObjectResourceV1 {
 
         try {
             for (TaskView taskView : taskViewList) {
-                Task task = workflowManager.tasks().getTask(taskView.getId());
-                taskView.setOwnerId(new BigDecimal(newUser.getId()));
-                workflowManager.tasks().updateTask(task, (List<TaskParameter>) null, workflow);
+                workflowManager.tasks().updateTaskOwner(
+                        taskView.getId(), new BigDecimal(newUser.getId()));
                 updated++;
                 if (updated % 50 == 0) {
-                    LOG.info("Task´s owner change for " + updated + " / " + jobViewList.size() + ".");
+                    LOG.info("Task´s owner change for " + updated + " / " + taskViewList.size() + ".");
                 }
             }
-            LOG.info("Task´s owner change for all objects (" + jobViewList.size() + ".)");
+            LOG.info("Task´s owner change for all objects (" + taskViewList.size() + ".)");
         } catch (Throwable t) {
             BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), t.getMessage(), Batch.State.INTERNAL_FAILED);
             throw t;
