@@ -1,13 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
-INPUT="/data/.proarc/users/proarc/import/ocrIn"
-OUTPUT="/data/.proarc/users/proarc/import/ocrOut"
+INPUT="/data/proarc/.proarc/users/proarc/import/ocrIn"
+OUTPUT="/data/proarc/.proarc/users/proarc/import/ocrOut"
 
-LOGFILE="/home/proarc/_script/ocrTesseract.log"
-LOCKFILE="/home/proarc/_script/ocrTesseract.lock"
+LOGFILE="/data/proarc/scripts/ocrTesseract.log"
+LOCKFILE="/data/proarc/scripts/ocrTesseract.lock"
 
 OCR_LANG="ces"
+PDF_DPI=300
 LIMIT=$((100 * 1024 * 1024))
 
 is_folder_stable() {
@@ -28,6 +29,79 @@ is_folder_stable() {
 }
 
 ##################################
+# Převod PDF na jednotlivé TIFF stránky
+##################################
+convert_pdfs_to_tiff() {
+    local folder="$1"
+    local pdf filename base safe_base tmp_dir
+    local page page_number target
+    local -a pdfs pages targets
+
+    mapfile -d '' pdfs < <(
+        find "$folder" -maxdepth 1 -type f -iname '*.pdf' -print0 | sort -z -V
+    )
+
+    if [ "${#pdfs[@]}" -eq 0 ]; then
+        return 0
+    fi
+
+    if ! command -v pdftoppm >/dev/null 2>&1; then
+        echo "CHYBA: pdftoppm neni nainstalovan, PDF nelze prevest" >> "$LOGFILE"
+        return 1
+    fi
+
+    for pdf in "${pdfs[@]}"; do
+        filename=$(basename "$pdf")
+        base="${filename%.*}"
+        safe_base=$(printf '%s' "$base" | sed 's/[[:space:]]/_/g')
+
+        if ! tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/ocr-pdf.XXXXXX"); then
+            echo "CHYBA: nelze vytvorit docasny adresar pro $filename" >> "$LOGFILE"
+            return 1
+        fi
+
+        echo "PDF -> TIFF: $filename" >> "$LOGFILE"
+
+        if ! pdftoppm -r "$PDF_DPI" -cropbox -tiff -tiffcompression lzw \
+            "$pdf" "$tmp_dir/page" >>"$LOGFILE" 2>&1; then
+            echo "CHYBA prevodu PDF: $pdf" >> "$LOGFILE"
+            rm -rf -- "$tmp_dir"
+            return 1
+        fi
+
+        mapfile -d '' pages < <(
+            find "$tmp_dir" -maxdepth 1 -type f -iname '*.tif' -print0 | sort -z -V
+        )
+
+        if [ "${#pages[@]}" -eq 0 ] || [ "${#pages[@]}" -gt 9999 ]; then
+            echo "CHYBA: $filename ma neplatny pocet stran (${#pages[@]})" >> "$LOGFILE"
+            rm -rf -- "$tmp_dir"
+            return 1
+        fi
+
+        targets=()
+        page_number=1
+        for page in "${pages[@]}"; do
+            printf -v target '%s/%s_%04d.tif' "$folder" "$safe_base" "$page_number"
+            if [ -e "$target" ]; then
+                echo "CHYBA: cilovy soubor jiz existuje ($target)" >> "$LOGFILE"
+                rm -rf -- "$tmp_dir"
+                return 1
+            fi
+            targets+=("$target")
+            page_number=$((page_number + 1))
+        done
+
+        for page_number in "${!pages[@]}"; do
+            mv -- "${pages[$page_number]}" "${targets[$page_number]}"
+        done
+
+        rm -rf -- "$tmp_dir"
+        echo "PDF prevedeno: $filename (${#pages[@]} stran)" >> "$LOGFILE"
+    done
+}
+
+##################################
 # LOCK proti paralelnímu běhu
 ##################################
 if [ -f "$LOCKFILE" ]; then
@@ -41,12 +115,12 @@ touch "$LOCKFILE"
 echo "=== START $(date) ===" >> "$LOGFILE"
 
 ##################################
-# zpracování složek s TIFF soubory
+# zpracování složek s TIFF nebo PDF soubory
 ##################################
-# Hloubka průchodu není omezená. mindepth 2 pouze vylučuje TIFF soubory
+# Hloubka průchodu není omezená. mindepth 2 pouze vylučuje soubory
 # uložené přímo v kořeni INPUT; složka na první úrovni má soubor na úrovni 2.
 mapfile -d '' FOLDERS < <(
-    find "$INPUT" -mindepth 2 -type f -iname '*.tif' -printf '%h\0' |
+    find "$INPUT" -mindepth 2 -type f \( -iname '*.tif' -o -iname '*.pdf' \) -printf '%h\0' |
         sort -zu
 )
 
@@ -75,12 +149,20 @@ for FOLDER in "${FOLDERS[@]}"; do
     fi
 
     ##################################
-    # 1. NAČTENÍ TIFF SEZNAMU (STABILNÍ)
+    # 1. PŘEVOD PDF NA TIFF
+    ##################################
+    if ! convert_pdfs_to_tiff "$FOLDER"; then
+        echo "SKIP: prevod PDF selhal ($RELATIVE_PATH)" >> "$LOGFILE"
+        continue
+    fi
+
+    ##################################
+    # 2. NAČTENÍ TIFF SEZNAMU
     ##################################
     mapfile -d '' FILES < <(find "$FOLDER" -maxdepth 1 -type f -iname '*.tif' -print0 | sort -z -V)
 
     ##################################
-    # 2. FÁZE RESIZE
+    # 3. FÁZE RESIZE
     ##################################
 
 #	for file in "${FILES[@]}"; do
