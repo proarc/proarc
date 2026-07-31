@@ -1052,7 +1052,7 @@ public class MetsUtils {
         if (identifiersMap.containsKey(Const.URNNBN)) {
             String urnnbn = identifiersMap.get(Const.URNNBN);
             return urnnbn.substring(urnnbn.lastIndexOf(":") + 1);
-        } else if (element.getMetsContext().isAllowMissingURNNBN() || isChroniclePlugin(element) || isOldPrintPlugin(element)) {
+        } else if (element.getMetsContext().isAllowMissingURNNBN() || isChroniclePlugin(element)) {
             // if missing URNNBN is allowed, then try to use UUID - otherwise
             // throw an exception
             element.getMetsContext().getMetsExportException().addException(element.getOriginalPid(), "URNNBN identifier is missing", true, null);
