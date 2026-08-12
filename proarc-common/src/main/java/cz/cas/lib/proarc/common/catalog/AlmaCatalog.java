@@ -153,6 +153,9 @@ public final class AlmaCatalog implements BibliographicCatalog {
                 JSONObject json = records.getJSONObject(i);
                 if ("marc21".equals(json.getString("record_format"))) {
                     String marc = getMarcResult(json);
+                    if (marc == null || marc.isEmpty()) {
+                        continue;
+                    }
                     DOMResult marcResult = transformAlmaResponse(new StreamSource(new StringReader(updateMarc(marc))), new DOMResult());
                     if (marcResult != null) {
                         MetadataItem item = createResponse(index++, catalog, new DOMSource(marcResult.getNode()), locale);
@@ -199,9 +202,16 @@ public final class AlmaCatalog implements BibliographicCatalog {
         return ALMA_MARC_XSLT;
     }
 
-    private String getMarcResult(JSONObject json) throws JSONException {
+    String getMarcResult(JSONObject json) throws JSONException {
         if (json != null) {
-            String marc21 = json.getString("anies");
+            Object anies = json.get("anies");
+            String marc21;
+            if (anies instanceof JSONArray) {
+                JSONArray records = (JSONArray) anies;
+                marc21 = records.length() == 0 ? null : records.getString(0);
+            } else {
+                marc21 = anies instanceof String ? (String) anies : null;
+            }
             if (marc21 != null && !marc21.isEmpty()) {
                 return marc21;
             }
