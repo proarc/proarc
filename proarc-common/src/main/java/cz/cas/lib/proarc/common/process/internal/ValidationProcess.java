@@ -45,12 +45,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static cz.cas.lib.proarc.common.object.ndk.ModsRules.PAGE_PART_TYPE;
 
 public class ValidationProcess {
 
     private static final Logger LOG = Logger.getLogger(ValidationProcess.class.getName());
+    private static final Pattern YEAR_RANGE_PATTERN = Pattern.compile("^\\s*(\\d{4})\\s*-\\s*(\\d{4})\\s*$");
 
     private static AppConfiguration appConfig;
     private static AkubraConfiguration akubraConfiguration;
@@ -86,9 +89,9 @@ public class ValidationProcess {
             NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC,
             NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
             NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
-            NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT
-//            OldPrintPlugin.MODEL_VOLUME, OldPrintPlugin.MODEL_SUPPLEMENT,
-//            OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_SHEETMUSIC
+            NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT,
+            OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_SUPPLEMENT,
+            OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_SHEETMUSIC
     ));
 
     private void resetValues() {
@@ -308,7 +311,7 @@ public class ValidationProcess {
                     if (parentDateIssued == null || parentDateIssued.isEmpty()) {
                         result.getValidationResults().add(new ValidationResult(parentItem.getPid(), "Nadřazený objekt neobsahuje date Issued (" + parentDateIssued + ").", Level.WARNING));
                     }
-                    if (parentDateIssued != null && !parentDateIssued.equals(dateIssued)) {
+                    if (parentDateIssued != null && !isDateIssuedValid(parentDateIssued, dateIssued)) {
                         result.getValidationResults().add(new ValidationResult(item.getPid(), "Objekt nemá validní dateIssued vůči svému nadřazenému objektu (" + parentDateIssued + ":" + dateIssued + ").", Level.WARNING));
                     }
                 } catch (DigitalObjectException ex) {
@@ -316,6 +319,22 @@ public class ValidationProcess {
                 }
             }
         }
+    }
+
+    static boolean isDateIssuedValid(String parentDateIssued, String dateIssued) {
+        if (parentDateIssued.equals(dateIssued)) {
+            return true;
+        }
+
+        Matcher rangeMatcher = YEAR_RANGE_PATTERN.matcher(parentDateIssued);
+        if (!rangeMatcher.matches() || dateIssued == null || !dateIssued.trim().matches("\\d{4}")) {
+            return false;
+        }
+
+        int startYear = Integer.parseInt(rangeMatcher.group(1));
+        int endYear = Integer.parseInt(rangeMatcher.group(2));
+        int issueYear = Integer.parseInt(dateIssued.trim());
+        return startYear <= issueYear && issueYear <= endYear;
     }
 
     private String getDateIssued(ModsDefinition mods) {
