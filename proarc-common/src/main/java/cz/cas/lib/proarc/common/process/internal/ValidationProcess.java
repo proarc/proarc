@@ -325,7 +325,7 @@ public class ValidationProcess {
         }
     }
 
-    static boolean isDateIssuedValid(String parentDateIssued, String dateIssued) {
+    public static boolean isDateIssuedValid(String parentDateIssued, String dateIssued) {
         if (parentDateIssued.equals(dateIssued)) {
             return true;
         }
