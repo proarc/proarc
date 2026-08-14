@@ -121,7 +121,6 @@ import cz.cas.lib.proarc.common.workflow.model.MaterialType;
 import cz.cas.lib.proarc.common.workflow.model.MaterialView;
 import cz.cas.lib.proarc.common.workflow.model.Task;
 import cz.cas.lib.proarc.common.workflow.model.TaskFilter;
-import cz.cas.lib.proarc.common.workflow.model.TaskParameter;
 import cz.cas.lib.proarc.common.workflow.model.TaskView;
 import cz.cas.lib.proarc.common.workflow.model.WorkflowModelConsts;
 import cz.cas.lib.proarc.common.workflow.profile.WorkflowDefinition;
@@ -805,10 +804,6 @@ public class DigitalObjectResourceV1 {
         members.clear();
         // add new members
         ArrayList<SearchViewItem> added = new ArrayList<SearchViewItem>();
-        AkubraStorage storage = null;
-        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-            storage = AkubraStorage.getInstance(akubraConfiguration);
-        }
         for (String addPid : toSetPids) {
             if (!members.contains(addPid)) {
                 members.add(addPid);
@@ -820,9 +815,6 @@ public class DigitalObjectResourceV1 {
                 item.setParentPid(parentPid);
                 added.add(item);
 
-                if (storage != null) {
-                    storage.indexParentPid(item.getPid(), item.getParentPid());
-                }
             }
         }
         editor.setMembers(members);
@@ -966,10 +958,6 @@ public class DigitalObjectResourceV1 {
         List<String> members = editor.getMembers();
         // add new members
 
-        AkubraStorage storage = null;
-        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-            storage = AkubraStorage.getInstance(akubraConfiguration);
-        }
         for (String addPid : toAddPids) {
             if (!members.contains(addPid)) {
                 members.add(addPid);
@@ -979,10 +967,6 @@ public class DigitalObjectResourceV1 {
                 }
                 item.setParentPid(parentPid);
                 added.add(item);
-
-                if (storage != null) {
-                    storage.indexParentPid(item.getPid(), item.getParentPid());
-                }
             } else {
                 throw RestException.plainText(Status.BAD_REQUEST,
                         parentPid + " already contains: " + addPid);
@@ -1068,16 +1052,6 @@ public class DigitalObjectResourceV1 {
         if (members.removeAll(toRemovePidSet)) {
             editor.setMembers(members);
             editor.write(editor.getLastModified(), session.asFedoraLog());
-        }
-
-        AkubraStorage storage = null;
-        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-            storage = AkubraStorage.getInstance(akubraConfiguration);
-        }
-        for (String pid : toRemovePidSet) {
-            if (storage != null) {
-                storage.indexParentPid(pid, parent.getFedoraObject().getPid());
-            }
         }
     }
 

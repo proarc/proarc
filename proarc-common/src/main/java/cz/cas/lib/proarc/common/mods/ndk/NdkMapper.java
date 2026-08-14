@@ -200,15 +200,17 @@ public abstract class NdkMapper {
         OaiDcType dc = new OaiDcType();
         List<ElementType> identifiers = dc.getIdentifiers();
         for (IdentifierDefinition identifier : mods.getIdentifier()) {
-            String idVal = toValue(identifier.getValue());
-            if (idVal == null) {
-                continue;
+            if (identifier.getInvalid() == null || "false".equals(identifier.getInvalid())) {
+                String idVal = toValue(identifier.getValue());
+                if (idVal == null) {
+                    continue;
+                }
+                String idType = toValue(identifier.getType());
+                if (idType != null) {
+                    idVal = idType + ':' + idVal;
+                }
+                identifiers.add(new ElementType(idVal, null));
             }
-            String idType = toValue(identifier.getType());
-            if (idType != null) {
-                idVal = idType + ':' + idVal;
-            }
-            identifiers.add(new ElementType(idVal, null));
         }
         return dc;
     }

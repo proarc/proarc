@@ -181,11 +181,12 @@ public class ArchiveObjectProcessor {
 
                 if (!(parentElm != null &&
                         ((NdkPlugin.MODEL_PERIODICALISSUE.equals(parentElm.getModelId()) && NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(elm.getModelId()))
-                                || (NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentElm.getModelId()) && NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(elm.getModelId()))
-                                || (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(parentElm.getModelId()) && NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(elm.getModelId()))
-                                || (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(parentElm.getModelId()) && NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(elm.getModelId()))))
+                        || (NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentElm.getModelId()) && NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(elm.getModelId()))
+                        || (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(parentElm.getModelId()) && NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(elm.getModelId()))
+                        || (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(parentElm.getModelId()) && NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(elm.getModelId()))
+                        || (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentElm.getModelId()))
                         || (OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(elm.getModelId()))
-                        || (OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(elm.getModelId()))) {
+                        || (OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(elm.getModelId()))))) {
                     checkUrnNbn(cache);
                 }
 
@@ -232,7 +233,7 @@ public class ArchiveObjectProcessor {
         String model = relationEditor.getModel();
         if (appConfig.isUrnNbnRequired()) {
             if (ARCHIVE_VALIDATION_MODELS.contains(model) && !containUrnNbn(mods.getIdentifier())) {
-                if (!(isOldPrintPlugin(model) && ignoreMissingUrnNbn)) {
+                if (!(ignoreMissingUrnNbn)) {
                     throw new MetsExportException(pid, "URNNBN identifier is missing", true, null);
                 }
             }
