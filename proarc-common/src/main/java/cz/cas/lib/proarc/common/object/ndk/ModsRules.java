@@ -42,6 +42,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.commons.configuration2.Configuration;
 
+import static cz.cas.lib.proarc.common.process.internal.ValidationProcess.isDateIssuedValid;
+
 /**
  * Checks Mods rules.
  *
@@ -230,6 +232,9 @@ public class ModsRules {
         if (parentMods == null) {
             return;
         }
+        if (value.contains(".")) {
+            value = value.substring(value.lastIndexOf(".") + 1);
+        }
         String parentDate = getDateIssued(parentMods);
         if (parentDate != null && parentDate.length() == 4) {
             try {
@@ -246,7 +251,7 @@ public class ModsRules {
             }
         } else if (parentDate != null) {
             if (parentDate != null) {
-                if (!value.contains(parentDate)) {
+                if (!isDateIssuedValid(parentDate, value)) {
                     exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
                 }
             }
