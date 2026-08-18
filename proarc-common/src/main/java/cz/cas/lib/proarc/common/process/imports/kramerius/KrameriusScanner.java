@@ -38,7 +38,7 @@ public class KrameriusScanner {
     public static List<File> findImportableFiles(File folder) {
         List<File> importableFiles = new ArrayList<>();
         for (File file : folder.listFiles()) {
-            if (isAcceptableFile(file)) {
+            if (isImportableFile(file)) {
                 importableFiles.add(file);
             }
         }
@@ -67,6 +67,10 @@ public class KrameriusScanner {
     }
 
     private static boolean isAcceptableFile(File fileName) {
+        return isImportableFile(fileName) || fileName.getName().endsWith(".jp2");
+    }
+
+    private static boolean isImportableFile(File fileName) {
         return fileName.getName().endsWith(".xml");
     }
 

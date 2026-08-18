@@ -23,10 +23,13 @@ import com.yourmediashelf.fedora.foxml.DigitalObject;
 import com.yourmediashelf.fedora.foxml.PropertyType;
 import com.yourmediashelf.fedora.foxml.XmlContentType;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
+import cz.cas.lib.proarc.common.image.ImageMimeType;
+import cz.cas.lib.proarc.common.image.ImageUtility;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -40,9 +43,14 @@ import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.external.ExternalProcess;
+import cz.cas.lib.proarc.common.process.external.KakaduExpand;
+import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
 import cz.cas.lib.proarc.common.process.imports.FileSet;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
+import cz.cas.lib.proarc.common.process.imports.ImportProfile;
+import cz.cas.lib.proarc.common.process.imports.InputUtils;
 import cz.cas.lib.proarc.common.process.imports.TiffAsJpegImporter;
 import cz.cas.lib.proarc.common.process.imports.TiffImporter;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
@@ -69,8 +77,11 @@ import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,6 +96,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.transform.stream.StreamSource;
+import org.apache.commons.configuration2.Configuration;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 
@@ -278,7 +290,7 @@ public class FileReader {
     }
 
     private String getUuidName(String name) {
-        return name.substring(0, name.length() - 4);
+        return name.substring(0, name.length()-4);
     }
 
     private void readImpl(File file, ImportProcess.ImportOptions ctx, int index) throws DigitalObjectException {
@@ -318,7 +330,7 @@ public class FileReader {
                     setDateAndUser(dObj);
                     repairDatastreams(dObj, ctx);
                     removeDataStreams(dObj, ctx);
-                    createDataStreams(dObj, ctx);
+                    createDataStreams(dObj, ctx, file);
                     lObj = iSession.getLocals().create(objFile, dObj);
                     updateLocalObject(lObj, ctx);
 
@@ -359,7 +371,7 @@ public class FileReader {
                 setDateAndUser(dObj);
                 repairDatastreams(dObj, ctx);
                 removeDataStreams(dObj, ctx);
-                createDataStreams(dObj, ctx);
+                createDataStreams(dObj, ctx, file);
                 lObj = iSession.getLocals().create(objFile, dObj);
                 updateLocalObject(lObj, ctx);
 
@@ -553,8 +565,9 @@ public class FileReader {
         return datastreams;
     }
 
-    private void createDataStreams(DigitalObject digitalObject, ImportProcess.ImportOptions ctx) {
+    private void createDataStreams(DigitalObject digitalObject, ImportProcess.ImportOptions ctx, File foxmlFile) {
         DatastreamType ndkArchival = null, ndkUser = null, raw = null, full;
+        File masterCopy = null;
         boolean containsArchival = containsDataStream(digitalObject, "NDK_ARCHIVAL");
         boolean containsUser = containsDataStream(digitalObject, "NDK_USER");
         boolean containsRaw = containsDataStream(digitalObject, "RAW");
@@ -562,10 +575,18 @@ public class FileReader {
             replacePathInContentLocations(digitalObject.getDatastream().get(i), ctx);
             if ("FULL".equals(digitalObject.getDatastream().get(i).getID())) {
                 full = digitalObject.getDatastream().get(i);
-                if (!containsRaw) {
+                masterCopy = findSiblingMasterCopy(foxmlFile, getContentLocation(full));
+                if (masterCopy != null) {
+                    raw = createRawFromMasterCopy(full, masterCopy, ctx);
+                    replaceFullWithJpeg(full, raw, ctx);
+                    if (!containsArchival) {
+                        ndkArchival = createFileDatastream(full, BinaryEditor.NDK_ARCHIVAL_ID,
+                                BinaryEditor.NDK_ARCHIVAL_LABEL, masterCopy);
+                    }
+                } else if (!containsRaw) {
                     raw = createRaw(full, ctx);
                 }
-                if (!containsArchival) {
+                if (!containsArchival && ndkArchival == null) {
                     ndkArchival = createNdkArchivalDatastream(full, raw, ctx);
                 }
                 if (!containsUser) {
@@ -573,7 +594,10 @@ public class FileReader {
                 }
             }
         }
-        if (raw != null) {
+        if (masterCopy != null) {
+            replacePreviewAndThumbnail(digitalObject, raw, ctx);
+        }
+        if (raw != null && !containsRaw) {
             digitalObject.getDatastream().add(raw);
         }
         if (ndkArchival != null) {
@@ -582,6 +606,230 @@ public class FileReader {
         if (ndkUser != null) {
             digitalObject.getDatastream().add(ndkUser);
         }
+    }
+
+    private String getContentLocation(DatastreamType datastream) {
+        if (datastream == null || datastream.getDatastreamVersion().isEmpty()) {
+            return null;
+        }
+        ContentLocationType location = datastream.getDatastreamVersion().get(0).getContentLocation();
+        return location == null ? null : location.getREF();
+    }
+
+    static File findSiblingMasterCopy(File foxmlFile, String reference) {
+        if (foxmlFile == null || foxmlFile.getParentFile() == null || reference == null) {
+            return null;
+        }
+        try {
+            URI uri = new URI(reference);
+            if (!("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme()))) {
+                return null;
+            }
+            File urlFile = new File(uri.getPath());
+            File urlParent = urlFile.getParentFile();
+            if (urlParent != null) {
+                File masterCopy = findSiblingIgnoreCase(foxmlFile.getParentFile(), urlParent.getName() + ".jp2");
+                if (masterCopy != null) {
+                    return masterCopy;
+                }
+            }
+            String name = urlFile.getName();
+            int extension = name.lastIndexOf('.');
+            String basename = extension < 0 ? name : name.substring(0, extension);
+            return findSiblingIgnoreCase(foxmlFile.getParentFile(), basename + ".jp2");
+        } catch (URISyntaxException ex) {
+            LOG.log(Level.WARNING, "Invalid IMG_FULL URL: " + reference, ex);
+            return null;
+        }
+    }
+
+    private static File findSiblingIgnoreCase(File folder, String name) {
+        File candidate = new File(folder, name);
+        if (candidate.isFile()) {
+            return candidate;
+        }
+        File[] siblings = folder.listFiles();
+        if (siblings != null) {
+            for (File sibling : siblings) {
+                if (sibling.isFile() && sibling.getName().equalsIgnoreCase(name)) {
+                    return sibling;
+                }
+            }
+        }
+        return null;
+    }
+
+    private DatastreamType createRawFromMasterCopy(DatastreamType full, File masterCopy,
+            ImportProcess.ImportOptions ctx) {
+        try {
+            if (!InputUtils.isJp2000(masterCopy)) {
+                throw new IllegalArgumentException("Not a JP2000 master copy: " + masterCopy.getAbsolutePath());
+            }
+            File tiff = new File(ctx.getTargetFolder(),
+                    ImportFileScanner.getName(masterCopy) + ".RAW.tif");
+            if (!tiff.isFile()) {
+                Configuration processor = iSession.getAppConfiguration().getImportConfiguration().getConvertorJp2Processor();
+                if (processor == null || processor.isEmpty()) {
+                    throw new IllegalArgumentException("JP2 to TIFF convertor must be configured.");
+                }
+                if (!KakaduExpand.ID.equals(processor.getString("type"))) {
+                    throw new IllegalArgumentException("No suitable JP2 to TIFF convertor found.");
+                }
+                ExternalProcess process = new KakaduExpand(processor, masterCopy, tiff);
+                process.run();
+                if (!process.isOk()) {
+                    throw new IOException("Converting master JP2 to TIFF failed: " + process.getFullOutput());
+                }
+            }
+            return createFileDatastream(full, BinaryEditor.RAW_ID, BinaryEditor.RAW_LABEL, tiff);
+        } catch (IOException ex) {
+            throw new IllegalStateException(masterCopy.getAbsolutePath(), ex);
+        }
+    }
+
+    private void replaceFullWithJpeg(DatastreamType full, DatastreamType raw,
+            ImportProcess.ImportOptions ctx) {
+        String file = getContentLocation(raw).replaceAll("file:/", "");
+        File rawFile = new File(file);
+        File jpeg = new File(ctx.getTargetFolder(), ImportFileScanner.getName(rawFile) + ".full.jpg");
+        try {
+            if (!jpeg.isFile()) {
+                if (ctx.getConfig().isTiffToJpgDefined()) {
+                    ExternalProcess process = new TiffToJpgConvert(
+                            ctx.getConfig().getConvertorTiffToJpgProcessor(), rawFile, jpeg);
+                    process.run();
+                    if (!process.isOk()) {
+                        throw new IOException("Converting master TIFF to FULL JPEG failed: " + process.getFullOutput());
+                    }
+                } else {
+                    BufferedImage image = ImageUtility.readImage(rawFile.toURI().toURL(), ImageMimeType.TIFF);
+                    TiffImporter.writeImage(image, ctx.getTargetFolder(), jpeg.getName(), ImageMimeType.JPEG);
+                }
+            }
+            DatastreamVersionType version = full.getDatastreamVersion().get(0);
+            version.setMIMETYPE(ImportProcess.findMimeType(jpeg));
+            ContentLocationType location = new ContentLocationType();
+            location.setTYPE("URL");
+            location.setREF(toFileUri(jpeg));
+            version.setContentLocation(location);
+        } catch (IOException ex) {
+            throw new IllegalStateException(rawFile.getAbsolutePath(), ex);
+        }
+    }
+
+    private void replacePreviewAndThumbnail(DigitalObject digitalObject, DatastreamType raw,
+            ImportProcess.ImportOptions ctx) {
+        String file = getContentLocation(raw).replaceAll("file:/", "");
+        File rawFile = new File(file);
+        ImportProfile config = ctx.getConfig();
+        BufferedImage image = null;
+        try {
+            DatastreamType preview = findDatastream(digitalObject, BinaryEditor.PREVIEW_ID);
+            if (preview != null) {
+                config.checkPreviewScaleParams();
+                File previewFile = new File(ctx.getTargetFolder(),
+                        ImportFileScanner.getName(rawFile) + ".preview.jpg");
+                if (!previewFile.isFile()) {
+                    if (config.isTiffToJpgDefined()) {
+                        createJpegWithExternalConverter(rawFile, previewFile,
+                                config.getPreviewMaxWidth(), config.getPreviewMaxHeight(), config);
+                    } else {
+                        image = readTiff(image, rawFile);
+                        TiffImporter.writeImage(TiffImporter.scale(image, config.getPreviewScaling(),
+                                config.getPreviewMaxWidth(), config.getPreviewMaxHeight()),
+                                ctx.getTargetFolder(), previewFile.getName(), ImageMimeType.JPEG);
+                    }
+                }
+                checkJpeg(previewFile);
+                replaceContentLocation(preview, previewFile);
+            }
+
+            DatastreamType thumbnail = findDatastream(digitalObject, BinaryEditor.THUMB_ID);
+            if (thumbnail != null) {
+                config.checkThumbnailScaleParams();
+                File thumbnailFile = new File(ctx.getTargetFolder(),
+                        ImportFileScanner.getName(rawFile) + ".thumb.jpg");
+                if (!thumbnailFile.isFile()) {
+                    if (config.isTiffToJpgDefined()) {
+                        createJpegWithExternalConverter(rawFile, thumbnailFile,
+                                config.getThumbnailMaxWidth(), config.getThumbnailMaxHeight(), config);
+                    } else {
+                        image = readTiff(image, rawFile);
+                        TiffImporter.writeImage(TiffImporter.scale(image, config.getThumbnailScaling(),
+                                config.getThumbnailMaxWidth(), config.getThumbnailMaxHeight()),
+                                ctx.getTargetFolder(), thumbnailFile.getName(), ImageMimeType.JPEG);
+                    }
+                }
+                checkJpeg(thumbnailFile);
+                replaceContentLocation(thumbnail, thumbnailFile);
+            }
+        } catch (IOException | AppConfigurationException ex) {
+            throw new IllegalStateException(rawFile.getAbsolutePath(), ex);
+        }
+    }
+
+    private BufferedImage readTiff(BufferedImage image, File rawFile) throws IOException {
+        return image == null
+                ? ImageUtility.readImage(rawFile.toURI().toURL(), ImageMimeType.TIFF)
+                : image;
+    }
+
+    private void checkJpeg(File file) throws IOException {
+        if (!InputUtils.isJpeg(file)) {
+            throw new IOException("Not a JPEG content: " + file.getAbsolutePath());
+        }
+    }
+
+    private void createJpegWithExternalConverter(File rawFile, File targetFile,
+            Integer maxWidth, Integer maxHeight, ImportProfile config) throws IOException {
+        ExternalProcess process = new TiffToJpgConvert(
+                config.getConvertorTiffToJpgProcessor(), rawFile, targetFile, maxWidth, maxHeight);
+        process.run();
+        if (!process.isOk()) {
+            throw new IOException("Converting master TIFF to JPEG failed: " + process.getFullOutput());
+        }
+    }
+
+    private DatastreamType findDatastream(DigitalObject digitalObject, String id) {
+        for (DatastreamType datastream : digitalObject.getDatastream()) {
+            if (id.equals(datastream.getID())) {
+                return datastream;
+            }
+        }
+        return null;
+    }
+
+    static String toFileUri(File file) {
+        return file.toURI().toASCIIString();
+    }
+
+    private void replaceContentLocation(DatastreamType datastream, File file) {
+        DatastreamVersionType version = datastream.getDatastreamVersion().get(0);
+        version.setMIMETYPE(ImportProcess.findMimeType(file));
+        ContentLocationType location = new ContentLocationType();
+        location.setTYPE("URL");
+        location.setREF(toFileUri(file));
+        version.setContentLocation(location);
+    }
+
+    private DatastreamType createFileDatastream(DatastreamType source, String id, String label, File file) {
+        DatastreamType datastream = new DatastreamType();
+        datastream.setID(id);
+        datastream.setCONTROLGROUP(source.getCONTROLGROUP());
+        datastream.setSTATE(source.getSTATE());
+        datastream.setVERSIONABLE(source.isVERSIONABLE());
+
+        DatastreamVersionType version = new DatastreamVersionType();
+        version.setID(id + ".0");
+        version.setLABEL(label);
+        version.setCREATED(source.getDatastreamVersion().get(0).getCREATED());
+        version.setMIMETYPE(ImportProcess.findMimeType(file));
+        ContentLocationType location = new ContentLocationType();
+        location.setTYPE("URL");
+        location.setREF(toFileUri(file));
+        version.setContentLocation(location);
+        datastream.getDatastreamVersion().add(version);
+        return datastream;
     }
 
     private DatastreamType createRaw(DatastreamType full, ImportProcess.ImportOptions ctx) {
@@ -617,7 +865,7 @@ public class FileReader {
                         ContentLocationType contentLocation = new ContentLocationType();
                         contentLocation.setTYPE("URL");
                         if (containsFilePrefix) {
-                            contentLocation.setREF("file:/" + tiff.getAbsolutePath());
+                            contentLocation.setREF(toFileUri(tiff));
                         } else {
                             contentLocation.setREF(tiff.getAbsolutePath());
                         }
@@ -698,40 +946,40 @@ public class FileReader {
         datastreamVersionType.setCREATED(full.getDatastreamVersion().get(0).getCREATED());
 
         if (raw != null && raw.getDatastreamVersion() != null && raw.getDatastreamVersion().get(0) != null) {
-            ContentLocationType rawContentLocation = raw.getDatastreamVersion().get(0).getContentLocation();
-            if (rawContentLocation != null && rawContentLocation.getREF() != null) {
-                String path = rawContentLocation.getREF();
-                boolean containsFilePrefix = false;
-                if (path.startsWith("file:/")) {
-                    containsFilePrefix = true;
-                    path = path.substring(6);
-                }
-                File file = new File(path);
-                FileSet fileSet = new FileSet(ImportFileScanner.getName(file));
-                fileSet.getFiles().add(new FileSet.FileEntry(file));
-                FileSet.FileEntry entry = null;
-                if (file.exists()) {
-                    TiffImporter importer = new TiffImporter(BatchManager.getInstance());
-                    try {
-                        entry = importer.processJp2Copy(fileSet, file, ctx.getTargetFolder(), BinaryEditor.NDK_ARCHIVAL_ID, ctx.getConfig().getNdkArchivalProcessor());
-                        if (entry != null && entry.getFile() != null) {
-                            datastreamVersionType.setMIMETYPE(ImportProcess.findMimeType(entry.getFile()));
-                            ContentLocationType contentLocation = new ContentLocationType();
-                            datastreamVersionType.setContentLocation(contentLocation);
-                            contentLocation.setTYPE("URL");
-                            if (containsFilePrefix) {
-                                contentLocation.setREF("file:/" + entry.getFile().getAbsolutePath());
-                            } else {
-                                contentLocation.setREF(entry.getFile().getAbsolutePath());
+                ContentLocationType rawContentLocation = raw.getDatastreamVersion().get(0).getContentLocation();
+                if (rawContentLocation != null && rawContentLocation.getREF() != null) {
+                    String path = rawContentLocation.getREF();
+                    boolean containsFilePrefix = false;
+                    if (path.startsWith("file:/")) {
+                        containsFilePrefix = true;
+                        path = path.substring(6);
+                    }
+                    File file = new File(path);
+                    FileSet fileSet = new FileSet(ImportFileScanner.getName(file));
+                    fileSet.getFiles().add(new FileSet.FileEntry(file));
+                    FileSet.FileEntry entry = null;
+                    if (file.exists()) {
+                        TiffImporter importer = new TiffImporter(BatchManager.getInstance());
+                        try {
+                            entry = importer.processJp2Copy(fileSet, file, ctx.getTargetFolder(), BinaryEditor.NDK_ARCHIVAL_ID, iSession.getAppConfiguration().getImportConfiguration().getNdkArchivalProcessor());
+                            if (entry != null && entry.getFile() != null) {
+                                datastreamVersionType.setMIMETYPE(ImportProcess.findMimeType(entry.getFile()));
+                                ContentLocationType contentLocation = new ContentLocationType();
+                                datastreamVersionType.setContentLocation(contentLocation);
+                                contentLocation.setTYPE("URL");
+                                if (containsFilePrefix) {
+                                    contentLocation.setREF(toFileUri(entry.getFile()));
+                                } else {
+                                    contentLocation.setREF(entry.getFile().getAbsolutePath());
+                                }
+                                return ndkArchival;
                             }
-                            return ndkArchival;
+                        } catch(IOException e){
+                            LOG.log(Level.SEVERE, file.toString(), e);
+                            return null;
                         }
-                    } catch (IOException e) {
-                        LOG.log(Level.SEVERE, file.toString(), e);
-                        return null;
                     }
                 }
-            }
         } else {
             datastreamVersionType.setMIMETYPE(full.getDatastreamVersion().get(0).getMIMETYPE());
 //            datastreamVersionType.setSIZE(full.getDatastreamVersion().get(0).getSIZE());
@@ -777,14 +1025,14 @@ public class FileReader {
                 if (file.exists()) {
                     TiffImporter importer = new TiffImporter(BatchManager.getInstance());
                     try {
-                        entry = importer.processJp2Copy(fileSet, file, ctx.getTargetFolder(), BinaryEditor.NDK_USER_ID, ctx.getConfig().getNdkUserProcessor());
+                        entry = importer.processJp2Copy(fileSet, file, ctx.getTargetFolder(), BinaryEditor.NDK_USER_ID, iSession.getAppConfiguration().getImportConfiguration().getNdkUserProcessor());
                         if (entry != null && entry.getFile() != null) {
                             datastreamVersionType.setMIMETYPE(ImportProcess.findMimeType(entry.getFile()));
                             ContentLocationType contentLocation = new ContentLocationType();
                             datastreamVersionType.setContentLocation(contentLocation);
                             contentLocation.setTYPE("URL");
                             if (containsFilePrefix) {
-                                contentLocation.setREF("file:/" + entry.getFile().getAbsolutePath());
+                                contentLocation.setREF(toFileUri(entry.getFile()));
                             } else {
                                 contentLocation.setREF(entry.getFile().getAbsolutePath());
                             }
@@ -1066,6 +1314,8 @@ public class FileReader {
         /**
          * The user cache.
          */
+        private AppConfiguration appConfiguration;
+        /** The user cache. */
         private final Map<String, String> external2internalUserMap = new HashMap<String, String>();
 
         public ImportSession(BatchManager ibm, ImportProcess.ImportOptions options, AppConfiguration config) {
@@ -1085,6 +1335,7 @@ public class FileReader {
             this.ibm = ibm;
             this.options = options;
             this.batch = options.getBatch();
+            this.appConfiguration = config;
         }
 
         public BatchManager getImportManager() {
@@ -1106,6 +1357,10 @@ public class FileReader {
         public LocalObject findLocalObject(BatchManager.BatchItemObject bio) {
             return bio == null || bio.getPid() == null
                     ? null : locals.load(bio.getPid(), bio.getFile());
+        }
+
+        public AppConfiguration getAppConfiguration() {
+            return appConfiguration;
         }
 
         public BatchManager.BatchItemObject findItem(String pid) {
