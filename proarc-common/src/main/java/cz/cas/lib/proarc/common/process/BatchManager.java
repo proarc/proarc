@@ -404,14 +404,14 @@ public class BatchManager {
         return updated;
     }
 
-    public Batch add(String pid, UserProfile user, String profile, State state, Boolean isNightOnly, BatchParams params) {
+    public Batch add(String pid, UserProfile user, String profile, State state, Boolean isNightOnly, String priority, BatchParams params) {
         Batch batch = new Batch();
         batch.setCreate(new Timestamp(System.currentTimeMillis()));
         batch.setDevice(null);
         batch.setSoftware(null);
         batch.setEstimateItemNumber(null);
         batch.setFolder(pid);
-        batch.setPriority(Batch.PRIORITY_MEDIUM);
+        batch.setPriority(priority);
         batch.setState(state);
         batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch.setTitle(pid);
