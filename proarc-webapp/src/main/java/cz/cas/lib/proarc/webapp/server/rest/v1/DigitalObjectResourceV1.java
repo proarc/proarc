@@ -56,6 +56,7 @@ import cz.cas.lib.proarc.common.object.collectionOfClippings.CollectionOfClippin
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.model.MetaModelUtils;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
@@ -4982,7 +4983,7 @@ public class DigitalObjectResourceV1 {
         Locale locale = session.getLocale(httpHeaders);
         UpgradeMetadataObjects upgradeMetadataObjects = new UpgradeMetadataObjects(appConfig, akubraConfiguration, user, locale);
         for (String pageType : pageTypes) {
-            List<SearchViewItem> items = upgradeMetadataObjects.findObjectsWithType(pid, MetaModel.MODELS_LEAF, pageType);
+            List<SearchViewItem> items = upgradeMetadataObjects.findObjectsWithType(pid, MetaModelUtils.LEAF_MODELS_CONST, pageType);
             if (items.isEmpty()) {
                 continue;
             }

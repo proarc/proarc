@@ -9,8 +9,8 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
-import cz.cas.lib.proarc.common.object.model.MetaModel;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.model.MetaModelUtils;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
@@ -156,7 +156,7 @@ public class UpgradeMetadataObjects {
             throw new DigitalObjectException(model, e);
         }
 
-        return search.findAdvancedSearchItems(true, mergePids(pids), pageType, null, null, null, null, MetaModel.MODELS_LEAF, null, "created", "desc", 0, Integer.MAX_VALUE);
+        return search.findAdvancedSearchItems(true, mergePids(pids), pageType, null, null, null, null, MetaModelUtils.LEAF_MODELS_CONST, null, "created", "desc", 0, Integer.MAX_VALUE);
     }
 
     private String mergePids(List<String> pids) {

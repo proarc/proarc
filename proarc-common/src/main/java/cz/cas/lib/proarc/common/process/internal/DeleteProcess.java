@@ -4,7 +4,7 @@ package cz.cas.lib.proarc.common.process.internal;
 import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.model.MetaModel;
+import cz.cas.lib.proarc.common.object.model.MetaModelUtils;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
@@ -199,11 +199,11 @@ public class DeleteProcess {
             List<SearchViewItem> items = new ArrayList<>();
             switch (type.toLowerCase()) {
                 case "orphan":
-                    items = search.findAdvancedSearchItems(true, null, null, null, null, null, null, MetaModel.MODELS_LEAF, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, "created", "desc", 0, 100);
+                    items = search.findAdvancedSearchItems(true, null, null, null, null, null, null, MetaModelUtils.LEAF_MODELS_CONST, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, "created", "desc", 0, 100);
                     break;
                 case "deleted":
                     if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-                        items = search.findAdvancedSearchItems(false, null, null, null, null, null, null, MetaModel.MODELS_LEAF, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, "created", "desc", 0, 100);
+                        items = search.findAdvancedSearchItems(false, null, null, null, null, null, null, MetaModelUtils.LEAF_MODELS_CONST, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, "created", "desc", 0, 100);
                         break;
                     } else {
                         throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());

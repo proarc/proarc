@@ -1,10 +1,7 @@
 package cz.cas.lib.proarc.common.storage.akubra;
 
 import cz.cas.lib.proarc.common.device.DeviceRepository;
-import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
-import cz.cas.lib.proarc.common.object.model.MetaModel;
-import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
-import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.model.MetaModelUtils;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.software.SoftwareRepository;
@@ -423,8 +420,12 @@ public class SolrSearchView extends SearchView {
             filterQueryList.add(FIELD_STATE + ":\"" + SolrUtils.PROPERTY_STATE_DEACTIVE + "\"");
         }
         if (models != null && !models.isEmpty() && hasValues(models)) {
-            if (models.contains(MetaModel.MODELS_LEAF)) {
-                filterQueryList.add(getModelQuery(Arrays.asList(new String[]{NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE, OldPrintPlugin.MODEL_PAGE, NdkAudioPlugin.MODEL_PAGE, BornDigitalModsPlugin.MODEL_ARTICLE, NdkEbornPlugin.MODEL_EARTICLE})));
+            if (models.contains(MetaModelUtils.LEAF_MODELS_CONST)) {
+                filterQueryList.add(getModelQuery(Arrays.asList(MetaModelUtils.LEAF_MODELS)));
+            } else if (models.contains(MetaModelUtils.TOP_MODELS_CONST)) {
+                filterQueryList.add(getModelQuery(Arrays.asList(MetaModelUtils.TOP_MODELS)));
+            } else if (models.contains(MetaModelUtils.NON_TOP_MODELS_CONST)) {
+                filterQueryList.add(getModelQuery(Arrays.asList(MetaModelUtils.NON_TOP_MODELS)));
             } else {
                 filterQueryList.add(getModelQuery(models));
             }
