@@ -45,7 +45,6 @@ import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_UNSUPPORTED_VALUE;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_CREATE_USER;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_DELETE_USER;
-import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UPDATE_USER;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_2;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
@@ -179,9 +178,6 @@ public class UserResource extends UserResourceV1 {
             @FormParam(UserResourceApi.FUNCTION_PREPARE_BATCH) Boolean prepareBatchFunction,
             @FormParam(UserResourceApi.FUNCTION_SYS_ADMIN) Boolean sysAdminFunction
     ) {
-        if (!hasPermission(user, PERMISSION_FUNCTION_UPDATE_USER)) {
-            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
-        }
         try {
             return super.update(userId, passwd, surname, forename, email, organization, changeModelFunction,
                     updateModelFunction, lockObjectFuction, unlockObjectFuction, importToProdFunction, czidloFunction, wfDeleteJobFunction, importToCatalogFunction,
