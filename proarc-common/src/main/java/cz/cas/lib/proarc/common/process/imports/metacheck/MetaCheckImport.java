@@ -414,7 +414,7 @@ public class MetaCheckImport implements ImportHandler {
         }
 
         try (MetaCheckClient client = new MetaCheckClient(apiUrl)) {
-            Integer engine = getMetaKatEngine(importConfig);
+            String engine = getMetaKatEngine(importConfig);
             MetaCheckBatch metaCheckBatch = client.addBatch(
                     getMetaCheckFolder(importConfig.getImportFolder(), config.getConfigHome()),
                     engine,
@@ -424,15 +424,15 @@ public class MetaCheckImport implements ImportHandler {
         }
     }
 
-    private Integer getMetaKatEngine(ImportProcess.ImportOptions importConfig) {
+    private String getMetaKatEngine(ImportProcess.ImportOptions importConfig) {
         try {
-            Integer metakatEngine = importConfig.getBatch().getParamsAsObject().getMetakatEngine();
-            if (metakatEngine == null || metakatEngine < 0) {
-                return 1;
+            String metakatEngine = importConfig.getBatch().getParamsAsObject().getMetakatEngine();
+            if (metakatEngine == null || metakatEngine.isBlank()) {
+                return "monograph";
             }
             return metakatEngine;
         } catch (NullPointerException ex) {
-            return 1;
+            return "monograph";
         }
     }
 

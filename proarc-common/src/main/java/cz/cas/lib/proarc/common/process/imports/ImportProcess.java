@@ -85,7 +85,7 @@ public final class ImportProcess implements Runnable {
             File importFolder, String description,
             UserProfile user, BatchManager batchManager,
             String device, String software, boolean generateIndices, String priority,
-            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, Integer metakatEngine, Boolean isNightOnly, List<String> pids,
+            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, String metakatEngine, Boolean isNightOnly, List<String> pids,
             ImportProfile profile, AppConfiguration config
     ) throws IOException {
         return prepare(importFolder, description, user, batchManager, device, software, generateIndices, false, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, pids, profile, config);
@@ -99,7 +99,7 @@ public final class ImportProcess implements Runnable {
             File importFolder, String description,
             UserProfile user, BatchManager batchManager,
             String device, String software, boolean generateIndices, boolean generatePageNumber, String priority,
-            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, Integer metakatEngine, Boolean isNightOnly, List<String> pids, ImportProfile profile, AppConfiguration config
+            boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, String metakatEngine, Boolean isNightOnly, List<String> pids, ImportProfile profile, AppConfiguration config
     ) throws IOException {
 
         ImportOptions options = new ImportOptions(importFolder, device, software,
@@ -191,7 +191,7 @@ public final class ImportProcess implements Runnable {
         return profile;
     }
 
-    private void prepare(String description, UserProfile user, Integer peroOcrEngine, Integer metakatEngine, Boolean isNightOnly, List<String> pids) throws IOException {
+    private void prepare(String description, UserProfile user, Integer peroOcrEngine, String metakatEngine, Boolean isNightOnly, List<String> pids) throws IOException {
         // validate import folder
         File importFolder = importConfig.getImportFolder();
         ImportFileScanner.validateImportFolder(importFolder);

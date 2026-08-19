@@ -34,7 +34,7 @@ public class BatchParams {
     private Boolean restore;
     private String type;
     private Integer peroOcrEngine;
-    private Integer metakatEngine;
+    private String metakatEngine;
     private String notBefore;
     private String notAfter;
 
@@ -314,11 +314,11 @@ public class BatchParams {
     }
 
     @XmlElement(name = "metakatEngine")
-    public Integer getMetakatEngine() {
+    public String getMetakatEngine() {
         return this.metakatEngine;
     }
 
-    public void setMetakatEngine(Integer metakatEngine) {
+    public void setMetakatEngine(String metakatEngine) {
         this.metakatEngine = metakatEngine;
     }
 

@@ -270,7 +270,7 @@ public final class ImportProfile {
     }
 
     public String getNdkThumbnailFileSuffix() {
-        String suffix = config.getString(THUMBNAIL_SUFFIX, ".thumbnail.jpg");
+        String suffix = config.getString(THUMBNAIL_SUFFIX, ".thumb.jpg");
         return suffix.toLowerCase();
     }
 

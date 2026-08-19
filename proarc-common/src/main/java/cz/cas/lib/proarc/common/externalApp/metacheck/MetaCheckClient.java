@@ -33,14 +33,14 @@ public class MetaCheckClient extends HttpAbstractClient {
         for (int i = 0; i < engines.size(); i++) {
             MetaCheckEngine engine = engines.get(i);
             engineDescriptors.add(new MetaCheckEnginesDescriptor(
-                    i + 1,
+                    engine.getName(),
                     engine.getName(),
                     engine.getDescription()));
         }
         return new ValueMap<>("metakat.engines", engineDescriptors);
     }
 
-    public MetaCheckBatch addBatch(String folder, Integer engine, Integer proarcBatchId) throws IOException, JSONException {
+    public MetaCheckBatch addBatch(String folder, String engine, Integer proarcBatchId) throws IOException, JSONException {
         List<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("folder", folder));
         if (engine != null) {
@@ -54,17 +54,17 @@ public class MetaCheckClient extends HttpAbstractClient {
 
     public static class MetaCheckEnginesDescriptor {
 
-        private final int id;
+        private final String id;
         private final String label;
         private final String description;
 
-        public MetaCheckEnginesDescriptor(int id, String label, String description) {
+        public MetaCheckEnginesDescriptor(String id, String label, String description) {
             this.id = id;
             this.label = label;
             this.description = description;
         }
 
-        public int getId() {
+        public String getId() {
             return id;
         }
 
