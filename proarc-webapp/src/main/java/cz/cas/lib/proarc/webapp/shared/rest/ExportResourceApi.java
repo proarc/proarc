@@ -105,5 +105,6 @@ public final class ExportResourceApi {
     public static final String RESULT_ERROR_LOG = "log";
 
     public static final String BATCH_NIGHT_ONLY = "nightOnly";
+    public static final String BATCH_PRIORITY = "priority";
 
 }

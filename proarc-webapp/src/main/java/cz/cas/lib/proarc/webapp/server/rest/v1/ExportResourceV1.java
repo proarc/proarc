@@ -268,6 +268,7 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.DATASTREAM_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.DATASTREAM_DSID_PARAM) List<String> dsIds,
             @FormParam(ExportResourceApi.DATASTREAM_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
+            @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws IOException, ExportException {
 
@@ -281,7 +282,7 @@ public class ExportResourceV1 {
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid), hierarchy, dsIds);
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_DATASTREAM, isNightOnly, params);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_DATASTREAM, isNightOnly, priority, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             ExportDispatcher.getDefault().addExport(process);
@@ -303,6 +304,7 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
             @DefaultValue("false") @FormParam(ExportResourceApi.KRAMERIUS4_UPDATE_MODS_PARAM) boolean updateMods,
+            @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws Exception {
 
@@ -326,7 +328,7 @@ public class ExportResourceV1 {
             BatchParams params = new BatchParams(Collections.singletonList(pid), policy, hierarchy, krameriusInstanceId, isBagit, license);
             params.setCollections(selectedCollections);
             params.setUpdateMods(updateMods);
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_KRAMERIUS, isNightOnly, params);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_KRAMERIUS, isNightOnly, priority, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             ExportDispatcher.getDefault().addExport(process);
@@ -357,6 +359,7 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
             @FormParam(ExportResourceApi.KRAMERIUS4_COLLECTION_PARAM) List<String> collections,
+            @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws Exception {
         if (pids.isEmpty()) {
@@ -381,7 +384,7 @@ public class ExportResourceV1 {
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid), typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy, license);
             params.setCollections(selectedCollections);
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_NDK, isNightOnly, params);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_NDK, isNightOnly, priority, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             ExportDispatcher.getDefault().addExport(process);
@@ -433,6 +436,7 @@ public class ExportResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public ProArcResponse<ExportResult> newCejshExport(
             @FormParam(ExportResourceApi.CEJSH_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws Exception {
 
@@ -443,7 +447,7 @@ public class ExportResourceV1 {
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid));
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_CEJSH, isNightOnly, params);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_CEJSH, isNightOnly, priority, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             ExportDispatcher.getDefault().addExport(process);
@@ -463,6 +467,7 @@ public class ExportResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public ProArcResponse<ExportResult> newCrossrefExport(
             @FormParam(ExportResourceApi.CROSSREF_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws Exception {
 
@@ -473,7 +478,7 @@ public class ExportResourceV1 {
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid));
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_CROSSREF, isNightOnly, params);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_CROSSREF, isNightOnly, priority, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             ExportDispatcher.getDefault().addExport(process);
@@ -499,6 +504,7 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.ARCHIVE_NO_TIF_AVAILABLE_MESSAGE) String noTifAvailableMessage,
             @FormParam(ExportResourceApi.ARCHIVE_ADDITIONAL_INFO_MESSAGE) String additionalInfoMessage,
             @FormParam(ExportResourceApi.ARCHIVE_EXTENDED_PACKAGE_PARAM) @DefaultValue("false") boolean extendedArchivePackage,
+            @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws Exception {
 
@@ -521,7 +527,7 @@ public class ExportResourceV1 {
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid), typeOfPackage, ignoreMissingUrnNbn, isBagit, noTifAvailableMessage, additionalInfoMessage, extendedArchivePackage);
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_ARCHIVE, isNightOnly, params);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_ARCHIVE, isNightOnly, priority, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             ExportDispatcher.getDefault().addExport(process);
@@ -539,6 +545,7 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
             @FormParam(ExportResourceApi.KWIS_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
+            @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws Exception {
 
@@ -549,7 +556,7 @@ public class ExportResourceV1 {
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid), policy, hierarchy, null, false, license);
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_KWIS, isNightOnly, params);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_KWIS, isNightOnly, priority, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             ExportDispatcher.getDefault().addExport(process);
