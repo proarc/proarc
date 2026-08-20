@@ -93,6 +93,43 @@ public class ProArcRequest {
         @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PID)
         @JsonProperty(DigitalObjectResourceApi.MEMBERS_ITEM_PID)
         public List<String> pids;
+
+    }
+
+    /**
+     * Request body for distributing members among multiple destination objects.
+     */
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class DistributeMembersRequest {
+
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID)
+        @JsonProperty(DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID)
+        public String srcParentPid;
+
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
+        @JsonProperty(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
+        public Integer batchId;
+
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_DISTRIBUTE_TARGETS)
+        @JsonProperty(DigitalObjectResourceApi.MEMBERS_DISTRIBUTE_TARGETS)
+        public List<DistributeMembersTarget> targets;
+
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_DISTRIBUTE_RUN_REINDEX)
+        @JsonProperty(DigitalObjectResourceApi.MEMBERS_DISTRIBUTE_RUN_REINDEX)
+        @DefaultValue("false")
+        public boolean runReindex;
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class DistributeMembersTarget {
+
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID)
+        @JsonProperty(DigitalObjectResourceApi.MEMBERS_MOVE_DSTPID)
+        public String dstParentPid;
+
+        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_PID)
+        @JsonProperty(DigitalObjectResourceApi.MEMBERS_ITEM_PID)
+        public List<String> pids;
     }
 
     /**

@@ -1,4 +1,4 @@
-package cz.cas.lib.proarc.common.metacheck;
+package cz.cas.lib.proarc.common.externalApp.metacheck;
 
 import org.json.JSONObject;
 

@@ -76,6 +76,10 @@ public class BibliographicCatalogResourceV1 {
         this.appConfig = AppConfigurationFactory.getInstance().defaultInstance();
     }
 
+    protected List<Locale> getAcceptableLanguages() {
+        return httpHeaders.getAcceptableLanguages();
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public ProArcResponse<CatalogDescriptor> findCatalog(
@@ -119,7 +123,7 @@ public class BibliographicCatalogResourceV1 {
     @Path(BibliographicCatalogResourceApi.FIND_PATH)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public MetadataList find(
+    public Object find(
             @QueryParam(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM) String catalog,
             @QueryParam(BibliographicCatalogResourceApi.FIND_FIELDNAME_PARAM) String fieldName,
             @QueryParam(BibliographicCatalogResourceApi.FIND_VALUE_PARAM) String value) throws TransformerException, IOException {

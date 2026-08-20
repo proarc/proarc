@@ -1,4 +1,4 @@
-package cz.cas.lib.proarc.common.process.external;
+package cz.cas.lib.proarc.common.externalApp.peroOcr;
 
 import cz.cas.lib.proarc.common.object.ValueMap;
 import java.io.BufferedReader;

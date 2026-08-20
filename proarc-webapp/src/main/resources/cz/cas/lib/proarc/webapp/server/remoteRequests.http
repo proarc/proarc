@@ -91,37 +91,4 @@ Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 &pid=uuid:f7e18b00-8e1a-424c-be31-1f436f812340&catalogId=oaicmh
 
 
-### GET KRAMERIUS TOKEN for user proarcImport
-POST https://sso.tuke.sk/realms/TUKE/protocol/openid-connect/token
-Content-Type: application/x-www-form-urlencoded
-Keep-Alive: timeout=60, max=100
-Connection: Keep-Alive, Upgrade
-
-username=proarcImport&password=n7KUG!4uBWoxHh@ojJrJ&client_id=kramerius.tuke.sk&client_secret=YtCAFQkCJvAJ3eFWZGbnh3s9azSvSqBX&grant_type=password
-
-
-### GET KRAMERIUS TOKEN for user krameriusAdmin
-POST https://sso.tuke.sk/realms/TUKE/protocol/openid-connect/token
-Content-Type: application/x-www-form-urlencoded
-Keep-Alive: timeout=60, max=100
-Connection: Keep-Alive, Upgrade
-
-username=krameriusAdmin&password=qE3PoJfAz97iEQbaNW2C&client_id=kramerius.tuke.sk&client_secret=YtCAFQkCJvAJ3eFWZGbnh3s9azSvSqBX&grant_type=password
-
-
-
-###
-POST http://10.21.149.30/api/proarclogin
-Accept: application/json
-Content-Type: application/x-www-form-urlencoded; charset=UTF-8
-
-j_username=proarc&j_password=Cvticvticvti123%2B
-
-###
-POST http://ekniznice-proarc.cvtisr.sk/proarclogin
-Accept: application/json
-Content-Type: application/x-www-form-urlencoded; charset=UTF-8
-
-j_username=proarc&j_password=Cvticvticvti123%2Bk
-
 

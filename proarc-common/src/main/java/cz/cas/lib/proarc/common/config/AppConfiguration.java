@@ -18,7 +18,7 @@ package cz.cas.lib.proarc.common.config;
 
 import cz.cas.lib.proarc.common.client.ClientOptions;
 import cz.cas.lib.proarc.common.jobs.JobHandler;
-import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.object.ndk.ModsRules;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.ndk.RdaRules;

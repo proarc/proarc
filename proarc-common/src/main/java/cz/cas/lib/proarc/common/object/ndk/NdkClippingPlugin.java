@@ -73,7 +73,7 @@ public class NdkClippingPlugin implements DigitalObjectPlugin, HasMetadataHandle
                         DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
                 new RelationCriteria[]{}
         ));
-        models.add(new MetaModel(MODEL_CLIPPING_DIRECTORY, false, null,
+        models.add(new MetaModel(MODEL_CLIPPING_DIRECTORY, null, null,
                 Arrays.asList(new ElementType("NDK Clipping directory", "en"), new ElementType("NDK Obálka výstřižku", "cs")),
                 ModsConstants.NS, MODEL_CLIPPING_DIRECTORY, this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE, DatastreamEditorType.PARENT,

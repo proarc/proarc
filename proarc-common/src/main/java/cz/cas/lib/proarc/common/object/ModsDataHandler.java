@@ -107,6 +107,12 @@ public class ModsDataHandler {
 
                 String signaturaVal = objectHandler.getParameter(DigitalObjectHandler.PARAM_SIGNATURA);
                 replaceShelfLocator(defaultMods, signaturaVal);
+
+                String siglaVal = objectHandler.getParameter(DigitalObjectHandler.PARAM_SIGLA);
+                replaceSigla(defaultMods, siglaVal);
+
+                String barcodeVal = objectHandler.getParameter(DigitalObjectHandler.PARAM_BARCODE);
+                addBarcode(defaultMods, barcodeVal);
             }
         } else if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(modelId) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(modelId)) {
             // issue 137
@@ -312,6 +318,43 @@ public class ModsDataHandler {
         }
 
         return defaultMods;
+    }
+
+    private void replaceSigla(ModsDefinition defaultMods, String siglaVal) {
+        if (siglaVal == null || siglaVal.isBlank()) {
+            return;
+        }
+
+        LocationDefinition location = null;
+
+        if (defaultMods.getLocation().size() > 0) {
+            location = defaultMods.getLocation().get(0);
+        }
+
+        defaultMods.getLocation().clear();
+
+        if (location == null) {
+            location = new LocationDefinition();
+        }
+
+        location.getPhysicalLocation().clear();
+        PhysicalLocationDefinition physicalLocation = new PhysicalLocationDefinition();
+        physicalLocation.setAuthority("siglaADR");
+        physicalLocation.setValue(siglaVal);
+        location.getPhysicalLocation().add(physicalLocation);
+        defaultMods.getLocation().add(location);
+    }
+
+    private void addBarcode(ModsDefinition mods, String barcodeVal) {
+        if (barcodeVal == null || barcodeVal.isBlank()) {
+            return;
+        }
+
+        IdentifierDefinition identifierDefinition = new IdentifierDefinition();
+        identifierDefinition.setType("barcode");
+        identifierDefinition.setValue(barcodeVal);
+
+        mods.getIdentifier().add(identifierDefinition);
     }
 
     private void setRules(ModsDefinition mods) {

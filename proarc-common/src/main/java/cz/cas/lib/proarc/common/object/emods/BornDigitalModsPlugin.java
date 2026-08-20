@@ -77,7 +77,7 @@ public class BornDigitalModsPlugin implements DigitalObjectPlugin, HasMetadataHa
         // for now it is a read only repository
         List<MetaModel> models = new ArrayList<MetaModel>();
         models.add(new MetaModel(
-                MODEL_ARTICLE, null, null,
+                MODEL_ARTICLE, null, true,
                 Arrays.asList(new ElementType("eArticle", "en"), new ElementType("eČlánek", "cs")),
                 ModsConstants.NS,
                 MODEL_ARTICLE,

@@ -18,9 +18,13 @@ public class BatchUtils {
     private static final Logger LOG = Logger.getLogger(BatchUtils.class.getName());
 
     public static Batch addNewBatch(BatchManager batchManager, List<String> pids, UserProfile user, String processProfile, Batch.State state, Batch.State overWriteState, Boolean isNightOnly, BatchParams params) {
+        return addNewBatch(batchManager, pids, user, processProfile, state, overWriteState, isNightOnly, Batch.PRIORITY_MEDIUM, params);
+    }
+
+    public static Batch addNewBatch(BatchManager batchManager, List<String> pids, UserProfile user, String processProfile, Batch.State state, Batch.State overWriteState, Boolean isNightOnly, String priority, BatchParams params) {
         Batch batch = findBatchWithParams(batchManager, getPid(pids), processProfile, overWriteState);
         if (batch == null) {
-            return batchManager.add(getPid(pids), user, processProfile, state, isNightOnly, params);
+            return batchManager.add(getPid(pids), user, processProfile, state, isNightOnly, priority, params);
         } else {
             batch.setState(state);
             batch.setUpdated(new Timestamp(System.currentTimeMillis()));
@@ -29,6 +33,9 @@ public class BatchUtils {
             batch.setProfileId(processProfile);
             batch.setParamsFromObject(params);
             batch.setNightOnly(isNightOnly);
+            batch.setPriority(priority);
+            batch.setLog(null);
+
             //batch.setTimestamp(new Timestamp(System.currentTimeMillis()));
             batch = batchManager.update(batch);
 
@@ -81,8 +88,8 @@ public class BatchUtils {
         return batchManager.update(batch);
     }
 
-    public static Batch addNewExportBatch(BatchManager batchManager, String pid, UserProfile user, String exportProfile, Boolean isNightOnly, BatchParams params) {
-        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.EXPORT_PLANNED, Batch.State.EXPORT_FAILED, isNightOnly, params);
+    public static Batch addNewExportBatch(BatchManager batchManager, String pid, UserProfile user, String exportProfile, Boolean isNightOnly, String priority, BatchParams params) {
+        return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.EXPORT_PLANNED, Batch.State.EXPORT_FAILED, isNightOnly, priority, params);
     }
 
     public static Batch startWaitingExportBatch(BatchManager batchManager, Batch batch) {

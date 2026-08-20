@@ -40,6 +40,8 @@ public final class DigitalObjectResourceApi {
     public static final String DIGITALOBJECT_SERIES_DAYS_IN_RANGE_PARAM = "seriesDaysInRange";
     public static final String DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM = "seriesPartNumberFrom";
     public static final String DIGITALOBJECT_SERIES_SIGNATURA = "seriesSignatura";
+    public static final String DIGITALOBJECT_SERIES_SIGLA = "seriesSigla";
+    public static final String DIGITALOBJECT_SERIES_BARCODE = "seriesBarcode";
     public static final String DIGITALOBJECT_SERIES_FREQUENCY = "seriesFrequency";
     public static final String DIGITALOBJECT_SERIES_TOTAL_OBJECTS = "seriesTotalNumbers";
     public static final String DIGITALOBJECT_SERIES_DATE_FORMAT = "seriesDateFormat";
@@ -147,6 +149,9 @@ public final class DigitalObjectResourceApi {
     public static final String MEMBERS_MOVE_PATH = "move";
     public static final String MEMBERS_MOVE_SRCPID = "srcPid";
     public static final String MEMBERS_MOVE_DSTPID = "dstPid";
+    public static final String MEMBERS_DISTRIBUTE_PATH = "distribute";
+    public static final String MEMBERS_DISTRIBUTE_TARGETS = "targets";
+    public static final String MEMBERS_DISTRIBUTE_RUN_REINDEX = "runReindex";
 
     // resource /object/metamodel
     public static final String METAMODEL_PATH = "metamodel";
@@ -198,6 +203,13 @@ public final class DigitalObjectResourceApi {
     public static final String MODS_OBJECT_RULES_PARTNUMBER = "partNumber";
     public static final String MODS_OBJECT_RULES_SIGNATURA = "signatura";
     public static final String MODS_OBJECT_RULES_SIGLA = "sigla";
+    public static final String MODS_OBJECT_RULES_TITLE = "title";
+    public static final String MODS_OBJECT_RULES_SUBTITLE = "subTitle";
+    public static final String MODS_OBJECT_RULES_PARTNAME = "partName";
+    public static final String MODS_OBJECT_RULES_NOTE = "note";
+    public static final String MODS_OBJECT_RULES_PUBLISHER = "publisher";
+    public static final String MODS_OBJECT_RULES_PLACE = "place";
+    public static final String MODS_OBJECT_RULES_DATE_ISSUED = "dateIssued";
 
     public static final String MODS_CUSTOM_FUNCTION_ADD_BRACKETS = "addBrackets";
     public static final String MODS_CUSTOM_FUNCTION_REMOVE_BRACKETS = "removeBrackets";

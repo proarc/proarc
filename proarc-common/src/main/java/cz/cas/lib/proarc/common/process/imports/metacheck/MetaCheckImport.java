@@ -5,14 +5,14 @@ import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.image.ImageMimeType;
-import cz.cas.lib.proarc.common.metacheck.MetaCheckBatch;
-import cz.cas.lib.proarc.common.metacheck.MetaCheckClient;
+import cz.cas.lib.proarc.common.externalApp.metacheck.MetaCheckBatch;
+import cz.cas.lib.proarc.common.externalApp.metacheck.MetaCheckClient;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.external.ExternalProcess;
-import cz.cas.lib.proarc.common.process.external.PeroOcrProcessor;
+import cz.cas.lib.proarc.common.externalApp.peroOcr.PeroOcrProcessor;
 import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
 import cz.cas.lib.proarc.common.process.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.process.imports.FileSet;
@@ -23,6 +23,7 @@ import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.process.imports.InputUtils;
 import cz.cas.lib.proarc.common.process.imports.TiffImporter;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -109,7 +110,7 @@ public class MetaCheckImport implements ImportHandler {
                 throw new IllegalStateException("Not a TIFF content: " + tiff);
             }
 
-            File fullJpg = generateFullJpg(fileSet, tiff, importConfig);
+            File fullJpg = generateImages(fileSet, tiff, importConfig);
             generateOcrAndAlto(tiff, fullJpg, importConfig);
 
             batchManager.addFileItem(batch.getId(), null, BatchItem.FileState.OK, fileSet.getFiles());
@@ -135,7 +136,25 @@ public class MetaCheckImport implements ImportHandler {
         return null;
     }
 
-    private File generateFullJpg(FileSet fileSet, File tiff, ImportProcess.ImportOptions importConfig) throws Exception {
+    private File generateImages(FileSet fileSet, File tiff, ImportProcess.ImportOptions importConfig) throws Exception {
+        ImportProfile profile = importConfig.getConfig();
+        BufferedImage tiffImage = null;
+        if (!profile.isTiffToJpgDefined()) {
+            tiffImage = TiffImporter.removeAlphaChannel(readImage(tiff.toURI().toURL(), ImageMimeType.TIFF));
+        }
+
+        File fullJpg = generateFullJpg(fileSet, tiff, importConfig, tiffImage);
+        generatePreviewJpg(fileSet, tiff, importConfig, tiffImage);
+        generateThumbnailJpg(fileSet, tiff, importConfig, tiffImage);
+        return fullJpg;
+    }
+
+    private File generateFullJpg(
+            FileSet fileSet,
+            File tiff,
+            ImportProcess.ImportOptions importConfig,
+            BufferedImage tiffImage
+    ) throws Exception {
         ImportProfile profile = importConfig.getConfig();
         File fullJpg = new File(importConfig.getTargetFolder(), fileSet.getName() + profile.getNdkFullFileSuffix());
         if (fullJpg.exists() && InputUtils.isJpeg(fullJpg)) {
@@ -151,7 +170,7 @@ public class MetaCheckImport implements ImportHandler {
             }
         } else {
             TiffImporter.writeImage(
-                    TiffImporter.removeAlphaChannel(readImage(tiff.toURI().toURL(), ImageMimeType.TIFF)),
+                    tiffImage == null ? TiffImporter.removeAlphaChannel(readImage(tiff.toURI().toURL(), ImageMimeType.TIFF)) : tiffImage,
                     importConfig.getTargetFolder(),
                     fullJpg.getName(),
                     ImageMimeType.JPEG);
@@ -161,6 +180,80 @@ public class MetaCheckImport implements ImportHandler {
             throw new IllegalStateException("Not a JPEG content: " + fullJpg);
         }
         return fullJpg;
+    }
+
+    private File generatePreviewJpg(
+            FileSet fileSet,
+            File tiff,
+            ImportProcess.ImportOptions importConfig,
+            BufferedImage tiffImage
+    ) throws Exception {
+        ImportProfile profile = importConfig.getConfig();
+        File previewJpg = new File(importConfig.getTargetFolder(), fileSet.getName() + profile.getNdkPreviewFileSuffix());
+        if (previewJpg.exists() && InputUtils.isJpeg(previewJpg)) {
+            LOG.log(Level.FINE, "Skipping PREVIEW JPG generation, file exists: {0}", previewJpg);
+            return previewJpg;
+        }
+
+        Integer previewMaxHeight = profile.getPreviewMaxHeight();
+        Integer previewMaxWidth = profile.getPreviewMaxWidth();
+        profile.checkPreviewScaleParams();
+        if (profile.isTiffToJpgDefined()) {
+            ExternalProcess process = new TiffToJpgConvert(
+                    profile.getConvertorTiffToJpgProcessor(), tiff, previewJpg, previewMaxWidth, previewMaxHeight);
+            process.run();
+            if (!process.isOk()) {
+                throw new IllegalStateException("Converting tiff to PREVIEW jpg failed: " + process.getFullOutput());
+            }
+        } else {
+            TiffImporter.writeImage(
+                    TiffImporter.scale(tiffImage, profile.getPreviewScaling(), previewMaxWidth, previewMaxHeight),
+                    importConfig.getTargetFolder(),
+                    previewJpg.getName(),
+                    ImageMimeType.JPEG);
+        }
+
+        if (!InputUtils.isJpeg(previewJpg)) {
+            throw new IllegalStateException("Not a JPEG content: " + previewJpg);
+        }
+        return previewJpg;
+    }
+
+    private File generateThumbnailJpg(
+            FileSet fileSet,
+            File tiff,
+            ImportProcess.ImportOptions importConfig,
+            BufferedImage tiffImage
+    ) throws Exception {
+        ImportProfile profile = importConfig.getConfig();
+        File thumbnailJpg = new File(importConfig.getTargetFolder(), fileSet.getName() + profile.getNdkThumbnailFileSuffix());
+        if (thumbnailJpg.exists() && InputUtils.isJpeg(thumbnailJpg)) {
+            LOG.log(Level.FINE, "Skipping THUMBNAIL JPG generation, file exists: {0}", thumbnailJpg);
+            return thumbnailJpg;
+        }
+
+        Integer thumbnailMaxHeight = profile.getThumbnailMaxHeight();
+        Integer thumbnailMaxWidth = profile.getThumbnailMaxWidth();
+        profile.checkThumbnailScaleParams();
+        if (profile.isTiffToJpgDefined()) {
+            ExternalProcess process = new TiffToJpgConvert(
+                    profile.getConvertorTiffToJpgProcessor(), tiff, thumbnailJpg, thumbnailMaxWidth, thumbnailMaxHeight);
+            process.run();
+            if (!process.isOk()) {
+                throw new IllegalStateException("Converting tiff to THUMBNAIL jpg failed: " + process.getFullOutput());
+            }
+        } else {
+            TiffImporter.writeImage(
+                    TiffImporter.scale(tiffImage, profile.getThumbnailScaling(), thumbnailMaxWidth, thumbnailMaxHeight),
+                    importConfig.getTargetFolder(),
+                    thumbnailJpg.getName(),
+                    ImageMimeType.JPEG);
+        }
+
+        if (!InputUtils.isJpeg(thumbnailJpg)) {
+            throw new IllegalStateException("Not a JPEG content: " + thumbnailJpg);
+        }
+        return thumbnailJpg;
     }
 
     private File[] generateOcrAndAlto(File tiff, File fullJpg, ImportProcess.ImportOptions importConfig) throws IOException {
@@ -321,7 +414,7 @@ public class MetaCheckImport implements ImportHandler {
         }
 
         try (MetaCheckClient client = new MetaCheckClient(apiUrl)) {
-            Integer engine = getMetaKatEngine(importConfig);
+            String engine = getMetaKatEngine(importConfig);
             MetaCheckBatch metaCheckBatch = client.addBatch(
                     getMetaCheckFolder(importConfig.getImportFolder(), config.getConfigHome()),
                     engine,
@@ -331,24 +424,29 @@ public class MetaCheckImport implements ImportHandler {
         }
     }
 
-    private Integer getMetaKatEngine(ImportProcess.ImportOptions importConfig) {
+    private String getMetaKatEngine(ImportProcess.ImportOptions importConfig) {
         try {
-            Integer metakatEngine = importConfig.getBatch().getParamsAsObject().getMetakatEngine();
-            if (metakatEngine == null || metakatEngine < 0) {
-                return 1;
+            String metakatEngine = importConfig.getBatch().getParamsAsObject().getMetakatEngine();
+            if (metakatEngine == null || metakatEngine.isBlank()) {
+                return "monograph";
             }
             return metakatEngine;
         } catch (NullPointerException ex) {
-            return 1;
+            return "monograph";
         }
     }
 
-    private String getMetaCheckFolder(File importFolder, File configHome) {
+    String getMetaCheckFolder(File importFolder, File configHome) {
         String path = importFolder.getPath().replace('\\', '/');
         String proarcHome = configHome.getPath().replace('\\', '/');
         if (path.startsWith(proarcHome + "/")) {
-            return path.substring(proarcHome.length() + 1);
+            path = path.substring(proarcHome.length() + 1);
         }
+        int usersFolderIndex = path.indexOf("/users/");
+        if (usersFolderIndex >= 0) {
+            path = path.substring(usersFolderIndex + 1);
+        }
+        LOG.info("Package for MetaCheck: " + path);
         return path;
     }
 }

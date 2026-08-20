@@ -252,7 +252,7 @@ public class ModsRules {
         } else if (parentDate != null) {
             if (parentDate != null) {
                 if (!isDateIssuedValid(parentDate, value)) {
-                    exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
+                    exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, false, value);
                 }
             }
         }

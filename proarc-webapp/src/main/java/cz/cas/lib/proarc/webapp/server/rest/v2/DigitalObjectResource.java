@@ -148,6 +148,8 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @DefaultValue("false") @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_MISSING_DAYS_INCLUDED_PARAM) boolean seriesMissingDaysIncluded,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_PARTNUMBER_FROM_PARAM) Integer seriesPartNumberFrom,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_SIGNATURA) String seriesSignatura,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_SIGLA) String seriesSigla,
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_BARCODE) String seriesBarcode,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_FREQUENCY) String seriesFrequency,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_TOTAL_OBJECTS) Integer seriesCount,
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_SERIES_DATE_FORMAT) String seriesDateFormat,
@@ -175,7 +177,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
                 }
             }
             return super.newObject(modelId, pid, parentPid, seriesDateFrom, seriesDateTo, seriesDaysIncluded, seriesDaysInRange, seriesMissingDaysIncluded,
-                    seriesPartNumberFrom, seriesSignatura, seriesFrequency, seriesCount, seriesDateFormat, xmlMetadata, workflowJobId, catalogId, createObject, validation);
+                    seriesPartNumberFrom, seriesSignatura, seriesSigla, seriesBarcode, seriesFrequency, seriesCount, seriesDateFormat, xmlMetadata, workflowJobId, catalogId, createObject, validation);
         } catch (DigitalObjectException ex) {
                 LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
                 return ProArcResponse.asError(ex.getMyMessage());
@@ -448,6 +450,24 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     }
 
     @PUT
+    @Path(DigitalObjectResourceApi.MEMBERS_PATH + '/' + DigitalObjectResourceApi.MEMBERS_DISTRIBUTE_PATH)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public ProArcResponse<SearchViewItem> distributeMembers(
+            ProArcRequest.DistributeMembersRequest request
+    ) {
+        try {
+            return super.distributeMembers(request);
+        } catch (DigitalObjectException ex) {
+            LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
+            return ProArcResponse.asError(ex.getMyMessage());
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return ProArcResponse.asError(t);
+        }
+    }
+
+    @PUT
     @Path(DigitalObjectResourceApi.MEMBERS_PATH + '/' + DigitalObjectResourceApi.MEMBERS_MOVE_PATH)
     @Consumes({MediaType.APPLICATION_FORM_URLENCODED})
     @Produces({MediaType.APPLICATION_JSON})
@@ -617,14 +637,21 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids,
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PARTNUMBER) String partNumber,
             @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGNATURA) String signatura,
-            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGLA) String sigla
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SIGLA) String sigla,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_TITLE) String title,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_SUBTITLE) String subTitle,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PARTNAME) String partName,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_NOTE) String note,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PUBLISHER) String publisher,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_PLACE) String place,
+            @FormParam(DigitalObjectResourceApi.MODS_OBJECT_RULES_DATE_ISSUED) String dateIssued
     ) {
 
         if (pids == null || pids.isEmpty()) {
             return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID));
         }
         try {
-            return super.updateDescriptionMetadataObjects(pids, partNumber, signatura, sigla);
+            return super.updateDescriptionMetadataObjects(pids, partNumber, signatura, sigla, title, subTitle, partName, note, publisher, place, dateIssued);
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
             return ProArcResponse.asError(ex.getMyMessage());

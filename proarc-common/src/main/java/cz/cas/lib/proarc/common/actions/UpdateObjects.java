@@ -38,10 +38,16 @@ import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
+import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NoteDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
+import cz.cas.lib.proarc.mods.PlaceDefinition;
+import cz.cas.lib.proarc.mods.PlaceTermDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
@@ -50,6 +56,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import static cz.cas.lib.proarc.common.object.ndk.ModsRules.DatumValidator;
+import static cz.cas.lib.proarc.common.object.ndk.ModsRules.ERR_NDK_ORIGININFO_DATEISSSUED;
 import static cz.cas.lib.proarc.common.object.ndk.ModsRules.ERR_NDK_PHYSICALLOCATION_SIGLA;
 
 /**
@@ -62,14 +70,35 @@ public class UpdateObjects {
     private Locale locale;
 
     private List<String> updatedPids;
+
     private Integer partNumberValue;
+    private String dateIssuedValue;
     private String signaturaValue;
     private String siglaValue;
+    private String titleValue;
+    private String subTitleValue;
+    private String partNameValue;
+    private String noteValue;
+    private String publisherValue;
+    private String placeValue;
 
     public UpdateObjects(AppConfiguration appConfig, AkubraConfiguration akubraConfig, Locale locale) {
         this.appConfig = appConfig;
         this.akubraConfig = akubraConfig;
         this.locale = locale;
+    }
+
+    private static boolean isSupportedModel(String model) {
+        return NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(model)
+                || NdkPlugin.MODEL_PERIODICALISSUE.equals(model)
+                || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(model)
+                || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(model)
+                || NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(model)
+                || NdkPlugin.MODEL_MONOGRAPHUNIT.equals(model)
+                || NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(model)
+                || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(model)
+                || NdkEbornPlugin.MODEL_EMONOGRAPHUNIT.equals(model)
+                || NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT.equals(model);
     }
 
     private static String trim(String value, String start, String end) {
@@ -108,8 +137,7 @@ public class UpdateObjects {
                 throw new DigitalObjectException(pid, "Unknown pid \"" + pid + "\".");
             }
             for (SearchViewItem item : items) {
-                if (NdkPlugin.MODEL_PERIODICALISSUE.equals(item.getModel()) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(item.getModel())
-                        || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(item.getModel()) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(item.getModel())) {
+                if (isSupportedModel(item.getModel())) {
                     updatedPids.add(item.getPid());
                 } else {
                     throw new DigitalObjectException(item.getPid(), "Unsupported model \"" + item.getModel() + "\" for multi update objets.");
@@ -118,9 +146,16 @@ public class UpdateObjects {
         }
     }
 
-    public void updateObjects(String signatura, String sigla) throws DigitalObjectException {
+    public void updateObjects(String signatura, String sigla, String title, String subTitle, String partName, String note, String publisher, String place) throws DigitalObjectException {
         this.signaturaValue = signatura;
         this.siglaValue = sigla;
+        this.titleValue = title;
+        this.subTitleValue = subTitle;
+        this.partNameValue = partName;
+        this.noteValue = note;
+        this.publisherValue = publisher;
+        this.placeValue = place;
+
         if (updatedPids != null && !updatedPids.isEmpty()) {
             if (sigla != null && !sigla.isEmpty()) {
                 List<String> accepted = appConfig.getModsOptions().getAcceptableSiglaId();
@@ -165,55 +200,118 @@ public class UpdateObjects {
 
 
     private void updateMods(ModsDefinition mods, String model) throws DigitalObjectException {
-        if (NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(model)) {
-            setSiglaAndSignatura(mods);
-            setPartNumber(mods);
-        } else if (NdkPlugin.MODEL_PERIODICALISSUE.equals(model)) {
-            setSiglaAndSignatura(mods);
-            setPartNumber(mods);
-        } else if (NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(model)) {
-            setSiglaAndSignatura(mods);
-            setPartNumber(mods);
-        } else if (NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(model)) {
-            setSiglaAndSignatura(mods);
-            setPartNumber(mods);
-        } else {
+        if (!isSupportedModel(model)) {
             throw new DigitalObjectException("Unsupported model: " + model);
         }
+
+        setLocation(mods);
+        setTitleInfo(mods);
+        setOriginInfo(mods);
+        setNote(mods);
     }
 
-    private void setPartNumber(ModsDefinition mods) {
-        if (this.partNumberValue == null) {
+    private void setOriginInfo(ModsDefinition mods) {
+        if (this.dateIssuedValue == null && this.publisherValue == null && this.placeValue == null) {
             return;
-        } else if (this.partNumberValue == -1) {
-            if (mods.getTitleInfo().isEmpty()) {
-                mods.getTitleInfo().add(new TitleInfoDefinition());
-            }
-            for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-                if (titleInfo.getPartNumber().isEmpty()) {
-                    titleInfo.getPartNumber().add(new StringPlusLanguage());
+        }
+        if (mods.getOriginInfo().isEmpty()) {
+            mods.getOriginInfo().add(new OriginInfoDefinition());
+        }
+        for (OriginInfoDefinition originInfo : mods.getOriginInfo()) {
+            if (this.dateIssuedValue != null) {
+                if (originInfo.getDateIssued().isEmpty()) {
+                    originInfo.getDateIssued().add(new DateDefinition());
                 }
-                for (StringPlusLanguage partNumber : titleInfo.getPartNumber()) {
-                    partNumber.setValue(null);
+                for (DateDefinition dateIssued : originInfo.getDateIssued()) {
+                    dateIssued.setValue(this.dateIssuedValue);
                 }
             }
-        } else if (this.partNumberValue > -1) {
-            if (mods.getTitleInfo().isEmpty()) {
-                mods.getTitleInfo().add(new TitleInfoDefinition());
-            }
-            for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-                if (titleInfo.getPartNumber().isEmpty()) {
-                    titleInfo.getPartNumber().add(new StringPlusLanguage());
+            if (this.publisherValue != null) {
+                if (originInfo.getPublisher().isEmpty()) {
+                    originInfo.getPublisher().add(new StringPlusLanguagePlusSupplied());
                 }
-                for (StringPlusLanguage partNumber : titleInfo.getPartNumber()) {
-                    partNumber.setValue(String.valueOf(this.partNumberValue));
-                    this.partNumberValue++;
+                for (StringPlusLanguagePlusSupplied publisher : originInfo.getPublisher()) {
+                    publisher.setValue(this.publisherValue);
+                }
+            }
+            if (this.placeValue != null) {
+                if (originInfo.getPlace().isEmpty()) {
+                    originInfo.getPlace().add(new PlaceDefinition());
+                }
+                for (PlaceDefinition place : originInfo.getPlace()) {
+                    if (place.getPlaceTerm().isEmpty()) {
+                        place.getPlaceTerm().add(new PlaceTermDefinition());
+                    }
+                    for (PlaceTermDefinition placeTerm : place.getPlaceTerm()) {
+                        placeTerm.setValue(this.placeValue);
+                    }
                 }
             }
         }
     }
 
-    private void setSiglaAndSignatura(ModsDefinition mods) {
+    private void setNote(ModsDefinition mods) {
+        if (this.noteValue == null) {
+            return;
+        }
+        if (mods.getNote().isEmpty()) {
+            mods.getNote().add(new NoteDefinition());
+        }
+        for (NoteDefinition note : mods.getNote()) {
+            note.setValue(this.noteValue);
+        }
+    }
+
+    private void setTitleInfo(ModsDefinition mods) {
+        if (this.titleValue == null && this.subTitleValue == null && this.partNameValue == null
+                && this.partNumberValue == null) {
+            return;
+        }
+        if (mods.getTitleInfo().isEmpty()) {
+            mods.getTitleInfo().add(new TitleInfoDefinition());
+        }
+        for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
+            if (this.titleValue != null) {
+                if (titleInfo.getTitle().isEmpty()) {
+                    titleInfo.getTitle().add(new StringPlusLanguage());
+                }
+                for (StringPlusLanguage title : titleInfo.getTitle()) {
+                    title.setValue(this.titleValue);
+                }
+            }
+            if (this.subTitleValue != null) {
+                if (titleInfo.getSubTitle().isEmpty()) {
+                    titleInfo.getSubTitle().add(new StringPlusLanguage());
+                }
+                for (StringPlusLanguage subTitle : titleInfo.getSubTitle()) {
+                    subTitle.setValue(this.subTitleValue);
+                }
+            }
+            if (this.partNameValue != null) {
+                if (titleInfo.getPartName().isEmpty()) {
+                    titleInfo.getPartName().add(new StringPlusLanguage());
+                }
+                for (StringPlusLanguage partName : titleInfo.getPartName()) {
+                    partName.setValue(this.partNameValue);
+                }
+            }
+            if (this.partNumberValue != null) {
+                if (titleInfo.getPartNumber().isEmpty()) {
+                    titleInfo.getPartNumber().add(new StringPlusLanguage());
+                }
+                for (StringPlusLanguage partNumber : titleInfo.getPartNumber()) {
+                    if (this.partNumberValue == -1) {
+                        partNumber.setValue(null);
+                    } else if (this.partNumberValue > -1) {
+                        partNumber.setValue(String.valueOf(this.partNumberValue));
+                        this.partNumberValue++;
+                    }
+                }
+            }
+        }
+    }
+
+    private void setLocation(ModsDefinition mods) {
         if (this.siglaValue != null || this.signaturaValue != null) {
             if (mods.getLocation().isEmpty()) {
                 mods.getLocation().add(new LocationDefinition());
@@ -254,6 +352,21 @@ public class UpdateObjects {
             }
         } else if (partNumber != null && partNumber.isEmpty()) {
             this.partNumberValue = null;
+        }
+    }
+
+    public void createDateIssued(String dateIssued) throws DigitalObjectException {
+        if (dateIssued != null && !dateIssued.isEmpty()) {
+            if (!DatumValidator.isValid(dateIssued)) {
+                String pid = updatedPids == null || updatedPids.isEmpty() ? null : updatedPids.get(0);
+                DigitalObjectValidationException ex = new DigitalObjectValidationException(pid, null,
+                        ModsStreamEditor.DATASTREAM_ID, "MODS validation", null);
+                ex.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, false, dateIssued);
+                throw ex;
+            }
+            this.dateIssuedValue = dateIssued;
+        } else if (dateIssued != null && dateIssued.isEmpty()) {
+            this.dateIssuedValue = null;
         }
     }
 }

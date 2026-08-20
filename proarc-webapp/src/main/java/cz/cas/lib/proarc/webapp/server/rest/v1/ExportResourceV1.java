@@ -26,7 +26,8 @@ import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
-import cz.cas.lib.proarc.common.kramerius.KrameriusOptions;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusCollection;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.AcceptedExports;
@@ -79,8 +80,8 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
-import static cz.cas.lib.proarc.common.kramerius.KrameriusOptions.findKrameriusInstance;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
+import static cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions.findKrameriusInstance;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 
 /**
@@ -267,6 +268,7 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.DATASTREAM_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.DATASTREAM_DSID_PARAM) List<String> dsIds,
             @FormParam(ExportResourceApi.DATASTREAM_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
+            @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws IOException, ExportException {
 
@@ -280,7 +282,7 @@ public class ExportResourceV1 {
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid), hierarchy, dsIds);
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_DATASTREAM, isNightOnly, params);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_DATASTREAM, isNightOnly, priority, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             ExportDispatcher.getDefault().addExport(process);
@@ -297,9 +299,12 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
+            @FormParam(ExportResourceApi.KRAMERIUS4_COLLECTION_PARAM) List<String> collections,
             @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
+            @DefaultValue("false") @FormParam(ExportResourceApi.KRAMERIUS4_UPDATE_MODS_PARAM) boolean updateMods,
+            @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws Exception {
 
@@ -307,6 +312,8 @@ public class ExportResourceV1 {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.KRAMERIUS4_PID_PARAM);
         }
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
+        List<String> selectedCollections = normalizeCollections(collections);
+        validateCollections(instance, selectedCollections, updateMods);
         if (!KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) && !instance.isTestType() && !user.hasPermissionToImportToProdFunction()) {
                 throw RestException.plainText(Status.BAD_REQUEST, "Permission denied for " + ExportResourceApi.KRAMERIUS_INSTANCE);
         }
@@ -319,7 +326,9 @@ public class ExportResourceV1 {
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid), policy, hierarchy, krameriusInstanceId, isBagit, license);
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_KRAMERIUS, isNightOnly, params);
+            params.setCollections(selectedCollections);
+            params.setUpdateMods(updateMods);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_KRAMERIUS, isNightOnly, priority, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             ExportDispatcher.getDefault().addExport(process);
@@ -349,6 +358,8 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
+            @FormParam(ExportResourceApi.KRAMERIUS4_COLLECTION_PARAM) List<String> collections,
+            @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws Exception {
         if (pids.isEmpty()) {
@@ -365,10 +376,15 @@ public class ExportResourceV1 {
             result.setIgnoreMissingUrnNbn(true);
             return new ProArcResponse<ExportResult>(result);
         }
+        KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(
+                appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
+        List<String> selectedCollections = normalizeCollections(collections);
+        validateCollections(instance, selectedCollections, false);
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid), typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy, license);
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_NDK, isNightOnly, params);
+            params.setCollections(selectedCollections);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_NDK, isNightOnly, priority, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             ExportDispatcher.getDefault().addExport(process);
@@ -376,6 +392,38 @@ public class ExportResourceV1 {
         }
         ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
         return new ProArcResponse<ExportResult>(result);
+    }
+
+    private List<String> normalizeCollections(List<String> collections) {
+        if (collections == null || collections.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return collections.stream()
+                .filter(value -> value != null && !value.isBlank())
+                .map(String::trim)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    private void validateCollections(
+            KrameriusOptions.KrameriusInstance instance,
+            List<String> collections,
+            boolean updateMods
+    ) {
+        if (collections.isEmpty()) {
+            return;
+        }
+        if (instance == null) {
+            throw RestException.plainBadRequest(ExportResourceApi.KRAMERIUS_INSTANCE, null);
+        }
+        if (updateMods) {
+            throw RestException.plainText(
+                    Status.BAD_REQUEST, "Collections cannot be used when updateMods is enabled.");
+        }
+        if (KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) || !instance.supportsCollections()) {
+            throw RestException.plainText(
+                    Status.BAD_REQUEST, "Collections are supported only for Kramerius 7.");
+        }
     }
 
     /**
@@ -388,6 +436,7 @@ public class ExportResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public ProArcResponse<ExportResult> newCejshExport(
             @FormParam(ExportResourceApi.CEJSH_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws Exception {
 
@@ -398,7 +447,7 @@ public class ExportResourceV1 {
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid));
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_CEJSH, isNightOnly, params);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_CEJSH, isNightOnly, priority, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             ExportDispatcher.getDefault().addExport(process);
@@ -418,6 +467,7 @@ public class ExportResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public ProArcResponse<ExportResult> newCrossrefExport(
             @FormParam(ExportResourceApi.CROSSREF_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws Exception {
 
@@ -428,7 +478,7 @@ public class ExportResourceV1 {
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid));
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_CROSSREF, isNightOnly, params);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_CROSSREF, isNightOnly, priority, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             ExportDispatcher.getDefault().addExport(process);
@@ -454,6 +504,7 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.ARCHIVE_NO_TIF_AVAILABLE_MESSAGE) String noTifAvailableMessage,
             @FormParam(ExportResourceApi.ARCHIVE_ADDITIONAL_INFO_MESSAGE) String additionalInfoMessage,
             @FormParam(ExportResourceApi.ARCHIVE_EXTENDED_PACKAGE_PARAM) @DefaultValue("false") boolean extendedArchivePackage,
+            @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
             ) throws Exception {
 
@@ -476,7 +527,7 @@ public class ExportResourceV1 {
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid), typeOfPackage, ignoreMissingUrnNbn, isBagit, noTifAvailableMessage, additionalInfoMessage, extendedArchivePackage);
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_ARCHIVE, isNightOnly, params);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_ARCHIVE, isNightOnly, priority, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             ExportDispatcher.getDefault().addExport(process);
@@ -494,6 +545,7 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
             @FormParam(ExportResourceApi.KWIS_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
+            @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) throws Exception {
 
@@ -504,7 +556,7 @@ public class ExportResourceV1 {
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid), policy, hierarchy, null, false, license);
-            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_KWIS, isNightOnly, params);
+            Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_KWIS, isNightOnly, priority, params);
 
             ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
             ExportDispatcher.getDefault().addExport(process);
@@ -537,7 +589,11 @@ public class ExportResourceV1 {
     public static class KrameriusDescriptor {
 
         public static KrameriusDescriptor create(KrameriusOptions.KrameriusInstance krameriusInstance) {
-            return new KrameriusDescriptor(krameriusInstance.getId(), krameriusInstance.getTitle(), krameriusInstance.getLicenses());
+            return new KrameriusDescriptor(
+                    krameriusInstance.getId(),
+                    krameriusInstance.getTitle(),
+                    krameriusInstance.getLicenses(),
+                    krameriusInstance.getCollections());
         }
 
         @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_ID)
@@ -549,11 +605,20 @@ public class ExportResourceV1 {
         @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_LICENSES)
         @JsonProperty(ExportResourceApi.KRAMERIUS_INSTANCE_LICENSES)
         private List<KrameriusLicenseDescriptor> licenses;
+        @XmlElement(name = ExportResourceApi.KRAMERIUS_INSTANCE_COLLECTIONS)
+        @JsonProperty(ExportResourceApi.KRAMERIUS_INSTANCE_COLLECTIONS)
+        private List<KrameriusCollection> collections;
 
-        public KrameriusDescriptor(String id, String name, List<KrameriusOptions.KrameriusInstance.KrameriusLicense> licenses) {
+        public KrameriusDescriptor(
+                String id,
+                String name,
+                List<KrameriusOptions.KrameriusInstance.KrameriusLicense> licenses,
+                List<KrameriusCollection> collections
+        ) {
             this.id = id;
             this.name = name;
             this.licenses = createLicense(licenses);
+            this.collections = collections;
         }
 
         private List<KrameriusLicenseDescriptor> createLicense(List<KrameriusOptions.KrameriusInstance.KrameriusLicense> licenses) {

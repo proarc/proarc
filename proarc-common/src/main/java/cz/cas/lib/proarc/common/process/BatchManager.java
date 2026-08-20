@@ -283,7 +283,7 @@ public class BatchManager {
         }
     }
 
-    private String getImportantParams(BatchParams params, String profileId) {
+    static String getImportantParams(BatchParams params, String profileId) {
         if (params == null || profileId == null) {
             return "";
         }
@@ -300,6 +300,12 @@ public class BatchManager {
             }
             if (params.getLicense() != null && !params.getLicense().isEmpty()) {
                 sb.append("Licence: ").append(params.getLicense()).append("\n");
+            }
+            if (params.getCollections() != null && !params.getCollections().isEmpty()) {
+                sb.append("Sbírky: ").append(params.getCollections()).append("\n");
+            }
+            if (params.isUpdateMods() != null) {
+                sb.append("Aktualizace MODS: ").append(getBooleanAs(params.isUpdateMods())).append("\n");
             }
             if (params.isIgnoreMissingUrnNbn() != null) {
                 sb.append("Ignorace chybějícího URN:NBN: ").append(getBooleanAs(params.isIgnoreMissingUrnNbn())).append("\n");
@@ -340,7 +346,7 @@ public class BatchManager {
         return sb.toString();
     }
 
-    private String getBooleanAs(Boolean booleanValue) {
+    private static String getBooleanAs(Boolean booleanValue) {
         return Boolean.TRUE.equals(booleanValue) ? "Ano" : "Ne";
     }
 
@@ -364,7 +370,7 @@ public class BatchManager {
         }
     }
 
-    public Batch add(File folder, String title, UserProfile user, int itemNumber, Integer peroOcrEngine, Integer metakatEngine, Boolean isNightOnly, List<String> pids, ImportProcess.ImportOptions options) {
+    public Batch add(File folder, String title, UserProfile user, int itemNumber, Integer peroOcrEngine, String metakatEngine, Boolean isNightOnly, List<String> pids, ImportProcess.ImportOptions options) {
         Batch batch = new Batch();
         batch.setCreate(new Timestamp(System.currentTimeMillis()));
         batch.setDevice(options.getDevice());
@@ -398,14 +404,14 @@ public class BatchManager {
         return updated;
     }
 
-    public Batch add(String pid, UserProfile user, String profile, State state, Boolean isNightOnly, BatchParams params) {
+    public Batch add(String pid, UserProfile user, String profile, State state, Boolean isNightOnly, String priority, BatchParams params) {
         Batch batch = new Batch();
         batch.setCreate(new Timestamp(System.currentTimeMillis()));
         batch.setDevice(null);
         batch.setSoftware(null);
         batch.setEstimateItemNumber(null);
         batch.setFolder(pid);
-        batch.setPriority(Batch.PRIORITY_MEDIUM);
+        batch.setPriority(priority);
         batch.setState(state);
         batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         batch.setTitle(pid);

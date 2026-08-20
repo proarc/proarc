@@ -21,7 +21,7 @@ import cz.cas.lib.proarc.common.catalog.MetadataItem;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
-import cz.cas.lib.proarc.common.kramerius.KUtils;
+import cz.cas.lib.proarc.common.externalApp.kramerius.KUtils;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
@@ -320,7 +320,7 @@ public class DigitalObjectManager {
          * @return the handler
          */
         public CreateHandler issueSeries(LocalDate from, LocalDate to, List<Integer> dayIdxs, Boolean seriesMissingDaysIncluded, List<Integer> daysInRange, Integer partNumberFrom,
-                                         String seriesFrequency, String seriesDateFormat, String seriesSignatura, Integer seriesCount) {
+                                         String seriesFrequency, String seriesDateFormat, String seriesSignatura, String seriesSigla, String seriesBarcode, Integer seriesCount) {
             this.seriesDateFrom = from;
             if (from != null) {
                 if (to != null) {
@@ -415,6 +415,12 @@ public class DigitalObjectManager {
             }
             if (seriesSignatura != null && !seriesSignatura.isEmpty()) {
                 params.put(DigitalObjectHandler.PARAM_SIGNATURA, seriesSignatura);
+            }
+            if (seriesSigla != null && !seriesSigla.isEmpty()) {
+                params.put(DigitalObjectHandler.PARAM_SIGLA, seriesSigla);
+            }
+            if (seriesBarcode != null && !seriesBarcode.isEmpty()) {
+                params.put(DigitalObjectHandler.PARAM_BARCODE, seriesBarcode);
             }
             this.seriesPartNumberFrom = partNumberFrom;
             if (partNumberFrom != null) {

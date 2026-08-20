@@ -168,6 +168,28 @@ public class MetaCheckImportTest {
         assertFalse(new File(tempDir, "packageInfo.json").exists());
     }
 
+    @Test
+    public void getMetaCheckFolderReturnsPathFromUsersFolder() {
+        MetaCheckImport importer = new MetaCheckImport();
+
+        String folder = importer.getMetaCheckFolder(
+                new File("/data/.proarc/users/proarc/import/Knav/Periodikum/1"),
+                new File("/data/.proarc"));
+
+        assertEquals("users/proarc/import/Knav/Periodikum/1", folder);
+    }
+
+    @Test
+    public void getMetaCheckFolderReturnsRelativeConfigHomePathWhenUsersFolderIsMissing() {
+        MetaCheckImport importer = new MetaCheckImport();
+
+        String folder = importer.getMetaCheckFolder(
+                new File("/data/.proarc/import/Knav/Periodikum/1"),
+                new File("/data/.proarc"));
+
+        assertEquals("import/Knav/Periodikum/1", folder);
+    }
+
     private static void assertPackageObject(JSONObject object, String pid, String model, String metadata) {
         assertEquals(pid, object.getString("pid"));
         assertEquals(model, object.getString("model"));

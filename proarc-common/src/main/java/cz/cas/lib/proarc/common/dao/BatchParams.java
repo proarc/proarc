@@ -27,12 +27,14 @@ public class BatchParams {
     private String noTifAvailableMessage;
     private String additionalInfoMessage;
     private String license;
+    private List<String> collections;
+    private Boolean updateMods;
     private Boolean extendedArchivePackage;
     private Boolean purge;
     private Boolean restore;
     private String type;
     private Integer peroOcrEngine;
-    private Integer metakatEngine;
+    private String metakatEngine;
     private String notBefore;
     private String notAfter;
 
@@ -248,6 +250,24 @@ public class BatchParams {
         this.license = license;
     }
 
+    @XmlElement(name = "collections")
+    public List<String> getCollections() {
+        return collections;
+    }
+
+    public void setCollections(List<String> collections) {
+        this.collections = collections;
+    }
+
+    @XmlElement(name = "updateMods")
+    public Boolean isUpdateMods() {
+        return updateMods;
+    }
+
+    public void setUpdateMods(Boolean updateMods) {
+        this.updateMods = updateMods;
+    }
+
     @XmlElement(name = "extendedArchivePackage")
     public Boolean getExtendedArchivePackage() {
         return extendedArchivePackage;
@@ -294,11 +314,11 @@ public class BatchParams {
     }
 
     @XmlElement(name = "metakatEngine")
-    public Integer getMetakatEngine() {
+    public String getMetakatEngine() {
         return this.metakatEngine;
     }
 
-    public void setMetakatEngine(Integer metakatEngine) {
+    public void setMetakatEngine(String metakatEngine) {
         this.metakatEngine = metakatEngine;
     }
 

@@ -135,7 +135,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                 }
         ));
         models.add(new MetaModel(
-                MODEL_ECHAPTER, null, null,
+                MODEL_ECHAPTER, null, true,
                 Arrays.asList(new ElementType("NDK eChapter", "en"), new ElementType("NDK eKapitola", "cs")),
                 ModsConstants.NS,
                 MODEL_ECHAPTER,
@@ -201,7 +201,7 @@ public class NdkEbornPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
                         new RelationCriteria(NdkPlugin.MODEL_PERIODICALVOLUME, RelationCriteria.Type.PID)}
         ));
         models.add(new MetaModel(
-                MODEL_EARTICLE, null, null,
+                MODEL_EARTICLE, null, true,
                 Arrays.asList(new ElementType("NDK eArticle", "en"), new ElementType("NDK eČlánek", "cs")),
                 ModsConstants.NS,
                 MODEL_EARTICLE,

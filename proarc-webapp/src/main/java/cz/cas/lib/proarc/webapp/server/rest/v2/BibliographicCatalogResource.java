@@ -17,7 +17,10 @@
 package cz.cas.lib.proarc.webapp.server.rest.v2;
 
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.catalog.CatalogException;
+import cz.cas.lib.proarc.webapp.server.rest.CatalogErrorResponses;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
+import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.v1.BibliographicCatalogResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.BibliographicCatalogResourceApi;
 import jakarta.ws.rs.DefaultValue;
@@ -67,16 +70,21 @@ public class BibliographicCatalogResource extends BibliographicCatalogResourceV1
     @Path(BibliographicCatalogResourceApi.FIND_PATH)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public MetadataList find(
+    public Object find(
             @QueryParam(BibliographicCatalogResourceApi.FIND_CATALOG_PARAM) String catalog,
             @QueryParam(BibliographicCatalogResourceApi.FIND_FIELDNAME_PARAM) String fieldName,
             @QueryParam(BibliographicCatalogResourceApi.FIND_VALUE_PARAM) String value
     ) {
         try {
             return super.find(catalog, fieldName, value);
-        } catch (Throwable t) {
+        } catch (CatalogException ex) {
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
+            return CatalogErrorResponses.asError(ex, catalog, getAcceptableLanguages());
+        } catch (RestException ex) {
+            throw ex;
+        } catch (Exception t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
-            return new MetadataList();
+            return CatalogErrorResponses.unexpectedError(getAcceptableLanguages());
         }
     }
 }

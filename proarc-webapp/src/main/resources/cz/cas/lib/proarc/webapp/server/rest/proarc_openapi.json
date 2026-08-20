@@ -147,11 +147,18 @@
         ],
         "responses": {
           "default": {
-            "description": "default response",
+            "description": "Catalog search result. An empty entry array means that no records were found. Catalog failures use catalog.connection-failed, catalog.remote-error, catalog.transformation-failed, or catalog.search-failed error keys.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/metadataCatalogEntries"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/metadataCatalogEntries"
+                    },
+                    {
+                      "$ref": "#/components/schemas/catalogErrorResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -227,11 +234,18 @@
         ],
         "responses": {
           "default": {
-            "description": "default response",
+            "description": "Catalog search result. An empty entry array means that no records were found. Catalog failures use catalog.connection-failed, catalog.remote-error, catalog.transformation-failed, or catalog.search-failed error keys.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/metadataCatalogEntries"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/metadataCatalogEntries"
+                    },
+                    {
+                      "$ref": "#/components/schemas/catalogErrorResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -696,6 +710,12 @@
                   "license": {
                     "type": "string"
                   },
+                  "collection": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
                   "hierarchy": {
                     "type": "boolean",
                     "default": true
@@ -704,6 +724,10 @@
                     "type": "string"
                   },
                   "isBagit": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "updateMods": {
                     "type": "boolean",
                     "default": false
                   },
@@ -825,6 +849,12 @@
                   },
                   "license": {
                     "type": "string"
+                  },
+                  "collection": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   },
                   "nightOnly": {
                     "type": "boolean",
@@ -2408,6 +2438,12 @@
                     "format": "int32"
                   },
                   "seriesSignatura": {
+                    "type": "string"
+                  },
+                  "seriesSigla": {
+                    "type": "string"
+                  },
+                  "seriesBarcode": {
                     "type": "string"
                   },
                   "seriesFrequency": {
@@ -5102,6 +5138,35 @@
         }
       }
     },
+    "/object/member/distribute": {
+      "put": {
+        "tags": [
+          "Object"
+        ],
+        "operationId": "distributeMembers",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DistributeMembersRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/object/member/move": {
       "put": {
         "tags": [
@@ -5426,6 +5491,27 @@
                     "type": "string"
                   },
                   "sigla": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "subTitle": {
+                    "type": "string"
+                  },
+                  "partName": {
+                    "type": "string"
+                  },
+                  "note": {
+                    "type": "string"
+                  },
+                  "publisher": {
+                    "type": "string"
+                  },
+                  "place": {
+                    "type": "string"
+                  },
+                  "dateIssued": {
                     "type": "string"
                   }
                 }
@@ -9094,6 +9180,36 @@
           },
           "dataAsError": {
             "type": "string"
+          }
+        },
+        "xml": {
+          "name": "response"
+        }
+      },
+      "catalogErrorResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "errors"
+        ],
+        "properties": {
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+              -4
+            ],
+            "description": "ProArc validation error status."
+          },
+          "errors": {
+            "type": "object",
+            "description": "The property name is one of catalog.connection-failed, catalog.remote-error, catalog.transformation-failed, or catalog.search-failed.",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ErrorMessage"
+              }
+            }
           }
         },
         "xml": {
@@ -14273,6 +14389,45 @@
           }
         }
       },
+      "DistributeMembersRequest": {
+        "type": "object",
+        "properties": {
+          "srcPid": {
+            "type": "string"
+          },
+          "batchId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "targets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DistributeMembersTarget"
+            }
+          },
+          "runReindex": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "DistributeMembersTarget": {
+        "type": "object",
+        "properties": {
+          "dstPid": {
+            "type": "string"
+          },
+          "pid": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "xml": {
+                "name": "pid"
+              }
+            }
+          }
+        }
+      },
       "MoveMembersRequest": {
         "type": "object",
         "properties": {
@@ -14715,6 +14870,12 @@
             "items": {
               "$ref": "#/components/schemas/KrameriusLicenseDescriptor"
             }
+          },
+          "krameriusInstanceCollections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KrameriusCollection"
+            }
           }
         }
       },
@@ -14729,6 +14890,26 @@
           },
           "krameriusInstanceLicenseDescription": {
             "type": "string"
+          }
+        }
+      },
+      "KrameriusCollection": {
+        "type": "object",
+        "properties": {
+          "pid": {
+            "type": "string"
+          },
+          "names": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "descriptions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           }
         }
       },

@@ -32,8 +32,8 @@ class OpenApiSpecificationTest {
         assertEquals("../rest/v2", spec.getJSONArray("servers").getJSONObject(0).getString("url"));
 
         JSONObject paths = spec.getJSONObject("paths");
-        assertEquals(165, paths.length());
-        assertEquals(201, countOperations(paths));
+        assertEquals(166, paths.length());
+        assertEquals(202, countOperations(paths));
         assertTrue(paths.has("/authorities"));
         assertTrue(paths.has("/bibliographies/query"));
         assertTrue(paths.has("/device"));
@@ -171,6 +171,22 @@ class OpenApiSpecificationTest {
     }
 
     @Test
+    void objectModsEditorObjectsDocumentsBulkUpdateFields() throws Exception {
+        JSONObject put = loadSpec()
+                .getJSONObject("paths")
+                .getJSONObject("/object/mods/editorObjects")
+                .getJSONObject("put");
+
+        assertEquals("updateDescriptionMetadataObjects", put.getString("operationId"));
+        JSONObject properties = formRequestProperties(put);
+        for (String property : List.of("pid", "partNumber", "signatura", "sigla", "title", "subTitle",
+                "partName", "note", "publisher", "place", "dateIssued")) {
+            assertTrue(properties.has(property), property);
+        }
+        assertDefaultJsonResponse(put, "#/components/schemas/response");
+    }
+
+    @Test
     void objectDisseminationDocumentsUploadAndBinaryDownload() throws Exception {
         JSONObject dissemination = loadSpec()
                 .getJSONObject("paths")
@@ -228,6 +244,49 @@ class OpenApiSpecificationTest {
     }
 
     @Test
+    void krameriusExportDocumentsModsUpdateParameterAndCollections() throws Exception {
+        JSONObject spec = loadSpec();
+        JSONObject paths = spec.getJSONObject("paths");
+        JSONObject properties = formRequestProperties(paths
+                .getJSONObject("/export/kramerius4")
+                .getJSONObject("post"));
+
+        JSONObject updateMods = properties.getJSONObject("updateMods");
+        assertEquals("boolean", updateMods.getString("type"));
+        assertFalse(updateMods.getBoolean("default"));
+
+        assertEquals("string", properties.getJSONObject("collection")
+                .getJSONObject("items")
+                .getString("type"));
+        assertEquals("string", formRequestProperties(paths
+                .getJSONObject("/export/ndk")
+                .getJSONObject("post"))
+                .getJSONObject("collection")
+                .getJSONObject("items")
+                .getString("type"));
+
+        JSONObject schemas = spec.getJSONObject("components").getJSONObject("schemas");
+        assertEquals("#/components/schemas/KrameriusCollection", schemas
+                .getJSONObject("KrameriusDescriptor")
+                .getJSONObject("properties")
+                .getJSONObject("krameriusInstanceCollections")
+                .getJSONObject("items")
+                .getString("$ref"));
+        JSONObject collectionProperties = schemas
+                .getJSONObject("KrameriusCollection")
+                .getJSONObject("properties");
+        assertEquals("string", collectionProperties.getJSONObject("pid").getString("type"));
+        assertEquals("string", collectionProperties
+                .getJSONObject("names")
+                .getJSONObject("additionalProperties")
+                .getString("type"));
+        assertEquals("string", collectionProperties
+                .getJSONObject("descriptions")
+                .getJSONObject("additionalProperties")
+                .getString("type"));
+    }
+
+    @Test
     void userAndWorkflowDocumentsAdministrativeContracts() throws Exception {
         JSONObject user = loadSpec()
                 .getJSONObject("paths")
@@ -260,7 +319,7 @@ class OpenApiSpecificationTest {
         JSONObject schemas = loadSpec()
                 .getJSONObject("components")
                 .getJSONObject("schemas");
-        assertEquals(224, schemas.length());
+        assertEquals(228, schemas.length());
 
         JSONObject response = schemas.getJSONObject("response");
         JSONObject properties = response.getJSONObject("properties");
@@ -272,6 +331,81 @@ class OpenApiSpecificationTest {
         assertTrue(properties.has("errorMessage"));
         assertTrue(properties.has("errors"));
         assertEquals("response", response.getJSONObject("xml").getString("name"));
+    }
+
+    @Test
+    void catalogQueriesDocumentResultsAndStructuredErrors() throws Exception {
+        JSONObject spec = loadSpec();
+        JSONObject paths = spec.getJSONObject("paths");
+
+        for (String path : List.of("/authorities/query", "/bibliographies/query")) {
+            JSONObject response = paths.getJSONObject(path)
+                    .getJSONObject("get")
+                    .getJSONObject("responses")
+                    .getJSONObject("default");
+            String description = response.getString("description");
+            assertTrue(description.contains("empty entry array"), path);
+            assertTrue(description.contains("catalog.connection-failed"), path);
+            assertTrue(description.contains("catalog.remote-error"), path);
+            assertTrue(description.contains("catalog.transformation-failed"), path);
+            assertTrue(description.contains("catalog.search-failed"), path);
+
+            JSONArray alternatives = response
+                    .getJSONObject("content")
+                    .getJSONObject("application/json")
+                    .getJSONObject("schema")
+                    .getJSONArray("oneOf");
+            assertEquals(2, alternatives.length(), path);
+            assertEquals("#/components/schemas/metadataCatalogEntries",
+                    alternatives.getJSONObject(0).getString("$ref"), path);
+            assertEquals("#/components/schemas/catalogErrorResponse",
+                    alternatives.getJSONObject(1).getString("$ref"), path);
+        }
+
+        JSONObject errorSchema = spec
+                .getJSONObject("components")
+                .getJSONObject("schemas")
+                .getJSONObject("catalogErrorResponse");
+        assertTrue(errorSchema.getJSONArray("required").toList().containsAll(List.of("status", "errors")));
+        assertEquals(-4, errorSchema
+                .getJSONObject("properties")
+                .getJSONObject("status")
+                .getJSONArray("enum")
+                .getInt(0));
+    }
+
+    @Test
+    void objectMemberDistributeDocumentsBatchDistribution() throws Exception {
+        JSONObject put = loadSpec()
+                .getJSONObject("paths")
+                .getJSONObject("/object/member/distribute")
+                .getJSONObject("put");
+
+        assertEquals("#/components/schemas/DistributeMembersRequest", put.getJSONObject("requestBody")
+                .getJSONObject("content")
+                .getJSONObject("application/json")
+                .getJSONObject("schema")
+                .getString("$ref"));
+
+        JSONObject requestProperties = loadSpec()
+                .getJSONObject("components")
+                .getJSONObject("schemas")
+                .getJSONObject("DistributeMembersRequest")
+                .getJSONObject("properties");
+        assertTrue(requestProperties.has("targets"));
+        assertTrue(requestProperties.has("runReindex"));
+        assertEquals("#/components/schemas/DistributeMembersTarget", requestProperties
+                .getJSONObject("targets")
+                .getJSONObject("items")
+                .getString("$ref"));
+
+        JSONObject moveProperties = loadSpec()
+                .getJSONObject("components")
+                .getJSONObject("schemas")
+                .getJSONObject("MoveMembersRequest")
+                .getJSONObject("properties");
+        assertFalse(moveProperties.has("targets"));
+        assertFalse(moveProperties.has("runReindex"));
     }
 
     @Test
@@ -331,8 +465,8 @@ class OpenApiSpecificationTest {
             assertTrue(pathOperationCount > 0, path);
         }
 
-        assertEquals(201, operationCount);
-        assertEquals(201, responseCount);
+        assertEquals(202, operationCount);
+        assertEquals(202, responseCount);
     }
 
     @Test

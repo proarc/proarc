@@ -100,7 +100,7 @@ public class OaiCatalogTest {
         try {
             c.transformOaiResponse(new StreamSource(srcUrl), new StreamResult(new StringWriter()));
             fail();
-        } catch (TransformerException result) {
+        } catch (CatalogProtocolException result) {
             String msg = result.getMessage();
             assertTrue(msg.contains("cannotDisseminateFormat"), msg);
         }
@@ -113,7 +113,7 @@ public class OaiCatalogTest {
         try {
             c.transformOaiResponse(new StreamSource(srcUrl), new StreamResult(new StringWriter()));
             fail();
-        } catch (TransformerException result) {
+        } catch (CatalogProtocolException result) {
             String msg = result.getMessage();
             assertTrue(msg.contains("Invalid metadata format: http://www.openarchives.org/OAI/2.0/oai_dc/"), msg);
         }

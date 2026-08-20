@@ -111,7 +111,7 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_METAKAT_ENGINE) Integer metakatEngine,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_METAKAT_ENGINE) String metakatEngine,
             @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PIDS) List<String> pids
     ) {
@@ -151,7 +151,7 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_ORIGINAL_METADATA) @DefaultValue("false") boolean useOriginalMetadata,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PERO_OCR_ENGINE) Integer peroOcrEngine,
-            @FormParam(ImportResourceApi.IMPORT_BATCH_METAKAT_ENGINE) Integer metakatEngine,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_METAKAT_ENGINE) String metakatEngine,
             @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PIDS) List<String> pids
     ) {

@@ -20,6 +20,8 @@ import cz.cas.lib.proarc.common.config.CatalogConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogQueryField;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.xml.Transformers;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
@@ -142,10 +144,10 @@ public final class AlmaCatalog implements BibliographicCatalog {
 
     @Override
     public List<MetadataItem> find(String catalog, String fieldId, String value, Locale locale) throws TransformerException, IOException {
-        WebTarget query = buildQuery(fieldId, value);
-        String serverResponse = findRecord(query);
-        ArrayList<MetadataItem> result = new ArrayList<>();
         try {
+            WebTarget query = buildQuery(fieldId, value);
+            String serverResponse = findRecord(query);
+            ArrayList<MetadataItem> result = new ArrayList<>();
             JSONObject response = new JSONObject(serverResponse);
             JSONArray records = response.getJSONArray("bib");
             int index = 1;
@@ -166,10 +168,21 @@ public final class AlmaCatalog implements BibliographicCatalog {
                     throw new IOException("Očekávaný formát záznamu \"marc21\", ze serveru dostal \"" + json.getString("record_format") + "\".");
                 }
             }
+            return result;
         } catch (JSONException e) {
             LOG.log(Level.WARNING, e.getMessage());
+            throw CatalogException.remoteError(catalog, e);
+        } catch (WebApplicationException ex) {
+            throw CatalogException.remoteError(catalog, ex);
+        } catch (ProcessingException ex) {
+            throw CatalogException.connectionFailed(catalog, ex);
+        } catch (CatalogProtocolException ex) {
+            throw CatalogException.remoteError(catalog, ex);
+        } catch (TransformerException | RuntimeException ex) {
+            throw CatalogException.transformationFailed(catalog, ex);
+        } catch (IOException ex) {
+            throw CatalogException.remoteError(catalog, ex);
         }
-        return result;
     }
 
     <T extends Result> T transformAlmaResponse(StreamSource streamSource, T domResult) throws TransformerException {
@@ -184,7 +197,7 @@ public final class AlmaCatalog implements BibliographicCatalog {
             if (errorListener.containError(XslErrorListener.ERR_ID_DOESNOT_EXIST)) {
                 return null;
             } else if (!errorListener.getMessages().isEmpty()) {
-                throw new TransformerException(errorListener.getMessages().toString(), ex);
+                throw new CatalogProtocolException(errorListener.getMessages().toString(), ex);
             }
             throw ex;
         }
