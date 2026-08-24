@@ -200,7 +200,7 @@ public abstract class NdkMapper {
         OaiDcType dc = new OaiDcType();
         List<ElementType> identifiers = dc.getIdentifiers();
         for (IdentifierDefinition identifier : mods.getIdentifier()) {
-            if (identifier.getInvalid() == null || "false".equals(identifier.getInvalid())) {
+            if (identifier.getInvalid() == null) {
                 String idVal = toValue(identifier.getValue());
                 if (idVal == null) {
                     continue;

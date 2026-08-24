@@ -161,7 +161,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         }
         for (IdentifierDefinition identifier : mods.getIdentifier()) {
             if (identifier.getValue() != null && !identifier.getValue().isEmpty()) {
-                if (identifier.getInvalid() == null || identifier.getInvalid().equals("false") || identifier.getInvalid().equals("no")) {
+                if (identifier.getInvalid() == null) {
 //                    identifiers.add(identifier.getType() == null ? "" : (identifier.getType()));
                     identifiers.add(identifier.getValue());
                 }
@@ -188,7 +188,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
 
     private String getUrnNbn(ModsDefinition mods) {
         for (IdentifierDefinition identifier : mods.getIdentifier()) {
-            if ("urnnbn".equals(identifier.getType()) && (identifier.getInvalid() == null || "".equals(identifier.getInvalid()) || "false".equals(identifier.getInvalid()))) {
+            if ("urnnbn".equals(identifier.getType()) && identifier.getInvalid() == null) {
                 return identifier.getValue();
             }
         }

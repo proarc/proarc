@@ -253,6 +253,25 @@ public final class ModsUtils {
         return MODS_SCHEMA;
     }
 
+    public static InputStream getSchemaAsStream(String version) {
+        String schemaPath;
+        if (VERSION.equals(version) || "3.7".equals(version)) {
+            schemaPath = MODS_SCHEMA_PATH;
+        } else if ("3.6".equals(version)) {
+            schemaPath = "mods-3-6.xsd";
+        } else if ("3.5".equals(version)) {
+            schemaPath = "mods-3-5.xsd";
+        } else if (version == null || version.isEmpty()
+                || "3.4".equals(version) || "3.3".equals(version)
+                || "3.2".equals(version) || "3.1".equals(version)
+                || "3.0".equals(version)) {
+            schemaPath = "mods-3-4.xsd";
+        } else {
+            throw new IllegalArgumentException("Unsupported MODS version: " + version);
+        }
+        return ModsDefinition.class.getResourceAsStream(schemaPath);
+    }
+
     public static ModsDefinition overrideDescriptionStandard(ModsDefinition mods, String standard) {
         for (RecordInfoDefinition recordInfo : mods.getRecordInfo()) {
             for (StringPlusLanguagePlusAuthority descriptionStandard : recordInfo.getDescriptionStandard()) {
