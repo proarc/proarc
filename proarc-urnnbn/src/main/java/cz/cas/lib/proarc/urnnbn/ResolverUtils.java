@@ -222,9 +222,9 @@ public class ResolverUtils {
                 NameDefinition add = null;
                 if (isPrimary == null) {
                     add = nameDefinition;
-                } else if (isPrimary && "primary".equals(getNameUsage(nameDefinition))) {
+                } else if (isPrimary && "primary".equalsIgnoreCase(getNameUsage(nameDefinition))) {
                     add = nameDefinition;
-                } else if (!isPrimary && !"primary".equals(getNameUsage(nameDefinition))) {
+                } else if (!isPrimary && !"primary".equalsIgnoreCase(getNameUsage(nameDefinition))) {
                     add = nameDefinition;
                 }
                 if (add != null && type.equals(nameDefinition.getType())) {

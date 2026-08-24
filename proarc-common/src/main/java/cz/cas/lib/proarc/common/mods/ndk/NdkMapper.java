@@ -157,7 +157,7 @@ public abstract class NdkMapper {
         String uuid = FoxmlUtils.pidAsUuid(pid);
         for (IdentifierDefinition id : mods.getIdentifier()) {
             if ("uuid".equals(id.getType()) && !uuid.equals(id.getValue())) {
-                id.setInvalid("yes");
+                id.setInvalid(Yes.YES);
             }
         }
     }

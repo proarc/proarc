@@ -43,6 +43,7 @@ import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixType;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.Yes;
 import cz.cas.lib.proarc.urnnbn.NdkEntityFactory;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
 import cz.cas.lib.proarc.urnnbn.ResolverUtils;
@@ -2076,7 +2077,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
             IdentifierDefinition urnNbnIdOld = ResolverUtils.getIdentifierWithValue("urnnbn", urnNbnValueOld, elmMods);
             if (urnNbnIdOld != null) {
-                urnNbnIdOld.setInvalid("yes");
+                urnNbnIdOld.setInvalid(Yes.YES);
             } else {
                 p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
                 return;
@@ -2098,7 +2099,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         try {
             IdentifierDefinition identifierDefinition = ResolverUtils.getIdentifier("urnnbn", elmMods);
             if (identifierDefinition != null) {
-                identifierDefinition.setInvalid("yes");
+                identifierDefinition.setInvalid(Yes.YES);
                 DigitalObjectHandler objectHandler = elm.getHandler();
                 elmDescription.setData(elmMods);
                 elmModsHandler.setMetadata(elmDescription, "Invalidate URN:NBN", NdkMetadataHandler.OPERATION_URNNBN);

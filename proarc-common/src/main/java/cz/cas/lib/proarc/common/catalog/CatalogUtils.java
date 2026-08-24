@@ -14,6 +14,7 @@ import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
+import cz.cas.lib.proarc.mods.PublisherDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
@@ -311,7 +312,7 @@ public class CatalogUtils {
             if (couple.contains("b")) {
                 for (OriginInfoDefinition oldOriginInfo : mods.getOriginInfo()) {
                     if (oldOriginInfo.getEventType() != null) {
-                        for (StringPlusLanguagePlusSupplied oldPublisher : oldOriginInfo.getPublisher()) {
+                        for (PublisherDefinition oldPublisher : oldOriginInfo.getPublisher()) {
                             if (newOriginInfo == null) {
                                 newOriginInfo = new OriginInfoDefinition();
                                 newOriginInfo.setEventType(oldOriginInfo.getEventType());
@@ -446,7 +447,7 @@ public class CatalogUtils {
             }
             if (couple.contains("b")) {
                 for (OriginInfoDefinition oldOriginInfo : mods.getOriginInfo()) {
-                    for (StringPlusLanguagePlusSupplied oldPublisher : oldOriginInfo.getPublisher()) {
+                    for (PublisherDefinition oldPublisher : oldOriginInfo.getPublisher()) {
                         if (newOriginInfo == null) {
                             newOriginInfo = new OriginInfoDefinition();
                         }
@@ -517,7 +518,7 @@ public class CatalogUtils {
 
     private static void copyPlaceDatePublisher(ModsDefinition mods) {
         DateDefinition dateValue = null;
-        StringPlusLanguagePlusSupplied publisherValue = null;
+        PublisherDefinition publisherValue = null;
         PlaceTermDefinition placeValue = null;
         IssuanceDefinition issuanceDefinition = null;
 
@@ -525,7 +526,7 @@ public class CatalogUtils {
             if (issuanceDefinition == null && !originInfo.getIssuance().isEmpty() && originInfo.getIssuance().get(0) != null) {
                 issuanceDefinition = originInfo.getIssuance().get(0);
             }
-            for (StringPlusLanguagePlusSupplied publisher : originInfo.getPublisher()) {
+            for (PublisherDefinition publisher : originInfo.getPublisher()) {
                 if (publisher.getValue() != null) {
                     if (publisherValue == null) {
                         publisherValue = publisher;

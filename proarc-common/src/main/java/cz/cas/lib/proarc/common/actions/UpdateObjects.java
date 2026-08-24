@@ -46,6 +46,7 @@ import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
+import cz.cas.lib.proarc.mods.PublisherDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
@@ -228,7 +229,7 @@ public class UpdateObjects {
             }
             if (this.publisherValue != null) {
                 if (originInfo.getPublisher().isEmpty()) {
-                    originInfo.getPublisher().add(new StringPlusLanguagePlusSupplied());
+                    originInfo.getPublisher().add(new PublisherDefinition());
                 }
                 for (StringPlusLanguagePlusSupplied publisher : originInfo.getPublisher()) {
                     publisher.setValue(this.publisherValue);

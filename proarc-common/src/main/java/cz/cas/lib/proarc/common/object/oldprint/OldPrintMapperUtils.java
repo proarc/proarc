@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.object.oldprint;
 
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
+import cz.cas.lib.proarc.mods.Yes;
 import java.util.List;
 
 /**
@@ -37,14 +38,14 @@ public class OldPrintMapperUtils {
         for (TypeOfResourceDefinition typeOfResource : typeOfResources) {
             if ("text".equals(typeOfResource.getValue())) {
                 reqTypeOfResource = typeOfResource;
-                typeOfResource.setManuscript("yes");
+                typeOfResource.setManuscript(Yes.YES);
                 break;
             }
         }
         if (reqTypeOfResource == null) {
             TypeOfResourceDefinition type = new TypeOfResourceDefinition();
             type.setValue("text");
-            type.setManuscript("yes");
+            type.setManuscript(Yes.YES);
             typeOfResources.add(0, type);
         }
     }

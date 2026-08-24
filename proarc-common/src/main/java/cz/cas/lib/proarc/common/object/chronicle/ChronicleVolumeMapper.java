@@ -11,6 +11,7 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.RelatedItemDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+import cz.cas.lib.proarc.mods.Yes;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,7 +50,7 @@ public class ChronicleVolumeMapper extends NdkMonographVolumeMapper {
         String uuid = FoxmlUtils.pidAsUuid(pid);
         for (IdentifierDefinition id : mods.getIdentifier()) {
             if ("uuid".equals(id.getType()) && !uuid.equals(id.getValue())) {
-                id.setInvalid("yes");
+                id.setInvalid(Yes.YES);
             }
         }
     }
