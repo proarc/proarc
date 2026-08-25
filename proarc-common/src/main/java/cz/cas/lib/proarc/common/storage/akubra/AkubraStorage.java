@@ -248,7 +248,7 @@ public class AkubraStorage {
                         Element element = datastreamVersion.getXmlContent().getAny().get(0);
                         StringWriter output = new StringWriter();
 
-                        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+                        Transformer transformer = TransformerFactory.newDefaultInstance().newTransformer();
                         transformer.transform(new DOMSource(element), new StreamResult(output));
 
                         String elementValue = output.toString();
@@ -1019,7 +1019,7 @@ public class AkubraStorage {
                                     Source xmlSource = new DOMSource(node);
                                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                                     Result outputTarget = new StreamResult(outputStream);
-                                    TransformerFactory.newInstance().newTransformer().transform(xmlSource, outputTarget);
+                                    TransformerFactory.newDefaultInstance().newTransformer().transform(xmlSource, outputTarget);
                                     this.data = new AkubraXmlStreamEditor.DatastreamContent(outputStream.toByteArray());
                                     break;
                                 }

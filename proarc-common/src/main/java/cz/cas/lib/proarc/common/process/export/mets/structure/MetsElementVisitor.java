@@ -839,7 +839,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         StringWriter xmlAsWriter = new StringWriter();
         StreamResult result = new StreamResult(xmlAsWriter);
         try {
-            TransformerFactory.newInstance().newTransformer().transform(domSource, result);
+            TransformerFactory.newDefaultInstance().newTransformer().transform(domSource, result);
             InputStream resultIS = new ByteArrayInputStream(xmlAsWriter.toString().getBytes("UTF-8"));
             is.close();
             return resultIS;

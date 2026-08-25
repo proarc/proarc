@@ -698,7 +698,7 @@ public class MetsUtils {
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         factory.setResourceResolver(MetsLSResolver.getInstance());
         Schema schema = factory.newSchema(new StreamSource(xsd));
-        TransformerFactory tFactory = TransformerFactory.newInstance();
+        TransformerFactory tFactory = TransformerFactory.newDefaultInstance();
         Transformer transformer = tFactory.newTransformer();
         DOMSource domSource = new DOMSource(document);
         StreamResult sResult = new StreamResult();
