@@ -12,10 +12,10 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.external.ExternalProcess;
-import cz.cas.lib.proarc.common.process.external.PeroOcrProcessor;
 import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
 import cz.cas.lib.proarc.common.process.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.process.imports.FileSet;
+import cz.cas.lib.proarc.common.process.imports.GeneratorAltoOcr;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.process.imports.ImportHandler;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
@@ -110,7 +110,7 @@ public class MetaCheckImport implements ImportHandler {
             }
 
             File fullJpg = generateFullJpg(fileSet, tiff, importConfig);
-            generateOcrAndAlto(tiff, fullJpg, importConfig);
+            GeneratorAltoOcr.generateOcrAndAlto(fullJpg, tiff, importConfig);
 
             batchManager.addFileItem(batch.getId(), null, BatchItem.FileState.OK, fileSet.getFiles());
             importConfig.setConsumedFileCounter(importConfig.getConsumedFileCounter() + 1);
@@ -161,54 +161,6 @@ public class MetaCheckImport implements ImportHandler {
             throw new IllegalStateException("Not a JPEG content: " + fullJpg);
         }
         return fullJpg;
-    }
-
-    private File[] generateOcrAndAlto(File tiff, File fullJpg, ImportProcess.ImportOptions importConfig) throws IOException {
-        ImportProfile profile = importConfig.getConfig();
-        File[] ocrAltoFiles = getOcrAltoFiles(tiff, profile);
-        if (ocrAltoFiles[0].exists() && ocrAltoFiles[1].exists()) {
-            LOG.log(Level.FINE, "Skipping OCR/ALTO generation, files exist for: {0}", tiff);
-            return ocrAltoFiles;
-        }
-
-        Integer peroOcrEngine = getPeroOcrEngine(importConfig);
-        PeroOcrProcessor ocrProcessor = new PeroOcrProcessor(profile.getOcrGenProcessor(), peroOcrEngine);
-        try {
-            boolean processed = ocrProcessor.process(
-                    fullJpg.getAbsolutePath(),
-                    ocrAltoFiles[0].getAbsolutePath(),
-                    ocrAltoFiles[1].getAbsolutePath());
-            if (processed) {
-                LOG.info("OCR GENERATED SUCCESSFULLY for " + fullJpg.getAbsolutePath());
-            }
-        } catch (JSONException ex) {
-            LOG.log(Level.SEVERE, "Generating OCR for " + fullJpg.getName() + " failed.", ex);
-            throw new IOException(ex);
-        }
-        if (!ocrAltoFiles[0].exists() || !ocrAltoFiles[1].exists()) {
-            throw new IOException("Generating OCR/ALTO failed for " + fullJpg.getAbsolutePath());
-        }
-        return ocrAltoFiles;
-    }
-
-    private File[] getOcrAltoFiles(File tiff, ImportProfile profile) {
-        String tiffPath = tiff.getAbsolutePath();
-        String basePath = tiffPath.substring(0, tiffPath.lastIndexOf('.'));
-        File ocr = new File(basePath + profile.getPlainOcrFileSuffix());
-        File alto = new File(basePath + profile.getAltoFileSuffix());
-        return new File[]{ocr, alto};
-    }
-
-    private Integer getPeroOcrEngine(ImportProcess.ImportOptions importConfig) {
-        try {
-            Integer peroOcrEngine = importConfig.getBatch().getParamsAsObject().getPeroOcrEngine();
-            if (peroOcrEngine == null || peroOcrEngine < 0) {
-                return 1;
-            }
-            return peroOcrEngine;
-        } catch (NullPointerException ex) {
-            return 1;
-        }
     }
 
     void createPackageInfo(ImportProcess.ImportOptions importConfig, AppConfiguration config) throws Exception {
