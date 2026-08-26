@@ -153,14 +153,9 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
                 }
 
 
-                if (metsElement.getChildren().isEmpty()) {
-                    packageFiles.addAll(saveStreams(metsElement, packageRoot));
-                    pidsToExport.add(metsElement);
-                } else {
-                    for (IMetsElement childElement : metsElement.getChildren()) {
-                        packageFiles.addAll(saveStreams(childElement, packageRoot));
-                        pidsToExport.add(childElement);
-                    }
+                for (IMetsElement childElement : getPeriodicalElementsToExport(metsElement)) {
+                    packageFiles.addAll(saveStreams(childElement, packageRoot));
+                    pidsToExport.add(childElement);
                 }
 
 //                IMetsElement parent = metsElement.getParent();
@@ -204,6 +199,13 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
 
         //saveInfoFile(packageRoot, metsElement);
 
+    }
+
+    static List<IMetsElement> getPeriodicalElementsToExport(IMetsElement metsElement) {
+        List<IMetsElement> elements = new ArrayList<>();
+        elements.add(metsElement);
+        elements.addAll(metsElement.getChildren());
+        return elements;
     }
 
     private void generateTechMetadata(IMetsElement metsElement, Integer index) throws MetsExportException {
@@ -564,7 +566,7 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
         }
         if (logicalMap != null) {
             mets.getStructMap().clear();
-            StructMapType map = copyPeriocialMap(logicalMap, metsElement);
+            StructMapType map = copyPeriodicalMap(logicalMap, metsElement);
             mets.getStructMap().add(map);
         }
     }
@@ -640,7 +642,7 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
         return map;
     }
 
-    private StructMapType copyPeriocialMap(StructMapType logicalMap, IMetsElement metsElement) {
+    StructMapType copyPeriodicalMap(StructMapType logicalMap, IMetsElement metsElement) {
         int docId = 1;
         StructMapType map = new StructMapType();
         DivType divTitle = new DivType();
@@ -657,17 +659,14 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
                     DivType divIssue = new DivType();
                     copyDiv(divIssue, divOriginalIssue, true, false);
                     divVolume.getDiv().add(divIssue);
-                    if (divOriginalIssue.getDiv().isEmpty()) {
-                        createDivDocument(docId++, divIssue, metsElement);
-                    } else {
-                        for (int i = 0; i < divOriginalIssue.getDiv().size(); i++) {
-                            DivType divOriginalArticle = divOriginalIssue.getDiv().get(i);
-                            IMetsElement childElement = metsElement.getChildren().get(i);
-                            DivType divArticle = new DivType();
-                            copyDiv(divArticle, divOriginalArticle, true, false);
-                            divIssue.getDiv().add(divArticle);
-                            createDivDocument(docId++, divArticle, childElement);
-                        }
+                    createDivDocument(docId++, divIssue, metsElement);
+                    for (int i = 0; i < divOriginalIssue.getDiv().size(); i++) {
+                        DivType divOriginalChild = divOriginalIssue.getDiv().get(i);
+                        IMetsElement childElement = metsElement.getChildren().get(i);
+                        DivType divChild = new DivType();
+                        copyDiv(divChild, divOriginalChild, true, false);
+                        divIssue.getDiv().add(divChild);
+                        createDivDocument(docId++, divChild, childElement);
                     }
                 }
             }
