@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.introspect.AnnotationIntrospectorPair;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 
 /**
@@ -59,6 +60,7 @@ public final class JsonUtils {
         om.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
         om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         om.configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
+        om.setTimeZone(TimeZone.getDefault());
         return om;
     }
 
