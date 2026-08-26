@@ -1590,6 +1590,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     if ("RAW".equals(streamName)) {
                         if (jHoveOutputRaw != null) {
                             mixNode = jHoveOutputRaw.getMixNode();
+                            if (!metsElement.getMetsContext().getOptions().isMixIccProfile()) {
+                                JhoveUtility.removeIccProfile(mixNode);
+                            }
                             if (md5InfosMap.get(streamName) != null) {
                                 md5InfosMap.get(streamName).setFormatVersion(jHoveOutputRaw.getFormatVersion());
                             }
@@ -1609,6 +1612,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     } else if ((Const.MC_GRP_ID.equals(streamName)) && (md5InfosMap.get(Const.MC_GRP_ID) != null)) {
                         if (jHoveOutputMC != null) {
                             mixNode = jHoveOutputMC.getMixNode();
+                            if (!metsElement.getMetsContext().getOptions().isMixIccProfile()) {
+                                JhoveUtility.removeIccProfile(mixNode);
+                            }
                             if (md5InfosMap.get(streamName) != null) {
                                 md5InfosMap.get(streamName).setFormatVersion(jHoveOutputMC.getFormatVersion());
                             }

@@ -21,7 +21,9 @@ import org.apache.commons.configuration2.Configuration;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
@@ -46,6 +48,7 @@ public class NdkExportParamsTest {
 
         assertEquals(creator, result.getCreator(), "creator");
         assertEquals(archivist, result.getArchivist(), "archivist");
+        assertTrue(result.isMixIccProfile(), "ICC profile export should be enabled by default");
     }
 
     @Test
@@ -54,6 +57,17 @@ public class NdkExportParamsTest {
         NdkExportOptions result = NdkExportOptions.getOptions(config);
         assertNull(result.getCreator(), "The default creator must be empty");
         assertNull(result.getArchivist(), "The default archivist must be empty");
+        assertTrue(result.isMixIccProfile(), "ICC profile export should be enabled by default");
+    }
+
+    @Test
+    public void testDisableMixIccProfile() {
+        Configuration config = new BaseConfiguration();
+        config.addProperty(NdkExportOptions.PROP_NDK_MIX_ICC_PROFILE, false);
+
+        NdkExportOptions result = NdkExportOptions.getOptions(config);
+
+        assertFalse(result.isMixIccProfile());
     }
 
 }
