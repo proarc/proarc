@@ -171,7 +171,7 @@ public class PeroProcess {
     private void generateOCR(File jpgFile, Integer peroOcrEngine) throws IOException {
         PeroOcrProcessor ocrProcessor = new PeroOcrProcessor(config.getImportConfiguration().getOcrGenProcessor(), peroOcrEngine);
         try {
-            boolean processed = ocrProcessor.generate(jpgFile, ".txt", ".xml");
+            boolean processed = ocrProcessor.generate(jpgFile, config.getImportConfiguration().getPlainOcrFileSuffix(), config.getImportConfiguration().getAltoFileSuffix());
             if (processed) {
                 LOG.info("OCR GENERATED SUCCESSFULLY for " + jpgFile.getAbsolutePath());
             }

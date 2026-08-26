@@ -39,11 +39,16 @@ public class PeroOcrProcessor {
 
     public static final String PROP_KEY = "key";
     public static final String PROP_URL = "url";
+    public static final String PROP_TIMEOUT = "timeout";
+
+    public static final long DEFAULT_TIMEOUT = TimeUnit.MINUTES.toMillis(10);
+    private static final long STATUS_INTERVAL = TimeUnit.SECONDS.toNanos(3);
 
     private final Configuration config;
     private String apiKey;
     private String serverUrl;
     private int peroOcrEngine;
+    private final long timeout;
 
     private String imagePath;
     private String txtPath;
@@ -58,6 +63,7 @@ public class PeroOcrProcessor {
         }
         this.apiKey = config.getString(PROP_KEY);
         this.peroOcrEngine = (peroOcrEngine == null || peroOcrEngine < 1) ? 1 : peroOcrEngine;
+        this.timeout = readTimeout();
     }
 
     public boolean generate(File imageFile, String ocrFileSuffix, String altoFileSuffix) throws JSONException {
@@ -82,6 +88,7 @@ public class PeroOcrProcessor {
         String fileExtension = imagePath.substring(imagePath.lastIndexOf('.') + 1);
 
         String fileName = new File(imagePath).getName().split("\\.")[0];
+        fileName = fileName.replaceAll(" ", "_");
         String contentType = getContentType(fileExtension);
 
         JSONObject data = createJson(fileName);
@@ -90,6 +97,9 @@ public class PeroOcrProcessor {
 
         HttpClient httpClient = HttpClients.createDefault();
         String requestId = postProcessingRequest(httpClient, data);
+        if (requestId == null) {
+            return false;
+        }
         // LOGGER.log(Level.INFO, "requestId is {0}", requestId);
         try {
             boolean uploaded = uploadImage(httpClient, requestId, fileName, imagePath, contentType);
@@ -101,24 +111,36 @@ public class PeroOcrProcessor {
         }
 
         String processingResult;
+        long resultDownloadStarted = System.nanoTime();
+        long resultDownloadTimeout = TimeUnit.MILLISECONDS.toNanos(timeout);
         do {
             processingResult = downloadResults(httpClient, txtPath, requestId, fileName, txtFormat);
-            if (processingResult.equals("PROCESSED")) {
+            if ("PROCESSED".equals(processingResult)) {
                 downloadResults(httpClient, altoPath, requestId, fileName, altoFormat);
                 LOGGER.log(Level.INFO, "Files {0} and {1} created!", new Object[]{txtFormat, altoFormat});
             } else {
-                try {
-                    TimeUnit.SECONDS.sleep(3);
-                } catch (InterruptedException e) {
-                    LOGGER.log(Level.SEVERE, "Task interrupted!");
+                long remainingTimeout = resultDownloadTimeout - (System.nanoTime() - resultDownloadStarted);
+                if (remainingTimeout <= 0) {
+                    LOGGER.log(Level.SEVERE,
+                            "PERO OCR results for request {0} were not available within {1} ms.",
+                            new Object[]{requestId, timeout});
+                    return false;
                 }
-
-                if (Thread.interrupted()) {
-                    LOGGER.log(Level.INFO, "Thread stopped");
+                try {
+                    TimeUnit.NANOSECONDS.sleep(Math.min(STATUS_INTERVAL, remainingTimeout));
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    LOGGER.log(Level.INFO, "Task interrupted.");
+                    return false;
+                }
+                if (System.nanoTime() - resultDownloadStarted >= resultDownloadTimeout) {
+                    LOGGER.log(Level.SEVERE,
+                            "PERO OCR results for request {0} were not available within {1} ms.",
+                            new Object[]{requestId, timeout});
                     return false;
                 }
             }
-        } while (!processingResult.equals("PROCESSED"));
+        } while (!"PROCESSED".equals(processingResult));
         return true;
     }
 
@@ -141,8 +163,23 @@ public class PeroOcrProcessor {
             HttpResponse response = httpClient.execute(httpPost);
             if (response.getStatusLine().getStatusCode() < 400) {
                 JSONObject jsonResponse = new JSONObject(EntityUtils.toString(response.getEntity()));
+                long statusCheckStarted = System.nanoTime();
+                long statusTimeout = TimeUnit.MILLISECONDS.toNanos(timeout);
                 while (!jsonResponse.getString("status").equals("success")) {
-                    TimeUnit.SECONDS.sleep(15);
+                    long remainingTimeout = statusTimeout - (System.nanoTime() - statusCheckStarted);
+                    if (remainingTimeout <= 0) {
+                        LOGGER.log(Level.SEVERE,
+                                "PERO OCR request {0} did not reach success status within {1} ms.",
+                                new Object[]{jsonResponse.getString("request_id"), timeout});
+                        return null;
+                    }
+                    TimeUnit.NANOSECONDS.sleep(Math.min(STATUS_INTERVAL, remainingTimeout));
+                    if (System.nanoTime() - statusCheckStarted >= statusTimeout) {
+                        LOGGER.log(Level.SEVERE,
+                                "PERO OCR request {0} did not reach success status within {1} ms.",
+                                new Object[]{jsonResponse.getString("request_id"), timeout});
+                        return null;
+                    }
                     jsonResponse = checkStatus(httpClient, jsonResponse.getString("request_id"));
                 }
                 return jsonResponse.getString("request_id");
@@ -154,6 +191,19 @@ public class PeroOcrProcessor {
 
         }
         return null;
+    }
+
+    long getTimeout() {
+        return timeout;
+    }
+
+    private long readTimeout() {
+        try {
+            return Math.max(0, config.getLong(PROP_TIMEOUT, DEFAULT_TIMEOUT));
+        } catch (RuntimeException e) {
+            LOGGER.log(Level.WARNING, "Invalid PERO OCR timeout, using the default value.", e);
+            return DEFAULT_TIMEOUT;
+        }
     }
 
     private JSONObject checkStatus(HttpClient httpClient, String requestId) throws IOException, JSONException {

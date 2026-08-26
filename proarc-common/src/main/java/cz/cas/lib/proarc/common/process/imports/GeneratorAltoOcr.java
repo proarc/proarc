@@ -100,7 +100,7 @@ public class GeneratorAltoOcr implements ImportHandler {
     private static void generateFromExternalProcess(File imageFile, ImportProfile config, Integer peroOcrEngine) throws IOException {
         PeroOcrProcessor ocrProcessor = new PeroOcrProcessor(config.getOcrGenProcessor(), peroOcrEngine);
         try {
-            boolean processed = ocrProcessor.generate(imageFile, ".txt", ".xml");
+            boolean processed = ocrProcessor.generate(imageFile, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
             if (processed) {
                 LOG.info("OCR GENERATED SUCCESSFULLY for " + imageFile.getAbsolutePath());
             }

@@ -271,7 +271,7 @@ public class TiffImporter implements ImageImporter {
         }
         PeroOcrProcessor ocrProcessor = new PeroOcrProcessor(options.getConfig().getOcrGenProcessor(), peroOcrEngine);
         try {
-            boolean processed = ocrProcessor.generate(tiff, ".txt", ".xml");
+            boolean processed = ocrProcessor.generate(tiff, options.getProfile().getPlainOcrFileSuffix(), options.getProfile().getAltoFileSuffix());
             if (processed) {
                 LOG.info("OCR GENERATED SUCCESSFULLY for " + tiff.getAbsolutePath());
             }
