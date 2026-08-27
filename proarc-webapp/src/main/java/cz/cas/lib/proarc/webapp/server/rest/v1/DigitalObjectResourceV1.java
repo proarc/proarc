@@ -4731,49 +4731,51 @@ public class DigitalObjectResourceV1 {
             @FormParam(DigitalObjectResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
 
     ) throws DigitalObjectException, IOException {
-        Batch internalBatch;
         if (batchId != null && batchId > 0) {
             BatchParams params = new BatchParams(Collections.singletonList(batchId.toString()));
-            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("batchId:" + batchId.toString()), user, Batch.INTERNAL_REINDEX, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, isNightOnly, params);
-        } else {
-            BatchParams params = new BatchParams(Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid));
-            internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList(parentPid != null && !parentPid.isEmpty() ? parentPid : pid), user, Batch.INTERNAL_REINDEX, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, isNightOnly, params);
-        }
-        Locale locale = session.getLocale(httpHeaders);
-        try {
+            Batch internalBatch = BatchUtils.addNewBatch(this.importManager, Collections.singletonList("batchId:" + batchId.toString()), user, Batch.INTERNAL_REINDEX, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, isNightOnly, params);
             ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, akubraConfiguration, user, pid, modelId);
-            if (batchId != null) {
+            try {
                 Batch batch = importManager.get(batchId);
                 List<BatchItemObject> objects = importManager.findLoadedObjects(batch);
                 reindexObjects.reindexLocal(objects);
-            } else {
-                if (parentPid == null || parentPid.isEmpty()) {
-                    IMetsElement parentElement = reindexObjects.getParentElement();
-                    if (parentElement != null) {
-
-                        if (isLocked(reindexObjects.getPids(parentElement))) {
-                            BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnLocalizedMessage(ERR_IS_LOCKED), Batch.State.INTERNAL_FAILED);
-                            return returnValidationError(ERR_IS_LOCKED);
-                        }
-                        reindexObjects.reindex(parentElement);
-                    } else {
-                        BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnLocalizedMessage(ERR_IN_GETTING_CHILDREN), Batch.State.INTERNAL_FAILED);
-                        return returnValidationError(ERR_IN_GETTING_CHILDREN);
-                    }
-                } else {
-                    if (isLocked(parentPid)) {
-                        BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), returnLocalizedMessage(ERR_IS_LOCKED), Batch.State.INTERNAL_FAILED);
-                        return returnValidationError(ERR_IS_LOCKED);
-                    }
-                    reindexObjects.reindex(parentPid, locale);
-                }
+                BatchUtils.finishedSuccessfully(this.importManager, internalBatch, internalBatch.getFolder(), null, Batch.State.INTERNAL_DONE);
+                return returnFunctionSuccess();
+            } catch (Exception ex) {
+                BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), BatchManager.toString(ex), Batch.State.INTERNAL_FAILED);
+                throw ex;
             }
-            BatchUtils.finishedSuccessfully(this.importManager, internalBatch, internalBatch.getFolder(), null, Batch.State.INTERNAL_DONE);
-            return returnFunctionSuccess();
-        } catch (Exception ex) {
-            BatchUtils.finishedWithError(this.importManager, internalBatch, internalBatch.getFolder(), BatchManager.toString(ex), Batch.State.INTERNAL_FAILED);
-            throw ex;
         }
+
+        Locale locale = session.getLocale(httpHeaders);
+        ReindexDigitalObjects reindexObjects = new ReindexDigitalObjects(appConfig, akubraConfiguration, user, pid, modelId);
+        String rootPid = parentPid != null && !parentPid.isEmpty() ? parentPid : pid;
+        if ((parentPid == null || parentPid.isEmpty()) && ReindexDigitalObjects.isPageModel(modelId)) {
+            rootPid = reindexObjects.findParentPid(pid);
+        }
+
+        List<String> pageParents = reindexObjects.findPageParents(rootPid, locale);
+        if (pageParents.isEmpty()) {
+            return returnValidationError(ERR_IN_GETTING_CHILDREN);
+        }
+
+        List<String> pagePids = new ArrayList<>();
+        for (String pageParent : pageParents) {
+            pagePids.addAll(reindexObjects.getPagePids(pageParent, locale));
+        }
+        if (isLocked(pagePids)) {
+            return returnValidationError(ERR_IS_LOCKED);
+        }
+
+        for (String pageParent : pageParents) {
+            BatchParams params = new BatchParams(Collections.singletonList(pageParent));
+            Batch batch = BatchUtils.addNewInternalBatch(this.importManager, pageParent, user, Batch.INTERNAL_REINDEX, isNightOnly, params);
+            InternalExternalProcess process = InternalExternalProcess.prepare(
+                    appConfig, akubraConfiguration, batch, importManager, user,
+                    session.asFedoraLog(), locale);
+            InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
+        }
+        return returnFunctionSuccess();
     }
 
     @POST
