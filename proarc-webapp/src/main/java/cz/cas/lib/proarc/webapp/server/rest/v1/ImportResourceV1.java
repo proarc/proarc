@@ -41,6 +41,7 @@ import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.PageView;
 import cz.cas.lib.proarc.common.storage.PageView.Item;
 import cz.cas.lib.proarc.common.storage.Storage;
+import cz.cas.lib.proarc.common.storage.StringEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraImport;
@@ -273,7 +274,7 @@ public class ImportResourceV1 {
     private ProfileStates.Params createProfileParams(ConfigurationProfile profile, boolean device, boolean software, boolean index, boolean metakatEngine, Boolean ocrEngine) {
         ImportProfile importProfile = appConfig.getImportConfiguration(profile);
         if (ocrEngine == null) {
-            ocrEngine = importProfile.getOcrGenProcessor().getKeys().hasNext();
+            ocrEngine = importProfile.getRequiredDatastreamId().contains(StringEditor.OCR_ALTO_GEN_ID);
         }
         return new ProfileStates.Params(device, software, ocrEngine, metakatEngine, index);
     }
