@@ -19,7 +19,6 @@ package cz.cas.lib.proarc.common.dao.empiredb;
 import cz.cas.lib.proarc.common.dao.ConcurrentModificationException;
 import cz.cas.lib.proarc.common.dao.WorkflowJobDao;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.WorkflowJobTable;
-import cz.cas.lib.proarc.common.sql.DbUtils;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
@@ -51,6 +50,9 @@ import org.apache.empire.db.expr.order.DBOrderByExpr;
  * @author Jan Pokorsky
  */
 public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
+
+    private static final String SCAN_TASK_PATTERN = "task.scan%";
+    private static final String SCANNER_PARAM_PATTERN = "param.scan%.scanner%";
 
     private final WorkflowJobTable tableJob;
 
@@ -242,18 +244,25 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
     @Override
     public String getDevice(BigDecimal jobId) {
         String device = "";
-        try {
-            Connection connection = getConnection();
-            PreparedStatement SCANNER = connection.prepareStatement("select p1.value_string as device from proarc_wf_job j1 left join proarc_wf_task t1 on j1.id = t1.job_id left join proarc_wf_parameter p1 on t1.id = p1.task_id where t1.type_ref='task.scan' and p1.param_ref='param.scan.scannerNew' and j1.id = " + String.valueOf(jobId));
-            final ResultSet resultSet = SCANNER.executeQuery();
-            while(resultSet.next()) {
-                device = resultSet.getString("device");
+        String sql = "select p1.value_string as device "
+                + "from proarc_wf_job j1 "
+                + "join proarc_wf_task t1 on j1.id = t1.job_id "
+                + "join proarc_wf_parameter p1 on t1.id = p1.task_id "
+                + "where t1.type_ref like ? and p1.param_ref like ? and j1.id = ? "
+                + "order by case when t1.type_ref = 'task.scan' then 0 else 1 end, t1.id";
+        try (PreparedStatement scanner = getConnection().prepareStatement(sql)) {
+            scanner.setString(1, SCAN_TASK_PATTERN);
+            scanner.setString(2, SCANNER_PARAM_PATTERN);
+            scanner.setBigDecimal(3, jobId);
+            try (ResultSet resultSet = scanner.executeQuery()) {
+                if (resultSet.next()) {
+                    device = resultSet.getString("device");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            return device;
         }
+        return device;
     }
 
     @Override
@@ -262,21 +271,24 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
             return Collections.emptyList();
         }
         List<BigDecimal> jobIds = new ArrayList<>();
-        PreparedStatement SCANNER = null;
-        try {
-            Connection connection = getConnection();
-            SCANNER = connection.prepareStatement("select j1.id as jobId from proarc_wf_job j1 left join proarc_wf_task t1 on j1.id = t1.job_id left join proarc_wf_parameter p1 on t1.id = p1.task_id where t1.type_ref='task.scan' and p1.param_ref='param.scan.scannerNew' and p1.value_string = '" + deviceId + "'");
-            final ResultSet resultSet = SCANNER.executeQuery();
-            while(resultSet.next()) {
-                jobIds.add(resultSet.getBigDecimal("jobId"));
+        String sql = "select distinct j1.id as jobId "
+                + "from proarc_wf_job j1 "
+                + "join proarc_wf_task t1 on j1.id = t1.job_id "
+                + "join proarc_wf_parameter p1 on t1.id = p1.task_id "
+                + "where t1.type_ref like ? and p1.param_ref like ? and p1.value_string = ?";
+        try (PreparedStatement scanner = getConnection().prepareStatement(sql)) {
+            scanner.setString(1, SCAN_TASK_PATTERN);
+            scanner.setString(2, SCANNER_PARAM_PATTERN);
+            scanner.setString(3, deviceId);
+            try (ResultSet resultSet = scanner.executeQuery()) {
+                while (resultSet.next()) {
+                    jobIds.add(resultSet.getBigDecimal("jobId"));
+                }
             }
-            DbUtils.close(resultSet);
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            DbUtils.close(SCANNER);
-            return jobIds;
         }
+        return jobIds;
     }
 
     @Override

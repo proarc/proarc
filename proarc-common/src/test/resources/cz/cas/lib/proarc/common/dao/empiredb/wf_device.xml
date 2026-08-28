@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<dataset>
+
+    <proarc_wf_task id="20" type_ref="task.scan" job_id="1" owner_id="1" state="WAITING"
+        priority="1" created="2015-10-20" timestamp="{$now}" />
+    <proarc_wf_task id="21" type_ref="task.scanSTT" job_id="2" owner_id="1" state="WAITING"
+        priority="1" created="2015-10-25" timestamp="{$now}" />
+
+    <proarc_wf_parameter task_id="20" param_ref="param.scan.scannerNew"
+        value_string="NDK scanner" value_type="STRING" />
+    <proarc_wf_parameter task_id="21" param_ref="param.scanSTT.scannerSTT"
+        value_string="STT scanner" value_type="STRING" />
+
+</dataset>
