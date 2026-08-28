@@ -1,7 +1,6 @@
-package cz.cas.lib.proarc.common.process.external;
+package cz.cas.lib.proarc.common.externalApp.peroOcr;
 
 import com.sun.net.httpserver.HttpServer;
-import cz.cas.lib.proarc.common.externalApp.peroOcr.PeroOcrProcessor;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
