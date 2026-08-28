@@ -210,7 +210,7 @@ public final class AlmaCatalog implements BibliographicCatalog {
     private static Templates createAlma2MarcXslt() throws TransformerConfigurationException {
         if (ALMA_MARC_XSLT == null) {
             String xsltSrc = OaiCatalog.class.getResource("/xml/Alma2MARC21slim.xsl").toExternalForm();
-            ALMA_MARC_XSLT = TransformerFactory.newInstance().newTemplates(new StreamSource(xsltSrc));
+            ALMA_MARC_XSLT = TransformerFactory.newDefaultInstance().newTemplates(new StreamSource(xsltSrc));
         }
         return ALMA_MARC_XSLT;
     }

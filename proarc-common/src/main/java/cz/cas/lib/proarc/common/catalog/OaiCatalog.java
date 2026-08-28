@@ -142,7 +142,7 @@ public class OaiCatalog implements BibliographicCatalog {
 
                     if (LOG.isLoggable(Level.FINE)) {
                         StringWriter writer = new StringWriter();
-                        TransformerFactory tf = TransformerFactory.newInstance();
+                        TransformerFactory tf = TransformerFactory.newDefaultInstance();
                         Transformer transformer = tf.newTransformer();
                         transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
                         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -270,7 +270,7 @@ public class OaiCatalog implements BibliographicCatalog {
     private static Templates createOai2MarcXslt() throws TransformerConfigurationException {
         if (OAI_MARC_XSLT == null) {
             String xsltSrc = OaiCatalog.class.getResource("/xml/Oai2MARC21slim.xsl").toExternalForm();
-            OAI_MARC_XSLT = TransformerFactory.newInstance().newTemplates(new StreamSource(xsltSrc));
+            OAI_MARC_XSLT = TransformerFactory.newDefaultInstance().newTemplates(new StreamSource(xsltSrc));
         }
         return OAI_MARC_XSLT;
     }

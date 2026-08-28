@@ -409,7 +409,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         // check URN:NBN
         for (IdentifierDefinition oldId : oldIds) {
             if (!skipUrnNbnValidation) {
-                if ("urnnbn".equals(oldId.getType()) && oldId.getValue() != null && !oldId.getValue().trim().isEmpty() && (oldId.getInvalid() == null || "no".equals(oldId.getInvalid()))) {
+                if ("urnnbn".equals(oldId.getType()) && oldId.getValue() != null && !oldId.getValue().trim().isEmpty() && oldId.getInvalid() == null) {
                     boolean missingId = true;
                     for (IdentifierDefinition id : mods.getIdentifier()) {
                         if (oldId.getType().equals(id.getType()) && oldId.getValue().equals(id.getValue())) {

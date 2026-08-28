@@ -331,7 +331,7 @@ public class BagitExport {
 
     private String getUrnNbn(ModsDefinition mods) {
         for (IdentifierDefinition identifier : mods.getIdentifier()) {
-            if ("urnnbn".equals(identifier.getType()) && (identifier.getInvalid() == null || "".equals(identifier.getInvalid()) || "false".equals(identifier.getInvalid()))) {
+            if ("urnnbn".equals(identifier.getType()) && identifier.getInvalid() == null) {
                 return identifier.getValue();
             }
         }

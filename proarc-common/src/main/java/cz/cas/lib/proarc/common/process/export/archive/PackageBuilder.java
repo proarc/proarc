@@ -114,7 +114,7 @@ public class PackageBuilder {
         this.pid2PhysicalDiv = new HashMap<String, DivType>();
         try {
             this.xmlTypes = DatatypeFactory.newInstance();
-            this.domTransformer = TransformerFactory.newInstance().newTransformer();
+            this.domTransformer = TransformerFactory.newDefaultInstance().newTransformer();
             this.domTransformer.setOutputProperty(OutputKeys.INDENT, "yes");
             this.domTransformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
         } catch (DatatypeConfigurationException ex) {

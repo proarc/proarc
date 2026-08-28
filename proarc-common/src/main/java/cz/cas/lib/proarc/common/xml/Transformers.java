@@ -37,6 +37,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import net.sf.saxon.TransformerFactoryImpl;
 
 /**
  * Transforms MARCXML and MODS documents to various {@link Format formats}.
@@ -52,7 +53,7 @@ public final class Transformers {
     private static final Logger LOG = Logger.getLogger(Transformers.class.getName());
 
     //    private static final String DC_RDF_XSL_PATH = "http://www.loc.gov/standards/marcxml/xslt/MARC21slim2RDFDC.xsl";
-    private static final String MODS_3_XSL_PATH = "http://www.loc.gov/standards/mods/v3/MARC21slim2MODS3-4.xsl";
+    private static final String MODS_3_XSL_PATH = "http://www.loc.gov/standards/mods/v3/MARC21slim2MODS3-8.xsl";
     private static final String OAIMARC2MARC21slim_XSL_PATH = "http://www.loc.gov/standards/marcxml/xslt/OAIMARC2MARC21slim.xsl";
     private static final String MARC21slim2HTML_XSL_PATH = "http://www.loc.gov/standards/marcxml/xslt/MARC21slim2HTML.xsl";
     private static final String MODS2HTML_XSL_PATH = "http://www.loc.gov/standards/mods/mods.xsl";
@@ -109,7 +110,7 @@ public final class Transformers {
 
     public Source dump(Source source, StringBuilder dump) {
         try {
-            TransformerFactory factory = TransformerFactory.newInstance();
+            TransformerFactory factory = TransformerFactory.newDefaultInstance();
             Transformer t = factory.newTransformer();
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             t.transform(source, new StreamResult(buffer));
@@ -124,7 +125,7 @@ public final class Transformers {
 
     public Source dump2Temp(Source source, String filename) {
         try {
-            TransformerFactory factory = TransformerFactory.newInstance();
+            TransformerFactory factory = TransformerFactory.newDefaultInstance();
             Transformer t = factory.newTransformer();
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             t.transform(source, new StreamResult(buffer));
@@ -144,7 +145,9 @@ public final class Transformers {
     }
 
     private static Templates createTemplates(Format recordFormat, String customTemplatePath) throws TransformerException {
-        TransformerFactory factory = TransformerFactory.newInstance();
+        TransformerFactory factory = recordFormat == Format.MarcxmlAsMods3 || recordFormat == Format.MarcxmlAsMods34
+                ? new TransformerFactoryImpl()
+                : TransformerFactory.newDefaultInstance();
 //        factory.setAttribute("debug", true);
         SimpleResolver resolver = new SimpleResolver(customTemplatePath);
         factory.setURIResolver(resolver);

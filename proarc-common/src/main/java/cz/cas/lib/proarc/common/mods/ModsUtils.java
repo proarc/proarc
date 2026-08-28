@@ -72,13 +72,13 @@ public final class ModsUtils {
     /**
      * The actual MODS version.
      */
-    public static final String VERSION = "3.6";
+    public static final String VERSION = "3.8";
 
     private static JAXBContext defaultJaxbContext;
     private static ThreadLocal<Marshaller> defaultMarshaller = new ThreadLocal<Marshaller>();
     private static ThreadLocal<Unmarshaller> defaultUnmarshaller = new ThreadLocal<Unmarshaller>();
     private static Schema MODS_SCHEMA;
-    private static final String MODS_SCHEMA_PATH = "mods-3-6.xsd";
+    private static final String MODS_SCHEMA_PATH = "mods-3-8.xsd";
 
     /**
      * Default MODS context. Oracle JAXB RI's context should be thread safe.
@@ -251,6 +251,25 @@ public final class ModsUtils {
             MODS_SCHEMA = schemaFactory.newSchema(ModsDefinition.class.getResource(MODS_SCHEMA_PATH));
         }
         return MODS_SCHEMA;
+    }
+
+    public static InputStream getSchemaAsStream(String version) {
+        String schemaPath;
+        if (VERSION.equals(version) || "3.7".equals(version)) {
+            schemaPath = MODS_SCHEMA_PATH;
+        } else if ("3.6".equals(version)) {
+            schemaPath = "mods-3-6.xsd";
+        } else if ("3.5".equals(version)) {
+            schemaPath = "mods-3-5.xsd";
+        } else if (version == null || version.isEmpty()
+                || "3.4".equals(version) || "3.3".equals(version)
+                || "3.2".equals(version) || "3.1".equals(version)
+                || "3.0".equals(version)) {
+            schemaPath = "mods-3-4.xsd";
+        } else {
+            throw new IllegalArgumentException("Unsupported MODS version: " + version);
+        }
+        return ModsDefinition.class.getResourceAsStream(schemaPath);
     }
 
     public static ModsDefinition overrideDescriptionStandard(ModsDefinition mods, String standard) {

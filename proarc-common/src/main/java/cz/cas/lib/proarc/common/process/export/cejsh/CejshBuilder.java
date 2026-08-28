@@ -128,7 +128,7 @@ class CejshBuilder {
         this.gcalendar = new GregorianCalendar(UTC);
         this.logLevel = config.getLogLevel();
         this.options = options;
-        TransformerFactory xslFactory = TransformerFactory.newInstance();
+        TransformerFactory xslFactory = TransformerFactory.newDefaultInstance();
         tranformationErrorHandler = new TransformErrorListener();
         bwmetaXsl = xslFactory.newTransformer(new StreamSource(config.getCejshXslUrl()));
         if (bwmetaXsl == null) {

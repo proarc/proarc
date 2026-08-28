@@ -27,8 +27,8 @@ import cz.cas.lib.proarc.mods.ObjectFactory;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
+import cz.cas.lib.proarc.mods.PublisherDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
-import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -223,7 +223,7 @@ public class OriginInfoMapperTest {
         }
 
         if (name != null) {
-            StringPlusLanguagePlusSupplied spl = factory.createStringPlusLanguagePlusSupplied();
+            PublisherDefinition spl = factory.createPublisherDefinition();
             spl.setValue(name);
             o.getPublisher().add(spl);
         }

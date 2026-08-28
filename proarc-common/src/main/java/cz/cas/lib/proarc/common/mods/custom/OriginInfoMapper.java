@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.mods.ObjectFactory;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
+import cz.cas.lib.proarc.mods.PublisherDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -179,7 +180,7 @@ final class OriginInfoMapper {
                 return result;
             }
 
-            Optional<StringPlusLanguagePlusSupplied> publisher = source.getPublisher().stream().findFirst();
+            Optional<PublisherDefinition> publisher = source.getPublisher().stream().findFirst();
 
             result.setName(publisher.isPresent() ? publisher.get().getValue() : null);
 
@@ -232,10 +233,10 @@ final class OriginInfoMapper {
             }
 
             if (item.getName() != null) {
-                StringPlusLanguagePlusSupplied publisher = getPublisher(factory, source.getPublisher(), true);
+                PublisherDefinition publisher = getPublisher(factory, source.getPublisher(), true);
                 publisher.setValue(item.getName());
             } else {
-                StringPlusLanguagePlusSupplied publisher = getPublisher(factory, source.getPublisher(), false);
+                PublisherDefinition publisher = getPublisher(factory, source.getPublisher(), false);
                 source.getPublisher().remove(publisher);
             }
 
@@ -260,10 +261,10 @@ final class OriginInfoMapper {
             return source;
         }
 
-        private static StringPlusLanguagePlusSupplied getPublisher(ObjectFactory factory, List<StringPlusLanguagePlusSupplied> publishers, boolean create) {
-            StringPlusLanguagePlusSupplied publisher = publishers.stream().findFirst().orElse(null);
+        private static PublisherDefinition getPublisher(ObjectFactory factory, List<PublisherDefinition> publishers, boolean create) {
+            PublisherDefinition publisher = publishers.stream().findFirst().orElse(null);
             if (create && publisher == null) {
-                publisher = factory.createStringPlusLanguagePlusSupplied();
+                publisher = new PublisherDefinition();
                 publishers.add(publisher);
             }
             return publisher;
