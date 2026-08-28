@@ -134,6 +134,30 @@ public class JhoveUtility {
         return null;
     }
 
+    public static void removeIccProfile(Node mixNode) {
+        if (mixNode == null) {
+            return;
+        }
+        Node iccProfile;
+        while ((iccProfile = getNodeRecursive(mixNode, "IccProfile")) != null) {
+            Node colorProfile = iccProfile.getParentNode();
+            colorProfile.removeChild(iccProfile);
+            if (!hasElementChild(colorProfile)) {
+                colorProfile.getParentNode().removeChild(colorProfile);
+            }
+        }
+    }
+
+    private static boolean hasElementChild(Node node) {
+        NodeList children = node.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            if (children.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      *
      * Inits the Jhove app

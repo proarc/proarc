@@ -192,4 +192,20 @@ public class EmpireWorkflowJobDaoTest {
         assertEquals("job.ndk", job0.getProfileName());
     }
 
+    @Test
+    public void testDeviceFromDifferentScanTasks() throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(getClass(), "user.xml"),
+                support.loadFlatXmlDataStream(getClass(), "wf_job.xml"),
+                support.loadFlatXmlDataStream(getClass(), "wf_device.xml")
+        );
+        support.cleanInsert(support.getConnection(tx), db);
+        tx.commit();
+
+        assertEquals("NDK scanner", dao.getDevice(BigDecimal.ONE));
+        assertEquals("STT scanner", dao.getDevice(BigDecimal.valueOf(2)));
+        assertEquals(Arrays.asList(BigDecimal.ONE), dao.getJobIdFromDevice("NDK scanner"));
+        assertEquals(Arrays.asList(BigDecimal.valueOf(2)), dao.getJobIdFromDevice("STT scanner"));
+    }
+
 }

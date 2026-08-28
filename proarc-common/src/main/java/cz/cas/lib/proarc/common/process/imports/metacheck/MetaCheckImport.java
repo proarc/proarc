@@ -16,6 +16,7 @@ import cz.cas.lib.proarc.common.externalApp.peroOcr.PeroOcrProcessor;
 import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
 import cz.cas.lib.proarc.common.process.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.process.imports.FileSet;
+import cz.cas.lib.proarc.common.process.imports.GeneratorAltoOcr;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.process.imports.ImportHandler;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
@@ -111,7 +112,7 @@ public class MetaCheckImport implements ImportHandler {
             }
 
             File fullJpg = generateImages(fileSet, tiff, importConfig);
-            generateOcrAndAlto(tiff, fullJpg, importConfig);
+            GeneratorAltoOcr.generateOcrAndAlto(fullJpg, tiff, importConfig);
 
             batchManager.addFileItem(batch.getId(), null, BatchItem.FileState.OK, fileSet.getFiles());
             importConfig.setConsumedFileCounter(importConfig.getConsumedFileCounter() + 1);

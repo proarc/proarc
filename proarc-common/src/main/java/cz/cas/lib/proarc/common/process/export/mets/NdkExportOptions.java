@@ -26,12 +26,14 @@ import org.apache.commons.configuration2.Configuration;
 public class NdkExportOptions {
     static final String PROP_NDK_AGENT_ARCHIVIST = "export.ndk.agent.archivist";
     static final String PROP_NDK_AGENT_CREATOR = "export.ndk.agent.creator";
+    static final String PROP_NDK_MIX_ICC_PROFILE = "export.ndk.mix.iccProfile";
     static final String PROP_NDK_PREMIS_EVENTTYPE_DELETION = "export.ndk.premis.eventType.deletion";
     static final String PROP_PROARC_VERSION = "proarc.version";
     static final String PROP_PROARC_REVISION = "proarc.build.revision";
     static final String PROP_PROARC_TIMESTAMP = "proarc.build.timestamp";
     private String archivist;
     private String creator;
+    private boolean mixIccProfile = true;
     private Boolean premisEventTypeDeletion;
     private String version;
     private String timestamp;
@@ -68,6 +70,8 @@ public class NdkExportOptions {
         Boolean premisEventTypeDeletion = config.getBoolean(PROP_NDK_PREMIS_EVENTTYPE_DELETION, false);
         options.setPremisEventTypeDeletion(premisEventTypeDeletion);
 
+        options.setMixIccProfile(config.getBoolean(PROP_NDK_MIX_ICC_PROFILE, true));
+
         return options;
     }
 
@@ -97,6 +101,14 @@ public class NdkExportOptions {
      */
     public void setArchivist(String archivist) {
         this.archivist = archivist;
+    }
+
+    public boolean isMixIccProfile() {
+        return mixIccProfile;
+    }
+
+    public void setMixIccProfile(boolean mixIccProfile) {
+        this.mixIccProfile = mixIccProfile;
     }
 
     /**

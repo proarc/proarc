@@ -111,10 +111,10 @@ public class TiffImporter implements ImageImporter {
             DigitalObjectHandler dobjHandler = DigitalObjectManager.getDefault().createHandler(localObj);
             createRelsExt(dobjHandler, f, ctx);
             createMetadata(dobjHandler, ctx);
-            createImages(ctx.getTargetFolder(), f, originalFilename, localObj, config, fileSet);
+            File fullJpg = createImages(ctx.getTargetFolder(), f, originalFilename, localObj, config, fileSet);
             importArchivalCopy(fileSet, f, localObj, ctx);
             importUserCopy(fileSet, f, localObj, ctx);
-            importOcr(fileSet, f, localObj, ctx);
+            importOcr(fileSet, f, fullJpg, localObj, ctx);
             createTechnicalMetadata(localObj, ctx);
             // writes FOXML
             dobjHandler.commit();
@@ -197,7 +197,7 @@ public class TiffImporter implements ImageImporter {
         return null;
     }
 
-    private void importOcr(FileSet fileSet, File tiff, ProArcObject fo, ImportOptions options)
+    private void importOcr(FileSet fileSet, File tiff, File fullJpg, ProArcObject fo, ImportOptions options)
             throws IOException, DigitalObjectException {
 
         // XXX find filename.ocr.txt or generate OCR or nothing
@@ -211,9 +211,7 @@ public class TiffImporter implements ImageImporter {
         FileEntry ocrEntry = findSibling(fileSet, config.getPlainOcrFileSuffix());
         FileEntry altoEntry = findSibling(fileSet, config.getAltoFileSuffix());
         if ((ocrEntry == null || altoEntry == null) && requiredDatastreamId.contains(StringEditor.OCR_ALTO_GEN_ID)) {
-            generateOCR(tiff, options);
-
-            File[] ocrFiles = PeroOcrProcessor.getOcrFiles(tiff, config.getPlainOcrFileSuffix(), config.getAltoFileSuffix());
+            File[] ocrFiles = GeneratorAltoOcr.generateOcrAndAlto(fullJpg, tiff, options);
 
             ocrEntry = new FileEntry(ocrFiles[0]);
             altoEntry = new FileEntry(ocrFiles[1]);
@@ -256,29 +254,6 @@ public class TiffImporter implements ImageImporter {
         } else if (requiredDatastreamId.contains(AltoDatastream.ALTO_ID)) {
             throw new FileNotFoundException("Missing ALTO: " + new File(tempBatchFolder.getParent(),
                     originalFilename + config.getAltoFileSuffix()).toString());
-        }
-    }
-
-    private void generateOCR(File tiff, ImportOptions options) throws IOException {
-        Integer peroOcrEngine = null;
-        try {
-            peroOcrEngine = options.getBatch().getParamsAsObject().getPeroOcrEngine();
-            if (peroOcrEngine == null || peroOcrEngine < 0) {
-                peroOcrEngine = 1;
-            }
-        } catch (NullPointerException e) {
-            peroOcrEngine = 1;
-        }
-        PeroOcrProcessor ocrProcessor = new PeroOcrProcessor(options.getConfig().getOcrGenProcessor(), peroOcrEngine);
-        try {
-            boolean processed = ocrProcessor.generate(tiff, ".txt", ".xml");
-            if (processed) {
-                LOG.info("OCR GENERATED SUCCESSFULLY for " + tiff.getAbsolutePath());
-            }
-        } catch (JSONException ex) {
-            LOG.severe("Generating OCR for " + tiff.getName() + " failed.");
-            ex.printStackTrace();
-            throw new IOException(ex);
         }
     }
 
@@ -418,7 +393,7 @@ public class TiffImporter implements ImageImporter {
         return null;
     }
 
-    private void createImages(File tempBatchFolder, File original,
+    private File createImages(File tempBatchFolder, File original,
                               String originalFilename, LocalObject foxml, ImportProfile config, FileSet fileSet)
             throws IOException, DigitalObjectException, AppConfigurationException {
 
@@ -470,6 +445,7 @@ public class TiffImporter implements ImageImporter {
         if (!InputUtils.isJpeg(f)) {
             throw new IllegalStateException("Not a JPEG content: " + f);
         }
+        File fullJpg = f;
         long endFull = System.nanoTime() - start;
         BinaryEditor.dissemination(foxml, fullId, mediaType).write(f, 0, null);
 
@@ -556,6 +532,7 @@ public class TiffImporter implements ImageImporter {
 
         LOG.info(String.format("file: %s, read: %s, full: %s, preview: %s, thumb: %s",
                 originalFilename, endRead / 1000000, endFull / 1000000, endPreview / 1000000, endThumb / 1000000));
+        return fullJpg;
     }
 
     public static BufferedImage removeAlphaChannel(BufferedImage bufferedImage) {

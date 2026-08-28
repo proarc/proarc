@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.process;
 
+import cz.cas.lib.proarc.common.actions.ReindexDigitalObjects;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
@@ -153,6 +154,9 @@ public final class InternalExternalProcess implements Runnable {
                 case Batch.INTERNAL_VALIDATION:
                     batch = BatchUtils.startWaitingInternalBatch(batchManager, batch);
                     return validationProcess(batch, params);
+                case Batch.INTERNAL_REINDEX:
+                    batch = BatchUtils.startWaitingInternalBatch(batchManager, batch);
+                    return reindexProcess(batch, params);
                 default:
                     return finishedInternalWithError(batchManager, batch, batch.getFolder(), new Exception("Unknown profile."));
             }
@@ -220,6 +224,19 @@ public final class InternalExternalProcess implements Runnable {
             }
             validationProcess.indexResult(batch);
             return batch;
+        } catch (Exception ex) {
+            return finishedInternalWithError(this.batchManager, batch, batch.getFolder(), ex);
+        }
+    }
+
+    private Batch reindexProcess(Batch batch, BatchParams params) {
+        try {
+            ReindexDigitalObjects reindex = new ReindexDigitalObjects(
+                    config, akubraConfiguration, user, null, null);
+            for (String parentPid : params.getPids()) {
+                reindex.reindex(parentPid, options.getLocale());
+            }
+            return finishedInternalSuccessfully(this.batchManager, batch, batch.getFolder());
         } catch (Exception ex) {
             return finishedInternalWithError(this.batchManager, batch, batch.getFolder(), ex);
         }

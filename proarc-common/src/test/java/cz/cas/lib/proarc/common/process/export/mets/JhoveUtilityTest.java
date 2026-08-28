@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.process.imports.TiffImporterTest;
 import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixUtils;
 import java.io.File;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -27,10 +28,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -88,5 +92,34 @@ public class JhoveUtilityTest {
 //        System.out.println(toXml);
         assertEquals("image/tiff", mix.getBasicDigitalObjectInformation()
                 .getFormatDesignation().getFormatName().getValue(), toXml);
+    }
+
+    @Test
+    public void testRemoveIccProfileAndEmptyColorProfile() throws Exception {
+        Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        Node mix = document.appendChild(document.createElementNS("http://www.loc.gov/mix/v20", "mix:mix"));
+        Node photometric = mix.appendChild(document.createElementNS("http://www.loc.gov/mix/v20", "mix:PhotometricInterpretation"));
+        Node colorProfile = photometric.appendChild(document.createElementNS("http://www.loc.gov/mix/v20", "mix:ColorProfile"));
+        colorProfile.appendChild(document.createElementNS("http://www.loc.gov/mix/v20", "mix:IccProfile"));
+
+        JhoveUtility.removeIccProfile(mix);
+
+        assertNull(JhoveUtility.getNodeRecursive(mix, "IccProfile"));
+        assertNull(JhoveUtility.getNodeRecursive(mix, "ColorProfile"));
+    }
+
+    @Test
+    public void testRemoveIccProfileKeepsOtherColorProfileMetadata() throws Exception {
+        Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        Node mix = document.appendChild(document.createElementNS("http://www.loc.gov/mix/v20", "mix:mix"));
+        Node colorProfile = mix.appendChild(document.createElementNS("http://www.loc.gov/mix/v20", "mix:ColorProfile"));
+        colorProfile.appendChild(document.createElementNS("http://www.loc.gov/mix/v20", "mix:IccProfile"));
+        colorProfile.appendChild(document.createElementNS("http://www.loc.gov/mix/v20", "mix:LocalProfile"));
+
+        JhoveUtility.removeIccProfile(mix);
+
+        assertNull(JhoveUtility.getNodeRecursive(mix, "IccProfile"));
+        assertNotNull(JhoveUtility.getNodeRecursive(mix, "ColorProfile"));
+        assertNotNull(JhoveUtility.getNodeRecursive(mix, "LocalProfile"));
     }
 }

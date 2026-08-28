@@ -57,8 +57,11 @@ import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
 
@@ -70,11 +73,11 @@ import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkub
 public class ReindexDigitalObjects {
 
 
-    public static String pid;
-    public static String modelId;
-    public static AppConfiguration appConfig;
-    public static AkubraConfiguration akubraConfiguration;
-    public static UserProfile user;
+    private final String pid;
+    private final String modelId;
+    private final AppConfiguration appConfig;
+    private final AkubraConfiguration akubraConfiguration;
+    private final UserProfile user;
 
     public ReindexDigitalObjects(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, UserProfile user, String pid, String modelId) {
         this.appConfig = appConfig;
@@ -110,6 +113,14 @@ public class ReindexDigitalObjects {
             return null;
         }
         return MetsElement.getElement(dobj, null, metsContext, true);
+    }
+
+    public String findParentPid(String pid) throws DigitalObjectException {
+        try {
+            return getParentPid(pid);
+        } catch (IOException | MetsExportException ex) {
+            throw new DigitalObjectException(pid, ex);
+        }
     }
 
     private String getParentPid(String pid) throws IOException, MetsExportException {
@@ -236,20 +247,81 @@ public class ReindexDigitalObjects {
 
 
         int pageIndex = 1;
-        int audioPageIndex = 1;
 
         for (String memberPid : members) {
             String memberModel = getModel(memberPid, search);
-            if (NdkPlugin.MODEL_PAGE.equals(memberModel) || NdkPlugin.MODEL_NDK_PAGE.equals(memberModel) || OldPrintPlugin.MODEL_PAGE.equals(memberModel)) {
+            if (isPageModel(memberModel)) {
                 reindexStreams(pageIndex++, memberPid, fixModel(memberModel));
 //                reindexMods(pageIndex++, memberPid, fixModel(memberModel));
 //                reindexDc(memberPid, fixModel(memberModel));
-            } else if (NdkAudioPlugin.MODEL_TRACK.equals(memberModel)) {
-                reindexStreams(audioPageIndex++, memberPid, fixModel(memberModel));
-//                reindexMods(audioPageIndex++, memberPid, fixModel(memberModel));
-//                reindexDc(memberPid, fixModel(memberModel));
             }
         }
+    }
+
+    public List<String> findPageParents(String rootPid, Locale locale) throws DigitalObjectException, IOException {
+        SearchView search = getSearch(locale);
+        return findPageParents(rootPid, parentPid -> {
+            List<SearchViewItem> children = search.findSortedChildren(parentPid);
+            List<HierarchyMember> members = new ArrayList<>(children.size());
+            for (SearchViewItem child : children) {
+                members.add(new HierarchyMember(child.getPid(), child.getModel()));
+            }
+            return members;
+        });
+    }
+
+    public List<String> getPagePids(String parentPid, Locale locale) throws DigitalObjectException, IOException {
+        List<String> pagePids = new ArrayList<>();
+        for (SearchViewItem child : getSearch(locale).findSortedChildren(parentPid)) {
+            if (isPageModel(child.getModel())) {
+                pagePids.add(child.getPid());
+            }
+        }
+        return pagePids;
+    }
+
+    private SearchView getSearch(Locale locale) throws IOException {
+        if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            return AkubraStorage.getInstance(akubraConfiguration).getSearch(locale);
+        }
+        throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+    }
+
+    static List<String> findPageParents(String rootPid, MembersProvider membersProvider)
+            throws DigitalObjectException, IOException {
+        Set<String> visited = new HashSet<>();
+        Set<String> pageParents = new LinkedHashSet<>();
+        collectPageParents(rootPid, membersProvider, visited, pageParents);
+        return new ArrayList<>(pageParents);
+    }
+
+    private static void collectPageParents(String pid, MembersProvider membersProvider,
+                                           Set<String> visited, Set<String> pageParents)
+            throws DigitalObjectException, IOException {
+        if (!visited.add(pid)) {
+            return;
+        }
+
+        List<HierarchyMember> members = membersProvider.getMembers(pid);
+        boolean hasPages = false;
+        for (HierarchyMember member : members) {
+            if (isPageModel(member.model())) {
+                hasPages = true;
+            } else {
+                collectPageParents(member.pid(), membersProvider, visited, pageParents);
+            }
+        }
+        if (hasPages) {
+            pageParents.add(pid);
+        }
+    }
+
+    @FunctionalInterface
+    interface MembersProvider {
+        List<HierarchyMember> getMembers(String pid) throws DigitalObjectException, IOException;
+    }
+
+    record HierarchyMember(String pid, String model) {
     }
 
     private String getModel(String pid, SearchView search) throws IOException {
@@ -261,11 +333,22 @@ public class ReindexDigitalObjects {
         }
     }
 
-    private String fixModel(String model) {
+    private static String fixModel(String model) {
+        if (model == null) {
+            return null;
+        }
         if (model.startsWith("info:fedora/")) {
             return model.substring(12);
         }
         return model;
+    }
+
+    public static boolean isPageModel(String model) {
+        String fixedModel = fixModel(model);
+        return NdkPlugin.MODEL_PAGE.equals(fixedModel)
+                || NdkPlugin.MODEL_NDK_PAGE.equals(fixedModel)
+                || OldPrintPlugin.MODEL_PAGE.equals(fixedModel)
+                || NdkAudioPlugin.MODEL_PAGE.equals(fixedModel);
     }
 
     private void reindexStreams(int index, String pid, String model) throws DigitalObjectException {
