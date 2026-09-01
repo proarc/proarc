@@ -14,8 +14,6 @@ import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
-import cz.cas.lib.proarc.mods.PublisherDefinition;
-import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -166,14 +164,16 @@ public class CatalogUtils {
                     bracketsDateIssued = true;
                 }
             }
-            for (StringPlusLanguagePlusSupplied publisher : originInfo.getPublisher()) {
-                if (publisher.getValue().startsWith("[")) {
-                    publisher.setValue(publisher.getValue().replace("]", "" + "]"));
-                } else if (publisher.getValue().endsWith("]")) {
-                    publisher.setValue("[" + publisher.getValue().replace("[", ""));
-                }
-                if (bracketsPlace && bracketsDateIssued) {
-                    publisher.setValue("[" + publisher.getValue().replace("[", "").replace("]", "") + "]");
+            for (NameDefinition agent : originInfo.getAgent()) {
+                for (NamePartDefinition namePart : agent.getNamePart()) {
+                    if (namePart.getValue().startsWith("[")) {
+                        namePart.setValue(namePart.getValue().replace("]", "" + "]"));
+                    } else if (namePart.getValue().endsWith("]")) {
+                        namePart.setValue("[" + namePart.getValue().replace("[", ""));
+                    }
+                    if (bracketsPlace && bracketsDateIssued) {
+                        namePart.setValue("[" + namePart.getValue().replace("[", "").replace("]", "") + "]");
+                    }
                 }
             }
         }
@@ -207,6 +207,20 @@ public class CatalogUtils {
             }
             if (index != null) {
                 originInfo.getDateIssued().remove(index.intValue());
+            }
+            for (PlaceDefinition place : originInfo.getPlace()) {
+                for (PlaceTermDefinition placeTerm : place.getPlaceTerm()) {
+                    if (placeTerm.getValue() != null && placeTerm.getValue().endsWith(" :")) {
+                        placeTerm.setValue(placeTerm.getValue().replace(" :", ""));
+                    }
+                }
+            }
+            for (NameDefinition name : originInfo.getAgent()) {
+                for (NamePartDefinition namePart : name.getNamePart()) {
+                    if (namePart.getValue() != null && namePart.getValue().endsWith(" :")) {
+                        namePart.setValue(namePart.getValue().replace(" :", ""));
+                    }
+                }
             }
         }
     }
@@ -254,7 +268,7 @@ public class CatalogUtils {
 
     private static boolean onlyOneOriginInfoValues(List<OriginInfoDefinition> originInfos) {
         int placeCount = 0;
-        int publisherCount = 0;
+        int agentCount = 0;
         int dateCount = 0;
 
         for (OriginInfoDefinition originInfo : originInfos) {
@@ -265,8 +279,8 @@ public class CatalogUtils {
                     }
                 }
             }
-            for (StringPlusLanguagePlusSupplied publisher : originInfo.getPublisher()) {
-                publisherCount++;
+            for (NameDefinition agent : originInfo.getAgent()) {
+                agentCount++;
             }
             for (DateDefinition date : originInfo.getDateIssued()) {
                 if (date.getPoint() == null) {
@@ -274,7 +288,7 @@ public class CatalogUtils {
                 }
             }
         }
-        return 1 == placeCount && 1 == publisherCount && 1 == dateCount;
+        return 1 == placeCount && 1 == agentCount && 1 == dateCount;
 
     }
 
@@ -312,13 +326,13 @@ public class CatalogUtils {
             if (couple.contains("b")) {
                 for (OriginInfoDefinition oldOriginInfo : mods.getOriginInfo()) {
                     if (oldOriginInfo.getEventType() != null) {
-                        for (PublisherDefinition oldPublisher : oldOriginInfo.getPublisher()) {
+                        for (NameDefinition oldAgent : oldOriginInfo.getAgent()) {
                             if (newOriginInfo == null) {
                                 newOriginInfo = new OriginInfoDefinition();
                                 newOriginInfo.setEventType(oldOriginInfo.getEventType());
                             }
-                            newOriginInfo.getPublisher().add(oldPublisher);
-                            oldOriginInfo.getPublisher().remove(oldPublisher);
+                            newOriginInfo.getAgent().add(oldAgent);
+                            oldOriginInfo.getAgent().remove(oldAgent);
                             break;
                         }
                     }
@@ -373,7 +387,7 @@ public class CatalogUtils {
         mods.getOriginInfo().addAll(fixedOriginInfo);
         cleanOriginInfo(mods);
         mergeFirstTwoOriginInfo(mods);
-        copyPlaceDatePublisher(mods);
+        copyPlaceDateAgent(mods);
         deleteDoubleDateIssued(mods);
         repairIssuance(mods);
         return mods;
@@ -385,7 +399,7 @@ public class CatalogUtils {
             OriginInfoDefinition originInfo = iterator.next();
             if (originInfo.getEventType() != null &&
                     originInfo.getPlace().isEmpty() &&
-                    originInfo.getPublisher().isEmpty() &&
+                    originInfo.getAgent().isEmpty() &&
                     originInfo.getDateCreated().isEmpty() &&
                     originInfo.getDateIssued().isEmpty() &&
                     originInfo.getCopyrightDate().isEmpty() &&
@@ -447,12 +461,12 @@ public class CatalogUtils {
             }
             if (couple.contains("b")) {
                 for (OriginInfoDefinition oldOriginInfo : mods.getOriginInfo()) {
-                    for (PublisherDefinition oldPublisher : oldOriginInfo.getPublisher()) {
+                    for (NameDefinition oldAgent : oldOriginInfo.getAgent()) {
                         if (newOriginInfo == null) {
                             newOriginInfo = new OriginInfoDefinition();
                         }
-                        newOriginInfo.getPublisher().add(oldPublisher);
-                        oldOriginInfo.getPublisher().remove(oldPublisher);
+                        newOriginInfo.getAgent().add(oldAgent);
+                        oldOriginInfo.getAgent().remove(oldAgent);
                         break;
                     }
                 }
@@ -488,7 +502,7 @@ public class CatalogUtils {
         }
         mods.getOriginInfo().addAll(fixedOriginInfo);
         mergeFirstTwoOriginInfo(mods);
-        copyPlaceDatePublisher(mods);
+        copyPlaceDateAgent(mods);
         deleteDoubleDateIssued(mods);
         repairIssuance(mods);
         return mods;
@@ -516,9 +530,9 @@ public class CatalogUtils {
         }
     }
 
-    private static void copyPlaceDatePublisher(ModsDefinition mods) {
+    private static void copyPlaceDateAgent(ModsDefinition mods) {
         DateDefinition dateValue = null;
-        PublisherDefinition publisherValue = null;
+        NameDefinition agentValue = null;
         PlaceTermDefinition placeValue = null;
         IssuanceDefinition issuanceDefinition = null;
 
@@ -526,14 +540,16 @@ public class CatalogUtils {
             if (issuanceDefinition == null && !originInfo.getIssuance().isEmpty() && originInfo.getIssuance().get(0) != null) {
                 issuanceDefinition = originInfo.getIssuance().get(0);
             }
-            for (PublisherDefinition publisher : originInfo.getPublisher()) {
-                if (publisher.getValue() != null) {
-                    if (publisherValue == null) {
-                        publisherValue = publisher;
-                        break;
-                    } else {
-                        publisherValue = null;
-                        break;
+            for (NameDefinition agent : originInfo.getAgent()) {
+                for (NamePartDefinition namePart : agent.getNamePart()) {
+                    if (namePart.getValue() != null) {
+                        if (agentValue == null) {
+                            agentValue = agent;
+                            break;
+                        } else {
+                            agentValue = null;
+                            break;
+                        }
                     }
                 }
             }
@@ -588,8 +604,8 @@ public class CatalogUtils {
             if (dateValue != null && !originInfo.getDateIssued().contains(dateValue)) {
                 originInfo.getDateIssued().add(dateValue);
             }
-            if (publisherValue != null && originInfo.getPublisher().isEmpty()) { // KNAV monografie, sysno, 000038982
-                originInfo.getPublisher().add(publisherValue);
+            if (agentValue != null && originInfo.getAgent().isEmpty()) { // KNAV monografie, sysno, 000038982
+                originInfo.getAgent().add(agentValue);
             }
             if (issuanceDefinition != null && originInfo.getIssuance().isEmpty()) {
                 originInfo.getIssuance().add(issuanceDefinition);
@@ -607,9 +623,9 @@ public class CatalogUtils {
             secondInfo = originInfos.get(1);
             if (hasOnlyOnePlaceValue(firstInfo.getPlace(), secondInfo.getPlace()) &&
                     hasOnlyOneDateValue(firstInfo.getDateIssued(), secondInfo.getDateIssued()) &&
-                    hasOnlyOneValue(firstInfo.getPublisher(), secondInfo.getPublisher())) {
+                    hasOnlyOneValue(firstInfo.getAgent(), secondInfo.getAgent())) {
                 firstInfo.getPlace().addAll(secondInfo.getPlace());
-                firstInfo.getPublisher().addAll(secondInfo.getPublisher());
+                firstInfo.getAgent().addAll(secondInfo.getAgent());
                 mergeDate(firstInfo.getDateIssued(), secondInfo.getDateIssued());
                 firstInfo.getDateCreated().addAll(secondInfo.getDateCreated());
                 firstInfo.getDateCaptured().addAll(secondInfo.getDateCaptured());

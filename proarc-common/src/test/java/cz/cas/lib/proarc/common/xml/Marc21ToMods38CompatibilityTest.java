@@ -28,6 +28,7 @@ import javax.xml.xpath.XPathFactory;
 import net.sf.saxon.TransformerFactoryImpl;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -59,6 +60,22 @@ class Marc21ToMods38CompatibilityTest {
             assertFalse(legacy.isEmpty(), "Legacy oracle returned no value for " + testCase.xpath + ": " + legacyXml);
             assertEquals(legacy, mods38);
         }));
+    }
+
+    @Test
+    void assignsRolesToOriginInfoAgents() throws Exception {
+        assertAgentRole(field("260", " ", " ", sub("b", "Publisher")), "Publisher", "publisher");
+        assertAgentRole(field("260", " ", " ", sub("f", "Manufacturer")), "Manufacturer", "manufacturer");
+        assertAgentRole(field("264", " ", "0", sub("b", "Producer")), "Producer", "producer");
+        assertAgentRole(field("264", " ", "1", sub("b", "Publisher")), "Publisher", "publisher");
+        assertAgentRole(field("264", " ", "2", sub("b", "Distributor")), "Distributor", "distributor");
+        assertAgentRole(field("264", " ", "3", sub("b", "Manufacturer")), "Manufacturer", "manufacturer");
+    }
+
+    private static void assertAgentRole(String field, String agentName, String role) throws Exception {
+        String mods = transform(mods38Template, aCase("originInfo agent role", field, "").marc);
+        String xpath = "string(/m:mods/m:originInfo/m:agent[m:namePart='" + agentName + "']/m:role/m:roleTerm)";
+        assertEquals(role, xpath(mods, xpath));
     }
 
     private static List<CompatibilityCase> cases() {

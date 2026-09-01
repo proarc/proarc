@@ -1880,7 +1880,11 @@
             <!--  2.73   -->
             <xsl:variable name="roleTerm">
                 <xsl:choose>
-                    <xsl:when test="@ind2='0'"/>
+                    <xsl:when test="@ind2='0'">
+                        <role>
+                            <roleTerm>producer</roleTerm>
+                        </role>
+                    </xsl:when>
                     <xsl:when test="@ind2='1'">
                         <!--  2.76  -->
                         <role>
@@ -2160,6 +2164,9 @@
                 <namePart>
                     <xsl:value-of select="local:stripPunctuation(.,',:;/ ')"/>
                 </namePart>
+                <role>
+                    <roleTerm>publisher</roleTerm>
+                </role>
             </agent>
         </xsl:for-each>
         <!--  2.57  -->
@@ -2168,11 +2175,11 @@
                 <namePart>
                     <xsl:value-of select="local:stripPunctuation(.,',:;/ ')"/>
                 </namePart>
+                <role>
+                    <!--  2.76  -->
+                    <roleTerm>manufacturer</roleTerm>
+                </role>
             </agent>
-            <role>
-                <!--  2.76  -->
-                <roleTerm>manufacturer</roleTerm>
-            </role>
         </xsl:for-each>
         <xsl:for-each select="marc:subfield[@code='c']">
             <xsl:choose>
