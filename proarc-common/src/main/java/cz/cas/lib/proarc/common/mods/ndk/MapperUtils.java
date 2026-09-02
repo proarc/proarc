@@ -339,6 +339,14 @@ public final class MapperUtils {
         }
     }
 
+    public static void addAgent(List<ElementType> dcElms, List<NameDefinition> agents) {
+        for (NameDefinition agent : agents) {
+            for (NamePartDefinition namePart : agent.getNamePart()) {
+                addElementType(dcElms, namePart.getValue(), agent.getLang());
+            }
+        }
+    }
+
     public static void addDigitalOrigin(List<ElementType> dcElms, List<? extends DigitalOriginDefinition> modsValues) {
         for (DigitalOriginDefinition modsValue : modsValues) {
             if (modsValue.value() != null && modsValue.value().length() > 2700) {
@@ -499,7 +507,7 @@ public final class MapperUtils {
                     }
                 }
             }
-            addStringPlusLanguage(dc.getPublishers(), originInfo.getPublisher());
+            addAgent(dc.getPublishers(), originInfo.getAgent());
             for (DateDefinition date : originInfo.getDateIssued()) {
                 //issue #706 - write dc:data even if point is not present
                 //String point = toValue(date.getPoint());

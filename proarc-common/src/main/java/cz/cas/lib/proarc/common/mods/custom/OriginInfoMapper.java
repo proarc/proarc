@@ -19,16 +19,17 @@ package cz.cas.lib.proarc.common.mods.custom;
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ArrayItem;
 import cz.cas.lib.proarc.common.mods.custom.ArrayMapper.ItemMapper;
 import cz.cas.lib.proarc.common.mods.custom.OriginInfoMapper.PublisherItem.Role;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.IssuanceDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NameDefinition;
+import cz.cas.lib.proarc.mods.NamePartDefinition;
 import cz.cas.lib.proarc.mods.ObjectFactory;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
-import cz.cas.lib.proarc.mods.PublisherDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
-import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -153,11 +154,11 @@ final class OriginInfoMapper {
         @Override
         public OriginInfoItem map(OriginInfoDefinition source) {
             String transliteration = source.getTransliteration();
-            StringPlusLanguagePlusSupplied publisher = getPublisher(factory, source.getPublisher(), false);
-            if (transliteration == null && publisher == null) {
+            NameDefinition agent = getAgent(factory, source.getAgent(), false);
+            if (transliteration == null && agent == null) {
                 return readPeriodicity(source);
             } else {
-                return readPublisher(source);
+                return readAgent(source);
             }
         }
         
@@ -172,7 +173,7 @@ final class OriginInfoMapper {
             return result;
         }
 
-        private PublisherItem readPublisher(OriginInfoDefinition source) {
+        private PublisherItem readAgent(OriginInfoDefinition source) {
             PublisherItem result = new PublisherItem();
             Role role = Role.fromText(source.getTransliteration());
             result.setRole(role);
@@ -180,9 +181,13 @@ final class OriginInfoMapper {
                 return result;
             }
 
-            Optional<PublisherDefinition> publisher = source.getPublisher().stream().findFirst();
-
-            result.setName(publisher.isPresent() ? publisher.get().getValue() : null);
+            String name = source.getAgent().stream()
+                    .flatMap(agent -> agent.getNamePart().stream())
+                    .map(NamePartDefinition::getValue)
+                    .filter(value -> value != null)
+                    .findFirst()
+                    .orElse(null);
+            result.setName(name);
 
             DateDefinition date = getDate(factory, source, role, false);
             result.setDate(date == null ? null : date.getValue());
@@ -233,11 +238,14 @@ final class OriginInfoMapper {
             }
 
             if (item.getName() != null) {
-                PublisherDefinition publisher = getPublisher(factory, source.getPublisher(), true);
-                publisher.setValue(item.getName());
+                NameDefinition agent = getAgent(factory, source.getAgent(), true);
+                getNamePart(factory, agent, true).setValue(item.getName());
+                ModsUtils.setAgentRole(agent, source.getEventType());
             } else {
-                PublisherDefinition publisher = getPublisher(factory, source.getPublisher(), false);
-                source.getPublisher().remove(publisher);
+                NameDefinition agent = getAgent(factory, source.getAgent(), false);
+                if (agent != null) {
+                    source.getAgent().remove(agent);
+                }
             }
 
             if (item.getPlace() != null) {
@@ -261,13 +269,22 @@ final class OriginInfoMapper {
             return source;
         }
 
-        private static PublisherDefinition getPublisher(ObjectFactory factory, List<PublisherDefinition> publishers, boolean create) {
-            PublisherDefinition publisher = publishers.stream().findFirst().orElse(null);
-            if (create && publisher == null) {
-                publisher = new PublisherDefinition();
-                publishers.add(publisher);
+        private static NameDefinition getAgent(ObjectFactory factory, List<NameDefinition> agents, boolean create) {
+            NameDefinition agent = agents.stream().findFirst().orElse(null);
+            if (create && agent == null) {
+                agent = factory.createNameDefinition();
+                agents.add(agent);
             }
-            return publisher;
+            return agent;
+        }
+
+        private static NamePartDefinition getNamePart(ObjectFactory factory, NameDefinition agent, boolean create) {
+            NamePartDefinition namePart = agent.getNamePart().stream().findFirst().orElse(null);
+            if (create && namePart == null) {
+                namePart = factory.createNamePartDefinition();
+                agent.getNamePart().add(namePart);
+            }
+            return namePart;
         }
 
         private static DateDefinition getDate(ObjectFactory factory, OriginInfoDefinition oid, Role role, boolean create) {

@@ -26,10 +26,14 @@ import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.xml.Transformers;
 import cz.cas.lib.proarc.common.xml.Transformers.Format;
+import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NameDefinition;
 import cz.cas.lib.proarc.mods.ObjectFactory;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
+import cz.cas.lib.proarc.mods.RoleDefinition;
+import cz.cas.lib.proarc.mods.RoleTermDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import jakarta.xml.bind.DataBindingException;
 import jakarta.xml.bind.JAXBContext;
@@ -79,6 +83,42 @@ public final class ModsUtils {
     private static ThreadLocal<Unmarshaller> defaultUnmarshaller = new ThreadLocal<Unmarshaller>();
     private static Schema MODS_SCHEMA;
     private static final String MODS_SCHEMA_PATH = "mods-3-8.xsd";
+
+    public static void setAgentRole(NameDefinition agent, String eventType) {
+        RoleDefinition role;
+        if (agent.getRole().isEmpty()) {
+            role = new RoleDefinition();
+            agent.getRole().add(role);
+        } else {
+            role = agent.getRole().get(0);
+        }
+
+        RoleTermDefinition roleTerm = role.getRoleTerm().stream()
+                .filter(term -> term.getType() != CodeOrText.CODE)
+                .findFirst()
+                .orElse(null);
+        if (roleTerm == null) {
+            roleTerm = new RoleTermDefinition();
+            role.getRoleTerm().add(roleTerm);
+        }
+        roleTerm.setValue(getAgentRoleTerm(eventType));
+    }
+
+    public static String getAgentRoleTerm(String eventType) {
+        if (eventType == null || ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION.equals(eventType)) {
+            return "publisher";
+        }
+        switch (eventType) {
+            case ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION:
+                return "producer";
+            case ModsConstants.VALUE_ORIGININFO_EVENTTYPE_DISTRIBUTION:
+                return "distributor";
+            case ModsConstants.VALUE_ORIGININFO_EVENTTYPE_MANUFACTURE:
+                return "manufacturer";
+            default:
+                return eventType;
+        }
+    }
 
     /**
      * Default MODS context. Oracle JAXB RI's context should be thread safe.
