@@ -1441,7 +1441,7 @@ Revision 1.02 - Added Log Comment  2003/03/24 19:37:42  ckeith
                     <form authority="marcform">braille</form>
                 </xsl:when>
                 <xsl:when
-                        test="($controlField008-23=' ' and ($leader6='c' or $leader6='d')) or (($typeOf008='BK' or $typeOf008='SE') and ($controlField008-23=' ' or $controlField008='r'))">
+                        test="($controlField008-23=' ' and ($leader6='c' or $leader6='d')) or (($typeOf008='BK' or $typeOf008='SE') and ($controlField008-23=' ' or $controlField008-23='r'))">
                     <form authority="marcform">print</form>
                 </xsl:when>
                 <xsl:when
