@@ -78,7 +78,7 @@ public class K7Uploader {
         if (ModsStreamEditor.DATASTREAM_ID.equals(streamId) || DcStreamEditor.DATASTREAM_ID.equals(streamId) ||
                 AltoDatastream.ALTO_ID.equals(streamId) || RelationEditor.DATASTREAM_ID.equals(streamId) ||
                 MixEditor.RAW_ID.equals(streamId) || MixEditor.NDK_ARCHIVAL_ID.equals(streamId) || FoxmlUtils.DS_AUDIT_ID.equals(streamId)) {
-            return "application/xml; charset=UTF-8";
+            return "application/xml";
         } else {
             throw new IOException("Unsupporter streamId " + streamId);
         }
