@@ -1078,12 +1078,11 @@ public class DigitalObjectResourceV1 {
         if (request == null) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing request body!");
         }
-        return distributeMembers(request.srcParentPid, request.batchId, request.targets, request.runReindex);
+        return distributeMembers(request.srcParentPid, request.targets, request.runReindex);
     }
 
     private ProArcResponse<SearchViewItem> distributeMembers(
             String srcParentPid,
-            Integer batchId,
             List<ProArcRequest.DistributeMembersTarget> targets,
             boolean runReindex
     ) throws IOException, DigitalObjectException {
@@ -1135,29 +1134,19 @@ public class DigitalObjectResourceV1 {
                 throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
             }
 
-            Batch batch = batchId == null ? null : importManager.get(batchId);
-            DigitalObjectHandler srcHandler = findHandler(srcParentPid, batch, false);
+            DigitalObjectHandler srcHandler = findHandler(srcParentPid, (Batch) null, false);
             Map<String, SearchViewItem> memberSearchMap = loadSearchItems(movePidSet);
             DistributeObjects distribute = new DistributeObjects(
                     appConfig, akubraConfiguration, user, session.getLocale(httpHeaders),
                     session.asFedoraLog(), srcHandler, memberSearchMap);
 
             for (ProArcRequest.DistributeMembersTarget target : targets) {
-                DigitalObjectHandler destinationHandler = findHandler(target.dstParentPid, batch, false);
+                DigitalObjectHandler destinationHandler = findHandler(target.dstParentPid, (Batch) null, false);
                 List<DigitalObjectHandler> childHandlers = new ArrayList<DigitalObjectHandler>(target.pids.size());
-                List<BatchItemObject> batchObjects = batchId == null
-                        ? null : new ArrayList<BatchItemObject>(target.pids.size());
                 for (String pid : target.pids) {
-                    childHandlers.add(findHandler(pid, batch, true));
-                    if (batchObjects != null) {
-                        BatchItemObject batchObject = importManager.findBatchObject(batchId, pid);
-                        if (batchObject == null) {
-                            throw RestException.plainNotFound(DigitalObjectResourceApi.DIGITALOBJECT_PID, pid);
-                        }
-                        batchObjects.add(batchObject);
-                    }
+                    childHandlers.add(findHandler(pid, (Batch) null, true));
                 }
-                distribute.addTarget(destinationHandler, target.pids, childHandlers, batchObjects);
+                distribute.addTarget(destinationHandler, target.pids, childHandlers, null);
             }
 
             List<SearchViewItem> added = distribute.execute(runReindex);

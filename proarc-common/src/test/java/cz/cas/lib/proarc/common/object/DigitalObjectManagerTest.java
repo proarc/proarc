@@ -80,6 +80,6 @@ public class DigitalObjectManagerTest {
             }
         };
         return handler.issueSeries(null, null, Collections.emptyList(), false, Collections.emptyList(), partNumberFrom,
-                "other", null, null, 4);
+                "other", null, null, null, null,4);
     }
 }

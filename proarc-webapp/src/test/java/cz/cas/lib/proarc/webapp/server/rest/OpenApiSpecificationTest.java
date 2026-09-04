@@ -394,6 +394,7 @@ class OpenApiSpecificationTest {
                 .getJSONObject("properties");
         assertTrue(requestProperties.has("targets"));
         assertTrue(requestProperties.has("runReindex"));
+        assertFalse(requestProperties.has("batchId"));
         assertEquals("#/components/schemas/DistributeMembersTarget", requestProperties
                 .getJSONObject("targets")
                 .getJSONObject("items")

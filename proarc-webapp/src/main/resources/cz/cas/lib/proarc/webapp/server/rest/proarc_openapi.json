@@ -14395,10 +14395,6 @@
           "srcPid": {
             "type": "string"
           },
-          "batchId": {
-            "type": "integer",
-            "format": "int32"
-          },
           "targets": {
             "type": "array",
             "items": {
