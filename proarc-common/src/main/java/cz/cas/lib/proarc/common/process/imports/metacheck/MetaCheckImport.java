@@ -4,17 +4,19 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchItem;
 import cz.cas.lib.proarc.common.dao.BatchParams;
-import cz.cas.lib.proarc.common.image.ImageMimeType;
 import cz.cas.lib.proarc.common.externalApp.metacheck.MetaCheckBatch;
 import cz.cas.lib.proarc.common.externalApp.metacheck.MetaCheckClient;
+import cz.cas.lib.proarc.common.externalApp.peroOcr.PeroOcrProcessor;
+import cz.cas.lib.proarc.common.image.ImageMimeType;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.external.ExternalProcess;
-import cz.cas.lib.proarc.common.externalApp.peroOcr.PeroOcrProcessor;
 import cz.cas.lib.proarc.common.process.external.TiffToJpgConvert;
-import cz.cas.lib.proarc.common.process.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.process.imports.FileSet;
 import cz.cas.lib.proarc.common.process.imports.GeneratorAltoOcr;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
@@ -48,6 +50,31 @@ import static cz.cas.lib.proarc.common.image.ImageUtility.readImage;
 public class MetaCheckImport implements ImportHandler {
 
     private static final Logger LOG = Logger.getLogger(MetaCheckImport.class.getName());
+    private static final Map<String, String> PACKAGE_INFO_MODELS = Map.ofEntries(
+            Map.entry(NdkPlugin.MODEL_ARTICLE, "article"),
+            Map.entry(NdkPlugin.MODEL_CARTOGRAPHIC, "map"),
+            Map.entry(NdkPlugin.MODEL_GRAPHIC, "graphic"),
+            Map.entry(NdkPlugin.MODEL_MONOGRAPHTITLE, "title"),
+            Map.entry(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, "supplement"),
+            Map.entry(NdkPlugin.MODEL_MONOGRAPHUNIT, "volume"),
+            Map.entry(NdkPlugin.MODEL_MONOGRAPHVOLUME, "volume"),
+            Map.entry(NdkPlugin.MODEL_PERIODICAL, "title"),
+            Map.entry(NdkPlugin.MODEL_PERIODICALISSUE, "unit"),
+            Map.entry(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, "supplement"),
+            Map.entry(NdkPlugin.MODEL_PERIODICALVOLUME, "volume"),
+            Map.entry(NdkPlugin.MODEL_PICTURE, "picture"),
+            Map.entry(NdkPlugin.MODEL_SHEETMUSIC, "sheetmusic"),
+            Map.entry(NdkPlugin.MODEL_CHAPTER, "chapter"),
+            Map.entry(BornDigitalModsPlugin.MODEL_ARTICLE, "article"),
+            Map.entry(OldPrintPlugin.MODEL_MONOGRAPHVOLUME, "volume"),
+            Map.entry(OldPrintPlugin.MODEL_SUPPLEMENT, "supplement"),
+            Map.entry(OldPrintPlugin.MODEL_MONOGRAPHTITLE, "title"),
+            Map.entry(OldPrintPlugin.MODEL_MONOGRAPHUNIT, "volume"),
+            Map.entry(OldPrintPlugin.MODEL_CHAPTER, "chapter"),
+            Map.entry(OldPrintPlugin.MODEL_GRAPHICS, "graphic"),
+            Map.entry(OldPrintPlugin.MODEL_CARTOGRAPHIC, "map"),
+            Map.entry(OldPrintPlugin.MODEL_SHEETMUSIC, "sheetmusic"),
+            Map.entry(OldPrintPlugin.MODEL_CONVOLUTTE, "convolute"));
 
     @Override
     public int estimateItemNumber(ImportProcess.ImportOptions importConfig) throws IOException {
@@ -335,7 +362,7 @@ public class MetaCheckImport implements ImportHandler {
 
             JSONObject packageObject = new JSONObject();
             packageObject.put("pid", pid);
-            packageObject.put("model", toPackageInfoModel(model, config.getKramerius4Export()));
+            packageObject.put("model", toPackageInfoModel(model));
             packageObject.put("metadata", metadata.getData());
             objects.put(packageObject);
         }
@@ -391,13 +418,12 @@ public class MetaCheckImport implements ImportHandler {
         return currentPackageType;
     }
 
-    private String toPackageInfoModel(String model, Kramerius4ExportOptions kramerius4ExportOptions) {
-        Map<String, String> modelMap = kramerius4ExportOptions.getModelMap();
-        String mappedModel = modelMap.get(model);
-        if (mappedModel == null) {
-            mappedModel = model;
+    private String toPackageInfoModel(String model) {
+        if (model == null) {
+            return null;
         }
-        if (mappedModel != null && mappedModel.startsWith("model:")) {
+        String mappedModel = PACKAGE_INFO_MODELS.getOrDefault(model, model);
+        if (mappedModel.startsWith("model:")) {
             return mappedModel.substring("model:".length());
         }
         return mappedModel;

@@ -8,7 +8,6 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
-import cz.cas.lib.proarc.common.process.export.Kramerius4ExportOptions;
 import cz.cas.lib.proarc.common.process.imports.ImportProcess;
 import cz.cas.lib.proarc.common.process.imports.ImportProfile;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
@@ -129,9 +128,6 @@ public class MetaCheckImportTest {
             result = unitMetadata;
             minTimes = 0;
 
-            config.getKramerius4Export();
-            result = new Kramerius4ExportOptions();
-            minTimes = 0;
         }};
 
         TestableMetaCheckImport importer = new TestableMetaCheckImport(dom);
@@ -144,8 +140,8 @@ public class MetaCheckImportTest {
         assertEquals("monograph", packageInfo.getString("type"));
         JSONArray objects = packageInfo.getJSONArray("objects");
         assertEquals(2, objects.length());
-        assertPackageObject(objects.getJSONObject(0), ROOT_PID, "monograph", "<mods>root</mods>");
-        assertPackageObject(objects.getJSONObject(1), UNIT_PID, "monographunit", "<mods>unit</mods>");
+        assertPackageObject(objects.getJSONObject(0), ROOT_PID, "title", "<mods>root</mods>");
+        assertPackageObject(objects.getJSONObject(1), UNIT_PID, "volume", "<mods>unit</mods>");
     }
 
     @Test
