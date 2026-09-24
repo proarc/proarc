@@ -24,16 +24,12 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static cz.cas.lib.proarc.common.object.ndk.ModsRules.PAGE_PART_TYPE;
 
 public class ValidationProcess {
 
     private static final Logger LOG = Logger.getLogger(ValidationProcess.class.getName());
-    private static final Pattern YEAR_RANGE_PATTERN = Pattern.compile("^\\s*(\\d{4})\\s*-\\s*(\\d{4})\\s*$");
-
     private static AppConfiguration appConfig;
     private static AkubraConfiguration akubraConfiguration;
     private static List<String> pids;
@@ -284,9 +280,6 @@ public class ValidationProcess {
                 try {
                     ModsDefinition parentMods = getMods(parentItem.getPid());
                     String parentDateIssued = getDateIssued(parentMods);
-                    if (dateIssued.contains(".")) {
-                        dateIssued = dateIssued.substring(dateIssued.lastIndexOf(".") + 1);
-                    }
                     if (parentDateIssued == null || parentDateIssued.isEmpty()) {
                         result.getValidationResults().add(new ValidationResult(parentItem.getPid(), "Nadřazený objekt neobsahuje date Issued (" + parentDateIssued + ").", Level.WARNING));
                     }
@@ -301,19 +294,7 @@ public class ValidationProcess {
     }
 
     static boolean isDateIssuedValid(String parentDateIssued, String dateIssued) {
-        if (parentDateIssued.equals(dateIssued)) {
-            return true;
-        }
-
-        Matcher rangeMatcher = YEAR_RANGE_PATTERN.matcher(parentDateIssued);
-        if (!rangeMatcher.matches() || dateIssued == null || !dateIssued.trim().matches("\\d{4}")) {
-            return false;
-        }
-
-        int startYear = Integer.parseInt(rangeMatcher.group(1));
-        int endYear = Integer.parseInt(rangeMatcher.group(2));
-        int issueYear = Integer.parseInt(dateIssued.trim());
-        return startYear <= issueYear && issueYear <= endYear;
+        return ModsRules.DatumValidator.isDateIssuedValid(parentDateIssued, dateIssued);
     }
 
     private String getDateIssued(ModsDefinition mods) {
