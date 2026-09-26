@@ -35,14 +35,14 @@ import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.configuration2.Configuration;
-
-import static cz.cas.lib.proarc.common.process.internal.ValidationProcess.isDateIssuedValid;
 
 /**
  * Checks Mods rules.
@@ -77,8 +77,7 @@ public class ModsRules {
             "bibliography", "dedication", "afterword", "illustration", "advertisement", "map", "sheetMusic", "tableOfContents", "preface", "index", "table", "introduction", "conclusion",
             "imgDisc", "manuscriptNotes", "calibrationTable", "fragmentsOfBookbinding", "scaleReference"));
 
-    private ModsRules() {
-    }
+    private ModsRules() {}
 
     public ModsRules(String modelId, ModsDefinition mods, DigitalObjectValidationException ex, NdkMapper.Context context, AppConfiguration appConfiguration) {
         this.modelId = modelId;
@@ -236,25 +235,8 @@ public class ModsRules {
             value = value.substring(value.lastIndexOf(".") + 1);
         }
         String parentDate = getDateIssued(parentMods);
-        if (parentDate != null && parentDate.length() == 4) {
-            try {
-                int parentDateYear = Integer.parseInt(parentDate);
-                if (!(value.contains(parentDate) || value.contains(String.valueOf(parentDateYear - 1)) || value.contains(String.valueOf(parentDateYear + 1)))) {
-                    exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
-                }
-            } catch (NumberFormatException e) {
-                if (parentDate != null) {
-                    if (!value.contains(parentDate)) {
-                        exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
-                    }
-                }
-            }
-        } else if (parentDate != null) {
-            if (parentDate != null) {
-                if (!isDateIssuedValid(parentDate, value)) {
-                    exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, false, value);
-                }
-            }
+        if (parentDate != null && !DatumValidator.isDateIssuedValid(parentDate, value)) {
+            exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
         }
     }
 
@@ -326,10 +308,15 @@ public class ModsRules {
     }
 
     public static class DatumValidator {
+        private static final Pattern YEAR_PATTERN = Pattern.compile("(?<!\\d)(\\d{4})(?!\\d)");
+        private static final Pattern SINGLE_YEAR_PATTERN = Pattern.compile("^\\d{4}$");
+        private static final Pattern YEAR_RANGE_PATTERN = Pattern.compile("^(\\d{4})-(\\d{4})$");
+
         private static String[] regexPatterns = {
                 "^\\d{2}\\.\\d{2}\\.\\d{4}$",                           // DD.MM.RRRR
                 "^\\d{2}\\.\\d{4}$",                                    // MM.RRRR
                 "^\\d{4}$",                                             // RRRR
+                "^\\d{4}-\\d{4}$",                                     // RRRR-RRRR
                 "^\\d{2}\\.\\-\\d{2}\\.\\d{4}$",                        // MM.-MM.RRRR
                 "^\\d{2}\\.\\d{4}-\\d{2}\\.\\d{4}$",                    // MM.RRRR-MM.RRRR
                 "^\\d{2}\\.\\d{2}\\.\\-\\d{2}\\.\\d{2}\\.\\d{4}$",      // DD.MM.-DD.MM.RRRR
@@ -382,6 +369,16 @@ public class ModsRules {
             } catch (NumberFormatException e) {
                 return false;
             }
+        }
+
+        public static boolean isValidYearRange(String datum) {
+            Matcher matcher = YEAR_RANGE_PATTERN.matcher(datum);
+            if (!matcher.matches()) {
+                return false;
+            }
+            int firstYear = Integer.parseInt(matcher.group(1));
+            int lastYear = Integer.parseInt(matcher.group(2));
+            return firstYear < lastYear;
         }
 
         // Kontrola formátu MM.-MM.RRRR
@@ -446,6 +443,7 @@ public class ModsRules {
             return isValidFullDate(datum) ||
                     isValidMonthYear(datum) ||
                     isValidYear(datum) ||
+                    isValidYearRange(datum) ||
                     isValidMultiMonthYear(datum) ||
                     isValidMonthYearRange(datum) ||
                     isValidMultiDayRange(datum) ||
@@ -455,6 +453,42 @@ public class ModsRules {
 
         public static boolean isValid(String datum) {
             return isValidFormat(datum) && isValidValue(datum);
+        }
+
+        public static boolean isDateIssuedValid(String parentDateIssued, String dateIssued) {
+            if (parentDateIssued == null || dateIssued == null) {
+                return false;
+            }
+            if (parentDateIssued.equals(dateIssued)) {
+                return true;
+            }
+
+            Matcher rangeMatcher = YEAR_RANGE_PATTERN.matcher(parentDateIssued);
+            if (rangeMatcher.matches()) {
+                int startYear = Integer.parseInt(rangeMatcher.group(1));
+                int endYear = Integer.parseInt(rangeMatcher.group(2));
+                for (Integer year : findYears(dateIssued)) {
+                    if (startYear <= year && year <= endYear) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            if (SINGLE_YEAR_PATTERN.matcher(parentDateIssued).matches()) {
+                int parentYear = Integer.parseInt(parentDateIssued);
+                return findYears(dateIssued).contains(parentYear);
+            }
+            return dateIssued.contains(parentDateIssued);
+        }
+
+        private static List<Integer> findYears(String dateIssued) {
+            List<Integer> years = new ArrayList<>();
+            Matcher matcher = YEAR_PATTERN.matcher(dateIssued);
+            while (matcher.find()) {
+                years.add(Integer.parseInt(matcher.group(1)));
+            }
+            return years;
         }
     }
 }
