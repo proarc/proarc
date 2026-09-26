@@ -231,9 +231,9 @@ public class ModsRules {
         if (parentMods == null) {
             return;
         }
-        if (value.contains(".")) {
-            value = value.substring(value.lastIndexOf(".") + 1);
-        }
+//        if (value.contains(".")) {
+//            value = value.substring(value.lastIndexOf(".") + 1);
+//        }
         String parentDate = getDateIssued(parentMods);
         if (parentDate != null && !DatumValidator.isDateIssuedValid(parentDate, value)) {
             exception.addValidation("MODS rules", ERR_NDK_ORIGININFO_DATEISSSUED, true, value);
