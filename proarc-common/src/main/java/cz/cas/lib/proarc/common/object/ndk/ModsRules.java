@@ -44,8 +44,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.configuration2.Configuration;
 
-import static cz.cas.lib.proarc.common.process.internal.ValidationProcess.isDateIssuedValid;
-
 /**
  * Checks Mods rules.
  *

@@ -16,7 +16,6 @@
  */
 package cz.cas.lib.proarc.common.object;
 
-import cz.cas.lib.proarc.common.CustomTemporaryFolder;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
@@ -25,22 +24,23 @@ import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
-import java.util.Arrays;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ModsDataHandlerTest {
 
-    @Rule
-    public CustomTemporaryFolder temp = new CustomTemporaryFolder(true);
+    @TempDir
+    Path tempDir;
 
     @Test
     public void prefersSongMetadataForTrack() throws Exception {
@@ -58,7 +58,7 @@ public class ModsDataHandlerTest {
                 "uuid:track", NdkAudioPlugin.MODEL_TRACK, null, null);
 
         assertSame(songTitle, trackMods.getTitleInfo().get(0));
-        assertEquals(Arrays.asList(NdkAudioPlugin.MODEL_SONG), handler.getSearchedModels());
+        assertEquals(List.of(NdkAudioPlugin.MODEL_SONG), handler.getSearchedModels());
     }
 
     @Test
@@ -78,14 +78,14 @@ public class ModsDataHandlerTest {
 
         assertSame(documentTitle, trackMods.getTitleInfo().get(0));
         assertTrue(trackMods.getIdentifier().contains(issueNumber));
-        assertEquals(Arrays.asList(
+        assertEquals(List.of(
                 NdkAudioPlugin.MODEL_SONG,
                 NdkAudioPlugin.MODEL_MUSICDOCUMENT), handler.getSearchedModels());
     }
 
     private TestModsDataHandler createHandler() throws Exception {
         Map<String, String> properties = new HashMap<>();
-        properties.put(AppConfiguration.PROPERTY_APP_HOME, temp.getRoot().getPath());
+        properties.put(AppConfiguration.PROPERTY_APP_HOME, tempDir.toString());
         AppConfiguration appConfiguration = AppConfigurationFactory.getInstance().create(properties);
         return new TestModsDataHandler(appConfiguration);
     }
@@ -93,7 +93,7 @@ public class ModsDataHandlerTest {
     private static final class TestModsDataHandler extends ModsDataHandler {
 
         private final Map<String, ModsDefinition> metadataByModel = new LinkedHashMap<>();
-        private final List<String> searchedModels = new java.util.ArrayList<>();
+        private final List<String> searchedModels = new ArrayList<>();
 
         TestModsDataHandler(AppConfiguration appConfiguration) {
             super(appConfiguration);

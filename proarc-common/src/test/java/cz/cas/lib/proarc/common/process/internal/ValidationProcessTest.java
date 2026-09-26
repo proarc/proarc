@@ -23,22 +23,22 @@ public class ValidationProcessTest {
     @Test
     public void acceptsAllSupportedDateIssuedFormats() {
         for (String date : SUPPORTED_DATES) {
-            assertTrue(date, ModsRules.DatumValidator.isValid(date));
+            assertTrue(ModsRules.DatumValidator.isValid(date), date);
         }
     }
 
     @Test
     public void acceptsAllSupportedIssueAndSupplementDatesForVolumeYear() {
         for (String date : SUPPORTED_DATES) {
-            assertTrue(date, ValidationProcess.isDateIssuedValid("1998", date));
-            assertTrue(date, ModsRules.DatumValidator.isDateIssuedValid("1998", date));
+            assertTrue(ValidationProcess.isDateIssuedValid("1998", date), date);
+            assertTrue(ModsRules.DatumValidator.isDateIssuedValid("1998", date), date);
         }
     }
 
     @Test
     public void acceptsAllSupportedSupplementDatesForMatchingIssue() {
         for (String date : SUPPORTED_DATES) {
-            assertTrue(date, ModsRules.DatumValidator.isDateIssuedValid(date, date));
+            assertTrue(ModsRules.DatumValidator.isDateIssuedValid(date, date), date);
         }
     }
 
