@@ -523,7 +523,7 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
         DigitalObjectValidationException ex = new DigitalObjectValidationException(fobject.getPid(), null,
                 DESCRIPTION_DATASTREAM_ID, "MODS validation", null);
         ModsRules modsRules = new ModsRules(modelId, mods, ex, context, appConfiguration);
-        modsRules.checkDateIssued(mods, modelId);
+        modsRules.checkDateIssuedFormat(mods, modelId);
         if (!ex.getValidations().isEmpty()) {
             throw ex;
         }

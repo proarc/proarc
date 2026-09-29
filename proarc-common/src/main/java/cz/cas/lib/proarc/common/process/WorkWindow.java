@@ -22,14 +22,22 @@ import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import java.sql.Timestamp;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 public class WorkWindow {
 
+    static final ZoneId WORK_ZONE = ZoneId.of("Europe/Prague");
+
     public static boolean isNotAllowed(Batch batch) {
+        return isNotAllowed(batch, currentDateTime(Clock.systemUTC()));
+    }
+
+    static boolean isNotAllowed(Batch batch, LocalDateTime now) {
 
         if (batch == null) {
             return true;
@@ -48,17 +56,19 @@ public class WorkWindow {
             return true;
         }
 
-        Timestamp notBefore = Timestamp.valueOf(params.getNotBefore());
-        Timestamp notAfter = Timestamp.valueOf(params.getNotAfter());
+        LocalDateTime notBefore = Timestamp.valueOf(params.getNotBefore()).toLocalDateTime();
+        LocalDateTime notAfter = Timestamp.valueOf(params.getNotAfter()).toLocalDateTime();
 
-        Timestamp now = new Timestamp(System.currentTimeMillis());
+        return !now.isBefore(notBefore) && !now.isAfter(notAfter);
+    }
 
-        return !now.before(notBefore) && !now.after(notAfter);
+    static LocalDateTime currentDateTime(Clock clock) {
+        return LocalDateTime.ofInstant(clock.instant(), WORK_ZONE);
     }
 
     public static Timestamp nextWindowStart() {
         LocalTime windowStart = getWindowStart();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = currentDateTime(Clock.systemUTC());
 
         LocalDateTime candidate = now.toLocalDate().atTime(windowStart);
         return Timestamp.valueOf(candidate);
@@ -135,7 +145,7 @@ public class WorkWindow {
 
     public static boolean isWorkingTime() {
 
-        LocalTime now = LocalTime.now();
+        LocalTime now = currentDateTime(Clock.systemUTC()).toLocalTime();
 
         LocalTime nightStart = getWindowStart(); // např. 18:00
         LocalTime nightEnd = getWindowEnd();   // např. 6:00
