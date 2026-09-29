@@ -208,20 +208,6 @@ public class CatalogUtils {
             if (index != null) {
                 originInfo.getDateIssued().remove(index.intValue());
             }
-            for (PlaceDefinition place : originInfo.getPlace()) {
-                for (PlaceTermDefinition placeTerm : place.getPlaceTerm()) {
-                    if (placeTerm.getValue() != null && placeTerm.getValue().endsWith(" :")) {
-                        placeTerm.setValue(placeTerm.getValue().replace(" :", ""));
-                    }
-                }
-            }
-            for (NameDefinition name : originInfo.getAgent()) {
-                for (NamePartDefinition namePart : name.getNamePart()) {
-                    if (namePart.getValue() != null && namePart.getValue().endsWith(" :")) {
-                        namePart.setValue(namePart.getValue().replace(" :", ""));
-                    }
-                }
-            }
         }
     }
 

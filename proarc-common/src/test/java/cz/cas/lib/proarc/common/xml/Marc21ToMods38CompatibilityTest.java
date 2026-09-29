@@ -72,6 +72,28 @@ class Marc21ToMods38CompatibilityTest {
         assertAgentRole(field("264", " ", "3", sub("b", "Manufacturer")), "Manufacturer", "manufacturer");
     }
 
+    @Test
+    void stripsPunctuationFromOriginInfoValues() throws Exception {
+        String fields = field("260", "1", " ",
+                sub("c", "2024."), sub("3", "Volume 1."))
+                + field("264", " ", "1",
+                sub("a", "Prague."), sub("b", "Publisher."), sub("c", "2025."), sub("3", "Volume 2."));
+        String mods = transform(mods38Template, aCase("originInfo punctuation", fields, "").marc);
+
+        assertEquals("2024", xpath(mods,
+                "string(/m:mods/m:originInfo/m:dateIssued[.='2024'])"));
+        assertEquals("Volume 1", xpath(mods,
+                "string(/m:mods/m:originInfo/m:dateIssued[.='Volume 1'])"));
+        assertEquals("Prague", xpath(mods,
+                "string(/m:mods/m:originInfo[@eventType='publication']/m:place/m:placeTerm)"));
+        assertEquals("Publisher", xpath(mods,
+                "string(/m:mods/m:originInfo[@eventType='publication']/m:agent/m:namePart)"));
+        assertEquals("2025", xpath(mods,
+                "string(/m:mods/m:originInfo[@eventType='publication']/m:dateIssued)"));
+        assertEquals("Volume 2", xpath(mods,
+                "string(/m:mods/m:originInfo[@eventType='publication']/m:dateOther[@type='publication'])"));
+    }
+
     private static void assertAgentRole(String field, String agentName, String role) throws Exception {
         String mods = transform(mods38Template, aCase("originInfo agent role", field, "").marc);
         String xpath = "string(/m:mods/m:originInfo/m:agent[m:namePart='" + agentName + "']/m:role/m:roleTerm)";

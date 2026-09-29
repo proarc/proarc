@@ -1930,7 +1930,7 @@
                         <xsl:for-each select="marc:subfield[@code='a']">
                             <place>
                                 <placeTerm type="text">
-                                    <xsl:value-of select="."/>
+                                    <xsl:value-of select="local:stripPunctuation(local:stripPunctuation(.))"/>
                                 </placeTerm>
                             </place>
                             <xsl:if test="following-sibling::marc:subfield[@code='b']">
@@ -1938,7 +1938,7 @@
                                 <xsl:for-each select="following-sibling::marc:subfield[@code='b'][1]">
                                     <agent>
                                         <namePart>
-                                            <xsl:value-of select="."/>
+                                            <xsl:value-of select="local:stripPunctuation(local:stripPunctuation(.))"/>
                                         </namePart>
                                         <xsl:sequence select="$roleTerm"/>
                                     </agent>
@@ -1950,7 +1950,7 @@
                         <xsl:if test="marc:subfield[@code='a']">
                             <place>
                                 <placeTerm type="text">
-                                    <xsl:value-of select="local:subfieldSelect(.,'a')"/>
+                                    <xsl:value-of select="local:stripPunctuation(local:stripPunctuation(local:subfieldSelect(.,'a')))"/>
                                 </placeTerm>
                             </place>
                         </xsl:if>
@@ -1958,7 +1958,7 @@
                         <xsl:for-each select="marc:subfield[@code='b'][1]">
                             <agent>
                                 <namePart>
-                                    <xsl:value-of select="."/>
+                                    <xsl:value-of select="local:stripPunctuation(.)"/>
                                 </namePart>
                                 <xsl:sequence select="$roleTerm"/>
                             </agent>
@@ -1969,22 +1969,22 @@
                     <xsl:choose>
                         <xsl:when test="@ind2='0'">
                             <dateOther type="production">
-                                <xsl:value-of select="local:subfieldSelect(.,'c')"/>
+                                <xsl:value-of select="local:stripPunctuation(local:subfieldSelect(.,'c'))"/>
                             </dateOther>
                         </xsl:when>
                         <xsl:when test="@ind2='1'">
                             <dateIssued>
-                                <xsl:value-of select="local:subfieldSelect(.,'c')"/>
+                                <xsl:value-of select="local:stripPunctuation(local:subfieldSelect(.,'c'))"/>
                             </dateIssued>
                         </xsl:when>
                         <xsl:when test="@ind2='2'">
                             <dateOther type="distribution">
-                                <xsl:value-of select="local:subfieldSelect(.,'c')"/>
+                                <xsl:value-of select="local:stripPunctuation(local:subfieldSelect(.,'c'))"/>
                             </dateOther>
                         </xsl:when>
                         <xsl:when test="@ind2='3'">
                             <dateOther type="manufacture">
-                                <xsl:value-of select="local:subfieldSelect(.,'c')"/>
+                                <xsl:value-of select="local:stripPunctuation(local:subfieldSelect(.,'c'))"/>
                             </dateOther>
                         </xsl:when>
                     </xsl:choose>
@@ -2162,7 +2162,7 @@
             <!--  2.56  -->
             <agent>
                 <namePart>
-                    <xsl:value-of select="local:stripPunctuation(.,',:;/ ')"/>
+                    <xsl:value-of select="local:stripPunctuation(local:stripPunctuation(.,',:;/ '))"/>
                 </namePart>
                 <role>
                     <roleTerm>publisher</roleTerm>
@@ -2173,7 +2173,7 @@
         <xsl:for-each select="marc:subfield[@code='f']">
             <agent>
                 <namePart>
-                    <xsl:value-of select="local:stripPunctuation(.,',:;/ ')"/>
+                    <xsl:value-of select="local:stripPunctuation(local:stripPunctuation(.,',:;/ '))"/>
                 </namePart>
                 <role>
                     <!--  2.76  -->
@@ -4244,7 +4244,7 @@
     <!--  subfields b or c: termsOfAddress  -->
     <xsl:template match="marc:subfield[@code='b' or @code='c']" mode="termsOfAddress">
         <namePart type="termsOfAddress">
-            <xsl:value-of select="local:stripPunctuation(.,',:;/ ')"/>
+            <xsl:value-of select="local:stripPunctuation(local:stripPunctuation(.,',:;/ '))"/>
         </namePart>
     </xsl:template>
     <!--  subfield b: name type='date'  -->
