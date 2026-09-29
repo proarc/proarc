@@ -253,21 +253,19 @@ public class ModsDataHandler {
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
         } else if (NdkAudioPlugin.MODEL_TRACK.equals(modelId)) {
-            if (parentJob != null) {
-                if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentJob.getModel())) {
-                    ModsDefinition titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_MUSICDOCUMENT, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
+            ModsDefinition titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_SONG, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
+            if (titleMods != null) {
+                modsCopyMusicDocument(titleMods, defaultMods);
+                inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+            } else {
+                titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_MUSICDOCUMENT, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
+                if (titleMods == null) {
+                    titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_PHONOGRAPH, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
+                }
+                if (titleMods != null) {
                     modsCopyMusicDocument(titleMods, defaultMods);
                     inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                     inheritIdentifier(defaultMods, titleMods.getIdentifier(), "issue number", "matrix number");
-                } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parentJob.getModel())) {
-                    ModsDefinition titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_PHONOGRAPH, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
-                    modsCopyMusicDocument(titleMods, defaultMods);
-                    inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-                    inheritIdentifier(defaultMods, titleMods.getIdentifier(), "issue number", "matrix number");
-                } else if (NdkAudioPlugin.MODEL_SONG.equals(parentJob.getModel())) {
-                    ModsDefinition titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_SONG, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
-                    modsCopyMusicDocument(titleMods, defaultMods);
-                    inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                 }
             }
         }
@@ -366,7 +364,7 @@ public class ModsDataHandler {
         mods.getRecordInfo().add(0, recordInfo);
     }
 
-    private ModsDefinition findEnclosingObject(String searchModelId, DigitalObjectHandler parentHandler, Job parentJob) throws DigitalObjectException {
+    ModsDefinition findEnclosingObject(String searchModelId, DigitalObjectHandler parentHandler, Job parentJob) throws DigitalObjectException {
         if (parentHandler != null) {
             return findModsOfEnclosingObjectOfHandler(searchModelId, parentHandler);
         } else if (parentJob != null) {

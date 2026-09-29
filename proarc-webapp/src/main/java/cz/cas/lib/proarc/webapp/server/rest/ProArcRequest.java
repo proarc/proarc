@@ -106,10 +106,6 @@ public class ProArcRequest {
         @JsonProperty(DigitalObjectResourceApi.MEMBERS_MOVE_SRCPID)
         public String srcParentPid;
 
-        @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
-        @JsonProperty(DigitalObjectResourceApi.MEMBERS_ITEM_BATCHID)
-        public Integer batchId;
-
         @XmlElement(name = DigitalObjectResourceApi.MEMBERS_DISTRIBUTE_TARGETS)
         @JsonProperty(DigitalObjectResourceApi.MEMBERS_DISTRIBUTE_TARGETS)
         public List<DistributeMembersTarget> targets;

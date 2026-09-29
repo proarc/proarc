@@ -54,7 +54,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 public final class KrameriusClient extends HttpAbstractClient {
 
     private static final Logger LOG = Logger.getLogger(KrameriusClient.class.getName());
-    private static final String XML_CONTENT_TYPE = "application/xml; charset=UTF-8";
+    private static final String XML_CONTENT_TYPE = "application/xml";
     private static final Set<String> XML_STREAM_IDS = Set.of(
             ModsStreamEditor.DATASTREAM_ID,
             DcStreamEditor.DATASTREAM_ID,

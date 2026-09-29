@@ -29,6 +29,7 @@ import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
+import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.LocalStorage.LocalObject;
@@ -327,9 +328,9 @@ public class DigitalObjectManager {
                     if (to.isBefore(from)) {
                         throw new IllegalArgumentException(String.format("Invalid date interval. from > to: %s > %s", from, to));
                     }
-                    if (from.getYear() != to.getYear()) {
-                        throw new IllegalArgumentException(String.format("Not the same year: %s, %s", from, to));
-                    }
+//                    if (from.getYear() != to.getYear()) {
+//                        throw new IllegalArgumentException(String.format("Not the same year: %s, %s", from, to));
+//                    }
                 } else {
                     to = from.with(TemporalAdjusters.lastDayOfYear());
                 }
@@ -423,9 +424,8 @@ public class DigitalObjectManager {
                 params.put(DigitalObjectHandler.PARAM_BARCODE, seriesBarcode);
             }
             this.seriesPartNumberFrom = partNumberFrom;
-            if (partNumberFrom != null) {
-                params.put(DigitalObjectHandler.PARAM_PART_NUMBER, seriesPartNumberFrom.toString());
-            }
+            params.put(DigitalObjectHandler.PARAM_PART_NUMBER,
+                    partNumberFrom == null ? "?" : seriesPartNumberFrom.toString());
             return this;
         }
 
@@ -684,7 +684,15 @@ public class DigitalObjectManager {
             while (hasNext()) {
                 // adjust series params
                 next();
-                items.add(createDigitalObject(createObject, validation, catalogId));
+                try {
+                    items.add(createDigitalObject(createObject, validation, catalogId));
+                } catch (DigitalObjectValidationException ex) {
+                    LOG.log(Level.WARNING,
+                            "Issue series stopped after {0} objects. Part number: {1}, date issued: {2}. {3}",
+                            new Object[]{items.size(), params.get(DigitalObjectHandler.PARAM_PART_NUMBER),
+                                params.get(DigitalObjectHandler.PARAM_ISSUE_DATE), ex.getMessage()});
+                    break;
+                }
                 seriesCountCreated++;
             }
             return items;
