@@ -53,7 +53,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.XMLConstants;
@@ -250,20 +249,13 @@ public final class ModsUtils {
         if (locale == null) {
             return Collections.emptyMap();
         }
-        ResourceBundle.Control control = ResourceBundle.Control.getControl(ResourceBundle.Control.FORMAT_PROPERTIES);
-        String baseName = "xml.modsDictionary";
-        List<Locale> candidateLocales = control.getCandidateLocales(baseName, locale);
-        HashMap<String, Object> params = new HashMap<String, Object>();
-        for (Locale candidateLocale : candidateLocales) {
-            String toBundleName = control.toBundleName(baseName, candidateLocale);
-            String resourceName = '/' + control.toResourceName(toBundleName, "xml");
-            URL resource = ModsUtils.class.getResource(resourceName);
-            if (resource != null) {
-                params.put("MODS_DICTIONARY", resource.toExternalForm());
-                break;
-            }
-        }
-        return params;
+        String dictionary = "cs".equals(locale.getLanguage())
+                ? "/xml/modsDictionary_cs.xml"
+                : "/xml/modsDictionary.xml";
+        URL resource = ModsUtils.class.getResource(dictionary);
+        return resource == null
+                ? Collections.emptyMap()
+                : Collections.<String, Object>singletonMap("MODS_DICTIONARY", resource.toExternalForm());
     }
 
     public static String getLabel(ModsDefinition mods, String model) {
