@@ -316,6 +316,7 @@ public final class DigitalObjectResourceApi {
 
     public static final String REINDEX_PATH = "reindexObjects";
     public static final String UPDATE_ALL_OBJECTS_PATH = "updateAllObjectsObjects";
+    public static final String UPGRADE_MODS_38_PATH = "upgradeMods38";
 
     public static final String URNNBN_ITEM_URNNBN = "urnnbn";
     public static final String URNNBN_ITEM_MESSAGE = "message";

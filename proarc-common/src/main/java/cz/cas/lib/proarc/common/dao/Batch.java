@@ -59,6 +59,7 @@ public class Batch {
     public static final String INTERNAL_VALIDATION = "internalProfile.validation";
     public static final String INTERNAL_URNNBN = "internalProfile.urnnbn";
     public static final String INTERNAL_DELETION = "internalProfile.deletion";
+    public static final String INTERNAL_UPGRADE_MODS_38 = "internalProfile.upgradeMods38";
 
     public static final String EXTERNAL_PERO = "externalProfile.pero";
     public static final String EXTERNAL_PDFA = "externalProfile.pdfa";

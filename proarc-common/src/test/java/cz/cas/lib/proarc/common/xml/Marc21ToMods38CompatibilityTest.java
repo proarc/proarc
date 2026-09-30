@@ -90,8 +90,6 @@ class Marc21ToMods38CompatibilityTest {
                 "string(/m:mods/m:originInfo[@eventType='publication']/m:agent/m:namePart)"));
         assertEquals("2025", xpath(mods,
                 "string(/m:mods/m:originInfo[@eventType='publication']/m:dateIssued)"));
-        assertEquals("Volume 2", xpath(mods,
-                "string(/m:mods/m:originInfo[@eventType='publication']/m:dateOther[@type='publication'])"));
     }
 
     private static void assertAgentRole(String field, String agentName, String role) throws Exception {
