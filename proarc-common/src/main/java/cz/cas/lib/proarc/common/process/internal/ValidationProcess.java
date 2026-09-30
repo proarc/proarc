@@ -46,8 +46,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static cz.cas.lib.proarc.common.object.ndk.ModsRules.PAGE_PART_TYPE;
-
 public class ValidationProcess {
 
     private static final Logger LOG = Logger.getLogger(ValidationProcess.class.getName());
@@ -210,7 +208,7 @@ public class ValidationProcess {
 
         // seznam validaci
         if (PAGE_MODELS.contains(model)) {
-            validatePage(item, result);
+            validatePage(item, result, parentItem == null ? null : parentItem.getModel());
         }
         if (CONTAINS_PDF.contains(model)) {
             validateContainsPdf(akubraObject, !children.isEmpty(), result);
@@ -454,7 +452,7 @@ public class ValidationProcess {
         }
     }
 
-    private void validatePage(SearchViewItem item, Result result) {
+    private void validatePage(SearchViewItem item, Result result, String parentModel) {
         if (item.getPageIndex() == null || item.getPageIndex().isEmpty()) {
             result.getValidationResults().add(new ValidationResult(item.getPid(), "Není vyplněný index strany.", Level.SEVERE));
             indexPageValue++;
@@ -486,7 +484,7 @@ public class ValidationProcess {
             }
         }
         if (item.getPageType() != null && !item.getPageType().isEmpty()) {
-            if (!PAGE_PART_TYPE.contains(item.getPageType())) {
+            if (!ModsRules.getPagePartTypes(parentModel).contains(item.getPageType())) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), String.format("Zvolený typ strany \"%s\" není podporován.", item.getPageType()), Level.SEVERE));
             }
             if (pageTypeMap.containsKey(item.getPageType())) {
