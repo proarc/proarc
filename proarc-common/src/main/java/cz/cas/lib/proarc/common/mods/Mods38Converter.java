@@ -75,7 +75,7 @@ public final class Mods38Converter {
             if (eventType != null && !EVENT_TYPES.contains(eventType)) {
                 throw new ConversionException("Unsupported originInfo eventType: " + eventType);
             }
-
+            originInfo.setEventType(eventType);
             for (PublisherDefinition publisher : originInfo.getPublisher()) {
                 NameDefinition agent = new NameDefinition();
 

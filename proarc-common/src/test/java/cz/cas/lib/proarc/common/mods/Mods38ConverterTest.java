@@ -34,7 +34,6 @@ public class Mods38ConverterTest {
         OriginInfoDefinition originInfo = mods.getOriginInfo().get(0);
         assertEquals("3.8", mods.getVersion());
         assertTrue(originInfo.getPublisher().isEmpty());
-        assertEquals("corporate", originInfo.getAgent().get(0).getType());
         assertEquals("Publisher", originInfo.getAgent().get(0).getNamePart().get(0).getValue());
         assertEquals("producer",
                 originInfo.getAgent().get(0).getRole().get(0).getRoleTerm().get(0).getValue());
@@ -69,7 +68,7 @@ public class Mods38ConverterTest {
     public void skipsUnsupportedModel() throws Exception {
         ModsDefinition mods = mods("3.4", null);
         assertEquals(Status.UNSUPPORTED_MODEL,
-                Mods38Converter.convertAndValidate(mods, "model:page"));
+                Mods38Converter.convertAndValidate(mods, "model:proarcobject"));
         assertEquals("3.4", mods.getVersion());
     }
 

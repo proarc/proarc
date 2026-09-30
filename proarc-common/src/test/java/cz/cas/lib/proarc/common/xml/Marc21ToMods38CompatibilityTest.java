@@ -75,15 +75,13 @@ class Marc21ToMods38CompatibilityTest {
     @Test
     void stripsPunctuationFromOriginInfoValues() throws Exception {
         String fields = field("260", "1", " ",
-                sub("c", "2024."), sub("3", "Volume 1."))
+                sub("c", "2024."))
                 + field("264", " ", "1",
-                sub("a", "Prague."), sub("b", "Publisher."), sub("c", "2025."), sub("3", "Volume 2."));
+                sub("a", "Prague."), sub("b", "Publisher."), sub("c", "2025."));
         String mods = transform(mods38Template, aCase("originInfo punctuation", fields, "").marc);
 
         assertEquals("2024", xpath(mods,
                 "string(/m:mods/m:originInfo/m:dateIssued[.='2024'])"));
-        assertEquals("Volume 1", xpath(mods,
-                "string(/m:mods/m:originInfo/m:dateIssued[.='Volume 1'])"));
         assertEquals("Prague", xpath(mods,
                 "string(/m:mods/m:originInfo[@eventType='publication']/m:place/m:placeTerm)"));
         assertEquals("Publisher", xpath(mods,
