@@ -59,6 +59,7 @@ import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage.AkubraObject;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraUtils;
+import cz.cas.lib.proarc.common.storage.relation.Relations;
 import cz.cas.lib.proarc.common.xml.ProArcPrefixNamespaceMapper;
 import cz.cas.lib.proarc.mets.AmdSecType;
 import cz.cas.lib.proarc.mets.AreaType;
@@ -162,6 +163,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     private boolean ignoreMissingUrnNbn = false;
 
     protected String mainObjectModel;
+    protected String mainObjectPid;
 
     /**
      * creates directory structure for mets elements
@@ -459,6 +461,8 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         boolean updateModsNeeded = updateModsNeeded(metsElement.getModel().replaceAll("info:fedora/", ""), mainObjectModel);
         // MODS
         if (metsElement.getModsStream() != null) {
+            addDonatorToMods(metsElement.getModsStream(), metsElement.getRelsExt(),
+                    metsElement.getOriginalPid(), mainObjectPid);
             MdSecType modsMdSecType = new MdSecType();
             metsElement.setModsMetsElement(modsMdSecType);
             mets.getDmdSec().add(modsMdSecType);
@@ -493,6 +497,67 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             dcMdWrap.setXmlData(dcxmlData);
             dcMdSecType.setMdWrap(dcMdWrap);
         }
+    }
+
+    static void addDonatorToMods(List<Element> modsStream, List<Element> relsExt,
+            String objectPid, String packageObjectPid) {
+        if (relsExt == null || relsExt.isEmpty()) {
+            return;
+        }
+
+        Element donatorElement = null;
+        for (Element relsElement : relsExt) {
+            if ("hasDonator".equals(relsElement.getLocalName())) {
+                donatorElement = relsElement;
+                break;
+            }
+            NodeList donatorNodes = relsElement.getElementsByTagNameNS("*", "hasDonator");
+            if (donatorNodes.getLength() > 0) {
+                donatorElement = (Element) donatorNodes.item(0);
+                break;
+            }
+        }
+        if (donatorElement == null) {
+            return;
+        }
+
+        String donator = donatorElement.getAttributeNS(Relations.RDF_NS, "resource");
+        if (donator.isEmpty()) {
+            donator = donatorElement.getAttribute("rdf:resource");
+        }
+        addDonatorToMods(modsStream, donator, objectPid, packageObjectPid);
+    }
+
+    public static void addDonatorToMods(List<Element> modsStream, String donator,
+            String objectPid, String packageObjectPid) {
+        if (modsStream == null || modsStream.isEmpty() || donator == null
+                || packageObjectPid == null || !packageObjectPid.equals(objectPid)) {
+            return;
+        }
+        if (donator.startsWith("info:fedora/")) {
+            donator = donator.substring("info:fedora/".length());
+        }
+        if (donator.startsWith("donator:")) {
+            donator = donator.substring("donator:".length());
+        }
+        if (donator.trim().isEmpty()) {
+            return;
+        }
+
+        Element mods = modsStream.get(0);
+        if ("modsCollection".equals(mods.getLocalName())) {
+            NodeList modsNodes = mods.getElementsByTagNameNS(ModsConstants.NS, "mods");
+            if (modsNodes.getLength() == 0) {
+                return;
+            }
+            mods = (Element) modsNodes.item(0);
+        }
+        String prefix = mods.getPrefix();
+        String qualifiedName = prefix == null || prefix.isEmpty() ? "note" : prefix + ":note";
+        Element note = mods.getOwnerDocument().createElementNS(ModsConstants.NS, qualifiedName);
+        note.setAttribute("type", "funding");
+        note.setTextContent(donator);
+        mods.appendChild(note);
     }
 
     public static List<Element> updateXmlModsIfNeeded(List<Element> modsStream, String mainObjectModel) {
@@ -2660,6 +2725,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             // clear the output fileList before the generation starts
             metsElement.getMetsContext().getFileList().clear();
             mainObjectModel = metsElement.getModel().replaceAll("info:fedora/", "");
+            mainObjectPid = metsElement.getOriginalPid();
             mets = prepareMets(metsElement);
             initHeader(metsElement);
             LOG.log(Level.FINE, "Inserting into Mets:" + metsElement.getOriginalPid() + "(" + metsElement.getElementType() + ")");

@@ -96,6 +96,7 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
         metsElement.getMetsContext().getFileList().clear();
         this.ignoreMissingUrnNbn = metsElement.getIgnoreMissingUrnNbn();
         mainObjectModel = metsElement.getModel().replaceAll("info:fedora/", "");
+        mainObjectPid = metsElement.getOriginalPid();
         mets = prepareMets(metsElement);
         initHeader(metsElement);
         LOG.log(Level.FINE, "Inserting into Mets:" + metsElement.getOriginalPid() + "(" + metsElement.getElementType() + ")");
