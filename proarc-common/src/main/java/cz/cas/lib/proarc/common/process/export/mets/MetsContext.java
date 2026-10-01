@@ -386,17 +386,17 @@ public class MetsContext {
         }
         String normalizedModel = model.startsWith(Const.FEDORAPREFIX) ? model.substring(Const.FEDORAPREFIX.length()) : model;
         if (PERIODICAL_MODELS.contains(normalizedModel)) {
-            return 2.0f;
+            return 2.2f;
         } else if (EPERIODICAL_MODELS.contains(normalizedModel)) {
-            return 2.4f;
+            return 2.6f;
         } else if (MONOGRAPH_MODELS.contains(normalizedModel)) {
-            return 2.1f;
+            return 2.3f;
         } else if (OLD_PRINT_MODELS.contains(normalizedModel)) {
-            return 1.0f;
+            return 2.0f;
         } else if (SOUND_MODELS.contains(normalizedModel)) {
-            return 0.5f;
+            return 1.0f;
         } else if (EMONOGRAPH_MODELS.contains(normalizedModel)) {
-            return 2.4f;
+            return 3.1f;
         } else {
             return 0.0f;
         }
