@@ -17,18 +17,15 @@
 package cz.cas.lib.proarc.common.process.export.sip;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.NdkExport;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import java.io.File;
 
 /**
  * @see <a href="http://www.ndk.cz/standardy-digitalizace/E_born_MONO_NDK_22.pdf">Specification of emonograph</a>
  * @see <a href="https://www.ndk.cz/standardy-digitalizace/dmf_eborn_perio">Specification of eperiodical</a>
  */
 public class NdkSipExport extends NdkExport {
-    private static final float PACKAGE_VERSION = 2.2f;
 
     public NdkSipExport(AppConfiguration appConfiguration, AkubraConfiguration akubraConfiguration) {
         super(appConfiguration, akubraConfiguration);
@@ -39,10 +36,4 @@ public class NdkSipExport extends NdkExport {
         return new SipElementVisitor();
     }
 
-    @Override
-    public MetsContext buildContext(String pid, File target) {
-        MetsContext context = super.buildContext(pid, target);
-        context.setPackageVersion(PACKAGE_VERSION);
-        return context;
-    }
 }

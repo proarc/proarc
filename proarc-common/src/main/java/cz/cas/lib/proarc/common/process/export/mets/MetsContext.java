@@ -18,6 +18,10 @@
 package cz.cas.lib.proarc.common.process.export.mets;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
@@ -29,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Context for Mets mets export
@@ -46,6 +51,13 @@ import java.util.Optional;
  *
  */
 public class MetsContext {
+
+    private static final Set<String> PERIODICAL_MODELS = Set.of(NdkPlugin.MODEL_PERIODICAL,NdkPlugin.MODEL_PERIODICALVOLUME,NdkPlugin.MODEL_PERIODICALISSUE,NdkPlugin.MODEL_PERIODICALSUPPLEMENT,NdkPlugin.MODEL_ARTICLE);
+    private static final Set<String> EPERIODICAL_MODELS = Set.of(NdkEbornPlugin.MODEL_EPERIODICAL, NdkEbornPlugin.MODEL_EPERIODICALVOLUME, NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, NdkEbornPlugin.MODEL_EARTICLE);
+    private static final Set<String> MONOGRAPH_MODELS = Set.of(NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE);
+    private static final Set<String> EMONOGRAPH_MODELS = Set.of(NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT, NdkEbornPlugin.MODEL_ECHAPTER);
+    private static final Set<String> OLD_PRINT_MODELS = Set.of(OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_SUPPLEMENT, OldPrintPlugin.MODEL_PAGE, OldPrintPlugin.MODEL_CHAPTER, OldPrintPlugin.MODEL_CONVOLUTTE, OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_SHEETMUSIC);
+    private static final Set<String> SOUND_MODELS = Set.of(NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH, NdkAudioPlugin.MODEL_SONG, NdkAudioPlugin.MODEL_TRACK, NdkAudioPlugin.MODEL_PAGE);
 
     private Storage typeOfStorage;
     private AkubraStorage akubraStorage;
@@ -360,10 +372,33 @@ public class MetsContext {
     private static MetsContext buildContext(ProArcObject fo, String packageId, File targetFolder, NdkExportOptions exportOptions) {
         MetsContext mc = new MetsContext();
         mc.setPackageID(packageId);
+        mc.setPackageVersion(getPackageVersion(fo == null ? null : fo.getModel()));
         mc.setOutputPath(targetFolder == null ? null : targetFolder.getAbsolutePath());
         mc.setAllowNonCompleteStreams(false);
         mc.setAllowMissingURNNBN(false);
         mc.setConfig(exportOptions);
         return mc;
+    }
+
+    static float getPackageVersion(String model) {
+        if (model == null) {
+            return 0.0f;
+        }
+        String normalizedModel = model.startsWith(Const.FEDORAPREFIX) ? model.substring(Const.FEDORAPREFIX.length()) : model;
+        if (PERIODICAL_MODELS.contains(normalizedModel)) {
+            return 2.0f;
+        } else if (EPERIODICAL_MODELS.contains(normalizedModel)) {
+            return 2.4f;
+        } else if (MONOGRAPH_MODELS.contains(normalizedModel)) {
+            return 2.1f;
+        } else if (OLD_PRINT_MODELS.contains(normalizedModel)) {
+            return 1.0f;
+        } else if (SOUND_MODELS.contains(normalizedModel)) {
+            return 0.5f;
+        } else if (EMONOGRAPH_MODELS.contains(normalizedModel)) {
+            return 2.4f;
+        } else {
+            return 0.0f;
+        }
     }
 }
