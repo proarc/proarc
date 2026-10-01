@@ -66,6 +66,7 @@ public class ModsRules {
 
     public static final String ERR_NDK_SUPPLEMENT_GENRE_TYPE = "Err_Ndk_Supplement_Genre_Type";
     public static final String ERR_NDK_MODEL_GENRE_TYPE = "Err_Ndk_Model_Genre_Type";
+    public static final String ERR_NDK_MODEL_PAGE_TYPE = "Err_Ndk_Model_Page_Type";
     public static final String ERR_NDK_ORIGININFO_DATEISSSUED = "Err_Ndk_OriginInfo_DateIssued";
     public static final String ERR_NDK_PHYSICALLOCATION_MULTIPLE = "Err_Ndk_PhysicalLocation_Multiple";
     public static final String ERR_NDK_PHYSICALLOCATION_SIGLA = "Err_Ndk_PhysicalLocation_Sigla";
@@ -180,33 +181,37 @@ public class ModsRules {
                     }
                 }
             }
-        } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId) || NdkEbornPlugin.MODEL_ECHAPTER.equals(modelId)
+        } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId) || NdkEbornPlugin.MODEL_ECHAPTER.equals(modelId) || OldPrintPlugin.MODEL_CHAPTER.equals(modelId)
                 || NdkPlugin.MODEL_ARTICLE.equals(modelId) || NdkPlugin.MODEL_PICTURE.equals(modelId) || BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)) {
             for (GenreDefinition genre : mods.getGenre()) {
                 String genreType = genre.getType();
                 if (genreType != null && !genreType.isEmpty()) {
-                    if (NdkPlugin.MODEL_CHAPTER.equals(modelId) || NdkEbornPlugin.MODEL_ECHAPTER.equals(modelId)) {
+                    if (NdkPlugin.MODEL_CHAPTER.equals(modelId) || NdkEbornPlugin.MODEL_ECHAPTER.equals(modelId) || OldPrintPlugin.MODEL_CHAPTER.equals(modelId)) {
                         if (!CHAPTER_GENRE_MAP.contains(genreType)) {
-                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, NdkPlugin.MODEL_CHAPTER);
+                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, modelId);
                         }
                     } else if (NdkPlugin.MODEL_ARTICLE.equals(modelId) || NdkEbornPlugin.MODEL_EARTICLE.equals(modelId) || BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)) {
                         if (!ARTICLE_GENRE_MAP.contains(genreType)) {
-                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, NdkPlugin.MODEL_ARTICLE);
+                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, modelId);
                         }
                     } else if (NdkPlugin.MODEL_PICTURE.equals(modelId)) {
                         if (!PICTURE_GENRE_MAP.contains(genreType)) {
-                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, NdkPlugin.MODEL_PICTURE);
+                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, modelId);
                         }
                     }
                 }
             }
         } else if (NdkPlugin.MODEL_PAGE.equals(modelId) || NdkPlugin.MODEL_NDK_PAGE.equals(modelId) || OldPrintPlugin.MODEL_PAGE.equals(modelId)) {
-            Set<String> allowedPageTypes = getPagePartTypes(getParentModel());
+            String currentParentModel = getParentModel();
+//            if (currentParentModel == null || currentParentModel.isEmpty()) {
+//                return;
+//            }
+            Set<String> allowedPageTypes = getPagePartTypes(currentParentModel);
             for (PartDefinition part : mods.getPart()) {
                 String pageType = part.getType();
                 if (pageType != null && !pageType.isEmpty()) {
                     if (!allowedPageTypes.contains(pageType)) {
-                        exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, pageType, modelId);
+                        exception.addValidation("MODS rules", ERR_NDK_MODEL_PAGE_TYPE, false, pageType, currentParentModel);
                     }
                 }
             }

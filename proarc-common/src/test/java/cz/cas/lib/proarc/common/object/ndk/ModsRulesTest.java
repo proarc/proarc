@@ -12,6 +12,7 @@ import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -63,6 +64,13 @@ public class ModsRulesTest {
     }
 
     @Test
+    public void validatesPageTypeOnlyWithKnownParent() {
+        assertTrue(validatePageType(null, "appendix").getValidations().isEmpty());
+        assertTrue(validatePageType(NdkPlugin.MODEL_MONOGRAPHVOLUME, "appendix").getValidations().isEmpty());
+        assertFalse(validatePageType(NdkPlugin.MODEL_PERIODICALISSUE, "appendix").getValidations().isEmpty());
+    }
+
+    @Test
     public void acceptsOnlyEChapterGenreTypesFromStandard() {
         for (String genreType : Set.of(
                 "tableOfContents", "advertisement", "abstract", "introduction", "review", "dedication",
@@ -83,6 +91,18 @@ public class ModsRulesTest {
                 "uuid:test", null, "BIBLIO_MODS", "MODS validation", null);
         ModsRules rules = new ModsRules(model, mods, exception, (NdkMapper.Context) null, null);
         rules.checkGenreType(mods, model);
+        return exception;
+    }
+
+    private static DigitalObjectValidationException validatePageType(String parentModel, String pageType) {
+        ModsDefinition mods = new ModsDefinition();
+        PartDefinition part = new PartDefinition();
+        part.setType(pageType);
+        mods.getPart().add(part);
+        DigitalObjectValidationException exception = new DigitalObjectValidationException(
+                "uuid:test", null, "BIBLIO_MODS", "MODS validation", null);
+        ModsRules rules = new ModsRules(NdkPlugin.MODEL_PAGE, mods, exception, parentModel, null, null);
+        rules.checkGenreType(mods, NdkPlugin.MODEL_PAGE);
         return exception;
     }
 }
