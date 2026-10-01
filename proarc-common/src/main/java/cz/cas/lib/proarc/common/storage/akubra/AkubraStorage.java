@@ -382,6 +382,7 @@ public class AkubraStorage {
 
         private String label;
         private String modelId;
+        private boolean modelLoaded;
         private String owner;
         private boolean indexHierarchical;
         private AkubraManager manager;
@@ -415,12 +416,21 @@ public class AkubraStorage {
         }
 
         @Override
-        public void setModel(String modelId) {
+        public synchronized void setModel(String modelId) {
             this.modelId = modelId;
+            this.modelLoaded = true;
         }
 
         @Override
-        public String getModel() {
+        public synchronized String getModel() {
+            if (!modelLoaded) {
+                try {
+                    this.modelId = solrSearchView.findModel(getPid());
+                    this.modelLoaded = true;
+                } catch (IOException ex) {
+                    throw new IllegalStateException("Cannot load model of object " + getPid() + '.', ex);
+                }
+            }
             return this.modelId;
         }
 

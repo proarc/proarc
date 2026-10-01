@@ -19,8 +19,13 @@ package cz.cas.lib.proarc.common.process.export.mets;
 
 import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
+import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.mets.FileType;
 import cz.cas.lib.proarc.mets.Mets;
@@ -29,6 +34,7 @@ import cz.cas.lib.proarc.mets.info.Info;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -180,6 +186,59 @@ public class MetsUtilsTest {
         assertEquals(5, fileGroups.keySet().size());
     }
 
+    @Test
+    public void getPackageVersionTest() {
+        assertPackageVersion(2.0f,
+                NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALVOLUME,
+                NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_PERIODICALSUPPLEMENT,
+                NdkPlugin.MODEL_ARTICLE,
+                NdkEbornPlugin.MODEL_EPERIODICAL, NdkEbornPlugin.MODEL_EPERIODICALVOLUME,
+                NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT,
+                NdkEbornPlugin.MODEL_EARTICLE);
+        assertPackageVersion(2.1f,
+                NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_MONOGRAPHUNIT,
+                NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT,
+                NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_GRAPHIC,
+                NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE,
+                OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_MONOGRAPHUNIT,
+                OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_SUPPLEMENT,
+                OldPrintPlugin.MODEL_PAGE, OldPrintPlugin.MODEL_CHAPTER,
+                OldPrintPlugin.MODEL_CONVOLUTTE, OldPrintPlugin.MODEL_GRAPHICS,
+                OldPrintPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_SHEETMUSIC);
+        assertPackageVersion(0.5f,
+                NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
+                NdkAudioPlugin.MODEL_SONG, NdkAudioPlugin.MODEL_TRACK,
+                NdkAudioPlugin.MODEL_PAGE);
+        assertPackageVersion(2.4f,
+                NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT,
+                NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
+                NdkEbornPlugin.MODEL_ECHAPTER);
+        assertEquals(2.1f, MetsContext.getPackageVersion(Const.FEDORAPREFIX + OldPrintPlugin.MODEL_MONOGRAPHVOLUME));
+        assertEquals(0.0f, MetsContext.getPackageVersion("model:unsupported"));
+        assertEquals(0.0f, MetsContext.getPackageVersion(NdkPlugin.MODEL_PAGE));
+        assertEquals(0.0f, MetsContext.getPackageVersion(null));
+    }
+
+    private void assertPackageVersion(float expectedVersion, String... models) {
+        for (String model : models) {
+            assertEquals(expectedVersion, MetsContext.getPackageVersion(model), model);
+        }
+    }
+
+    @Test
+    public void buildContextSetsPackageVersionFromModel() {
+        ProArcObject object = (ProArcObject) Proxy.newProxyInstance(
+                ProArcObject.class.getClassLoader(),
+                new Class<?>[]{ProArcObject.class},
+                (proxy, method, args) -> "getModel".equals(method.getName())
+                        ? NdkEbornPlugin.MODEL_EPERIODICAL
+                        : null);
+
+        MetsContext context = MetsContext.buildAkubraContext(object, null, tempDir, null, null);
+
+        assertEquals(2.0f, context.getPackageVersion().orElseThrow());
+    }
+
     /**
      *
      * Saves a mets document and test it for different parameters (size, number
@@ -209,6 +268,7 @@ public class MetsUtilsTest {
             context.setAllowMissingURNNBN(true);
             context.setConfig(NdkExportOptions.getOptions(config));
             MetsElement metsElement = MetsElement.getElement(dbObj, null, context, true);
+            context.setPackageVersion(MetsContext.getPackageVersion(metsElement.getModel()));
             MetsElementVisitor visitor = new MetsElementVisitor();
             metsElement.accept(visitor);
             String packageId = context.getGeneratedPSP().get(0);
@@ -217,6 +277,8 @@ public class MetsUtilsTest {
             JAXBContext jaxbContext = JAXBContext.newInstance(Info.class);
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
             Info info = (Info) unmarshaller.unmarshal(infoFile);
+            float expectedMetadataVersion = MetsContext.getPackageVersion(metsElement.getModel());
+            assertEquals(expectedMetadataVersion, info.getMetadataversion());
             assertEquals(1 + testElement.getTotalItems(),
                     info.getItemlist().getItemtotal().intValue());
             assertTrue(info.getSize() > 0);

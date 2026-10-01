@@ -892,17 +892,7 @@ public class MetsUtils {
         infoJaxb.setCreator(metsContext.getOptions().getCreator());
         infoJaxb.setPackageid(metsContext.getPackageID());
 
-        if (metsContext.getPackageVersion().isPresent()) {
-            infoJaxb.setMetadataversion(metsContext.getPackageVersion().get());
-        } else {
-            if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
-                infoJaxb.setMetadataversion(1.8f);
-            } else if (Const.SOUND_COLLECTION.equalsIgnoreCase(metsContext.getRootElement().getElementType())) {
-                infoJaxb.setMetadataversion(0.4f);
-            } else {
-                infoJaxb.setMetadataversion(1.4f);
-            }
-        }
+        infoJaxb.setMetadataversion(metsContext.getPackageVersion().orElse(0.0f));
 
         Itemlist itemList = new Itemlist();
         infoJaxb.setItemlist(itemList);
