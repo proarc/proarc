@@ -158,7 +158,9 @@ public class TiffImporter implements ImageImporter {
                 }
                 page.setPageNumber(pageIndex); // number is same as pageIndex
             }
-            page.setPageType("normalPage");
+            if (ctx.isGeneratePageType()) {
+                page.setPageType("normalPage");
+            }
             pvHandler.setPage(page, null);
         } else {
             throw new IllegalStateException("Unsupported metadata handler: " + mHandler);

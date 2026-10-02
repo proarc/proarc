@@ -469,10 +469,10 @@ public class ValidationProcess {
             result.getValidationResults().add(new ValidationResult(item.getPid(), "Není vyplněný číslo strany.", Level.SEVERE));
         }
 
-        /* normalPage pageType vyplněný nemá. Nutné zrušit kontrolu  @link https://github.com/proarc/proarc-client/issues/592 */
-//        if (item.getPageType() == null || item.getPageType().isEmpty()) {
-//            result.getValidationResults().add(new ValidationResult(item.getPid(), "Není vyplněný typ strany.", Level.SEVERE));
-//        }
+        if (ModsRules.isPageTypeRequired(item.getModel())
+                && (item.getPageType() == null || item.getPageType().trim().isEmpty())) {
+            result.getValidationResults().add(new ValidationResult(item.getPid(), "Není vyplněný typ strany.", Level.SEVERE));
+        }
 
         if (item.getPageRepre() != null && !item.getPageRepre().isEmpty()) {
             if ("reprePage".equals(item.getPageRepre())) {

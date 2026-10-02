@@ -32,6 +32,7 @@ import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.ndk.ModsRules;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
@@ -845,20 +846,20 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         if (partNode == null) {
             partNode = MetsUtils.xPathEvaluateNode(metsElement.getModsStream(), "*[local-name()='mods']/*[local-name()='part']");
         }
-        if ((partNode.getAttributes() != null) && (partNode.getAttributes().getNamedItem("type") != null)) {
-            pageDiv.setTYPE(partNode.getAttributes().getNamedItem("type").getNodeValue());
-        } else {
-            pageDiv.setTYPE("normalPage");
-        }
-        NodeList nodeList = partNode.getChildNodes();
-        for (int a = 0; a < nodeList.getLength(); a++) {
-            if ((nodeList.item(a).getLocalName() != null) && (nodeList.item(a).getLocalName().equalsIgnoreCase("detail"))) {
-                Node numberNode = nodeList.item(a).getChildNodes().item(0).getFirstChild();
-                if (nodeList.item(a).getAttributes().getNamedItem("type").getNodeValue().equalsIgnoreCase("pageNumber")) {
-                    pageDiv.setORDERLABEL(numberNode.getNodeValue());
-                }
-                if (nodeList.item(a).getAttributes().getNamedItem("type").getNodeValue().equalsIgnoreCase("pageIndex")) {
-                    pageDiv.setORDER(new BigInteger(numberNode.getNodeValue()));
+        if (partNode != null) {
+            if ((partNode.getAttributes() != null) && (partNode.getAttributes().getNamedItem("type") != null)) {
+                pageDiv.setTYPE(partNode.getAttributes().getNamedItem("type").getNodeValue());
+            }
+            NodeList nodeList = partNode.getChildNodes();
+            for (int a = 0; a < nodeList.getLength(); a++) {
+                if ((nodeList.item(a).getLocalName() != null) && (nodeList.item(a).getLocalName().equalsIgnoreCase("detail"))) {
+                    Node numberNode = nodeList.item(a).getChildNodes().item(0).getFirstChild();
+                    if (nodeList.item(a).getAttributes().getNamedItem("type").getNodeValue().equalsIgnoreCase("pageNumber")) {
+                        pageDiv.setORDERLABEL(numberNode.getNodeValue());
+                    }
+                    if (nodeList.item(a).getAttributes().getNamedItem("type").getNodeValue().equalsIgnoreCase("pageIndex")) {
+                        pageDiv.setORDER(new BigInteger(numberNode.getNodeValue()));
+                    }
                 }
             }
         }
@@ -885,6 +886,10 @@ public class MetsElementVisitor implements IMetsElementVisitor {
                     }
                 }
             }
+        }
+        if ((pageDiv.getTYPE() == null || pageDiv.getTYPE().trim().isEmpty())
+                && ModsRules.isPageTypeRequired(metsElement.getModel())) {
+            throw new MetsExportException(metsElement.getOriginalPid(), "Missing required page type.", false, null);
         }
     }
 

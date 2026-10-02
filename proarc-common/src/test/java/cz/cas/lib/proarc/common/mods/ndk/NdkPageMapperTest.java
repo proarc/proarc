@@ -103,6 +103,7 @@ public class NdkPageMapperTest {
         createModsAndCheckValues(null, "1", "nomalPage", null);
         createModsAndCheckValues(null, null, "normalPage", null);
         createModsAndCheckValues(null, null, "normalPage", "testNote");
+        createModsAndCheckValues("1", "[1]", null, null);
     }
 
     private void createModsAndCheckValues(String index, String number, String type, String note) {

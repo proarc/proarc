@@ -9,6 +9,7 @@
 package cz.cas.lib.proarc.common.object.ndk;
 
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
 import cz.cas.lib.proarc.mods.GenreDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
@@ -71,6 +72,34 @@ public class ModsRulesTest {
     }
 
     @Test
+    public void requiresPageTypeOnlyForNdkAndSttPages() {
+        assertFalse(ModsRules.isPageTypeRequired(NdkPlugin.MODEL_PAGE));
+        assertTrue(ModsRules.isPageTypeRequired(NdkPlugin.MODEL_NDK_PAGE));
+        assertTrue(ModsRules.isPageTypeRequired(OldPrintPlugin.MODEL_PAGE));
+        assertTrue(ModsRules.isPageTypeRequired("info:fedora/" + NdkPlugin.MODEL_NDK_PAGE));
+
+        assertTrue(validatePageType(NdkPlugin.MODEL_PAGE, null, null).getValidations().isEmpty());
+        assertTrue(validatePageType(OldPrintPlugin.MODEL_PAGE, null, null).getValidations().isEmpty());
+        assertTrue(validatePageType(NdkPlugin.MODEL_NDK_PAGE, null, "normalPage").getValidations().isEmpty());
+        assertTrue(validatePageType(OldPrintPlugin.MODEL_PAGE, null, "normalPage").getValidations().isEmpty());
+
+        assertFalse(validatePageType(OldPrintPlugin.MODEL_PAGE, null, "normal page").getValidations().isEmpty());
+    }
+
+    @Test
+    public void allowsMissingPageTypeDuringImportBatchEditing() {
+        ModsDefinition mods = new ModsDefinition();
+        DigitalObjectValidationException exception = new DigitalObjectValidationException(
+                "uuid:test", 1, "BIBLIO_MODS", "MODS validation", null);
+        ModsRules rules = new ModsRules(NdkPlugin.MODEL_NDK_PAGE, mods, exception,
+                (NdkMapper.Context) null, null);
+
+        rules.checkGenreType(mods, NdkPlugin.MODEL_NDK_PAGE);
+
+        assertTrue(exception.getValidations().isEmpty());
+    }
+
+    @Test
     public void acceptsOnlyEChapterGenreTypesFromStandard() {
         for (String genreType : Set.of(
                 "tableOfContents", "advertisement", "abstract", "introduction", "review", "dedication",
@@ -95,14 +124,20 @@ public class ModsRulesTest {
     }
 
     private static DigitalObjectValidationException validatePageType(String parentModel, String pageType) {
+        return validatePageType(NdkPlugin.MODEL_PAGE, parentModel, pageType);
+    }
+
+    private static DigitalObjectValidationException validatePageType(String model, String parentModel, String pageType) {
         ModsDefinition mods = new ModsDefinition();
-        PartDefinition part = new PartDefinition();
-        part.setType(pageType);
-        mods.getPart().add(part);
+        if (pageType != null) {
+            PartDefinition part = new PartDefinition();
+            part.setType(pageType);
+            mods.getPart().add(part);
+        }
         DigitalObjectValidationException exception = new DigitalObjectValidationException(
                 "uuid:test", null, "BIBLIO_MODS", "MODS validation", null);
-        ModsRules rules = new ModsRules(NdkPlugin.MODEL_PAGE, mods, exception, parentModel, null, null);
-        rules.checkGenreType(mods, NdkPlugin.MODEL_PAGE);
+        ModsRules rules = new ModsRules(model, mods, exception, parentModel, null, null);
+        rules.checkGenreType(mods, model);
         return exception;
     }
 }

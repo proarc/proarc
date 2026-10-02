@@ -67,6 +67,7 @@ public class ModsRules {
     public static final String ERR_NDK_SUPPLEMENT_GENRE_TYPE = "Err_Ndk_Supplement_Genre_Type";
     public static final String ERR_NDK_MODEL_GENRE_TYPE = "Err_Ndk_Model_Genre_Type";
     public static final String ERR_NDK_MODEL_PAGE_TYPE = "Err_Ndk_Model_Page_Type";
+    public static final String ERR_NDK_MODEL_PAGE_TYPE_MISSING = "Err_Ndk_Model_Page_Type_Missing";
     public static final String ERR_NDK_ORIGININFO_DATEISSSUED = "Err_Ndk_OriginInfo_DateIssued";
     public static final String ERR_NDK_PHYSICALLOCATION_MULTIPLE = "Err_Ndk_PhysicalLocation_Multiple";
     public static final String ERR_NDK_PHYSICALLOCATION_SIGLA = "Err_Ndk_PhysicalLocation_Sigla";
@@ -92,6 +93,16 @@ public class ModsRules {
     public static final Set<String> MONOGRAPH_PAGE_PART_TYPES = pagePartTypes(
             "appendix", "frontispiece", "impressum", "edge", "imprimatur");
     public static final Set<String> PERIODICAL_PAGE_PART_TYPES = pagePartTypes();
+
+    public static boolean isPageTypeRequired(String modelId) {
+        if (modelId == null) {
+            return false;
+        }
+        int separator = modelId.lastIndexOf('/');
+        String normalizedModel = separator < 0 ? modelId : modelId.substring(separator + 1);
+        return NdkPlugin.MODEL_NDK_PAGE.equals(normalizedModel)
+                || OldPrintPlugin.MODEL_PAGE.equals(normalizedModel);
+    }
 
     private ModsRules() {}
 
@@ -209,7 +220,7 @@ public class ModsRules {
             Set<String> allowedPageTypes = getPagePartTypes(currentParentModel);
             for (PartDefinition part : mods.getPart()) {
                 String pageType = part.getType();
-                if (pageType != null && !pageType.isEmpty()) {
+                if (pageType != null && !pageType.trim().isEmpty()) {
                     if (!allowedPageTypes.contains(pageType)) {
                         exception.addValidation("MODS rules", ERR_NDK_MODEL_PAGE_TYPE, false, pageType, currentParentModel);
                     }

@@ -9,15 +9,24 @@
 package cz.cas.lib.proarc.common.process.export.mets.structure;
 
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
+import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
+import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.relation.Relations;
+import cz.cas.lib.proarc.mets.DivType;
 import java.util.Collections;
 import javax.xml.parsers.DocumentBuilderFactory;
+import org.easymock.EasyMock;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class MetsElementVisitorTest {
 
@@ -71,6 +80,69 @@ public class MetsElementVisitorTest {
                 Collections.singletonList(mods), Collections.singletonList(rdf), "uuid:page", "uuid:package");
 
         assertEquals(0, mods.getElementsByTagNameNS(ModsConstants.NS, "note").getLength());
+    }
+
+    @Test
+    public void leavesTypeEmptyForGenericPage() throws Exception {
+        DivType pageDiv = new DivType();
+        new MetsElementVisitor().fillPageIndexOrder(pageElement(NdkPlugin.MODEL_PAGE, null), pageDiv);
+
+        assertNull(pageDiv.getTYPE());
+        assertEquals("1", pageDiv.getORDERLABEL());
+        assertEquals(1, pageDiv.getORDER().intValue());
+    }
+
+    @Test
+    public void requiresTypeForNdkAndSttPages() throws Exception {
+        MetsElementVisitor visitor = new MetsElementVisitor();
+
+        assertThrows(MetsExportException.class,
+                () -> visitor.fillPageIndexOrder(pageElement(NdkPlugin.MODEL_NDK_PAGE, null), new DivType()));
+        assertThrows(MetsExportException.class,
+                () -> visitor.fillPageIndexOrder(pageElement(NdkPlugin.MODEL_NDK_PAGE, "  "), new DivType()));
+        assertThrows(MetsExportException.class,
+                () -> visitor.fillPageIndexOrder(pageElement(OldPrintPlugin.MODEL_PAGE, null), new DivType()));
+    }
+
+    @Test
+    public void exportsExplicitNormalPageType() throws Exception {
+        DivType pageDiv = new DivType();
+        new MetsElementVisitor().fillPageIndexOrder(
+                pageElement(NdkPlugin.MODEL_NDK_PAGE, "normalPage"), pageDiv);
+
+        assertEquals("normalPage", pageDiv.getTYPE());
+    }
+
+    private static IMetsElement pageElement(String model, String pageType) throws Exception {
+        Document document = newDocument();
+        Element mods = document.createElementNS(ModsConstants.NS, "mods:mods");
+        document.appendChild(mods);
+        Element part = document.createElementNS(ModsConstants.NS, "mods:part");
+        if (pageType != null) {
+            part.setAttribute("type", pageType);
+        }
+        mods.appendChild(part);
+        addDetail(document, part, "pageNumber", "1");
+        addDetail(document, part, "pageIndex", "1");
+
+        IMetsElement element = EasyMock.createNiceMock(IMetsElement.class);
+        MetsContext context = new MetsContext();
+        context.setTypeOfStorage(Storage.LOCAL);
+        EasyMock.expect(element.getModsStream()).andStubReturn(Collections.singletonList(mods));
+        EasyMock.expect(element.getModel()).andStubReturn(model);
+        EasyMock.expect(element.getOriginalPid()).andStubReturn("uuid:page");
+        EasyMock.expect(element.getMetsContext()).andStubReturn(context);
+        EasyMock.replay(element);
+        return element;
+    }
+
+    private static void addDetail(Document document, Element part, String type, String value) {
+        Element detail = document.createElementNS(ModsConstants.NS, "mods:detail");
+        detail.setAttribute("type", type);
+        Element number = document.createElementNS(ModsConstants.NS, "mods:number");
+        number.setTextContent(value);
+        detail.appendChild(number);
+        part.appendChild(detail);
     }
 
     private static Element createRelsExt(String resource) throws Exception {

@@ -130,7 +130,7 @@ public class OldPrintPageMapperTest {
 
         Locale.setDefault(new Locale("cs", "CZ"));
 
-        assertEquals("Normální strana (NormalPage)", OldPrintPageMapper.getPageTypeLabel("", Locale.ENGLISH));
-        assertEquals("Normální strana (NormalPage)", OldPrintPageMapper.getPageTypeLabel("", new Locale("cs")));
+        assertEquals("", OldPrintPageMapper.getPageTypeLabel("", Locale.ENGLISH));
+        assertEquals("", OldPrintPageMapper.getPageTypeLabel("", new Locale("cs")));
     }
 }
