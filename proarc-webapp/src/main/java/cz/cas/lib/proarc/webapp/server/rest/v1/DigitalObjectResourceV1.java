@@ -567,12 +567,12 @@ public class DigitalObjectResourceV1 {
         int page = 20;
         switch (type) {
             case ALPHABETICAL:
-                total = search.countModels(queryModel, organization);
+                total = search.countByModels(organization, queryModel);
                 items = search.findAlphabetical(startRow, queryModel, organization, 100, sort.toString());
                 items = sortItems(items, sort);
                 break;
             case LAST_MODIFIED:
-                total = search.countModels(queryModel, organization);
+                total = search.countByModels(organization, queryModel);
                 items = search.findLastModified(startRow, queryModel, organization, 100, sort.toString());
                 break;
             case QUERY:
@@ -624,7 +624,7 @@ public class DigitalObjectResourceV1 {
                 }
                 break;
             default:
-                total = search.countModels(queryModel, organization);
+                total = search.countByModels(organization, queryModel);
                 items = search.findLastCreated(startRow, queryModel, organization, 100, sort.toString());
         }
         repairItemsModel(items);

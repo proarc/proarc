@@ -48,7 +48,6 @@ import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.getIdentifiersQu
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.getModelQuery;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.getPidsQuery;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.getUserQuery;
-import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.toList;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.transfromSort;
 
 public class SolrSearchView extends SearchView {
@@ -158,22 +157,17 @@ public class SolrSearchView extends SearchView {
 
     @Override
     public List<SearchViewItem> findByModel(String modelId) throws IOException {
-        return findByModel(0, modelId);
+        return findByModel(0, 1000, modelId);
     }
 
     @Override
-    public List<SearchViewItem> findByModel(int offset, String modelId) throws IOException {
-        return searchImplementation(offset, 1000, "created", SolrUtils.SortOperation.DESC, null, Collections.singletonList(modelId), null);
+    public List<SearchViewItem> findByModel(int offset, int limit, String modelId) throws IOException {
+        return searchImplementation(offset, limit, "created", SolrUtils.SortOperation.DESC, null, Collections.singletonList(modelId), null);
     }
 
     @Override
-    public List<SearchViewItem> findByModels(int offset, String modelId1, String modelId2) throws IOException {
-        return searchImplementation(offset, 1000, "created", SolrUtils.SortOperation.DESC, null, toList(modelId1, modelId2), null);
-    }
-
-    @Override
-    public List<SearchViewItem> findByModels(int offset, String... modelIds) throws IOException {
-        return searchImplementation(offset, 1000, "created", SolrUtils.SortOperation.DESC, null, Arrays.asList(modelIds), null);
+    public List<SearchViewItem> findByModels(int offset, int limit, String... modelIds) throws IOException {
+        return searchImplementation(offset, limit, "created", SolrUtils.SortOperation.DESC, null, Arrays.asList(modelIds), null);
     }
 
     @Override
@@ -335,8 +329,8 @@ public class SolrSearchView extends SearchView {
     }
 
     @Override
-    public int countModels(String model, String organization) throws IOException {
-        return searchCountImplementation(0, this.maxLimit, true, Collections.singletonList(model), null, null, organization, null, null, null, null);
+    public int countByModels(String organization, String... modelIds) throws IOException {
+        return searchCountImplementation(0, this.maxLimit, true, Arrays.asList(modelIds), null, null, organization, null, null, null, null);
     }
 
     @Override
@@ -509,11 +503,12 @@ public class SolrSearchView extends SearchView {
             String query = createQuery(label);
             List<String> filterQueryList = createFilterQuery(onlyActive, models, pids, owner, organization, username, status, parentPid);
             SolrQuery solrQuery = createQueryWithParams(query, FIELD_LABEL, filterQueryList, offset, limit, null, null);
+            solrQuery.setStart(0);
+            solrQuery.setRows(0);
 
             QueryResponse response = this.solrClient.query(solrQuery);
 
-            int total = response.getResults().size();
-            return total;
+            return (int) Math.min(Integer.MAX_VALUE, response.getResults().getNumFound());
         } catch (SolrServerException ex) {
             ex.printStackTrace();
             throw new IOException(ex);

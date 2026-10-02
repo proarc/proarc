@@ -62,6 +62,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -185,7 +186,7 @@ public final class SoftwareRepository {
      * @throws SoftwareException failure
      */
     public List<Software> find(AppConfiguration config, String id) throws SoftwareException {
-        return find(config, id, null, false, 0);
+        return find(config, id, null, false, 0, 1000);
     }
 
     /**
@@ -196,16 +197,16 @@ public final class SoftwareRepository {
      * @return list of software
      * @throws SoftwareException failure
      */
-    public List<Software> find(AppConfiguration config, String id, String model, boolean fetchDescription, int offset) throws SoftwareException {
+    public List<Software> find(AppConfiguration config, String id, String model, boolean fetchDescription, int offset, int limit) throws SoftwareException {
         try {
             List<Software> software;
             if (id != null) {
                 checkSoftwareId(id);
                 software = findSoftware(config, id);
             } else if (model != null) {
-                software = findSoftwareByModel(config, model, offset);
+                software = findSoftwareByModel(config, model, offset, limit);
             } else {
-                software = findAllSoftware(config, offset);
+                software = findAllSoftware(config, offset, limit);
             }
             if (fetchDescription) {
                 fetchSoftwareDescription(software);
@@ -510,7 +511,11 @@ public final class SoftwareRepository {
             if (Storage.AKUBRA.equals(typeOfStorage)) {
                 object = akubraStorage.find(id);
             }
-            object.setModel(update.getModel());
+            RelationEditor relationEditor = new RelationEditor(object);
+            String currentModel = relationEditor.getModel();
+            if (!Objects.equals(currentModel, model)) {
+                throw new SoftwareException("Software model cannot be changed from " + currentModel + " to " + model + ".");
+            }
 
             updateDc(object, id, model, label, log);
             XmlStreamEditor descriptionEditor = getMetsDescriptionEditor(object);
@@ -527,13 +532,11 @@ public final class SoftwareRepository {
                 descriptionEditor.write(result, update.getTimestamp(), log);
             }
             if (update.getSetOfLinkedIds() != null) {
-                RelationEditor relationEditor = new RelationEditor(object);
                 relationEditor.setMembers(update.getSetOfLinkedIds());
                 relationEditor.write(relationEditor.getLastModified(), log);
             }
 
             object.setLabel(label);
-            object.setModel(model);
             object.flush();
 
             Software software = new Software();
@@ -575,32 +578,45 @@ public final class SoftwareRepository {
         return software;
     }
 
-    public List<Software> findAllSoftware(AppConfiguration config, int offset) throws SoftwareException {
+    public List<Software> findAllSoftware(AppConfiguration config, int offset, int limit) throws SoftwareException {
         List<SearchViewItem> items = new ArrayList<>();
         try {
             SearchView searchView = null;
             if (Storage.AKUBRA.equals(typeOfStorage)) {
                 searchView = akubraStorage.getSearch().setAllowDevicesAndSoftware(true);
             }
-            items = searchView.findByModels(offset, METAMODEL_AGENT_ID, METAMODEL_EVENT_ID, METAMODEL_OBJECT_ID, METAMODEL_SET_ID);
+            items = searchView.findByModels(offset, limit, METAMODEL_AGENT_ID, METAMODEL_EVENT_ID, METAMODEL_OBJECT_ID, METAMODEL_SET_ID);
         } catch (IOException ex) {
             throw new SoftwareException(ex.getMessage());
         }
         return objectAsSoftware(config, items, null);
     }
 
-    public List<Software> findSoftwareByModel(AppConfiguration config, String model, int offset) throws SoftwareException {
+    public List<Software> findSoftwareByModel(AppConfiguration config, String model, int offset, int limit) throws SoftwareException {
         List<SearchViewItem> items = new ArrayList<>();
         try {
             SearchView searchView = null;
             if (Storage.AKUBRA.equals(typeOfStorage)) {
                 searchView = akubraStorage.getSearch().setAllowDevicesAndSoftware(true);
             }
-            items = searchView.findByModel(offset, model);
+            items = searchView.findByModel(offset, limit, model);
         } catch (IOException ex) {
             throw new SoftwareException(ex.getMessage());
         }
         return objectAsSoftware(config, items, null);
+    }
+
+    public int countSoftware(String model) throws SoftwareException {
+        try {
+            SearchView searchView = akubraStorage.getSearch().setAllowDevicesAndSoftware(true);
+            if (model != null) {
+                return searchView.countByModels(null, model);
+            }
+            return searchView.countByModels(null,
+                    METAMODEL_AGENT_ID, METAMODEL_EVENT_ID, METAMODEL_OBJECT_ID, METAMODEL_SET_ID);
+        } catch (IOException ex) {
+            throw new SoftwareException(ex.getMessage());
+        }
     }
 
     private List<Software> findSoftware(AppConfiguration config, String... pids) throws IOException {
