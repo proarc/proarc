@@ -79,6 +79,7 @@ import cz.cas.lib.proarc.common.storage.AtmEditor;
 import cz.cas.lib.proarc.common.storage.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.CopyrightMdEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
@@ -2496,6 +2497,71 @@ public class DigitalObjectResourceV1 {
         }
         DescriptionMetadata<Object> metadata = mapper.getMetadataAsJsonObject(fobject, relationEditor.getImportFile(), TechnicalMetadataMapper.PREMIS);
         return new ProArcResponse<DescriptionMetadata<Object>>(metadata);
+    }
+
+    private ProArcObject findCopyrightMdObject(String pid, Integer batchId, boolean readOnly) throws IOException, DigitalObjectException {
+        if (pid == null || pid.isBlank()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing pid");
+        }
+        if (batchId != null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "copyrightMD is available only in the repository");
+        }
+        if (!readOnly && isLocked(pid)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+        ProArcObject object = findFedoraObject(pid, null, readOnly);
+        if (!TechnicalMetadataMapper.supportsCopyrightMd(new RelationEditor(object).getModel())) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Unsupported copyrightMD model");
+        }
+        return object;
+    }
+
+    @GET
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_COPYRIGHTMD_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public StringRecord getCopyrightMd(@QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId) throws IOException, DigitalObjectException {
+        ProArcObject object = findCopyrightMdObject(pid, batchId, true);
+        CopyrightMdEditor editor = new CopyrightMdEditor(object);
+        StringRecord record = new StringRecord(editor.readAsString(), editor.getLastModified(), object.getPid());
+        record.setModel(new RelationEditor(object).getModel());
+        return record;
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_COPYRIGHTMD_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<StringRecord> updateCopyrightMd(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA) String xmlData,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA) String jsonData) throws IOException, DigitalObjectException {
+        if (timestamp == null || (xmlData == null && jsonData == null)) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp or copyrightMD data");
+        }
+        ProArcObject object = findCopyrightMdObject(pid, batchId, false);
+        TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(new RelationEditor(object).getModel(), null, pid, appConfig, akubraConfiguration);
+        if (xmlData != null) {
+            mapper.updateMetadataAsXml(object, xmlData, timestamp, session.asFedoraLog(), TechnicalMetadataMapper.COPYRIGHTMD);
+        } else {
+            mapper.updateMetadataAsJson(object, jsonData, timestamp, session.asFedoraLog(), TechnicalMetadataMapper.COPYRIGHTMD);
+        }
+        return new ProArcResponse<>(getCopyrightMd(pid, null));
+    }
+
+    @DELETE
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_COPYRIGHTMD_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<StringRecord> deleteCopyrightMd(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @QueryParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp) throws IOException, DigitalObjectException {
+        if (timestamp == null) { throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp"); }
+        ProArcObject object = findCopyrightMdObject(pid, batchId, false);
+        new CopyrightMdEditor(object).delete(timestamp, session.asFedoraLog());
+        object.flush();
+        return new ProArcResponse<>(getCopyrightMd(pid, null));
     }
 
     @POST

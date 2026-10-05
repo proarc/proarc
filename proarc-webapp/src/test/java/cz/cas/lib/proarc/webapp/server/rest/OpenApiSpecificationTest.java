@@ -32,8 +32,8 @@ class OpenApiSpecificationTest {
         assertEquals("../rest/v2", spec.getJSONArray("servers").getJSONObject(0).getString("url"));
 
         JSONObject paths = spec.getJSONObject("paths");
-        assertEquals(167, paths.length());
-        assertEquals(203, countOperations(paths));
+        assertEquals(169, paths.length());
+        assertEquals(206, countOperations(paths));
         assertTrue(paths.has("/authorities"));
         assertTrue(paths.has("/bibliographies/query"));
         assertTrue(paths.has("/device"));
@@ -47,6 +47,21 @@ class OpenApiSpecificationTest {
         assertTrue(paths.has("/workflow"));
         assertFalse(paths.has("/rest/v2/object"));
         assertFalse(paths.has("/swagger/openapi.json"));
+    }
+
+    @Test
+    void copyrightMdDocumentsRepositoryXmlEditingAndConcurrency() throws Exception {
+        JSONObject paths = loadSpec().getJSONObject("paths");
+        JSONObject read = paths.getJSONObject("/object/technicalMetadataXmlCopyrightMD").getJSONObject("get");
+        assertEquals("getCopyrightMd", read.getString("operationId"));
+        assertDefaultJsonResponse(read, "#/components/schemas/StringRecord");
+        JSONObject edit = paths.getJSONObject("/object/technicalCopyrightMD").getJSONObject("put");
+        assertEquals("updateCopyrightMd", edit.getString("operationId"));
+        JSONObject data = edit.getJSONObject("requestBody").getJSONObject("content").getJSONObject("*/*").getJSONObject("schema");
+        assertTrue(data.getJSONArray("required").toString().contains("timestamp"));
+        assertTrue(data.getJSONObject("properties").has("xmlData"));
+        assertTrue(data.getJSONObject("properties").has("jsonData"));
+        assertEquals("deleteCopyrightMd", paths.getJSONObject("/object/technicalCopyrightMD").getJSONObject("delete").getString("operationId"));
     }
 
     @Test
@@ -478,8 +493,8 @@ class OpenApiSpecificationTest {
             assertTrue(pathOperationCount > 0, path);
         }
 
-        assertEquals(203, operationCount);
-        assertEquals(203, responseCount);
+        assertEquals(206, operationCount);
+        assertEquals(206, responseCount);
     }
 
     @Test
