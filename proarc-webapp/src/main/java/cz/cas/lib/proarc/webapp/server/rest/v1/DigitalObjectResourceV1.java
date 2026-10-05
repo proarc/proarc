@@ -2757,7 +2757,7 @@ public class DigitalObjectResourceV1 {
     }
 
     private boolean updateAtmChildrenDonator(String oldValue, String newValue) {
-        return !Objects.equals(oldValue, normalizeAtmDonator(newValue));
+        return newValue != null && !Objects.equals(oldValue, normalizeAtmDonator(newValue));
     }
 
     private String normalizeAtmDonator(String value) {

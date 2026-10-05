@@ -515,6 +515,8 @@ public final class SoftwareRepository {
             String currentModel = relationEditor.getModel();
             if (!Objects.equals(currentModel, model)) {
                 throw new SoftwareException("Software model cannot be changed from " + currentModel + " to " + model + ".");
+            } else {
+                object.setModel(currentModel);
             }
 
             updateDc(object, id, model, label, log);
