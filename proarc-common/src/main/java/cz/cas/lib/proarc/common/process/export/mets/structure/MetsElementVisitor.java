@@ -1301,6 +1301,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     public static Mets getScannerMets(IMetsElement metsElement) throws MetsExportException {
         if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             Device device = getDevice(metsElement);
+            if (device == null) {
+                return null;
+            }
             if ((device.getAudioDescription() == null) || device.getAudioDescription().getAmdSec() == null) {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Scanner device does not have the audiodescription/Premis set", false, null);
             }

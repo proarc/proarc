@@ -31,6 +31,24 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class MetsElementVisitorTest {
 
     @Test
+    public void returnsNoScannerTemplateForPageWithoutDevice() throws Exception {
+        Document document = newDocument();
+        Element rdf = document.createElementNS(Relations.RDF_NS, "rdf:RDF");
+        document.appendChild(rdf);
+        Element description = document.createElementNS(Relations.RDF_NS, "rdf:Description");
+        rdf.appendChild(description);
+
+        IMetsElement element = EasyMock.createNiceMock(IMetsElement.class);
+        MetsContext context = new MetsContext();
+        context.setTypeOfStorage(Storage.AKUBRA);
+        EasyMock.expect(element.getMetsContext()).andStubReturn(context);
+        EasyMock.expect(element.getRelsExt()).andStubReturn(Collections.singletonList(rdf));
+        EasyMock.replay(element);
+
+        assertNull(MetsElementVisitor.getScannerMets(element));
+    }
+
+    @Test
     public void addsDonatorAsAnotherFundingNote() throws Exception {
         Document modsDocument = newDocument();
         Element mods = modsDocument.createElementNS(ModsConstants.NS, "mods:mods");
