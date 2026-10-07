@@ -36,4 +36,5 @@ public final class SoftwareResourceApi {
     public static final String SOFTWARE_ITEM_TIMESTAMP = "timestamp";
     public static final String SOFTWARE_ITEM_MEMBERS = "members";
     public static final String SOFTWARE_START_ROW_PARAM = "_startRow";
+    public static final String SOFTWARE_PAGE_SIZE_PARAM = "_size";
 }

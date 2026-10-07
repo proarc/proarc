@@ -13,12 +13,10 @@
   ],
   "security": [
     {
-      "proarcLogin": [
-      ]
+      "proarcLogin": []
     },
     {
-      "cookieAuth": [
-      ]
+      "cookieAuth": []
     }
   ],
   "tags": [
@@ -2802,8 +2800,7 @@
           "default": {
             "description": "default response",
             "content": {
-              "*/*": {
-              }
+              "*/*": {}
             }
           }
         }
@@ -2885,8 +2882,7 @@
           "default": {
             "description": "default response",
             "content": {
-              "*/*": {
-              }
+              "*/*": {}
             }
           }
         }
@@ -5893,8 +5889,7 @@
           "default": {
             "description": "default response",
             "content": {
-              "*/*": {
-              }
+              "*/*": {}
             }
           }
         }
@@ -6059,8 +6054,7 @@
           "default": {
             "description": "default response",
             "content": {
-              "*/*": {
-              }
+              "*/*": {}
             }
           }
         }
@@ -6738,8 +6732,7 @@
           "default": {
             "description": "default response",
             "content": {
-              "image/*": {
-              }
+              "image/*": {}
             }
           }
         }
@@ -9059,6 +9052,149 @@
             }
           }
         },
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/object/technicalMetadataXmlCopyrightMD": {
+      "get": {
+        "tags": [
+          "Object"
+        ],
+        "operationId": "getCopyrightMd",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "batchId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "Must be omitted; copyrightMD is available only in the repository."
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StringRecord"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Read standalone copyrightMD for a repository object other than a page"
+      }
+    },
+    "/object/technicalCopyrightMD": {
+      "put": {
+        "tags": [
+          "Object"
+        ],
+        "operationId": "updateCopyrightMd",
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pid": {
+                    "type": "string"
+                  },
+                  "batchId": {
+                    "type": "integer",
+                    "format": "int32",
+                    "description": "Must be omitted; copyrightMD is available only in the repository."
+                  },
+                  "timestamp": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "xmlData": {
+                    "type": "string",
+                    "description": "Standalone copyright element in the copyrightMD namespace, without a METS wrapper. Provide xmlData or jsonData."
+                  },
+                  "jsonData": {
+                    "type": "string",
+                    "description": "Alternative JSON wrapper: {\"metadata\":\"copyrightMD\",\"copyright\":\"<copyright .../>\"}."
+                  }
+                },
+                "required": [
+                  "pid",
+                  "timestamp"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "default response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create or update standalone copyrightMD with concurrency checking"
+      },
+      "delete": {
+        "tags": [
+          "Object"
+        ],
+        "operationId": "deleteCopyrightMd",
+        "summary": "Remove standalone copyrightMD with concurrency checking",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "name": "batchId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "Must be omitted; copyrightMD is available only in the repository."
+          },
+          {
+            "name": "timestamp",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
         "responses": {
           "default": {
             "description": "default response",

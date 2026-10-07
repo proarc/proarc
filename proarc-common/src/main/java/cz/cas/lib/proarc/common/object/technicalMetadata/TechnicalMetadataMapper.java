@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.storage.AesEditor;
 import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.CopyrightMdEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.MixEditor;
@@ -53,6 +54,20 @@ public class TechnicalMetadataMapper {
     public static final String CODING_HISTORY = "codingHistory";
     public static final String PREMIS = "premis";
     public static final String MIX = "mix";
+    public static final String COPYRIGHTMD = "copyrightMD";
+
+    public static boolean supportsCopyrightMd(String model) {
+        if (model == null || model.isEmpty()) { return false; }
+        String modelId = model.replace("info:fedora/", "");
+        return !NdkPlugin.MODEL_PAGE.equals(modelId) && !NdkPlugin.MODEL_NDK_PAGE.equals(modelId)
+                && !OldPrintPlugin.MODEL_PAGE.equals(modelId) && !NdkAudioPlugin.MODEL_PAGE.equals(modelId);
+    }
+
+    private void requireCopyrightMd(ProArcObject object) throws DigitalObjectException {
+        if (batchId != null || object instanceof LocalStorage.LocalObject || !supportsCopyrightMd(model)) {
+            throw new DigitalObjectException(object.getPid(), "copyrightMD is supported only for repository objects other than pages");
+        }
+    }
 
     public TechnicalMetadataMapper(String model, Integer batchId, String pid, AppConfiguration config, AkubraConfiguration akubraConfiguration) {
         this.model = model;
@@ -63,6 +78,16 @@ public class TechnicalMetadataMapper {
     }
 
     public DescriptionMetadata<Object> getMetadataAsJsonObject(ProArcObject fobject, String importName, String type) throws DigitalObjectException {
+        if (COPYRIGHTMD.equals(type)) {
+            requireCopyrightMd(fobject);
+            CopyrightMdEditor editor = new CopyrightMdEditor(fobject);
+            DescriptionMetadata<Object> metadata = new DescriptionMetadata<>();
+            metadata.setPid(fobject.getPid());
+            metadata.setEditor(model);
+            metadata.setTimestamp(editor.getLastModified());
+            metadata.setData(new CopyrightMdWrapper(editor.readAsString()));
+            return metadata;
+        }
         if (model == null) {
             throw new DigitalObjectException("Missing model!");
         }
@@ -96,6 +121,10 @@ public class TechnicalMetadataMapper {
     }
 
     public String getMetadataAsXml(ProArcObject fobject, AppConfiguration config, String importFile, String type) throws DigitalObjectException {
+        if (COPYRIGHTMD.equals(type)) {
+            requireCopyrightMd(fobject);
+            return new CopyrightMdEditor(fobject).readAsString();
+        }
         if (model == null) {
             throw new DigitalObjectException("Missing model!");
         }
@@ -244,6 +273,11 @@ public class TechnicalMetadataMapper {
     }
 
     public void updateMetadataAsJson(ProArcObject fobject, String data, Long timestamp, String message, String type) throws DigitalObjectException, IOException {
+        if (COPYRIGHTMD.equals(type)) {
+            CopyrightMdWrapper wrapper = cz.cas.lib.proarc.common.json.JsonUtils.defaultObjectMapper().readValue(data, CopyrightMdWrapper.class);
+            updateMetadataAsXml(fobject, wrapper.getCopyright(), timestamp, message, type);
+            return;
+        }
         if (model == null) {
             throw new DigitalObjectException("Missing model!");
         }
@@ -311,6 +345,13 @@ public class TechnicalMetadataMapper {
     }
 
     public void updateMetadataAsXml(ProArcObject fobject, String data, Long timestamp, String message, String type) throws DigitalObjectException {
+        if (COPYRIGHTMD.equals(type)) {
+            requireCopyrightMd(fobject);
+            if (timestamp == null) { throw new DigitalObjectException(fobject.getPid(), "Missing timestamp"); }
+            new CopyrightMdEditor(fobject).write(data, timestamp, message);
+            fobject.flush();
+            return;
+        }
         if (model == null) {
             throw new DigitalObjectException("Missing model!");
         }
@@ -390,6 +431,15 @@ public class TechnicalMetadataMapper {
         fobject.flush();
     }
 
+
+    public static class CopyrightMdWrapper extends TechnicalMetadataWrapper {
+        private String copyright;
+
+        public CopyrightMdWrapper() { super(COPYRIGHTMD); }
+        public CopyrightMdWrapper(String copyright) { this(); this.copyright = copyright; }
+        public String getCopyright() { return copyright; }
+        public void setCopyright(String copyright) { this.copyright = copyright; }
+    }
 
     public static class TechnicalMetadataWrapper {
         private String metadataType;

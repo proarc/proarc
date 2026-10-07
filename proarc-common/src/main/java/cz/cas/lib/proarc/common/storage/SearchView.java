@@ -48,7 +48,7 @@ public abstract class SearchView {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findByModel(int offset, String modelId) throws IOException {
+    public List<SearchViewItem> findByModel(int offset, int limit, String modelId) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
@@ -72,11 +72,7 @@ public abstract class SearchView {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findByModels(int offset, String modelId1, String modelId2) throws IOException {
-        throw new IOException("Method is not implmeneted");
-    }
-
-    public List<SearchViewItem> findByModels(int offset, String... modelIds) throws IOException {
+    public List<SearchViewItem> findByModels(int offset, int limit, String... modelIds) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
@@ -108,7 +104,7 @@ public abstract class SearchView {
         throw new IOException("Method is not implmeneted");
     }
 
-    public int countModels(String model, String organization) throws IOException {
+    public int countByModels(String organization, String... modelIds) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 

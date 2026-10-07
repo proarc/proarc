@@ -133,8 +133,12 @@ public final class AtmEditor {
                 write = true;
             }
         }
-        relationEditor.setDonator(donator);
-        relationEditor.setArchivalCopiesPath(archivalCopiesPath);
+        if (donator != null) {
+            relationEditor.setDonator(donator);
+        }
+        if (archivalCopiesPath != null) {
+            relationEditor.setArchivalCopiesPath(archivalCopiesPath);
+        }
         relationEditor.write(relationEditor.getLastModified(), message);
     }
 

@@ -1273,6 +1273,60 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
         }
     }
 
+    @Override
+    @GET
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_COPYRIGHTMD_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public StringRecord getCopyrightMd(@QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId) {
+        try {
+            return super.getCopyrightMd(pid, batchId);
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return new StringRecord(t);
+        }
+    }
+
+    @Override
+    @PUT
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_COPYRIGHTMD_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<StringRecord> updateCopyrightMd(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA) String xmlData,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA) String jsonData) {
+        try {
+            return super.updateCopyrightMd(pid, batchId, timestamp, xmlData, jsonData);
+        } catch (DigitalObjectException e) {
+            LOG.log(Level.SEVERE, e.getMyMessage(), e);
+            return ProArcResponse.asError(e.getMyMessage());
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return ProArcResponse.asError(t);
+        }
+    }
+
+    @Override
+    @DELETE
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_COPYRIGHTMD_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<StringRecord> deleteCopyrightMd(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @QueryParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp) {
+        try {
+            return super.deleteCopyrightMd(pid, batchId, timestamp);
+        } catch (DigitalObjectException e) {
+            LOG.log(Level.SEVERE, e.getMyMessage(), e);
+            return ProArcResponse.asError(e.getMyMessage());
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return ProArcResponse.asError(t);
+        }
+    }
+
     @POST
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_PREMIS_GENERATE_PATH)
     @Produces(MediaType.APPLICATION_JSON)

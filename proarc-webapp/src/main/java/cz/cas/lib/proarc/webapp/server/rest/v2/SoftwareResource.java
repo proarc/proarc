@@ -89,10 +89,11 @@ public class SoftwareResource extends SoftwareResourceV1 {
     public ProArcResponse<Software> getSoftwares(
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id,
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
-            @QueryParam(SoftwareResourceApi.SOFTWARE_START_ROW_PARAM) int startRow
+            @QueryParam(SoftwareResourceApi.SOFTWARE_START_ROW_PARAM) int startRow,
+            @QueryParam(SoftwareResourceApi.SOFTWARE_PAGE_SIZE_PARAM) int pageSize
             ) {
         try {
-            return super.getSoftwares(id, model, startRow);
+            return super.getSoftwares(id, model, startRow, pageSize);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);

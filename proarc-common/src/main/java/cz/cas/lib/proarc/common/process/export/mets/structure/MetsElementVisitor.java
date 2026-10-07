@@ -37,6 +37,7 @@ import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.ocr.AltoDatastream;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
+import cz.cas.lib.proarc.common.process.export.mets.CopyrightMdMets;
 import cz.cas.lib.proarc.common.process.export.mets.FileMD5Info;
 import cz.cas.lib.proarc.common.process.export.mets.JHoveOutput;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveUtility;
@@ -50,6 +51,8 @@ import cz.cas.lib.proarc.common.software.SoftwareRepository;
 import cz.cas.lib.proarc.common.storage.AesEditor;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.CopyrightMdEditor;
+import cz.cas.lib.proarc.common.object.technicalMetadata.TechnicalMetadataMapper;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.MixEditor;
@@ -149,6 +152,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             "//*[local-name()='mods']/*[local-name()='originInfo']/*[local-name()='dateOther']",
             "//*[local-name()='mods']/*[local-name()='originInfo']/*[local-name()='dateCreated']");
     protected Mets mets;
+    private final Map<MdSecType, IMetsElement> copyrightMdObjects = new java.util.LinkedHashMap<>();
     protected StructMapType logicalStruct;
     protected StructMapType physicalStruct;
     protected HashMap<String, FileGrp> fileGrpMap;
@@ -331,6 +335,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * Prepares the generic mets information
      */
     protected Mets prepareMets(IMetsElement metsElement) throws MetsExportException {
+        copyrightMdObjects.clear();
         Mets mets = new Mets();
         logicalStruct = new StructMapType();
         logicalStruct.setTYPE("LOGICAL");
@@ -355,6 +360,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         try {
             addFileGrpToMets(fileGrpMap);
             addStructLink();
+            addCopyrightMd();
             try {
                 JAXBContext jaxbContext = null;
                 if (NdkMapper.isNdkEModel(metsElement.getModel().replaceAll("info:fedora/", ""))) {
@@ -468,6 +474,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             metsElement.setModsMetsElement(modsMdSecType);
             mets.getDmdSec().add(modsMdSecType);
             modsMdSecType.setID("MODSMD_" + metsElement.getModsElementID());
+            copyrightMdObjects.put(modsMdSecType, metsElement);
             MdWrap modsMdWrap = new MdWrap();
             modsMdWrap.setMDTYPE("MODS");
             //fillMdTypeVersion(modsMdWrap, metsElement);
@@ -1301,6 +1308,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     public static Mets getScannerMets(IMetsElement metsElement) throws MetsExportException {
         if (Storage.AKUBRA.equals(metsElement.getMetsContext().getTypeOfStorage())) {
             Device device = getDevice(metsElement);
+            if (device == null) {
+                return null;
+            }
             if ((device.getAudioDescription() == null) || device.getAudioDescription().getAmdSec() == null) {
                 throw new MetsExportException(metsElement.getOriginalPid(), "Scanner device does not have the audiodescription/Premis set", false, null);
             }
@@ -1812,6 +1822,35 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             pageDiv.getFptr().
 
                     add(fptr);
+        }
+    }
+
+    private void addCopyrightMd() throws MetsExportException {
+        for (Map.Entry<MdSecType, IMetsElement> entry : copyrightMdObjects.entrySet()) {
+            IMetsElement element = entry.getValue();
+            if (!TechnicalMetadataMapper.supportsCopyrightMd(element.getModel())) { continue; }
+            DatastreamType stream = FoxmlUtils.findDatastream(element.getSourceObject(), CopyrightMdEditor.ID);
+            if (stream == null) { continue; }
+            try {
+                String xml;
+                if (Storage.AKUBRA.equals(element.getMetsContext().getTypeOfStorage())) {
+                    xml = new CopyrightMdEditor(element.getMetsContext().getAkubraStorage().find(element.getOriginalPid())).readAsString();
+                } else {
+                    DatastreamVersionType version = stream.getDatastreamVersion().get(0);
+                    if (version.getXmlContent() != null && !version.getXmlContent().getAny().isEmpty()) {
+                        xml = CopyrightMdEditor.toXml(version.getXmlContent().getAny().get(0));
+                    } else if (version.getBinaryContent() != null) {
+                        xml = new String(version.getBinaryContent(), java.nio.charset.StandardCharsets.UTF_8);
+                    } else {
+                        throw new DigitalObjectException(element.getOriginalPid(), "Missing copyrightMD content");
+                    }
+                }
+                if (xml != null) {
+                    CopyrightMdMets.add(mets, CopyrightMdEditor.parse(xml), entry.getKey(), element.getModsElementID(), element.getElementType());
+                }
+            } catch (DigitalObjectException e) {
+                throw new MetsExportException(element.getOriginalPid(), "Cannot export copyrightMD", false, e);
+            }
         }
     }
 
