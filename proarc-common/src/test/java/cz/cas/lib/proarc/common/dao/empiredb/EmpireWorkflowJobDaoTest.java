@@ -30,6 +30,8 @@ import org.dbunit.dataset.ReplacementDataSet;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -141,6 +143,38 @@ public class EmpireWorkflowJobDaoTest {
         assertEquals(BigDecimal.ONE, job0.getId());
         assertEquals("job.ndk", job0.getProfileName());
         assertNull(job0.getUserName());
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "OSN, 2",
+        "osn, 2",
+        "OsN, 2",
+        "sn, 2",
+        "' osn ', 2",
+        "unmatched, 0",
+        "NULL, 2",
+        "'', 2",
+        "'   ', 2"
+    }, nullValues = "NULL")
+    public void testViewFinancedFilter(String financed, int expectedCount) throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(getClass(), "user.xml"),
+                support.loadFlatXmlDataStream(getClass(), "wf_job.xml")
+        );
+        support.cleanInsert(support.getConnection(tx), db);
+
+        Job mixedCaseJob = dao.find(BigDecimal.valueOf(2));
+        mixedCaseJob.setFinanced("OsN");
+        dao.update(mixedCaseJob);
+        tx.commit();
+
+        JobFilter filter = new JobFilter();
+        filter.setFinanced(financed);
+        List<JobView> jobs = dao.view(filter);
+        assertEquals(expectedCount, jobs.size());
+        assertEquals("OSN", dao.find(BigDecimal.ONE).getFinanced());
+        assertEquals("OsN", dao.find(BigDecimal.valueOf(2)).getFinanced());
     }
 
     @Test
