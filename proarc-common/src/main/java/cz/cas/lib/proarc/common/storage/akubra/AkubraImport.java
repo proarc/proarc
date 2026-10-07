@@ -24,6 +24,7 @@ import cz.cas.lib.proarc.common.dao.BatchItem.ObjectState;
 import cz.cas.lib.proarc.common.device.DeviceRepository;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.mods.Mods38Converter;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -390,10 +391,23 @@ public final class AkubraImport {
             return null;
         }
         File foxml = item.getFile();
-        if (foxml == null || !foxml.exists() || !foxml.canRead()) {
-            throw new IllegalStateException("Cannot read foxml: " + foxml);
+        LocalObject lobj;
+        String importModel = "<unknown>";
+        try {
+            if (foxml == null || !foxml.exists() || !foxml.canRead()) {
+                throw new IllegalStateException("Cannot read FOXML file.");
+            }
+            lobj = localStorage.load(item.getPid(), foxml);
+            RelationEditor importRelations = new RelationEditor(lobj);
+            importModel = importRelations.getModel();
+            Mods38Converter.upgradeObject(lobj, importModel, "Upgrade imported MODS metadata to 3.8");
+        } catch (Exception ex) {
+            String detail = "path=" + (foxml == null ? "<unknown>" : foxml.getAbsolutePath())
+                    + ", model=" + String.valueOf(importModel)
+                    + ", reason=" + conversionFailureReason(ex);
+            throw new DigitalObjectException(item.getPid(), item.getBatchId(),
+                    ModsStreamEditor.DATASTREAM_ID, detail, ex);
         }
-        LocalObject lobj = localStorage.load(item.getPid(), foxml);
         if (lobj.isRemoteCopy()) {
             AkubraObject object = akubraStorage.find(item.getPid());
             RelationEditor localRelEditor = new RelationEditor(lobj);
@@ -456,6 +470,18 @@ public final class AkubraImport {
         }
         item.setState(ObjectState.INGESTED);
         return item;
+    }
+
+    private static String conversionFailureReason(Exception exception) {
+        Throwable current = exception;
+        String reason = null;
+        while (current != null) {
+            if (current.getMessage() != null && !current.getMessage().trim().isEmpty()) {
+                reason = current.getMessage();
+            }
+            current = current.getCause();
+        }
+        return reason == null ? exception.getClass().getSimpleName() : reason;
     }
 
     private boolean getUpdate() {

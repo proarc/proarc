@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.storage.AesEditor;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
@@ -88,6 +89,7 @@ public class ArchiveObjectProcessor {
     private AppConfiguration appConfig;
     private AkubraConfiguration akubraConfiguration;
     private boolean ignoreMissingUrnNbn = false;
+    private String packageObjectPid;
 
     public static final Set<String> ARCHIVE_VALIDATION_MODELS = Collections.unmodifiableSet(new HashSet<>(
             Arrays.asList(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHUNIT,
@@ -110,6 +112,7 @@ public class ArchiveObjectProcessor {
     public void process(List<DigitalObjectElement> objectPath) throws DigitalObjectException, MetsExportException, IOException {
         builder = new PackageBuilder(targetFolder);
         DigitalObjectElement entry = objectPath.get(0);
+        packageObjectPid = entry.getPid();
         DigitalObjectHandler handler = entry.getHandler();
         LocalObject lobj = getLocalObject(handler.getFedoraObject());
         builder.prepare(objectPath, lobj, appConfig, getElement(objectPath.get(0)));
@@ -190,6 +193,9 @@ public class ArchiveObjectProcessor {
                     checkUrnNbn(cache);
                 }
 
+                MetsElementVisitor.addDonatorToMods(
+                        dt.getDatastreamVersion().get(0).getXmlContent().getAny(), relsEditor.getDonator(),
+                        elm.getPid(), packageObjectPid);
                 builder.addStreamAsMdSec(siblingIdx, dt, cache.getPid(), elm.getModelId(), PackageBuilder.MdType.MODS);
             } else if (DcStreamEditor.DATASTREAM_ID.equals(dsId)) {
                 Element dcElm = dt.getDatastreamVersion().get(0).getXmlContent().getAny().get(0);

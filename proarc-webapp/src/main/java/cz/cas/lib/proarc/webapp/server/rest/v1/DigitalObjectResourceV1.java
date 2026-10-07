@@ -211,6 +211,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTIO
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_DELETE_ACTION;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_IMPORT_TO_CATALOG;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_LOCK_OBJECT;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_SYS_ADMIN;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UNLOCK_OBJECT;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UPDATE_ALL_OBJECTS;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UPDATE_MODEL;
@@ -4912,6 +4913,22 @@ public class DigitalObjectResourceV1 {
         upgradeMetadataObjects.setOrganization(objects, appConfig.getImportConfiguration().getDefaultProcessor());
         LOG.log(Level.INFO, "Update finished, updated " + upgradeMetadataObjects.getUpdatedObjects() + "/" + objects.size() + " object(s).");
         return returnFunctionSuccess();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.UPGRADE_MODS_38_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<InternalExternalProcessResult> upgradeMods38() throws IOException {
+        checkPermission(user, PERMISSION_FUNCTION_SYS_ADMIN);
+
+        BatchParams params = new BatchParams(Collections.singletonList("mods-3.8"));
+        Batch batch = BatchUtils.addNewInternalBatch(importManager, "mods-3.8", user,
+                Batch.INTERNAL_UPGRADE_MODS_38, false, params);
+        InternalExternalProcess process = InternalExternalProcess.prepare(
+                appConfig, akubraConfiguration, batch, importManager, user,
+                session.asFedoraLog(), session.getLocale(httpHeaders));
+        InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
+        return new ProArcResponse<>(new InternalExternalProcessResult(batch.getId(), "Proces naplánován."));
     }
 
     @POST

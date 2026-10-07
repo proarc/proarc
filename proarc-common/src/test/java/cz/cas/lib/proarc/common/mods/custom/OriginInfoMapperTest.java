@@ -20,14 +20,16 @@ import cz.cas.lib.proarc.common.mods.custom.OriginInfoMapper.OriginInfoItem;
 import cz.cas.lib.proarc.common.mods.custom.OriginInfoMapper.PeriodicityItem;
 import cz.cas.lib.proarc.common.mods.custom.OriginInfoMapper.PublisherItem;
 import cz.cas.lib.proarc.common.mods.custom.OriginInfoMapper.PublisherItem.Role;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.IssuanceDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NameDefinition;
+import cz.cas.lib.proarc.mods.NamePartDefinition;
 import cz.cas.lib.proarc.mods.ObjectFactory;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
-import cz.cas.lib.proarc.mods.PublisherDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import java.util.Arrays;
 import java.util.Collections;
@@ -223,9 +225,12 @@ public class OriginInfoMapperTest {
         }
 
         if (name != null) {
-            PublisherDefinition spl = factory.createPublisherDefinition();
-            spl.setValue(name);
-            o.getPublisher().add(spl);
+            NameDefinition agent = factory.createNameDefinition();
+            NamePartDefinition namePart = factory.createNamePartDefinition();
+            namePart.setValue(name);
+            agent.getNamePart().add(namePart);
+            ModsUtils.setAgentRole(agent, o.getEventType());
+            o.getAgent().add(agent);
         }
         return o;
     }

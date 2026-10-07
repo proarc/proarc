@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.config.Profiles;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.WorkWindow;
 import cz.cas.lib.proarc.common.process.export.mets.JhoveContext;
@@ -84,11 +85,11 @@ public final class ImportProcess implements Runnable {
     public static ImportProcess prepare(
             File importFolder, String description,
             UserProfile user, BatchManager batchManager,
-            String device, String software, boolean generateIndices, String priority,
+            String device, String software, boolean generateIndices, boolean generatePageType, String priority,
             boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, String metakatEngine, Boolean isNightOnly, List<String> pids,
             ImportProfile profile, AppConfiguration config
     ) throws IOException {
-        return prepare(importFolder, description, user, batchManager, device, software, generateIndices, false, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, pids, profile, config);
+        return prepare(importFolder, description, user, batchManager, device, software, generateIndices, false, generatePageType, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, pids, profile, config);
     }
 
     /**
@@ -98,12 +99,13 @@ public final class ImportProcess implements Runnable {
     public static ImportProcess prepare(
             File importFolder, String description,
             UserProfile user, BatchManager batchManager,
-            String device, String software, boolean generateIndices, boolean generatePageNumber, String priority,
+            String device, String software, boolean generateIndices, boolean generatePageNumber, boolean generatePageType, String priority,
             boolean useNewMetadata, boolean useOriginalMetadata, Integer peroOcrEngine, String metakatEngine, Boolean isNightOnly, List<String> pids, ImportProfile profile, AppConfiguration config
     ) throws IOException {
 
         ImportOptions options = new ImportOptions(importFolder, device, software,
-                generateIndices, generatePageNumber, user, profile, priority, useNewMetadata, useOriginalMetadata);
+                generateIndices, generatePageNumber, generatePageType, user, profile, priority,
+                useNewMetadata, useOriginalMetadata);
         ImportProcess process = new ImportProcess(options, batchManager, config);
         process.prepare(description, user, peroOcrEngine, metakatEngine, isNightOnly, pids);
         return process;
@@ -417,6 +419,7 @@ public final class ImportProcess implements Runnable {
         private String software;
         private boolean generateIndices;
         private boolean generatePageNumber;
+        private boolean generatePageType;
         private int consumedFileCounter;
         private final UserProfile user;
         private Batch batch;
@@ -433,18 +436,19 @@ public final class ImportProcess implements Runnable {
         private List<String> pidsToUpdate;
         private boolean wasK4Model;
 
-        public ImportOptions(File importFolder, String device, String software, boolean generateIndices, UserProfile username, ImportProfile profile, String priority) {
-            this(importFolder, device, software, generateIndices, false, username, profile, priority, false, false);
+        public ImportOptions(File importFolder, String device, String software, boolean generateIndices, boolean generatePageType, UserProfile username, ImportProfile profile, String priority) {
+            this(importFolder, device, software, generateIndices, false, generatePageType, username, profile, priority, false, false);
         }
 
         public ImportOptions(File importFolder, String device, String software,
-                             boolean generateIndices, boolean gerenatePageNumber, UserProfile username,
+                             boolean generateIndices, boolean generatePageNumber, boolean generatePageType, UserProfile username,
                              ImportProfile profile, String priority, boolean useNewMetadata, boolean useOriginalMetadata
         ) {
             this.device = device;
             this.software = software;
             this.generateIndices = generateIndices;
-            this.generatePageNumber = gerenatePageNumber;
+            this.generatePageNumber = generatePageNumber;
+            this.generatePageType = generatePageType;
             this.user = username;
             this.importFolder = importFolder;
             this.profile = profile;
@@ -485,6 +489,10 @@ public final class ImportProcess implements Runnable {
 
         public boolean isGeneratePageNumber() {
             return generatePageNumber;
+        }
+
+        public boolean isGeneratePageType() {
+            return generatePageType;
         }
 
         public String getDevice() {
@@ -550,9 +558,13 @@ public final class ImportProcess implements Runnable {
         public static ImportOptions fromBatch(Batch batch, File importFolder,
                                               boolean useNewMetadata, boolean useOriginalMetadata, UserProfile username, ImportProfile profile) {
 
+            BatchParams params = batch.getParamsAsObject();
+            boolean generatePageType = params == null || params.isGeneratePageType() == null
+                    || params.isGeneratePageType();
             ImportOptions options = new ImportOptions(
                     importFolder, batch.getDevice(), batch.getSoftware(),
-                    batch.isGenerateIndices(), batch.isGeneratePageNumber(), username, profile, batch.getPriority(), useNewMetadata, useOriginalMetadata);
+                    batch.isGenerateIndices(), batch.isGeneratePageNumber(), generatePageType, username, profile,
+                    batch.getPriority(), useNewMetadata, useOriginalMetadata);
             options.setBatch(batch);
             return options;
         }

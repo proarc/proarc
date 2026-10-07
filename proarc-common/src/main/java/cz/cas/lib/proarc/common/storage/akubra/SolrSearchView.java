@@ -144,6 +144,13 @@ public class SolrSearchView extends SearchView {
     }
 
     @Override
+    public String findModel(String pid) throws IOException {
+        List<SearchViewItem> items = searchImplementation(
+                0, 1, null, null, null, null, Collections.singletonList(pid));
+        return items.isEmpty() ? null : items.get(0).getModel();
+    }
+
+    @Override
     public List<SearchViewItem> findAllObjects() throws IOException {
         return searchImplementation(0, null, null, null, null, null, null);
 

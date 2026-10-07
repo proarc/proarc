@@ -88,8 +88,6 @@ public class NdkMetadataHandler implements MetadataHandler<ModsDefinition>, Page
     public static final String ERR_NDK_CHANGE_MODS_WITH_MEMBERS = "Err_Ndk_Change_Mods_With_Members";
     public static final String ERR_NDK_DOI_DUPLICITY = "Err_Ndk_Doi_Duplicity";
     public static final String ERR_NDK_REMOVE_URNNBN = "Err_Ndk_Remove_UrnNbn";
-    public static final String DEFAULT_PAGE_TYPE = "normalPage";
-
     public static final String OPERATION_NEW = "new";
     public static final String OPERATION_VALIDATE = "validate";
     public static final String OPERATION_UPDATE = "update";

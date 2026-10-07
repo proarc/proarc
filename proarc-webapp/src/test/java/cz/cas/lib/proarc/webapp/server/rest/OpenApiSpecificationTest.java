@@ -32,8 +32,8 @@ class OpenApiSpecificationTest {
         assertEquals("../rest/v2", spec.getJSONArray("servers").getJSONObject(0).getString("url"));
 
         JSONObject paths = spec.getJSONObject("paths");
-        assertEquals(166, paths.length());
-        assertEquals(202, countOperations(paths));
+        assertEquals(167, paths.length());
+        assertEquals(203, countOperations(paths));
         assertTrue(paths.has("/authorities"));
         assertTrue(paths.has("/bibliographies/query"));
         assertTrue(paths.has("/device"));
@@ -184,6 +184,18 @@ class OpenApiSpecificationTest {
             assertTrue(properties.has(property), property);
         }
         assertDefaultJsonResponse(put, "#/components/schemas/response");
+    }
+
+    @Test
+    void objectUpgradeMods38DocumentsScheduledUpgrade() throws Exception {
+        JSONObject post = loadSpec()
+                .getJSONObject("paths")
+                .getJSONObject("/object/upgradeMods38")
+                .getJSONObject("post");
+
+        assertEquals("upgradeMods38", post.getString("operationId"));
+        assertFalse(post.has("requestBody"));
+        assertDefaultJsonResponse(post, "#/components/schemas/response");
     }
 
     @Test
@@ -466,8 +478,8 @@ class OpenApiSpecificationTest {
             assertTrue(pathOperationCount > 0, path);
         }
 
-        assertEquals(202, operationCount);
-        assertEquals(202, responseCount);
+        assertEquals(203, operationCount);
+        assertEquals(203, responseCount);
     }
 
     @Test

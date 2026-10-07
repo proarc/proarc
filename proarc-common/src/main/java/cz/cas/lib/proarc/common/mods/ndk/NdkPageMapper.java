@@ -81,7 +81,7 @@ public class NdkPageMapper extends NdkMapper {
 
     public static String getPageTypeLabel(String pageType, Locale locale) {
         if (pageType == null || pageType.isEmpty()) {
-            pageType = NdkPageMapper.PAGE_TYPE_NORMAL;
+            return pageType;
         }
         try {
             return getPageTypeLabels(locale).getString(pageType);
@@ -159,14 +159,11 @@ public class NdkPageMapper extends NdkMapper {
                     }
                 }
             }
-            if (pageType == null) {
-                pageType = PAGE_TYPE_NORMAL;
-            }
             page.setType(pageType);
             page.setNumber(pageNumber);
             page.setIndex(pageIndex);
         } else {
-            page.setType(PAGE_TYPE_NORMAL);
+            page.setType(null);
         }
         page.setIdentifiers(getIdentifierItems(mods.getIdentifier()));
         return page;
@@ -225,10 +222,10 @@ public class NdkPageMapper extends NdkMapper {
         String pageNumber = page.getNumber();
         String pageNote = page.getPhysicalDescription();
 
-        if ((pageType != null && !PAGE_TYPE_NORMAL.equals(pageType)) || pageIndex != null || pageNumber != null || pageNote != null) {
+        if ((pageType != null && !pageType.isEmpty()) || pageIndex != null || pageNumber != null || pageNote != null) {
             PartDefinition part = new PartDefinition();
 
-            if (pageType != null && !PAGE_TYPE_NORMAL.equals(pageType)) {
+            if (pageType != null && !pageType.isEmpty()) {
                 part.setType(pageType);
             }
 

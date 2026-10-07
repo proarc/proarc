@@ -271,12 +271,12 @@ public class ImportResourceV1 {
         return new ProfileStates(profile.getId(), state, createProfileParams(profile, device, software, index, metakatEngine, ocrEngine, pids));
     }
 
-    private ProfileStates.Params createProfileParams(ConfigurationProfile profile, boolean device, boolean software, boolean index, boolean metakatEngine, Boolean ocrEngine, Boolean pids) {
+    private ProfileStates.Params createProfileParams(ConfigurationProfile profile, boolean device, boolean software, boolean indexAndType, boolean metakatEngine, Boolean ocrEngine, Boolean pids) {
         ImportProfile importProfile = appConfig.getImportConfiguration(profile);
         if (ocrEngine == null) {
             ocrEngine = importProfile.getRequiredDatastreamId().contains(StringEditor.OCR_ALTO_GEN_ID);
         }
-        return new ProfileStates.Params(device, software, ocrEngine, metakatEngine, index, pids);
+        return new ProfileStates.Params(device, software, ocrEngine, metakatEngine, indexAndType, pids);
     }
 
     @POST
@@ -286,7 +286,8 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_SOFTWARE_PARAM) String software,
-            @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
+            @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean generateIndex,
+            @FormParam(ImportResourceApi.NEWBATCH_PAGE_TYPE_PARAM) @DefaultValue("true") boolean generatePageType,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
@@ -298,7 +299,7 @@ public class ImportResourceV1 {
     ) throws URISyntaxException, IOException {
 
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}, software: {3}",
-                new Object[]{path, indices, device, software});
+                new Object[]{path, generateIndex, device, software});
         String folderPath = validateParentPath(path);
         URI userRoot = user.getImportFolder();
         URI folderUri = (folderPath != null)
@@ -313,7 +314,7 @@ public class ImportResourceV1 {
             for (File importFile : folder.listFiles()) {
                 if (importFile.exists() && importFile.isDirectory()) {
                     ImportProcess process = ImportProcess.prepare(importFile, importFile.getName(), user,
-                            importManager, device, software, indices, true, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, createListOfPids(pids), appConfig.getImportConfiguration(profile), appConfig);
+                            importManager, device, software, generateIndex, true, generatePageType, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, createListOfPids(pids), appConfig.getImportConfiguration(profile), appConfig);
                     ImportDispatcher.getDefault().addImport(process);
                     listBatches.add(process.getBatch());
                 }
@@ -321,7 +322,7 @@ public class ImportResourceV1 {
             return new ProArcResponse<BatchView>();
         } else {
             ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                    importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, createListOfPids(pids), appConfig.getImportConfiguration(profile), appConfig);
+                    importManager, device, software, generateIndex, generatePageType, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, createListOfPids(pids), appConfig.getImportConfiguration(profile), appConfig);
             ImportDispatcher.getDefault().addImport(process);
             Batch batch = process.getBatch();
             return new ProArcResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -344,7 +345,7 @@ public class ImportResourceV1 {
         File importFolder = new File(folderUri);
         ConfigurationProfile profile = findImportProfile(null, ConfigurationProfile.GENERATE_ALTO_OCR);
         ImportProcess process = ImportProcess.prepare(importFolder, folderPath, user,
-                importManager, null, null, false, null, false, false, null, null, false, null, appConfig.getImportConfiguration(profile), appConfig);
+                importManager, null, null, false, false, null, false, false, null, null, false, null, appConfig.getImportConfiguration(profile), appConfig);
         ImportDispatcher.getDefault().addImport(process);
         Batch batch = process.getBatch();
         return new ProArcResponse<BatchView>(importManager.viewBatch(batch.getId()));
@@ -358,7 +359,8 @@ public class ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String pathes,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_SOFTWARE_PARAM) String software,
-            @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
+            @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean generateIndex,
+            @FormParam(ImportResourceApi.NEWBATCH_PAGE_TYPE_PARAM) @DefaultValue("true") boolean generatePageType,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
@@ -370,7 +372,7 @@ public class ImportResourceV1 {
     ) throws URISyntaxException, IOException {
 
         LOG.log(Level.FINE, "import path: {0}, indices: {1}, device: {2}",
-                new Object[]{pathes, indices, device});
+                new Object[]{pathes, generateIndex, device});
 
         List<String> listFolders = createListOfPath(pathes);
         URI userRoot = user.getImportFolder();
@@ -386,7 +388,7 @@ public class ImportResourceV1 {
                 File folder = new File(folderUri);
                 ConfigurationProfile profile = findImportProfile(null, profileId);
                 ImportProcess process = ImportProcess.prepare(folder, folderPath, user,
-                        importManager, device, software, indices, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, createListOfPids(pids), appConfig.getImportConfiguration(profile), appConfig);
+                        importManager, device, software, generateIndex, generatePageType, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, createListOfPids(pids), appConfig.getImportConfiguration(profile), appConfig);
                 ImportDispatcher.getDefault().addImport(process);
                 listBatches.add(process.getBatch());
             } catch (IOException ex) {

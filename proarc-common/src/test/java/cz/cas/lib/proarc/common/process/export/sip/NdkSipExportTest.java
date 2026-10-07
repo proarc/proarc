@@ -142,7 +142,7 @@ public class NdkSipExportTest {
             }
         });
 
-        validatePackage(sip, 4);
+        validatePackage(sip, 4, 2.0f);
 
     }
 
@@ -181,10 +181,10 @@ public class NdkSipExportTest {
             }
         });
 
-        validatePackage(sip, 4);
+        validatePackage(sip, 4, 2.4f);
     }
 
-    private void validatePackage(Path sip, int metadatacount) throws Exception {
+    private void validatePackage(Path sip, int metadatacount, float metadataVersion) throws Exception {
         assertTrue(Files.isDirectory(sip), "No SIP package");
 
         String identifier = sip.getFileName().toString();
@@ -203,7 +203,7 @@ public class NdkSipExportTest {
         JAXBContext jContext = JAXBContext.newInstance(Info.class);
         Unmarshaller unmarshallerObj = jContext.createUnmarshaller();
         Info info = (Info) unmarshallerObj.unmarshal(sip.resolve("info_" + identifier + ".xml").toFile());
-        assertTrue(info.getMetadataversion() >= 2.2f);
+        assertEquals(metadataVersion, info.getMetadataversion());
         assertEquals(info.getPackageid(), identifier);
         // assertEquals(info.getMainmets(), ""); //??? https://github.com/NLCR/Standard_NDK/issues/60
 

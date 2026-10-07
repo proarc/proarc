@@ -118,7 +118,7 @@ public class NdkNewPageMapper extends NdkMapper {
                 }
             }
         }
-        String type = PAGE_TYPE_NORMAL;
+        String type = null;
         if (!mods.getPart().isEmpty()) {
             type = mods.getPart().get(0).getType();
         }
@@ -175,7 +175,7 @@ public class NdkNewPageMapper extends NdkMapper {
             } else {
                 sb.append('?');
             }
-            if (part.getType() != null && !PAGE_TYPE_NORMAL.equalsIgnoreCase(part.getType())) {
+            if (part.getType() != null) {
                 sb.append(", ").append(part.getType());
             }
         }
@@ -210,9 +210,6 @@ public class NdkNewPageMapper extends NdkMapper {
         }
         String pageType = mods.getPart().get(0).getType();
         mods.getPart().get(0).setType(null);
-        if (pageType == null) {
-            pageType = PAGE_TYPE_NORMAL;
-        }
         wrapper.setPageType(pageType);
 
         String pageIndex;

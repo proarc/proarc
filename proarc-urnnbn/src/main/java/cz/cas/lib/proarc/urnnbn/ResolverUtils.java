@@ -133,7 +133,7 @@ public class ResolverUtils {
                     dateIssued = getDate(origin.getDateIssued());
                 }
                 if (publisher == null) {
-                    publisher = getStringPlusLanguage(origin.getPublisher());
+                    publisher = getAgent(origin.getAgent());
                 }
                 if (place == null) {
                     place = getPlace(origin.getPlace());
@@ -174,6 +174,18 @@ public class ResolverUtils {
             String value = string.getValue();
             if (value != null) {
                 items.add(value);
+            }
+        }
+        return concat(items, ", ");
+    }
+
+    static String getAgent(List<NameDefinition> agents) {
+        ArrayList<String> items = new ArrayList<String>();
+        for (NameDefinition agent : agents) {
+            for (NamePartDefinition namePart : agent.getNamePart()) {
+                if (namePart.getValue() != null) {
+                    items.add(namePart.getValue());
+                }
             }
         }
         return concat(items, ", ");

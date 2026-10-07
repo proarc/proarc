@@ -37,6 +37,7 @@ public class BatchParams {
     private String metakatEngine;
     private String notBefore;
     private String notAfter;
+    private Boolean generatePageType;
 
     public BatchParams() {
     }
@@ -338,5 +339,14 @@ public class BatchParams {
 
     public void setNotAfter(String notAfter) {
         this.notAfter = notAfter;
+    }
+
+    @XmlElement(name = "generatePageType")
+    public Boolean isGeneratePageType() {
+        return generatePageType;
+    }
+
+    public void setGeneratePageType(Boolean generatePageType) {
+        this.generatePageType = generatePageType;
     }
 }

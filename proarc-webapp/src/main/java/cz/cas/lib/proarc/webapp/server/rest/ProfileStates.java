@@ -47,16 +47,20 @@ public class ProfileStates {
         @XmlElement(name = "generateIndex")
         @JsonProperty("generateIndex")
         boolean generateIndex;
+        @XmlElement(name = "generatePageType")
+        @JsonProperty("generatePageType")
+        boolean generatePageType;
         @XmlElement(name = "pids")
         @JsonProperty("pids")
         boolean pids;
 
-        public Params(boolean device, boolean software, boolean ocrEngine, boolean metakatEngine, boolean generateIndex, boolean pids) {
+        public Params(boolean device, boolean software, boolean ocrEngine, boolean metakatEngine, boolean generateIndexAndType, boolean pids) {
             this.device = device;
             this.software = software;
             this.ocrEngine = ocrEngine;
             this.metakatEngine = metakatEngine;
-            this.generateIndex = generateIndex;
+            this.generateIndex = generateIndexAndType;
+            this.generatePageType = generateIndexAndType;
             this.pids = pids;
         }
     }

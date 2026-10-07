@@ -49,7 +49,7 @@ class GeneratorAltoOcrTest {
                     "http://localhost:" + server.getAddress().getPort() + "/");
             ImportProfile profile = new ImportProfile(configuration);
             ImportProcess.ImportOptions options = new ImportProcess.ImportOptions(
-                    tempDir, null, null, false, null, profile, null);
+                    tempDir, null, null, false, false, null, profile, null);
             File fullJpg = new File(tempDir, "fullInput.jpg");
             File tiff = new File(tempDir, "source.tif");
             fullJpg.createNewFile();

@@ -105,7 +105,8 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String path,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_SOFTWARE_PARAM) String software,
-            @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
+            @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean generateIndex,
+            @FormParam(ImportResourceApi.NEWBATCH_PAGE_TYPE_PARAM) @DefaultValue("true") boolean generatePageType,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
@@ -116,7 +117,7 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_PIDS) List<String> pids
     ) {
         try {
-            return super.newBatch(path, device, software, indices, profileId, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, pids);
+            return super.newBatch(path, device, software, generateIndex, generatePageType, profileId, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, pids);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);
@@ -145,7 +146,8 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) @DefaultValue("") String pathes,
             @FormParam(ImportResourceApi.NEWBATCH_DEVICE_PARAM) String device,
             @FormParam(ImportResourceApi.NEWBATCH_SOFTWARE_PARAM) String software,
-            @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean indices,
+            @FormParam(ImportResourceApi.NEWBATCH_INDICES_PARAM) @DefaultValue("true") boolean generateIndex,
+            @FormParam(ImportResourceApi.NEWBATCH_PAGE_TYPE_PARAM) @DefaultValue("true") boolean generatePageType,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PROFILE) String profileId,
             @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ImportResourceApi.IMPORT_BATCH_USE_NEW_METADATA) @DefaultValue("false") boolean useNewMetadata,
@@ -156,7 +158,7 @@ public class ImportResource extends ImportResourceV1 {
             @FormParam(ImportResourceApi.IMPORT_BATCH_PIDS) List<String> pids
     ) {
         try {
-            return super.newBatches(pathes, device, software, indices, profileId, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, pids);
+            return super.newBatches(pathes, device, software, generateIndex, generatePageType, profileId, priority, useNewMetadata, useOriginalMetadata, peroOcrEngine, metakatEngine, isNightOnly, pids);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);

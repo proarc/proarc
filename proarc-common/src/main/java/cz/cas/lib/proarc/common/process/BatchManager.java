@@ -390,6 +390,7 @@ public class BatchManager {
 
         BatchParams params = new BatchParams();
         params.setPids(pids);
+        params.setGeneratePageType(options.isGeneratePageType());
         params.setPeroOcrEngine(peroOcrEngine);
         params.setMetakatEngine(metakatEngine);
         batch.setParamsFromObject(params);

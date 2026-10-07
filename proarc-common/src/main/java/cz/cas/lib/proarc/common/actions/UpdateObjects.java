@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.actions;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
@@ -41,14 +42,14 @@ import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NameDefinition;
+import cz.cas.lib.proarc.mods.NamePartDefinition;
 import cz.cas.lib.proarc.mods.NoteDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.PlaceTermDefinition;
-import cz.cas.lib.proarc.mods.PublisherDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
-import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
 import java.io.IOException;
@@ -80,7 +81,7 @@ public class UpdateObjects {
     private String subTitleValue;
     private String partNameValue;
     private String noteValue;
-    private String publisherValue;
+    private String agentValue;
     private String placeValue;
 
     public UpdateObjects(AppConfiguration appConfig, AkubraConfiguration akubraConfig, Locale locale) {
@@ -147,14 +148,14 @@ public class UpdateObjects {
         }
     }
 
-    public void updateObjects(String signatura, String sigla, String title, String subTitle, String partName, String note, String publisher, String place) throws DigitalObjectException {
+    public void updateObjects(String signatura, String sigla, String title, String subTitle, String partName, String note, String agent, String place) throws DigitalObjectException {
         this.signaturaValue = signatura;
         this.siglaValue = sigla;
         this.titleValue = title;
         this.subTitleValue = subTitle;
         this.partNameValue = partName;
         this.noteValue = note;
-        this.publisherValue = publisher;
+        this.agentValue = agent;
         this.placeValue = place;
 
         if (updatedPids != null && !updatedPids.isEmpty()) {
@@ -212,7 +213,7 @@ public class UpdateObjects {
     }
 
     private void setOriginInfo(ModsDefinition mods) {
-        if (this.dateIssuedValue == null && this.publisherValue == null && this.placeValue == null) {
+        if (this.dateIssuedValue == null && this.agentValue == null && this.placeValue == null) {
             return;
         }
         if (mods.getOriginInfo().isEmpty()) {
@@ -227,12 +228,18 @@ public class UpdateObjects {
                     dateIssued.setValue(this.dateIssuedValue);
                 }
             }
-            if (this.publisherValue != null) {
-                if (originInfo.getPublisher().isEmpty()) {
-                    originInfo.getPublisher().add(new PublisherDefinition());
+            if (this.agentValue != null) {
+                if (originInfo.getAgent().isEmpty()) {
+                    originInfo.getAgent().add(new NameDefinition());
                 }
-                for (StringPlusLanguagePlusSupplied publisher : originInfo.getPublisher()) {
-                    publisher.setValue(this.publisherValue);
+                for (NameDefinition agent : originInfo.getAgent()) {
+                    if (agent.getNamePart().isEmpty()) {
+                        agent.getNamePart().add(new NamePartDefinition());
+                    }
+                    for (NamePartDefinition namePart : agent.getNamePart()) {
+                        namePart.setValue(this.agentValue);
+                    }
+                    ModsUtils.setAgentRole(agent, originInfo.getEventType());
                 }
             }
             if (this.placeValue != null) {

@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.object.ndk;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
@@ -37,6 +38,7 @@ import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -64,18 +66,43 @@ public class ModsRules {
 
     public static final String ERR_NDK_SUPPLEMENT_GENRE_TYPE = "Err_Ndk_Supplement_Genre_Type";
     public static final String ERR_NDK_MODEL_GENRE_TYPE = "Err_Ndk_Model_Genre_Type";
+    public static final String ERR_NDK_MODEL_PAGE_TYPE = "Err_Ndk_Model_Page_Type";
+    public static final String ERR_NDK_MODEL_PAGE_TYPE_MISSING = "Err_Ndk_Model_Page_Type_Missing";
     public static final String ERR_NDK_ORIGININFO_DATEISSSUED = "Err_Ndk_OriginInfo_DateIssued";
     public static final String ERR_NDK_PHYSICALLOCATION_MULTIPLE = "Err_Ndk_PhysicalLocation_Multiple";
     public static final String ERR_NDK_PHYSICALLOCATION_SIGLA = "Err_Ndk_PhysicalLocation_Sigla";
     public static final String ERR_NDK_RELATEDITEM_PHYSICALLOCATION_SIGLA = "Err_Ndk_RelatedItem_PhysicalLocation_Sigla";
 
     private static final Set<String> PICTURE_GENRE_MAP = new HashSet<>(Arrays.asList("photograph", "chart", "graphic", "illustration", "advertisement", "map", "plate", "table", "technicalPlanScheme", "unspecified"));
-    private static final Set<String> ARTICLE_GENRE_MAP = new HashSet<>(Arrays.asList("abstract", "annotation", "bibliography", "dedication", "afterword", "editorsNote", "advertisement", "bibliographicalPortrait", "obituary", "sheetMusic", "tableOfContents", "preface", "contributors", "review", "index", "summary", "interview", "study", "technicalPlanScheme", "introduction", "conclusion", "otherNote", "unspecified", "mainArticle", "editorial", "news"));
-    private static final Set<String> CHAPTER_GENRE_MAP = new HashSet<>(Arrays.asList("abstract", "annotation", "bibliography", "dedication", "afterword", "editorsNote", "advertisement", "bibliographicalPortrait", "obituary", "sheetMusic", "tableOfContents", "preface", "contributors", "review", "index", "summary", "interview", "study", "technicalPlanScheme", "introduction", "conclusion", "otherNote", "unspecified", "article", "chapter", "subchapter"));
-    public static final Set<String> PAGE_PART_TYPE = new HashSet<>(Arrays.asList("cover", "frontCover", "backCover", "appendix", "errata", "frontispiece", "spine", "impressum", "normalPage", "edge", "imprimatur", "blank", "jacket", "Jacket", "frontEndPaper",
-            "backEndPaper", "frontEndSheet", "backEndSheet", "frontJacket", "listOfIllustrations", "listOfMaps", "listOfTables", "colophon", "titlePage", "flyleaf",
-            "bibliography", "dedication", "afterword", "illustration", "advertisement", "map", "sheetMusic", "tableOfContents", "preface", "index", "table", "introduction", "conclusion",
+    private static final Set<String> ARTICLE_GENRE_MAP = new HashSet<>(Arrays.asList("abstract", "annotation", "bibliography", "dedication", "afterword", "editorsNote", "mainArticle", "advertisement",
+            "bibliographicalPortrait", "obituary", "sheetMusic", "tableOfContents", "preface", "contributors", "review", "index", "summary", "interview", "study", "technicalPlanScheme", "introduction",
+            "editorial", "conclusion", "news", "otherNote", "unspecified"));
+//    private static final Set<String> E_ARTICLE_GENRE_TYPE = new HashSet<>(Arrays.asList("abstract", "annotations", "bibliography","dedication","editorsNote", "advertisement",
+//            "obituary", "preface", "review", "index", "interview", "introduction", "news", "unspecified", "cover", "colophon", "biographical portrait", "title page", "direktory", "table of content", "main article"));
+    private static final Set<String> CHAPTER_GENRE_MAP = new HashSet<>(Arrays.asList("abstract", "annotation", "bibliography", "article", "dedication", "afterword", "editorsNote", "advertisement", "chapter", "bibliographicalPortrait", "obituary", "sheetMusic", "tableOfContents", "subchapter", "preface", "contributors", "review", "index", "summary", "interview", "study", "technicalPlanScheme", "introduction", "conclusion", "otherNote", "unspecified"));
+//    private static final Set<String> E_CHAPTER_GENRE_MAP = new HashSet<>(Arrays.asList("abstract", "bibliography", "article", "dedication", "editorsNote", "advertisement", "chapter",  "tableOfContents",  "preface", "review", "index", "introduction", "unspecified"));
+
+    private static final Set<String> COMMON_PAGE_PART_TYPES = new HashSet<>(Arrays.asList(
+            "cover", "frontCover", "backCover", "errata", "spine", "normalPage", "blank", "jacket",
+            "frontEndPaper", "backEndPaper", "frontEndSheet", "backEndSheet", "frontJacket",
+            "listOfIllustrations", "listOfMaps", "listOfTables", "colophon", "titlePage", "flyleaf",
+            "bibliography", "dedication", "afterword", "illustration", "advertisement", "map",
+            "sheetMusic", "tableOfContents", "preface", "index", "table", "introduction", "conclusion"));
+    private static final Set<String> SPECIAL_PAGE_PART_TYPES = new HashSet<>(Arrays.asList(
             "imgDisc", "manuscriptNotes", "calibrationTable", "fragmentsOfBookbinding", "scaleReference"));
+    public static final Set<String> MONOGRAPH_PAGE_PART_TYPES = pagePartTypes(
+            "appendix", "frontispiece", "impressum", "edge", "imprimatur");
+    public static final Set<String> PERIODICAL_PAGE_PART_TYPES = pagePartTypes();
+
+    public static boolean isPageTypeRequired(String modelId) {
+        if (modelId == null) {
+            return false;
+        }
+        int separator = modelId.lastIndexOf('/');
+        String normalizedModel = separator < 0 ? modelId : modelId.substring(separator + 1);
+        return NdkPlugin.MODEL_NDK_PAGE.equals(normalizedModel)
+                || OldPrintPlugin.MODEL_PAGE.equals(normalizedModel);
+    }
 
     private ModsRules() {}
 
@@ -165,31 +192,37 @@ public class ModsRules {
                     }
                 }
             }
-        } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId) || NdkPlugin.MODEL_ARTICLE.equals(modelId) || NdkPlugin.MODEL_PICTURE.equals(modelId)) {
+        } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId) || NdkEbornPlugin.MODEL_ECHAPTER.equals(modelId) || OldPrintPlugin.MODEL_CHAPTER.equals(modelId)
+                || NdkPlugin.MODEL_ARTICLE.equals(modelId) || NdkPlugin.MODEL_PICTURE.equals(modelId) || BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)) {
             for (GenreDefinition genre : mods.getGenre()) {
                 String genreType = genre.getType();
                 if (genreType != null && !genreType.isEmpty()) {
-                    if (NdkPlugin.MODEL_CHAPTER.equals(modelId)) {
+                    if (NdkPlugin.MODEL_CHAPTER.equals(modelId) || NdkEbornPlugin.MODEL_ECHAPTER.equals(modelId) || OldPrintPlugin.MODEL_CHAPTER.equals(modelId)) {
                         if (!CHAPTER_GENRE_MAP.contains(genreType)) {
-                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, NdkPlugin.MODEL_CHAPTER);
+                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, modelId);
                         }
-                    } else if (NdkPlugin.MODEL_ARTICLE.equals(modelId)) {
+                    } else if (NdkPlugin.MODEL_ARTICLE.equals(modelId) || NdkEbornPlugin.MODEL_EARTICLE.equals(modelId) || BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)) {
                         if (!ARTICLE_GENRE_MAP.contains(genreType)) {
-                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, NdkPlugin.MODEL_ARTICLE);
+                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, modelId);
                         }
                     } else if (NdkPlugin.MODEL_PICTURE.equals(modelId)) {
                         if (!PICTURE_GENRE_MAP.contains(genreType)) {
-                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, NdkPlugin.MODEL_PICTURE);
+                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, modelId);
                         }
                     }
                 }
             }
         } else if (NdkPlugin.MODEL_PAGE.equals(modelId) || NdkPlugin.MODEL_NDK_PAGE.equals(modelId) || OldPrintPlugin.MODEL_PAGE.equals(modelId)) {
+            String currentParentModel = getParentModel();
+//            if (currentParentModel == null || currentParentModel.isEmpty()) {
+//                return;
+//            }
+            Set<String> allowedPageTypes = getPagePartTypes(currentParentModel);
             for (PartDefinition part : mods.getPart()) {
                 String pageType = part.getType();
-                if (pageType != null && !pageType.isEmpty()) {
-                    if (!PAGE_PART_TYPE.contains(pageType)) {
-                        exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, pageType, modelId);
+                if (pageType != null && !pageType.trim().isEmpty()) {
+                    if (!allowedPageTypes.contains(pageType)) {
+                        exception.addValidation("MODS rules", ERR_NDK_MODEL_PAGE_TYPE, false, pageType, currentParentModel);
                     }
                 }
             }
@@ -278,17 +311,36 @@ public class ModsRules {
     }
 
     private String getExpectedType() {
-        if ((parentModel == null || parentModel.isEmpty()) && context != null) {
-            parentModel = context.getParentModel();
-        }
-        if (parentModel == null) {
+        String currentParentModel = getParentModel();
+        if (currentParentModel == null) {
             return null;
-        } else if (NdkPlugin.MODEL_PERIODICALISSUE.equals(parentModel)) {
+        } else if (NdkPlugin.MODEL_PERIODICALISSUE.equals(currentParentModel)) {
             return "issue_supplement";
-        } else if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(parentModel)) {
+        } else if (NdkPlugin.MODEL_PERIODICALVOLUME.equals(currentParentModel)) {
             return "volume_supplement";
         }
         return null;
+    }
+
+    private String getParentModel() {
+        if ((parentModel == null || parentModel.isEmpty()) && context != null) {
+            parentModel = context.getParentModel();
+        }
+        return parentModel;
+    }
+
+    public static Set<String> getPagePartTypes(String parentModel) {
+        if (NdkPlugin.MODEL_PERIODICALISSUE.equals(parentModel) || NdkPlugin.MODEL_PERIODICALSUPPLEMENT.equals(parentModel)) {
+            return PERIODICAL_PAGE_PART_TYPES;
+        }
+        return MONOGRAPH_PAGE_PART_TYPES;
+    }
+
+    private static Set<String> pagePartTypes(String... additionalTypes) {
+        Set<String> result = new HashSet<>(COMMON_PAGE_PART_TYPES);
+        result.addAll(SPECIAL_PAGE_PART_TYPES);
+        result.addAll(Arrays.asList(additionalTypes));
+        return Collections.unmodifiableSet(result);
     }
 
     public static ModsRules getOptions(Configuration config) {

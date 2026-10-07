@@ -60,6 +60,7 @@ import jakarta.ws.rs.core.Request;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -92,6 +93,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTIO
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_DELETE_USER;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_IMPORT_TO_CATALOG;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_LOCK_OBJECT;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_SYS_ADMIN;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UNLOCK_OBJECT;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UPDATE_ALL_OBJECTS;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UPDATE_MODEL;
@@ -3050,6 +3052,21 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
         } catch (DigitalObjectException ex) {
             LOG.log(Level.SEVERE, ex.getMyMessage(), ex);
             return ProArcResponse.asError(ex.getMyMessage());
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return ProArcResponse.asError(t);
+        }
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.UPGRADE_MODS_38_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<InternalExternalProcessResult> upgradeMods38() throws IOException {
+        if (!hasPermission(user, PERMISSION_FUNCTION_SYS_ADMIN)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        try {
+            return super.upgradeMods38();
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);

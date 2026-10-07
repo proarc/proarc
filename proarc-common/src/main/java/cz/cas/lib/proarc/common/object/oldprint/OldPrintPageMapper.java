@@ -19,7 +19,6 @@ package cz.cas.lib.proarc.common.object.oldprint;
 
 import cz.cas.lib.proarc.common.i18n.BundleName;
 import cz.cas.lib.proarc.common.mods.ndk.NdkNewPageMapper;
-import cz.cas.lib.proarc.common.mods.ndk.NdkPageMapper;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PartDefinition;
@@ -51,7 +50,7 @@ public class OldPrintPageMapper extends NdkNewPageMapper {
 
     public static String getPageTypeLabel(String pageType, Locale locale) {
         if (pageType == null || pageType.isEmpty()) {
-            pageType = NdkPageMapper.PAGE_TYPE_NORMAL;
+            return pageType;
         }
         try {
             return getPageTypeLabels(locale).getString(pageType);

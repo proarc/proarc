@@ -74,4 +74,18 @@ public class ResolverUtilsTest {
         originator = ResolverUtils.getOriginator("corporate", null, mods);
         assertEquals("Corporate", originator);
     }
+
+    @Test
+    public void testGetPublicationFromAgent() {
+        final String xml = "<mods xmlns='http://www.loc.gov/mods/v3'>"
+                + "<originInfo eventType='publication'>"
+                + "<place><placeTerm type='text'>Prague</placeTerm></place>"
+                + "<agent><namePart>Publisher</namePart><role><roleTerm>publisher</roleTerm></role></agent>"
+                + "<dateIssued>2026</dateIssued>"
+                + "</originInfo>"
+                + "</mods>";
+        ModsDefinition mods = unmarshal(new StringReader(xml), ModsDefinition.class);
+
+        assertEquals("Publisher", ResolverUtils.getPublication(mods).getPublisher());
+    }
 }

@@ -27,6 +27,7 @@ import cz.cas.lib.proarc.common.dao.Transaction;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
 import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
@@ -70,6 +71,7 @@ import org.w3c.dom.NodeList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -189,7 +191,7 @@ public class TiffImporterTest {
         assertNotNull(mimetype);
 
         ImportOptions ctx = new ImportOptions(tiff1.getParentFile(),
-                "scanner:scanner1", "software:objectSet", true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
+                "scanner:scanner1", "software:objectSet", true, true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
         batch.setId(1);
@@ -242,8 +244,34 @@ public class TiffImporterTest {
         assertDatastream(foxmlDocument, BinaryEditor.NDK_ARCHIVAL_ID);
         assertDatastream(foxmlDocument, BinaryEditor.NDK_USER_ID);
         assertDatastream(foxmlDocument, MixEditor.NDK_ARCHIVAL_ID);
+        assertEquals("normalPage", foxmlDocument.getElementsByTagNameNS(ModsConstants.NS, "part")
+                .item(0).getAttributes().getNamedItem("type").getNodeValue());
 
         assertDatastream(readXml(rootFoxml), RelationEditor.DATASTREAM_ID);
+        EasyMock.verify(toVerify.toArray());
+    }
+
+    @Test
+    public void testConsumeWithoutGeneratedPageType() throws Exception {
+        File targetFolder = ImportProcess.createTargetFolder(tempDir, config.getImportConfiguration(), null);
+        ImportOptions ctx = new ImportOptions(tiff1.getParentFile(),
+                "scanner:scanner1", "software:objectSet", true, false, false, junit,
+                config.getImportConfiguration(), Batch.PRIORITY_MEDIUM, false, false);
+        ctx.setTargetFolder(targetFolder);
+        Batch batch = new Batch();
+        batch.setId(1);
+        batch.setFolder(ibm.relativizeBatchFile(tiff1.getParentFile()));
+        batch.setProfileId(ConfigurationProfile.DEFAULT);
+        ctx.setBatch(batch);
+        FileSet fileSet = ImportFileScanner.getFileSets(Arrays.asList(tiff1, ocr1, alto1, ac1, uc1)).get(0);
+        ctx.setJhoveContext(jhoveContext);
+
+        BatchItemObject result = new TiffImporter(ibm).consume(fileSet, ctx);
+
+        assertEquals(ObjectState.LOADED, result.getState());
+        Document foxmlDocument = readXml(result.getFile());
+        assertNull(foxmlDocument.getElementsByTagNameNS(ModsConstants.NS, "part")
+                .item(0).getAttributes().getNamedItem("type"));
         EasyMock.verify(toVerify.toArray());
     }
 
@@ -259,7 +287,7 @@ public class TiffImporterTest {
         assertNotNull(mimetype);
 
         ImportOptions ctx = new ImportOptions(tiff1.getParentFile(),
-                "scanner:scanner1", "software:objectSet", true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
+                "scanner:scanner1", "software:objectSet", true, true, junit, config.getImportConfiguration(), Batch.PRIORITY_MEDIUM);
         ctx.setTargetFolder(targetFolder);
         Batch batch = new Batch();
         batch.setId(1);

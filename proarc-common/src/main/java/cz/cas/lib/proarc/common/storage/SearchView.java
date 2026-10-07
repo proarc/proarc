@@ -32,6 +32,10 @@ public abstract class SearchView {
         throw new IOException("Method is not implmeneted");
     }
 
+    public String findModel(String pid) throws IOException {
+        throw new IOException("Method is not implmeneted");
+    }
+
     public List<SearchViewItem> findAllObjects() throws IOException {
         throw new IOException("Method is not implmeneted");
     }
