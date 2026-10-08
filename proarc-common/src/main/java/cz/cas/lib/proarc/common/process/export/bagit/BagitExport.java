@@ -71,10 +71,10 @@ public class BagitExport {
 //        File newFile = new File(exportFolder, exportFolder.getName());
 //        newFile.createNewFile();
         File tmpFile = new File(exportFolder.getParentFile(), exportFolder.getName() + "_tmp");
-        tmpFile.mkdir();
-        exportFolder.renameTo(new File(tmpFile, exportFolder.getName()));
+        Files.createDirectory(tmpFile.toPath());
+        Files.move(exportFolder.toPath(), new File(tmpFile, exportFolder.getName()).toPath());
         File file2Zip = new File(tmpFile.getParentFile(), tmpFile.getName().substring(0, tmpFile.getName().length() - 4));
-        tmpFile.renameTo(file2Zip);
+        Files.move(tmpFile.toPath(), file2Zip.toPath());
         File zipFileName = createZipFile();
         try {
             ZipFile zipFile = new ZipFile(zipFileName);
@@ -153,7 +153,7 @@ public class BagitExport {
         if (!zipFolder.exists()) {
             throw new IOException("Zip file doesn´t exists.");
         } else {
-            zipFolder.renameTo(new File(bagitFolder, zipFolder.getName()));
+            FileUtils.moveFile(zipFolder, new File(bagitFolder, zipFolder.getName()));
         }
     }
 
@@ -182,9 +182,9 @@ public class BagitExport {
         }
     }
 
-    public void prepare() {
+    public void prepare() throws IOException {
         File newName = new File(this.exportFolder.getParentFile(), "archive_" + this.exportFolder.getName());
-        this.exportFolder.renameTo(newName);
+        Files.move(this.exportFolder.toPath(), newName.toPath());
         this.exportFolder = newName;
     }
 
@@ -207,7 +207,7 @@ public class BagitExport {
         }
     }
 
-    public void moveToSpecifiedDirectories() {
+    public void moveToSpecifiedDirectories() throws IOException {
         String bagitExportPath = appConfiguration.getBagitExportPath();
         if (bagitExportPath == null || bagitExportPath.isEmpty()) {
             for (File newFile : bagitFolder.listFiles()) {
@@ -222,12 +222,12 @@ public class BagitExport {
             File bagitExportRoot = new File(bagitExportPath);
             LOG.info("Moving to folder: " + bagitExportRoot.getAbsolutePath());
             if (!bagitExportRoot.exists()) {
-                bagitExportRoot.mkdir();
+                Files.createDirectories(bagitExportRoot.toPath());
             }
 
             for (File bagitFile : bagitFolder.listFiles()) {
                 File newFile = new File(bagitExportRoot, bagitFile.getName());
-                bagitFile.renameTo(newFile);
+                FileUtils.moveFile(bagitFile, newFile);
                 if (newFile.getName().endsWith(".zip")) {
                     destinationFolder = newFile;
                     LOG.info("Folder: " + destinationFolder.getAbsolutePath());

@@ -30,6 +30,7 @@ public class BatchParams {
     private List<String> collections;
     private Boolean updateMods;
     private Boolean extendedArchivePackage;
+    private Boolean deleteRawScans;
     private Boolean purge;
     private Boolean restore;
     private String type;
@@ -276,6 +277,15 @@ public class BatchParams {
 
     public void setExtendedArchivePackage(Boolean extendedArchivePackage) {
         this.extendedArchivePackage = extendedArchivePackage;
+    }
+
+    @XmlElement(name = "deleteRawScans")
+    public Boolean getDeleteRawScans() {
+        return deleteRawScans;
+    }
+
+    public void setDeleteRawScans(Boolean deleteRawScans) {
+        this.deleteRawScans = deleteRawScans;
     }
 
     @XmlElement(name = "purge")

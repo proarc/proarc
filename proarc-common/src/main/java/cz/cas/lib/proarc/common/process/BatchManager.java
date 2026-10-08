@@ -319,6 +319,9 @@ public class BatchManager {
             if (params.getExtendedArchivePackage() != null) {
                 sb.append("Rozšířený archivní balík: ").append(getBooleanAs(params.getExtendedArchivePackage())).append("\n");
             }
+            if (params.getDeleteRawScans() != null) {
+                sb.append("Smazat surové skeny po BAGIT exportu: ").append(getBooleanAs(params.getDeleteRawScans())).append("\n");
+            }
             if (params.getNoTifAvailableMessage() != null && !params.getNoTifAvailableMessage().isEmpty()) {
                 sb.append("Zpráva (tiff není k dispozici): ").append(params.getNoTifAvailableMessage()).append("\n");
             }
