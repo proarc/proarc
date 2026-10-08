@@ -15,11 +15,9 @@ import org.json.JSONObject;
 
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V7;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_PLANNED_V7;
-import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_RUNNING_V7;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_NOT_RUNNING;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_PLANNED;
-import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_RUNNING;
 import static java.net.HttpURLConnection.HTTP_ACCEPTED;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_CREATED;
@@ -120,6 +118,7 @@ final class K7Importer extends AbstractKrameriusImporter {
         String batchState = KRAMERIUS_BATCH_PLANNED_V7;
         int forbiddenRetries = 0;
         int notRunningRetries = 0;
+        boolean warningSeen = false;
 
         while (true) {
             HttpGet request = new HttpGet(url);
@@ -131,6 +130,7 @@ final class K7Importer extends AbstractKrameriusImporter {
                     JSONObject result = new JSONObject(readBody(response.getEntity()));
                     processState = getState(result, "process", processUuid);
                     batchState = getState(result, "batch", processUuid);
+                    warningSeen |= KUtils.KRAMERIUS_PROCESS_WARNING.equals(processState);
                 } else if (status == HTTP_FORBIDDEN && forbiddenRetries++ < MAX_FORBIDDEN_RETRIES) {
                     TimeUnit.SECONDS.sleep(30);
                     continue;
@@ -153,7 +153,8 @@ final class K7Importer extends AbstractKrameriusImporter {
                 break;
             }
         }
-        return new KUtils.ImportState(processState, batchState);
+        return new KUtils.ImportState(warningSeen && KRAMERIUS_PROCESS_FINISHED.equals(processState)
+                ? KUtils.KRAMERIUS_PROCESS_WARNING : processState, batchState);
     }
 
     private String getState(JSONObject result, String key, String processUuid) throws IOException {
@@ -165,11 +166,7 @@ final class K7Importer extends AbstractKrameriusImporter {
     }
 
     private boolean isRunning(String processState, String batchState) {
-        return KRAMERIUS_PROCESS_PLANNED.equals(processState)
-                || KRAMERIUS_PROCESS_RUNNING.equals(processState)
-                || (KRAMERIUS_PROCESS_FINISHED.equals(processState)
-                && (KRAMERIUS_BATCH_PLANNED_V7.equals(batchState)
-                || KRAMERIUS_BATCH_RUNNING_V7.equals(batchState)));
+        return new KUtils.ImportState(processState, batchState).isRunning();
     }
 
     private String resolvePolicy(String policy, String license) {

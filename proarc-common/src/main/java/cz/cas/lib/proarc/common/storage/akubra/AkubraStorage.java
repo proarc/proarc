@@ -81,6 +81,7 @@ import static cz.cas.lib.proarc.common.storage.akubra.AkubraUtils.toXmlGregorian
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.VALIDATION_STATUS_ERROR;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.VALIDATION_STATUS_OK;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.VALIDATION_STATUS_UNKNOWN;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.VALIDATION_STATUS_WARNING;
 
 
 public class AkubraStorage {
@@ -371,6 +372,9 @@ public class AkubraStorage {
                 break;
             case INTERNAL_FAILED:
                 batchState = VALIDATION_STATUS_ERROR;
+                break;
+            case INTERNAL_WARNING:
+                batchState = VALIDATION_STATUS_WARNING;
                 break;
             default:
                 batchState = VALIDATION_STATUS_UNKNOWN;

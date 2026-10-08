@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 public class KUtils {
 
@@ -52,6 +53,14 @@ public class KUtils {
     public static final String EXPORT_NDK = "ndk";
 
     private KUtils() {
+    }
+
+    public static String combineOutcomes(List<String> outcomes) {
+        if (outcomes.isEmpty() || outcomes.stream().anyMatch(outcome ->
+                !KRAMERIUS_PROCESS_FINISHED.equals(outcome) && !KRAMERIUS_PROCESS_WARNING.equals(outcome))) {
+            return KRAMERIUS_PROCESS_FAILED;
+        }
+        return outcomes.contains(KRAMERIUS_PROCESS_WARNING) ? KRAMERIUS_PROCESS_WARNING : KRAMERIUS_PROCESS_FINISHED;
     }
 
     public static DigitalObjectHandler findHandler(String pid, String krameriusInstanceId)
@@ -212,6 +221,33 @@ public class KUtils {
 
         public String getBatchState() {
             return batchState;
+        }
+
+        /** Whether the import or its subsequent indexing is still running. */
+        public boolean isRunning() {
+            return KRAMERIUS_PROCESS_PLANNED.equals(processState)
+                    || KRAMERIUS_PROCESS_RUNNING.equals(processState)
+                    || ((KRAMERIUS_PROCESS_FINISHED.equals(processState)
+                    || KRAMERIUS_PROCESS_WARNING.equals(processState))
+                    && (KRAMERIUS_BATCH_STARTED_V5.equals(batchState)
+                    || KRAMERIUS_BATCH_PLANNED_V7.equals(batchState)
+                    || KRAMERIUS_BATCH_RUNNING_V7.equals(batchState)));
+        }
+
+        /** Combined terminal outcome; an unrecognized or incomplete result fails closed. */
+        public String getOutcome() {
+            if (!(KRAMERIUS_PROCESS_FINISHED.equals(processState)
+                    || KRAMERIUS_PROCESS_WARNING.equals(processState))) {
+                return KRAMERIUS_PROCESS_FAILED;
+            }
+            if (KRAMERIUS_BATCH_NO_BATCH_V5.equals(batchState)) {
+                return KRAMERIUS_PROCESS_WARNING;
+            }
+            if (!(KRAMERIUS_BATCH_FINISHED_V5.equals(batchState)
+                    || KRAMERIUS_BATCH_FINISHED_V7.equals(batchState))) {
+                return KRAMERIUS_PROCESS_FAILED;
+            }
+            return processState;
         }
     }
 }

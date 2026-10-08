@@ -7,7 +7,6 @@ import cz.cas.lib.proarc.common.process.export.ExportResultLog;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.File;
-import java.io.StringWriter;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
@@ -137,32 +136,32 @@ public class BatchUtils {
     }
 
     public static Batch finishedExportWithWarning(BatchManager batchManager, Batch batch, String path, List<MetsExportException.MetsExportExceptionElement> exceptions) {
-        return finishedExportWithWarning(batchManager, batch, path, exceptions, Batch.State.EXPORT_FAILED);
-    }
-
-    public static Batch finishedExportWithWarning(BatchManager batchManager, Batch batch, String path, List<MetsExportException.MetsExportExceptionElement> exceptions, Batch.State state) {
-        if (!exceptions.isEmpty() && exceptions.get(0) != null) {
-            MetsExportException.MetsExportExceptionElement exceptionElement = exceptions.get(0);
-            if (exceptionElement.isWarning()) {
-                return finishedWithWarning(batchManager, batch, path, exceptionElement.getMessage(), state);
-            } else {
-                StringWriter writer = new StringWriter();
-                if (exceptionElement.getMessage() != null) {
-                    writer.append(exceptionElement.getMessage());
-                } else if (exceptionElement.getEx() != null) {
-                    if (!writer.toString().isEmpty()) {
-                        writer.append("\n");
-                    }
-                    writer.append(BatchManager.toString(exceptionElement.getEx()));
-                }
-                return finishedWithWarning(batchManager, batch, path, writer.toString().isEmpty() ? null : writer.toString(), state);
+        StringBuilder messages = new StringBuilder();
+        boolean hasError = false;
+        for (MetsExportException.MetsExportExceptionElement element : exceptions) {
+            if (element == null) {
+                hasError = true;
+                continue;
+            }
+            hasError |= !element.isWarning();
+            if (messages.length() > 0) {
+                messages.append('\n');
+            }
+            if (element.getMessage() != null) {
+                messages.append(element.getMessage());
+            }
+            if (element.getEx() != null) {
+                messages.append("\n").append(BatchManager.toString(element.getEx()));
             }
         }
-        return finishedWithWarning(batchManager, batch, path, null, state);
+        if (hasError) {
+            return finishedWithError(batchManager, batch, path, messages.toString(), Batch.State.EXPORT_FAILED);
+        }
+        return finishedWithWarning(batchManager, batch, path, messages.toString(), Batch.State.EXPORT_WARNING);
     }
 
     public static Batch finishedExportWithWarning(BatchManager batchManager, Batch batch, String path, String message) {
-        return finishedWithWarning(batchManager, batch, path, message, Batch.State.EXPORT_FAILED);
+        return finishedWithWarning(batchManager, batch, path, message, Batch.State.EXPORT_WARNING);
     }
 
     public static Batch finishedExportSuccessfully(BatchManager batchManager, Batch batch, String path) {
@@ -185,6 +184,10 @@ public class BatchUtils {
         return finishedSuccessfully(batchManager, batch, path, null, Batch.State.UPLOAD_DONE);
     }
 
+    public static Batch finishedUploadWithWarning(BatchManager batchManager, Batch batch, String path, String message) {
+        return finishedWithWarning(batchManager, batch, path, message, Batch.State.UPLOAD_WARNING);
+    }
+
     public static Batch addNewInternalBatch(BatchManager batchManager, String pid, UserProfile user, String exportProfile, Boolean isNightOnly, BatchParams params) {
         return addNewBatch(batchManager, Collections.singletonList(pid), user, exportProfile, Batch.State.INTERNAL_PLANNED, Batch.State.INTERNAL_FAILED, isNightOnly, params);
     }
@@ -203,6 +206,10 @@ public class BatchUtils {
 
     public static Batch finishedInternalSuccessfully(BatchManager batchManager, Batch batch, String path) {
         return finishedSuccessfully(batchManager, batch, path, null, Batch.State.INTERNAL_DONE);
+    }
+
+    public static Batch finishedInternalWithWarning(BatchManager batchManager, Batch batch, String path, String message) {
+        return finishedWithWarning(batchManager, batch, path, message, Batch.State.INTERNAL_WARNING);
     }
 
     public static Batch startWaitingInternalBatch(BatchManager batchManager, Batch batch) {

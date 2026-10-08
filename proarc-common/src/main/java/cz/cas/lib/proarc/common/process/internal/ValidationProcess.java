@@ -556,7 +556,7 @@ public class ValidationProcess {
         }
     }
 
-    private static class ValidationResult {
+   public static class ValidationResult {
 
         private String pid;
         private String message;
