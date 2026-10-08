@@ -387,6 +387,9 @@ public final class ExportProcess implements Runnable {
             if (Const.EXPORT_NDK4SIP.equals(typeOfPackage)) {
                 ArchiveProducer.fixPdfFile(targetFolder);
             }
+            RawScanCleanup rawScanCleanup = new RawScanCleanup();
+            boolean deleteRawScans = Boolean.TRUE.equals(params.isBagit())
+                    && Boolean.TRUE.equals(params.getDeleteRawScans());
             try {
                 if (config.getArchiveExportOptions().isExtendedPackage() && params.getExtendedArchivePackage()) { // pokud neni tak normalne jedu dal
                     for (File folder : targetFolder.listFiles()) {
@@ -434,6 +437,9 @@ public final class ExportProcess implements Runnable {
                                 }
                                 try {
                                     FileUtils.copyDirectory(archivalCopiesSource, archivalCopiesDestination);
+                                    if (deleteRawScans) {
+                                        rawScanCleanup.recordCopy(archivalCopiesSource.toPath());
+                                    }
                                 } catch (IOException ex) {
                                     ex.printStackTrace();
                                     String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
@@ -496,7 +502,17 @@ public final class ExportProcess implements Runnable {
                         throw new IOException("Impossible to delete previous export " + bagitFolder.getAbsolutePath());
                     }
                 }
-                targetFolder.renameTo(bagitFolder);
+                Files.move(targetFolder.toPath(), bagitFolder.toPath());
+                targetFolder = bagitFolder;
+                if (deleteRawScans) {
+                    try {
+                        rawScanCleanup.deleteCopiedFolders();
+                    } catch (IOException ex) {
+                        LOG.log(Level.WARNING, "BAGIT export succeeded, but raw scan cleanup failed", ex);
+                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch,
+                                targetFolder.getAbsolutePath(), "BAGIT export dokoncen, ale mazani surovych skenu selhalo: " + ex.getMessage());
+                    }
+                }
             }
             return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, targetFolder.getAbsolutePath());
         } catch (Exception ex) {

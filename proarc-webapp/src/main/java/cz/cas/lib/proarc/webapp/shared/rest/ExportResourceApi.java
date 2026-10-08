@@ -86,6 +86,7 @@ public final class ExportResourceApi {
     public static final String IGNORE_MISSING_URNNBN = "ignoreMissingUrnNbn";
 
     public static final String EXPORT_BAGIT = "isBagit";
+    public static final String ARCHIVE_DELETE_RAW_SCANS = "deleteRawScans";
 
     public static final String EXPORT_LTP_CESNET = "ltpCesnet";
     public static final String EXPORT_LTP_CESNET_TOKEN = "ltpCesnetToken";
