@@ -46,6 +46,7 @@ import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.sip.NdkSipExport;
 import cz.cas.lib.proarc.common.process.export.workflow.WorkflowExport;
 import cz.cas.lib.proarc.common.process.internal.ValidationProcess;
+import cz.cas.lib.proarc.common.process.internal.CatalogUpdateProcess;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
@@ -794,6 +795,11 @@ public final class ExportProcess implements Runnable {
                     String messages = ndkResults.stream()
                             .map(r -> r.getPid() + ": " + (r.getMessage() == null ? "Chybí výsledek importu do Krameria." : r.getMessage()))
                             .collect(Collectors.joining("\n"));
+                    if (ndkResults.stream().allMatch(NdkExport.Result::isCatalogImportConfirmed)) {
+                        CatalogHandoff handoff = scheduleCatalogUpdates(batch, params);
+                        messages += handoff.message();
+                        if (handoff.warning()) outcome = KRAMERIUS_PROCESS_WARNING;
+                    }
                     if (KRAMERIUS_PROCESS_FAILED.equals(outcome)) {
                         return finishedExportWithError(this.batchManager, batch, batch.getFolder(), messages);
                     } else if (KRAMERIUS_PROCESS_WARNING.equals(outcome)) {
@@ -809,6 +815,34 @@ public final class ExportProcess implements Runnable {
             t.printStackTrace();
             IOException ex = new IOException(t.getMessage(), t);
             return finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
+        }
+    }
+
+    private record CatalogHandoff(boolean warning, String message) { }
+
+    private CatalogHandoff scheduleCatalogUpdates(Batch batch, BatchParams params) {
+        if (!Boolean.TRUE.equals(params.isUpdateCatalog()) || !user.hasImportToCatalogFunction()) {
+            return new CatalogHandoff(false, "");
+        }
+        KrameriusOptions.KrameriusInstance instance = KrameriusOptions.findKrameriusInstance(
+                config.getKrameriusOptions().getKrameriusInstances(), params.getKrameriusInstanceId());
+        if (instance == null || instance.uploadToCatalog() == null || instance.uploadToCatalog().isBlank()) {
+            return new CatalogHandoff(false, "\nCílová instance nemá nakonfigurovaný zápis do katalogu.");
+        }
+        try {
+            List<String> targets = CatalogUpdateProcess.selectTargets(
+                    AkubraStorage.getInstance(akubraConfiguration).getSearch(exportOptions.getLocale()),
+                    params.getPids(), config.getCatalogUpdateModels());
+            if (targets.isEmpty()) {
+                return new CatalogHandoff(true, "\nImport do Krameria proběhl, ale podle konfigurace nebyl nalezen žádný vhodný objekt pro zápis do katalogu.");
+            }
+            CatalogUpdateProcess.schedule(
+                    config, akubraConfiguration, batchManager, user, targets, instance.uploadToCatalog(),
+                    batch.isNightOnly(), batch.getPriority(), exportOptions.getLog(), exportOptions.getLocale());
+            return new CatalogHandoff(false, "\nZápis do katalogu byl naplánován.");
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, "Nepodařilo se naplánovat zápis do katalogu po importu.", ex);
+            return new CatalogHandoff(true, "\nImport do Krameria proběhl, ale nepodařilo se naplánovat zápis do katalogu: " + ex.getMessage());
         }
     }
 
@@ -884,6 +918,11 @@ public final class ExportProcess implements Runnable {
                     batch = BatchUtils.finishedExportSuccessfully(this.batchManager, batch, k4Result.getFile().getAbsolutePath());
 //                    return BatchUtils.finishedExportSuccessfully(batchManager, batch, k4Result.getFile().getAbsolutePath());
                 } else {
+                    if (k4Result.isCatalogImportConfirmed()) {
+                        CatalogHandoff handoff = scheduleCatalogUpdates(batch, params);
+                        k4Result.setMessage(k4Result.getMessage() + handoff.message());
+                        if (handoff.warning()) k4Result.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
+                    }
                     if (k4Result.getKrameriusImportState() == null || KRAMERIUS_PROCESS_FAILED.equals(k4Result.getKrameriusImportState())) {
                         return finishedExportWithError(this.batchManager, batch, k4Result.getFile().getAbsolutePath(), k4Result.getMessage());
                     } else if (k4Result.getKrameriusImportState() != null && KRAMERIUS_PROCESS_WARNING.equals(k4Result.getKrameriusImportState())) {

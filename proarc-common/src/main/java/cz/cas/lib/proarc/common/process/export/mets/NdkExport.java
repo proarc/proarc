@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.process.export.mets;
 
 import com.yourmediashelf.fedora.foxml.DigitalObject;
-import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
@@ -176,19 +175,7 @@ public class NdkExport {
                                 result.setMessage(result.getMessage() + " Nebyla spuštěna indexace.");
                                 break;
                             }
-                            try {
-                                if (instance.uploadToCatalog() != null && !instance.uploadToCatalog().isEmpty()) {
-                                    LOG.info("Nahravam informace do katalogu.");
-                                    CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
-                                    catalogRecord.update(instance.uploadToCatalog(), pid);
-                                } else {
-                                    LOG.info("Neni zapnuta volba nahrani informaci do katalogu.");
-                                }
-                            } catch (DigitalObjectException | IOException e) {
-                                LOG.log(Level.SEVERE, e.getMessage(), e);
-                                result.setMessage(result.getMessage() + " Nepodařilo se upravit záznam v katalogu: " + e.getMessage());
-                                result.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
-                            }
+                            result.setCatalogImportConfirmed(state.isImportConfirmed());
                             break;
                         case KRAMERIUS_PROCESS_FAILED:
                             result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") selhal.");
@@ -587,6 +574,10 @@ public class NdkExport {
      * The export result.
      */
     public static class Result {
+        private boolean catalogImportConfirmed;
+        public boolean isCatalogImportConfirmed() { return catalogImportConfirmed; }
+        public void setCatalogImportConfirmed(boolean confirmed) { this.catalogImportConfirmed = confirmed; }
+
 
         private File targetFolder;
         private MetsExportException validationError;

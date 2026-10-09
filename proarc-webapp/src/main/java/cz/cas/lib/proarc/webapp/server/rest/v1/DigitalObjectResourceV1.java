@@ -18,7 +18,7 @@ package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.actions.AddReference;
-import cz.cas.lib.proarc.common.actions.CatalogRecord;
+import cz.cas.lib.proarc.common.process.internal.CatalogUpdateProcess;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
 import cz.cas.lib.proarc.common.actions.CopyObject;
 import cz.cas.lib.proarc.common.actions.DistributeObjects;
@@ -5111,40 +5111,37 @@ public class DigitalObjectResourceV1 {
     ) throws DigitalObjectException, JSONException, IOException {
         checkPermission(user, PERMISSION_FUNCTION_IMPORT_TO_CATALOG);
 
-        CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
-
-        BatchParams params = new BatchParams(pids);
-        Batch batch = BatchUtils.addNewBatch(this.importManager, pids, user, Batch.INTERNAL_UPDATE_CATALOG_RECORDS, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, isNightOnly, params);
-
-        StringBuilder builder = new StringBuilder();
-        int count = 0;
-        for (String pid : pids) {
-            try {
-                if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-                    Locale locale = session.getLocale(httpHeaders);
-                    ValidationProcess validationProcess = new ValidationProcess(appConfig, akubraConfiguration, params.getPids(), locale);
-                    ValidationProcess.Result result = validationProcess.validate(ValidationProcess.Type.UPDATE_CATALOG_RECORD);
-                    if (!result.isStatusOk(true)) {
-                        finishedExportWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
-                        throw new IOException(result.getMessages());
-                    }
-                }
-                catalogRecord.update(catalogId, pid);
-                count++;
-            } catch (Throwable t) {
-                builder.append(pid).append(" ").append(t.getMessage()).append("\n");
-                t.printStackTrace();
-            }
+        if (catalogId == null || catalogId.isBlank() || pids == null || pids.isEmpty()) {
+            throw new IOException("Chybí katalog nebo cílové objekty.");
         }
-
-        if (count == pids.size()) {
-            BatchUtils.finishedSuccessfully(this.importManager, batch, batch.getFolder(), "Updatovano " + count + " z " + pids.size(), Batch.State.INTERNAL_DONE);
-            return returnFunctionSuccess();
-        } else {
-            String message = "Updatovano " + count + " z " + pids.size() + "\n" + builder.toString();
-            BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), message, Batch.State.INTERNAL_FAILED);
-            throw new IOException(message);
+        List<SearchViewItem> items = AkubraStorage.getInstance(akubraConfiguration).getSearch(session.getLocale(httpHeaders)).find(pids);
+        if (items.size() != new java.util.HashSet<>(pids).size()
+                || items.stream().anyMatch(item -> !appConfig.getCatalogUpdateModels().contains(item.getModel()))) {
+            throw new IOException("Objekt neexistuje nebo jeho model není povolen pro zápis do katalogu.");
         }
+        if (appConfig.getCatalogs().findConfiguration(catalogId) == null) {
+            throw new IOException("Neznámý katalog: " + catalogId);
+        }
+        CatalogUpdateProcess.schedule(
+                appConfig, akubraConfiguration, batchManager, user, pids, catalogId,
+                Boolean.TRUE.equals(isNightOnly), Batch.PRIORITY_MEDIUM, session.asFedoraLog(), session.getLocale(httpHeaders));
+        return returnFunctionSuccess();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.UPDATE_CATALOG_RECORD + "/retry")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<SearchViewItem> retryCatalogRecord(@FormParam("batchId") Integer batchId) throws IOException {
+        checkPermission(user, PERMISSION_FUNCTION_IMPORT_TO_CATALOG);
+        if (batchId == null) throw new IOException("Chybí ID katalogové dávky.");
+        Batch batch = batchManager.get(batchId);
+        if (batch == null || !(java.util.Objects.equals(batch.getUserId(), user.getId())
+                || cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission(user, PERMISSION_FUNCTION_SYS_ADMIN))) {
+            throw new IOException("Katalogová dávka neexistuje nebo k ní nemáte oprávnění.");
+        }
+        CatalogUpdateProcess.retry(appConfig, akubraConfiguration,
+                batchManager, user, batchId, session.asFedoraLog(), session.getLocale(httpHeaders));
+        return returnFunctionSuccess();
     }
 
     @POST
