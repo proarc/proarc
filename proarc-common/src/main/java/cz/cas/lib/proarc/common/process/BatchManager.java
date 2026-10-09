@@ -304,6 +304,9 @@ public class BatchManager {
             if (params.getCollections() != null && !params.getCollections().isEmpty()) {
                 sb.append("Sbírky: ").append(params.getCollections()).append("\n");
             }
+            if (params.isUpdateCatalog() != null) {
+                sb.append("Zápis do katalogu: ").append(getBooleanAs(params.isUpdateCatalog())).append("\n");
+            }
             if (params.isUpdateMods() != null) {
                 sb.append("Aktualizace MODS: ").append(getBooleanAs(params.isUpdateMods())).append("\n");
             }
@@ -326,6 +329,9 @@ public class BatchManager {
                 sb.append("Zpráva (tiff není k dispozici): ").append(params.getNoTifAvailableMessage()).append("\n");
             }
         } else if (profileId.startsWith("internalProfile")) {
+            if (params.getCatalogId() != null) {
+                sb.append("Katalog: ").append(params.getCatalogId()).append("\n");
+            }
             if (params.isPurge() != null) {
                 sb.append("Trvalé smazání objektů: ").append(getBooleanAs(params.isPurge())).append("\n");
             }

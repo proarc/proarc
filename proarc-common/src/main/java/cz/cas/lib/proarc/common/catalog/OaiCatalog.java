@@ -170,6 +170,20 @@ public class OaiCatalog implements BibliographicCatalog {
         return findOaiRecord(buildOaiQuery(id));
     }
 
+    public List<String> findCatalogObjectIds(String id, String field, String appSubfield, String objectSubfield)
+            throws IOException, TransformerException {
+        String response = findOaiRecord(id);
+        if (response == null) {
+            throw new IOException("Katalogový záznam nenalezen: " + id);
+        }
+        DOMResult marc = transformOaiResponse(new StreamSource(new StringReader(response)), new DOMResult());
+        if (marc == null) {
+            throw new IOException("Katalogový záznam nenalezen: " + id);
+        }
+        return cz.cas.lib.proarc.common.catalog.updateCatalog.CatalogLinks.readMarcObjectIds(
+                marc.getNode(), field, appSubfield, objectSubfield);
+    }
+
     String findOaiRecord(WebTarget query) {
         if (query == null) {
             return null;

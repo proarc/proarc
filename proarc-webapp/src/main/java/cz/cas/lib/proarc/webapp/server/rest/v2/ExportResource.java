@@ -90,7 +90,7 @@ public class ExportResource extends ExportResourceV1 {
     }
 
     @GET
-    @Path(ExportResourceApi.KRAMERIUS4_PATH)
+    @Path(ExportResourceApi.KRAMERIUS_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public ProArcResponse<KrameriusDescriptor> krameriusInstances(
             @QueryParam(ExportResourceApi.KRAMERIUS_INSTANCE_ID) String id
@@ -159,35 +159,37 @@ public class ExportResource extends ExportResourceV1 {
     }
 
     @POST
-    @Path(ExportResourceApi.KRAMERIUS4_PATH)
+    @Path(ExportResourceApi.KRAMERIUS_PATH)
     @Produces({MediaType.APPLICATION_JSON})
-    public ProArcResponse<ExportResult> kramerius4(
-            @FormParam(ExportResourceApi.KRAMERIUS4_PID_PARAM) List<String> pids,
-            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
-            @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
-            @FormParam(ExportResourceApi.KRAMERIUS4_COLLECTION_PARAM) List<String> collections,
-            @FormParam(ExportResourceApi.KRAMERIUS4_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
+    public ProArcResponse<ExportResult> kramerius(
+            @FormParam(ExportResourceApi.KRAMERIUS_PID_PARAM) List<String> pids,
+            @FormParam(ExportResourceApi.POLICY_PARAM) String policy,
+            @FormParam(ExportResourceApi.LICENSE_PARAM) String license,
+            @FormParam(ExportResourceApi.COLLECTION_PARAM) List<String> collections,
+            @FormParam(ExportResourceApi.KRAMERIUS_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
+            @FormParam(ExportResourceApi.UPDATE_CATALOG) @DefaultValue("false") boolean updateCatalog,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
-            @DefaultValue("false") @FormParam(ExportResourceApi.KRAMERIUS4_UPDATE_MODS_PARAM) boolean updateMods,
+            @DefaultValue("false") @FormParam(ExportResourceApi.KRAMERIUS_UPDATE_MODS_PARAM) boolean updateMods,
             @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
         if (pids.isEmpty()) {
-            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.KRAMERIUS4_PID_PARAM));
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.KRAMERIUS_PID_PARAM));
         }
         KrameriusOptions.KrameriusInstance instance = findKrameriusInstance(appConfig.getKrameriusOptions().getKrameriusInstances(), krameriusInstanceId);
         if (!KRAMERIUS_INSTANCE_LOCAL.equals(instance.getId()) && !instance.isTestType() && !user.hasPermissionToImportToProdFunction()) {
             return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         try {
-            return super.kramerius4(
+            return super.kramerius(
                     pids,
                     policy,
                     license,
                     collections,
                     hierarchy,
                     krameriusInstanceId,
+                    updateCatalog,
                     isBagit,
                     updateMods,
                     priority,
@@ -209,9 +211,10 @@ public class ExportResource extends ExportResourceV1 {
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_LTP_CESNET) boolean ltpCesnet,
             @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
-            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
-            @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
-            @FormParam(ExportResourceApi.KRAMERIUS4_COLLECTION_PARAM) List<String> collections,
+            @FormParam(ExportResourceApi.UPDATE_CATALOG) @DefaultValue("false") boolean updateCatalog,
+            @FormParam(ExportResourceApi.POLICY_PARAM) String policy,
+            @FormParam(ExportResourceApi.LICENSE_PARAM) String license,
+            @FormParam(ExportResourceApi.COLLECTION_PARAM) List<String> collections,
             @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
     ) {
@@ -227,6 +230,7 @@ public class ExportResource extends ExportResourceV1 {
                     ltpCesnet,
                     token,
                     krameriusInstanceId,
+                    updateCatalog,
                     policy,
                     license,
                     collections,
@@ -307,8 +311,8 @@ public class ExportResource extends ExportResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public ProArcResponse<ExportResult> newKwisExport(
             @FormParam(ExportResourceApi.KWIS_PID_PARAM) List<String> pids,
-            @FormParam(ExportResourceApi.KRAMERIUS4_POLICY_PARAM) String policy,
-            @FormParam(ExportResourceApi.KRAMERIUS4_LICENSE_PARAM) String license,
+            @FormParam(ExportResourceApi.POLICY_PARAM) String policy,
+            @FormParam(ExportResourceApi.LICENSE_PARAM) String license,
             @FormParam(ExportResourceApi.KWIS_HIERARCHY_PARAM) @DefaultValue("true") boolean hierarchy,
             @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly

@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.common.process.external.PdfaProcess;
 import cz.cas.lib.proarc.common.process.external.PeroProcess;
 import cz.cas.lib.proarc.common.process.external.ThumbnailPdfProcess;
 import cz.cas.lib.proarc.common.process.internal.DeleteProcess;
+import cz.cas.lib.proarc.common.process.internal.CatalogUpdateProcess;
 import cz.cas.lib.proarc.common.process.internal.Mods38UpgradeProcess;
 import cz.cas.lib.proarc.common.process.internal.ValidationProcess;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
@@ -159,6 +160,9 @@ public final class InternalExternalProcess implements Runnable {
                 case Batch.INTERNAL_VALIDATION:
                     batch = BatchUtils.startWaitingInternalBatch(batchManager, batch);
                     return validationProcess(batch, params);
+                case Batch.INTERNAL_UPDATE_CATALOG_RECORDS:
+                    return CatalogUpdateProcess.run(
+                            config, akubraConfiguration, batchManager, user, batch, params, options.getLocale());
                 case Batch.INTERNAL_REINDEX:
                     batch = BatchUtils.startWaitingInternalBatch(batchManager, batch);
                     return reindexProcess(batch, params);

@@ -223,6 +223,11 @@ public class KUtils {
             return batchState;
         }
 
+        public boolean isImportConfirmed() {
+            return (KRAMERIUS_PROCESS_FINISHED.equals(processState) || KRAMERIUS_PROCESS_WARNING.equals(processState))
+                    && (KRAMERIUS_BATCH_FINISHED_V5.equals(batchState) || KRAMERIUS_BATCH_FINISHED_V7.equals(batchState));
+        }
+
         /** Whether the import or its subsequent indexing is still running. */
         public boolean isRunning() {
             return KRAMERIUS_PROCESS_PLANNED.equals(processState)
