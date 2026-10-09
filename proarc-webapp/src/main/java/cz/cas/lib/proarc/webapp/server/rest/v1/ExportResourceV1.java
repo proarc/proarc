@@ -238,7 +238,8 @@ public class ExportResourceV1 {
             ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("Resource_Unsupported_Value", batchId)));
             return new ProArcResponse<>(result);
         } else {
-            if (!(Batch.State.EXPORT_FAILED.equals(batch.getState()) || Batch.State.STOPPED.equals(batch.getState()))) {
+            if (!(Batch.State.EXPORT_FAILED.equals(batch.getState()) || Batch.State.EXPORT_WARNING.equals(batch.getState())
+                    || Batch.State.STOPPED.equals(batch.getState()))) {
                 ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("ExportResouce_ReexportNotSupported_WrongState", batch.getState())));
                 return new ProArcResponse<>(result);
             } else {
@@ -250,6 +251,7 @@ public class ExportResourceV1 {
                 }
 
                 batch.setState(Batch.State.EXPORT_PLANNED);
+                batch.setLog(null);
                 batch.setUpdated(new Timestamp(System.currentTimeMillis()));
                 batch = batchManager.update(batch);
 

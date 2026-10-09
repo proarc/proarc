@@ -44,6 +44,7 @@ import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExternalWithError;
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedInternalSuccessfully;
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedSuccessfully;
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedInternalWithError;
+import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedInternalWithWarning;
 
 /**
  * Other process
@@ -226,6 +227,8 @@ public final class InternalExternalProcess implements Runnable {
             ValidationProcess.Result result = validationProcess.validate(ValidationProcess.Type.VALIDATION);
             if (result.isStatusOk(false)) {
                 batch = finishedInternalSuccessfully(this.batchManager, batch, batch.getFolder());
+            } else if (result.isStatusOk(true)) {
+                batch = finishedInternalWithWarning(this.batchManager, batch, batch.getFolder(), result.getMessages());
             } else {
                 batch = finishedInternalWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
             }
