@@ -9,6 +9,7 @@
 package cz.cas.lib.proarc.common.process.export.mets.structure;
 
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
@@ -16,6 +17,7 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.relation.Relations;
 import cz.cas.lib.proarc.mets.DivType;
+import cz.cas.lib.proarc.mets.Mets;
 import java.util.Collections;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.easymock.EasyMock;
@@ -98,6 +100,34 @@ public class MetsElementVisitorTest {
                 Collections.singletonList(mods), Collections.singletonList(rdf), "uuid:page", "uuid:package");
 
         assertEquals(0, mods.getElementsByTagNameNS(ModsConstants.NS, "note").getLength());
+    }
+
+    @Test
+    public void keepsModsVersionInExportedMets() throws Exception {
+        assertExportedModsVersion(NdkPlugin.MODEL_MONOGRAPHTITLE, null, "3.4");
+        assertExportedModsVersion(NdkPlugin.MODEL_PERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICAL, "3.8");
+    }
+
+    private static void assertExportedModsVersion(String mainModel, String objectModel, String version) throws Exception {
+        Document document = newDocument();
+        Element mods = document.createElementNS(ModsConstants.NS, "mods:mods");
+        mods.setAttribute("version", version);
+        document.appendChild(mods);
+
+        IMetsElement element = EasyMock.createNiceMock(IMetsElement.class);
+        EasyMock.expect(element.getModsStream()).andStubReturn(Collections.singletonList(mods));
+        EasyMock.expect(element.getModel()).andStubReturn(objectModel == null ? mainModel : objectModel);
+        EasyMock.expect(element.getModsElementID()).andStubReturn("TITLE_0001");
+        EasyMock.replay(element);
+
+        MetsElementVisitor visitor = new MetsElementVisitor();
+        visitor.mets = new Mets();
+        visitor.mainObjectModel = mainModel;
+        visitor.addDmdSec(element);
+
+        Element exportedMods = (Element) visitor.mets.getDmdSec().get(0).getMdWrap().getXmlData().getAny().get(0);
+        assertEquals(version, exportedMods.getAttribute("version"));
+        assertEquals(version, visitor.mets.getDmdSec().get(0).getMdWrap().getMDTYPEVERSION());
     }
 
     @Test

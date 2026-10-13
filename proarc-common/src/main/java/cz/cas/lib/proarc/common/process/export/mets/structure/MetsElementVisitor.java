@@ -482,7 +482,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             modsMdWrap.setMIMETYPE("text/xml");
             XmlData modsxmlData = new XmlData();
             metsElement.getModsStream().get(0).setAttribute("ID", "MODS_" + metsElement.getModsElementID());
-            metsElement.getModsStream().get(0).removeAttribute("version");
             if (updateModsNeeded) {
                 modsxmlData.getAny().addAll(updateXmlModsIfNeeded(metsElement.getModsStream(), mainObjectModel));
             } else {
