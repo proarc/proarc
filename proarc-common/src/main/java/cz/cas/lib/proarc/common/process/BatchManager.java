@@ -430,7 +430,7 @@ public class BatchManager {
         Transaction tx = daos.createTransaction();
         batchDao.setTransaction(tx);
         try {
-            LOG.info("Batch " + update.getId() + " state " + update.getState().name() + " - " + update.getLog());
+            LOG.fine("Batch " + update.getId() + " state " + update.getState().name() + " - " + update.getLog());
             batchDao.update(update);
             tx.commit();
             return update;

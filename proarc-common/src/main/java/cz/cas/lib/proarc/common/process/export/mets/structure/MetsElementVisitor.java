@@ -2058,8 +2058,6 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             return pageDiv.hashCode() * 1000 + pageOrder.hashCode();
         }
 
-        ;
-
         @Override
         public boolean equals(Object obj) {
             StructLinkMapping structLinkMapping = (StructLinkMapping) obj;
@@ -2487,7 +2485,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @throws MetsExportException
      */
     protected void insertPeriodical(IMetsElement metsElement) throws MetsExportException {
-        mets.setTYPE("Periodical");
+        mets.setTYPE(getPeriodicalType(metsElement));
         addDmdSec(metsElement);
         DivType divType = new DivType();
         logicalStruct.setDiv(divType);
@@ -2513,6 +2511,40 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             } else
                 throw new MetsExportException(childMetsElement.getOriginalPid(), "Expected Supplement, Volume or Issue, got:" + childMetsElement.getElementType(), false, null);
         }
+    }
+
+    public static String getPeriodicalType(IMetsElement packageElement) {
+        if (containsPrintedPage(packageElement) && containsEPeriodicalLeafModel(packageElement)) {
+            return "electronic_coll_journal";
+        }
+        return packageElement.getModel() != null && packageElement.getModel().contains(Const.NDK_EBORN_MODELS_IDENTIFIER)
+                ? "electronic_periodical" : "Periodical";
+    }
+
+    private static boolean containsPrintedPage(IMetsElement element) {
+        if (Const.PAGE.equals(element.getElementType())) {
+            return true;
+        }
+        for (IMetsElement child : element.getChildren()) {
+            if (containsPrintedPage(child)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean containsEPeriodicalLeafModel(IMetsElement element) {
+        String model = ExportUtils.getModel(element.getModel());
+        if (NdkEbornPlugin.MODEL_EARTICLE.equals(model) || NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT.equals(model)) {
+            return true;
+        }
+
+        for (IMetsElement child : element.getChildren()) {
+            if (containsEPeriodicalLeafModel(child)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
