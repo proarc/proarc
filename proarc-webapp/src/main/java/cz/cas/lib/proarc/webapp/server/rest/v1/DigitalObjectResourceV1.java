@@ -1125,7 +1125,7 @@ public class DigitalObjectResourceV1 {
             }
         }
 
-        BatchParams params = new BatchParams(movePids);
+        BatchParams params = new BatchParams(Collections.singletonList(srcParentPid));
         Batch internalBatch = BatchUtils.addNewBatch(this.importManager,
                 Collections.singletonList(srcParentPid), user, Batch.INTERNAL_OBJECT_DISTRIBUTION,
                 Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, false, params);
