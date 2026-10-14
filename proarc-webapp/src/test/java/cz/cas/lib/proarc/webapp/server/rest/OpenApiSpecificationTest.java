@@ -260,7 +260,7 @@ class OpenApiSpecificationTest {
         JSONObject schemas = loadSpec()
                 .getJSONObject("components")
                 .getJSONObject("schemas");
-        assertEquals(224, schemas.length());
+        assertEquals(226, schemas.length());
 
         JSONObject response = schemas.getJSONObject("response");
         JSONObject properties = response.getJSONObject("properties");
@@ -272,6 +272,31 @@ class OpenApiSpecificationTest {
         assertTrue(properties.has("errorMessage"));
         assertTrue(properties.has("errors"));
         assertEquals("response", response.getJSONObject("xml").getString("name"));
+    }
+
+    @Test
+    void modelConversionDocumentsProgressResponse() throws Exception {
+        JSONObject spec = loadSpec();
+        JSONObject operation = spec.getJSONObject("paths")
+                .getJSONObject("/object/changePageToNdkPage")
+                .getJSONObject("post");
+        assertDefaultJsonResponse(operation, "#/components/schemas/ChangeModelResponse");
+
+        JSONObject schemas = spec.getJSONObject("components").getJSONObject("schemas");
+        JSONObject progress = schemas.getJSONObject("ChangeModelProgress").getJSONObject("properties");
+        assertTrue(progress.has("totalObjects"));
+        assertTrue(progress.has("convertedObjects"));
+        assertTrue(progress.has("failedPid"));
+        assertTrue(progress.has("unprocessedPids"));
+        assertTrue(progress.has("unprocessedRootPids"));
+        assertEquals("#/components/schemas/ChangeModelProgress",
+                schemas.getJSONObject("ChangeModelResponse")
+                        .getJSONObject("properties")
+                        .getJSONObject("data")
+                        .getJSONArray("oneOf")
+                        .getJSONObject(0)
+                        .getJSONObject("items")
+                        .getString("$ref"));
     }
 
     @Test
