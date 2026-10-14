@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.process.export.mets;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
@@ -60,6 +61,9 @@ public class MetsContext {
     private static final Set<String> SOUND_MODELS = Set.of(NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
             NdkAudioPlugin.MODEL_AUDIO_DISC, NdkAudioPlugin.MODEL_DIGITAL_AUDIO,
             NdkAudioPlugin.MODEL_SONG, NdkAudioPlugin.MODEL_TRACK, NdkAudioPlugin.MODEL_PAGE);
+    private static final Set<String> CLIPPING_MODELS = Set.of(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION,
+            NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, NdkClippingPlugin.MODEL_CLIPPING_UNIT,
+            NdkClippingPlugin.MODEL_CLIPPING_INDEX, NdkClippingPlugin.MODEL_CARD_INDEX);
 
     private Storage typeOfStorage;
     private AkubraStorage akubraStorage;
@@ -399,6 +403,8 @@ public class MetsContext {
             return 1.0f;
         } else if (EMONOGRAPH_MODELS.contains(normalizedModel)) {
             return 3.1f;
+        } else if (CLIPPING_MODELS.contains(normalizedModel)) {
+            return 0.1f;
         } else {
             return 0.0f;
         }

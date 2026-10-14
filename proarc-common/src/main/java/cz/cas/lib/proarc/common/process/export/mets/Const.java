@@ -91,9 +91,11 @@ public class Const {
     public final static String GENRE_TITLE = "title";
     public final static String GENRE_VOLUME = "volume";
 
-    public final static String GENRE_CLIPPING_COLLECTION = "clippingcollection";
-    public final static String GENRE_CLIPPING_DIRECTORY = "obálka";
-    public final static String GENRE_CLIPPING_UNIT = "výstřižek";
+    public final static String GENRE_CLIPPING_COLLECTION = "unit collection";
+    public final static String GENRE_CLIPPING_DIRECTORY = "directory";
+    public final static String GENRE_CLIPPING_UNIT = "clipping";
+    public final static String GENRE_CLIPPING_INDEX = "clippingIndex";
+    public final static String GENRE_CARD_INDEX = "cardIndex";
 
     public static final String NDK_EBORN_MODELS_IDENTIFIER = "ndke";
     public final static String GENRE_EARTICLE_WRONG_SYNTAX = "electronic_article";
@@ -135,9 +137,9 @@ public class Const {
     public final static String SOUND_PART = "SOUNDPART";
     public final static String SOUND_PAGE = "SOUNDPAGE";
     public final static String GRAPHIC = "GRAPHIC";
-    public final static String CLIPPING_COLLECTION = "CLIPCOLLECTION";
+    public final static String CLIPPING_COLLECTION = "UNITCOLLECTION";
     public final static String CLIPPING_DIRECTORY = "DIRECTORY";
-    public final static String CLIPPING_UNIT = "CLIPPING";
+    public final static String CLIPPING_UNIT = "UNIT";
 
     public final static String MODS_ARTICLE = "ART";
     public final static String MODS_PICTURE = "PICT";
@@ -247,6 +249,7 @@ public class Const {
         PSPElements.add(Const.ISSUE);
         PSPElements.add(Const.SUPPLEMENT);
         PSPElements.add(Const.SOUND_RECORDING);
+        PSPElements.add(Const.CLIPPING_UNIT);
 
 
         typeMap.put(FEDORAPREFIX + PERIODICAL_ITEM_MODEL, ISSUE);
@@ -276,6 +279,8 @@ public class Const {
         typeMap.put(FEDORAPREFIX + NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, CLIPPING_COLLECTION);
         typeMap.put(FEDORAPREFIX + NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, CLIPPING_DIRECTORY);
         typeMap.put(FEDORAPREFIX + NdkClippingPlugin.MODEL_CLIPPING_UNIT, CLIPPING_UNIT);
+        typeMap.put(FEDORAPREFIX + NdkClippingPlugin.MODEL_CLIPPING_INDEX, CLIPPING_UNIT);
+        typeMap.put(FEDORAPREFIX + NdkClippingPlugin.MODEL_CARD_INDEX, CLIPPING_UNIT);
 
 
         typeMap.put(FEDORAPREFIX + CHAPTER_MODEL, CHAPTER);

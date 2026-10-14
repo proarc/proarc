@@ -84,6 +84,8 @@ public class NdkMapperFactory {
         mappers.put(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, NdkClippingCollectionMapper::new);
         mappers.put(NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, NdkClippingDirectoryMapper::new);
         mappers.put(NdkClippingPlugin.MODEL_CLIPPING_UNIT, NdkClippingUnitMapper::new);
+        mappers.put(NdkClippingPlugin.MODEL_CLIPPING_INDEX, NdkClippingIndexMapper::new);
+        mappers.put(NdkClippingPlugin.MODEL_CARD_INDEX, NdkCardIndexMapper::new);
     }
 
     /**

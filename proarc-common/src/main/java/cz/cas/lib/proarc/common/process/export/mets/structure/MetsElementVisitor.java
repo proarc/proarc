@@ -1462,7 +1462,9 @@ public class MetsElementVisitor implements IMetsElementVisitor {
             amdSec.setID(metsElement.getElementID());
             amdSecMets.getAmdSec().add(amdSec);
             DivType divType = new DivType();
-            if (Const.SOUND_COLLECTION.equalsIgnoreCase(metsElement.getMetsContext().getRootElement().getElementType())) {
+            if (Const.CLIPPING_COLLECTION.equalsIgnoreCase(metsElement.getMetsContext().getRootElement().getElementType())) {
+                divType.setTYPE(Const.CLIPPING_UNIT);
+            } else if (Const.SOUND_COLLECTION.equalsIgnoreCase(metsElement.getMetsContext().getRootElement().getElementType())) {
                 divType.setTYPE("TRACK");
             } else if (Const.PERIODICAL_TITLE.equalsIgnoreCase(metsElement.getMetsContext().getRootElement().getElementType())) {
                 divType.setTYPE("PERIODICAL_PAGE");
@@ -2045,7 +2047,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
      * @param sourceElement
      * @throws MetsExportException
      */
-    private void insertPage(DivType physicalDiv, IMetsElement metsElement, int pageCounter, IMetsElement sourceElement, int pageIndex) throws MetsExportException {
+    protected void insertPage(DivType physicalDiv, IMetsElement metsElement, int pageCounter, IMetsElement sourceElement, int pageIndex) throws MetsExportException {
         List<IMetsElement> sourceElements = new ArrayList<IMetsElement>();
         if (metsElement.getModel().contains(NdkPlugin.MODEL_NDK_PAGE) || metsElement.getModel().contains(OldPrintPlugin.MODEL_PAGE)) {
             addDmdSec(metsElement);

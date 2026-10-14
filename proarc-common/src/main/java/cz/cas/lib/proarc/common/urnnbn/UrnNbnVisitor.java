@@ -114,7 +114,9 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             OldPrintPlugin.MODEL_CARTOGRAPHIC,
             OldPrintPlugin.MODEL_SHEETMUSIC,
             OldPrintPlugin.MODEL_GRAPHICS,
-            NdkClippingPlugin.MODEL_CLIPPING_UNIT
+            NdkClippingPlugin.MODEL_CLIPPING_UNIT,
+            NdkClippingPlugin.MODEL_CLIPPING_INDEX,
+            NdkClippingPlugin.MODEL_CARD_INDEX
     ));
     private static final Logger LOG = Logger.getLogger(UrnNbnVisitor.class.getName());
 
@@ -404,6 +406,20 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
     @Override
     public Void visitNdkClippingUnit(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        return registerClippingUnit(elm, p, "clipping");
+    }
+
+    @Override
+    public Void visitNdkClippingIndex(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        return registerClippingUnit(elm, p, "clippingIndex");
+    }
+
+    @Override
+    public Void visitNdkCardIndex(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        return registerClippingUnit(elm, p, "cardIndex");
+    }
+
+    private Void registerClippingUnit(DigitalObjectElement elm, UrnNbnContext p, String entityType) throws VisitorException {
         if (registeringObject != null) {
             // invalid hierarchy
             p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
@@ -412,7 +428,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         }
         try {
             registeringObject = elm;
-            return processOtherEntity(elm, "clipping", p, null);
+            return processOtherEntity(elm, entityType, p, null);
         } catch (DigitalObjectException ex) {
             throw new VisitorException(ex);
         } finally {

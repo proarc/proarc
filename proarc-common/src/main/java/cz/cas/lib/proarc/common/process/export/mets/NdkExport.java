@@ -31,6 +31,7 @@ import cz.cas.lib.proarc.common.process.export.ExportResultLog.ItemList;
 import cz.cas.lib.proarc.common.process.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.process.export.ExportResultLog.ResultStatus;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
+import cz.cas.lib.proarc.common.process.export.mets.structure.ClippingElementVisitor;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
@@ -325,10 +326,13 @@ public class NdkExport {
                     DigitalObject dobj = MetsUtils.readFoXML(pspPid, metsContext);
                     MetsElement mElm = MetsElement.getElement(dobj, null, metsContext, hierarchy);
                     mElm.setIgnoreValidation(ignoreMissingUrnNbn);
-                    if (NdkMapper.isNdkEModel(mElm.getModel().replaceAll("info:fedora/", ""))) {
+                    String modelId = ExportUtils.getModel(mElm.getModel());
+                    if (NdkMapper.isNdkEModel(modelId)) {
                         mElm.accept(new SipElementVisitor());
-                    } else if (NdkMapper.isOldprintModel(mElm.getModel().replaceAll("info:fedora/", ""))) {
+                    } else if (NdkMapper.isOldprintModel(modelId)) {
                         mElm.accept(new SttElementVisitor());
+                    } else if (NdkMapper.isClippingModel(modelId)) {
+                        mElm.accept(new ClippingElementVisitor());
                     } else {
                         mElm.accept(new MetsElementVisitor());
                     }
@@ -483,10 +487,13 @@ public class NdkExport {
                     DigitalObject dobj = MetsUtils.readFoXML(pspPid, metsContext);
                     MetsElement mElm = MetsElement.getElement(dobj, null, metsContext, hierarchy);
                     mElm.setIgnoreValidation(ignoreMissingUrnNbn);
-                    if (NdkMapper.isNdkEModel(mElm.getModel().replaceAll("info:fedora/", ""))) {
+                    String modelId = ExportUtils.getModel(mElm.getModel());
+                    if (NdkMapper.isNdkEModel(modelId)) {
                         mElm.accept(new SipElementVisitor());
-                    } else if (NdkMapper.isOldprintModel(mElm.getModel().replaceAll("info:fedora/", ""))) {
+                    } else if (NdkMapper.isOldprintModel(modelId)) {
                         mElm.accept(new SttElementVisitor());
+                    } else if (NdkMapper.isClippingModel(modelId)) {
+                        mElm.accept(new ClippingElementVisitor());
                     } else {
                         mElm.accept(new MetsElementVisitor());
                     }

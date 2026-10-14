@@ -103,6 +103,9 @@ public class AcceptedExports {
 
     private final String EXPORT_NDK_PSP = "ndk_psp";
     private final Set<String> EXPORT_NDK_PSP_MODELS = new HashSet<>(Arrays.asList(
+            NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY,
+            NdkClippingPlugin.MODEL_CLIPPING_UNIT, NdkClippingPlugin.MODEL_CLIPPING_INDEX,
+            NdkClippingPlugin.MODEL_CARD_INDEX,
             NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALVOLUME, NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_PERIODICALSUPPLEMENT,
             NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, NdkPlugin.MODEL_CARTOGRAPHIC,
             NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_ARTICLE, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE,
