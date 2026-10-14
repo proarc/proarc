@@ -8,7 +8,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -49,6 +52,7 @@ public class PeroOcrProcessor {
     private String serverUrl;
     private int peroOcrEngine;
     private final long timeout;
+    private final StringWriter logWriter;
 
     private String imagePath;
     private String txtPath;
@@ -56,7 +60,12 @@ public class PeroOcrProcessor {
 
 
     public PeroOcrProcessor(Configuration configuration, Integer peroOcrEngine) {
+        this(configuration, peroOcrEngine, null);
+    }
+
+    public PeroOcrProcessor(Configuration configuration, Integer peroOcrEngine, StringWriter logWriter) {
         this.config = configuration;
+        this.logWriter = logWriter;
         this.serverUrl = config.getString(PROP_URL);
         if (this.serverUrl == null || this.serverUrl.isEmpty()) {
             this.serverUrl = "https://pero-ocr.fit.vutbr.cz/api/";
@@ -107,7 +116,7 @@ public class PeroOcrProcessor {
                 return false;
             }
         } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, null, e);
+            logException(e);
         }
 
         String processingResult;
@@ -117,26 +126,26 @@ public class PeroOcrProcessor {
             processingResult = downloadResults(httpClient, txtPath, requestId, fileName, txtFormat);
             if ("PROCESSED".equals(processingResult)) {
                 downloadResults(httpClient, altoPath, requestId, fileName, altoFormat);
-                LOGGER.log(Level.INFO, "Files {0} and {1} created!", new Object[]{txtFormat, altoFormat});
+                log(Level.INFO, "Files {0} and {1} created!", txtFormat, altoFormat);
             } else {
                 long remainingTimeout = resultDownloadTimeout - (System.nanoTime() - resultDownloadStarted);
                 if (remainingTimeout <= 0) {
-                    LOGGER.log(Level.SEVERE,
-                            "PERO OCR results for request {0} were not available within {1} ms.",
-                            new Object[]{requestId, timeout});
+                    log(Level.SEVERE,
+                            "PERO OCR is not responding: results for request {0} were not available within {1} ms.",
+                            requestId, timeout);
                     return false;
                 }
                 try {
                     TimeUnit.NANOSECONDS.sleep(Math.min(STATUS_INTERVAL, remainingTimeout));
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
-                    LOGGER.log(Level.INFO, "Task interrupted.");
+                    log(Level.INFO, "Task interrupted.");
                     return false;
                 }
                 if (System.nanoTime() - resultDownloadStarted >= resultDownloadTimeout) {
-                    LOGGER.log(Level.SEVERE,
-                            "PERO OCR results for request {0} were not available within {1} ms.",
-                            new Object[]{requestId, timeout});
+                    log(Level.SEVERE,
+                            "PERO OCR is not responding: results for request {0} were not available within {1} ms.",
+                            requestId, timeout);
                     return false;
                 }
             }
@@ -168,26 +177,26 @@ public class PeroOcrProcessor {
                 while (!jsonResponse.getString("status").equals("success")) {
                     long remainingTimeout = statusTimeout - (System.nanoTime() - statusCheckStarted);
                     if (remainingTimeout <= 0) {
-                        LOGGER.log(Level.SEVERE,
-                                "PERO OCR request {0} did not reach success status within {1} ms.",
-                                new Object[]{jsonResponse.getString("request_id"), timeout});
+                        log(Level.SEVERE,
+                                "PERO OCR is not responding: request {0} did not reach success status within {1} ms.",
+                                jsonResponse.getString("request_id"), timeout);
                         return null;
                     }
                     TimeUnit.NANOSECONDS.sleep(Math.min(STATUS_INTERVAL, remainingTimeout));
                     if (System.nanoTime() - statusCheckStarted >= statusTimeout) {
-                        LOGGER.log(Level.SEVERE,
-                                "PERO OCR request {0} did not reach success status within {1} ms.",
-                                new Object[]{jsonResponse.getString("request_id"), timeout});
+                        log(Level.SEVERE,
+                                "PERO OCR is not responding: request {0} did not reach success status within {1} ms.",
+                                jsonResponse.getString("request_id"), timeout);
                         return null;
                     }
                     jsonResponse = checkStatus(httpClient, jsonResponse.getString("request_id"));
                 }
                 return jsonResponse.getString("request_id");
             } else {
-                LOGGER.log(Level.SEVERE, "The post processing request ended with status code {0}.", response.getStatusLine().getStatusCode());
+                log(Level.SEVERE, "The post processing request ended with status code {0}.", response.getStatusLine().getStatusCode());
             }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, null, e);
+            logException(e);
 
         }
         return null;
@@ -201,7 +210,7 @@ public class PeroOcrProcessor {
         try {
             return Math.max(0, config.getLong(PROP_TIMEOUT, DEFAULT_TIMEOUT));
         } catch (RuntimeException e) {
-            LOGGER.log(Level.WARNING, "Invalid PERO OCR timeout, using the default value.", e);
+            log(Level.WARNING, "Invalid PERO OCR timeout, using the default value.", e);
             return DEFAULT_TIMEOUT;
         }
     }
@@ -246,13 +255,11 @@ public class PeroOcrProcessor {
 
         HttpResponse response = httpClient.execute(httpPost);
         if (response.getStatusLine().getStatusCode() >= 400) {
-            LOGGER.log(Level.INFO, "The image upload of {0} ended with status code {1}. {2}",
-                    new Object[]{fileName, response.getStatusLine().getStatusCode(),
-                            EntityUtils.toString(response.getEntity())
-                    });
+            log(Level.INFO, "The image upload of {0} ended with status code {1}. {2}",
+                    fileName, response.getStatusLine().getStatusCode(), EntityUtils.toString(response.getEntity()));
             return false;
         } else {
-            LOGGER.log(Level.INFO, "The image upload of {0} ended with status code {1}.", new Object[]{fileName, response.getStatusLine().getStatusCode()});
+            log(Level.INFO, "The image upload of {0} ended with status code {1}.", fileName, response.getStatusLine().getStatusCode());
             return true;
         }
     }
@@ -285,11 +292,11 @@ public class PeroOcrProcessor {
                 if (jsonResponse.getString("message").contains("not processed yet")) {
                     return "UNPROCESSED";
                 } else {
-                    LOGGER.log(Level.INFO, jsonResponse.getString("message"));
+                    log(Level.INFO, jsonResponse.getString("message"));
                 }
             }
         } catch (JSONException | IOException e) {
-            LOGGER.log(Level.SEVERE, null, e);
+            logException(e);
 
         }
         return null;
@@ -306,9 +313,33 @@ public class PeroOcrProcessor {
             case "jp2":
                 return "image/jp2";
             default:
-                LOGGER.log(Level.SEVERE, "Error: the extension {0} is not supported.",
-                        fileExtension);
+                log(Level.SEVERE, "Error: the extension {0} is not supported.", fileExtension);
                 return null;
+        }
+    }
+
+    private void log(Level level, String message, Object... parameters) {
+        LOGGER.log(level, message, parameters);
+        if (logWriter != null) {
+            logWriter.append(level.getName()).append(": ")
+                    .append(parameters.length == 0 ? message : MessageFormat.format(message, parameters))
+                    .append(System.lineSeparator());
+        }
+    }
+
+    private void logException(Exception exception) {
+        log(Level.SEVERE, null, exception);
+    }
+
+    private void log(Level level, String message, Exception exception) {
+        LOGGER.log(level, message, exception);
+        if (logWriter != null) {
+            logWriter.append(level.getName()).append(": ");
+            if (message != null) {
+                logWriter.append(message);
+            }
+            logWriter.append(System.lineSeparator());
+            exception.printStackTrace(new PrintWriter(logWriter));
         }
     }
 

@@ -5,6 +5,7 @@ import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.external.PeroOcrProcessor;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.logging.Logger;
 import org.json.JSONException;
@@ -90,7 +91,8 @@ public class GeneratorAltoOcr implements ImportHandler {
         }
 
         Integer peroOcrEngine = getPeroOcrEngine(importConfig);
-        PeroOcrProcessor ocrProcessor = new PeroOcrProcessor(config.getOcrGenProcessor(), peroOcrEngine);
+        StringWriter log = new StringWriter();
+        PeroOcrProcessor ocrProcessor = new PeroOcrProcessor(config.getOcrGenProcessor(), peroOcrEngine, log);
         try {
             boolean processed = ocrProcessor.process(
                     imageFile.getAbsolutePath(),
@@ -101,10 +103,12 @@ public class GeneratorAltoOcr implements ImportHandler {
             }
         } catch (JSONException ex) {
             LOG.severe("Generating OCR for " + imageFile.getName() + " failed: " + ex.getMessage());
-            throw new IOException(ex);
+            throw new IOException("PERO OCR log for " + imageFile.getAbsolutePath()
+                    + System.lineSeparator() + log, ex);
         }
         if (!outputFiles[0].exists() || !outputFiles[1].exists()) {
-            throw new IOException("Generating OCR/ALTO failed for " + imageFile.getAbsolutePath());
+            throw new IOException("Generating OCR/ALTO failed for " + imageFile.getAbsolutePath()
+                    + System.lineSeparator() + log);
         }
         return outputFiles;
     }

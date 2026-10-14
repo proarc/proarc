@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.logging.Level;
@@ -48,6 +49,8 @@ public class PeroProcess {
     private AppConfiguration config;
     private AkubraConfiguration akubraConfiguration;
     private SearchView search;
+    private StringWriter currentOcrLog;
+    private String currentOcrImage;
 
     private static final Logger LOG = Logger.getLogger(DataStreamExport.class.getName());
 
@@ -64,6 +67,8 @@ public class PeroProcess {
 
     public Result generateAlto(List<String> pids, File folder, Integer peroOcrEngine) {
         Result result = new Result();
+        currentOcrLog = null;
+        currentOcrImage = null;
         try {
             if ((pids == null || pids.isEmpty()) && (folder == null || !folder.exists())) {
                 throw new IllegalArgumentException("Missing required parameters");
@@ -73,7 +78,9 @@ public class PeroProcess {
                 generateSingleAlto(pids, peroOcrEngine);
             }
         } catch (Exception ex) {
-            result.setException(ex);
+            result.setException(currentOcrLog != null && currentOcrLog.getBuffer().length() > 0
+                    ? new IOException("PERO OCR log for " + currentOcrImage + System.lineSeparator() + currentOcrLog, ex)
+                    : ex);
         } finally {
             return result;
         }
@@ -93,6 +100,8 @@ public class PeroProcess {
 
     private void generateSingleAlto(List<String> pids, Integer peroOcrEngine) throws JAXBException, IOException, TransformerException, InterruptedException, DigitalObjectException {
         for (String pid : pids) {
+            currentOcrLog = null;
+            currentOcrImage = null;
             ProArcObject object = null;
             InputStream inputStream = null;
             String dsId = "FULL";
@@ -169,7 +178,9 @@ public class PeroProcess {
     }
 
     private void generateOCR(File jpgFile, Integer peroOcrEngine) throws IOException {
-        PeroOcrProcessor ocrProcessor = new PeroOcrProcessor(config.getImportConfiguration().getOcrGenProcessor(), peroOcrEngine);
+        currentOcrLog = new StringWriter();
+        currentOcrImage = jpgFile.getAbsolutePath();
+        PeroOcrProcessor ocrProcessor = new PeroOcrProcessor(config.getImportConfiguration().getOcrGenProcessor(), peroOcrEngine, currentOcrLog);
         try {
             boolean processed = ocrProcessor.generate(jpgFile, config.getImportConfiguration().getPlainOcrFileSuffix(), config.getImportConfiguration().getAltoFileSuffix());
             if (processed) {
