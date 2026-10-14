@@ -436,7 +436,7 @@ public class BatchManager {
         Transaction tx = daos.createTransaction();
         batchDao.setTransaction(tx);
         try {
-            LOG.info("Batch " + update.getId() + " state " + update.getState().name() + " - " + update.getLog());
+            LOG.fine("Batch " + update.getId() + " state " + update.getState().name() + " - " + update.getLog());
             batchDao.update(update);
             tx.commit();
             return update;
@@ -843,7 +843,7 @@ public class BatchManager {
 
     public static String toString(Throwable ex) {
         StringWriter sw = new StringWriter();
-        ex.printStackTrace();
+//        ex.printStackTrace();
         ex.printStackTrace(new PrintWriter(sw, true));
         String log = sw.toString();
         return processLog(log);

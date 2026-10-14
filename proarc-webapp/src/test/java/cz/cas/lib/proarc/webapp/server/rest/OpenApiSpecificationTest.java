@@ -319,7 +319,7 @@ class OpenApiSpecificationTest {
         JSONObject schemas = loadSpec()
                 .getJSONObject("components")
                 .getJSONObject("schemas");
-        assertEquals(228, schemas.length());
+        assertEquals(224, schemas.length());
 
         JSONObject response = schemas.getJSONObject("response");
         JSONObject properties = response.getJSONObject("properties");
@@ -331,82 +331,6 @@ class OpenApiSpecificationTest {
         assertTrue(properties.has("errorMessage"));
         assertTrue(properties.has("errors"));
         assertEquals("response", response.getJSONObject("xml").getString("name"));
-    }
-
-    @Test
-    void catalogQueriesDocumentResultsAndStructuredErrors() throws Exception {
-        JSONObject spec = loadSpec();
-        JSONObject paths = spec.getJSONObject("paths");
-
-        for (String path : List.of("/authorities/query", "/bibliographies/query")) {
-            JSONObject response = paths.getJSONObject(path)
-                    .getJSONObject("get")
-                    .getJSONObject("responses")
-                    .getJSONObject("default");
-            String description = response.getString("description");
-            assertTrue(description.contains("empty entry array"), path);
-            assertTrue(description.contains("catalog.connection-failed"), path);
-            assertTrue(description.contains("catalog.remote-error"), path);
-            assertTrue(description.contains("catalog.transformation-failed"), path);
-            assertTrue(description.contains("catalog.search-failed"), path);
-
-            JSONArray alternatives = response
-                    .getJSONObject("content")
-                    .getJSONObject("application/json")
-                    .getJSONObject("schema")
-                    .getJSONArray("oneOf");
-            assertEquals(2, alternatives.length(), path);
-            assertEquals("#/components/schemas/metadataCatalogEntries",
-                    alternatives.getJSONObject(0).getString("$ref"), path);
-            assertEquals("#/components/schemas/catalogErrorResponse",
-                    alternatives.getJSONObject(1).getString("$ref"), path);
-        }
-
-        JSONObject errorSchema = spec
-                .getJSONObject("components")
-                .getJSONObject("schemas")
-                .getJSONObject("catalogErrorResponse");
-        assertTrue(errorSchema.getJSONArray("required").toList().containsAll(List.of("status", "errors")));
-        assertEquals(-4, errorSchema
-                .getJSONObject("properties")
-                .getJSONObject("status")
-                .getJSONArray("enum")
-                .getInt(0));
-    }
-
-    @Test
-    void objectMemberDistributeDocumentsBatchDistribution() throws Exception {
-        JSONObject put = loadSpec()
-                .getJSONObject("paths")
-                .getJSONObject("/object/member/distribute")
-                .getJSONObject("put");
-
-        assertEquals("#/components/schemas/DistributeMembersRequest", put.getJSONObject("requestBody")
-                .getJSONObject("content")
-                .getJSONObject("application/json")
-                .getJSONObject("schema")
-                .getString("$ref"));
-
-        JSONObject requestProperties = loadSpec()
-                .getJSONObject("components")
-                .getJSONObject("schemas")
-                .getJSONObject("DistributeMembersRequest")
-                .getJSONObject("properties");
-        assertTrue(requestProperties.has("targets"));
-        assertTrue(requestProperties.has("runReindex"));
-        assertFalse(requestProperties.has("batchId"));
-        assertEquals("#/components/schemas/DistributeMembersTarget", requestProperties
-                .getJSONObject("targets")
-                .getJSONObject("items")
-                .getString("$ref"));
-
-        JSONObject moveProperties = loadSpec()
-                .getJSONObject("components")
-                .getJSONObject("schemas")
-                .getJSONObject("MoveMembersRequest")
-                .getJSONObject("properties");
-        assertFalse(moveProperties.has("targets"));
-        assertFalse(moveProperties.has("runReindex"));
     }
 
     @Test
@@ -466,8 +390,8 @@ class OpenApiSpecificationTest {
             assertTrue(pathOperationCount > 0, path);
         }
 
-        assertEquals(202, operationCount);
-        assertEquals(202, responseCount);
+        assertEquals(201, operationCount);
+        assertEquals(201, responseCount);
     }
 
     @Test

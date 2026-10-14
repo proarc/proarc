@@ -130,6 +130,7 @@ import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
 import cz.cas.lib.proarc.urnnbn.ResolverUtils;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
 import cz.cas.lib.proarc.webapp.server.rest.AnnotatedMetaModel;
+import cz.cas.lib.proarc.webapp.server.rest.ChangeModelProgress;
 import cz.cas.lib.proarc.webapp.server.rest.LocalDateParam;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
@@ -3156,1683 +3157,528 @@ public class DigitalObjectResourceV1 {
         return returnFunctionSuccess();
     }
 
-    @POST
-    @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_NDK_PAGE)
-    @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changePageToNdkPage(
-            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
-    ) throws DigitalObjectException {
+    private ProArcResponse<ChangeModelProgress> changeModels(List<String> pids, String oldModel, String newModel,
+            boolean needsParentPid) throws DigitalObjectException {
+        return changeModels(pids, oldModel, newModel, needsParentPid, true);
+    }
 
+    private ProArcResponse<ChangeModelProgress> changeModels(List<String> pids, String oldModel, String newModel,
+            boolean needsParentPid, boolean searchInChildren) throws DigitalObjectException {
         checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
 
         if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
+            return changeModelValidationError(returnLocalizedMessage(ERR_MISSING_PARAMETER,
+                    DigitalObjectResourceApi.DIGITALOBJECT_PID), Collections.emptyList());
         }
 
         if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
+            return changeModelValidationError(returnLocalizedMessage(ERR_IS_LOCKED), pids);
         }
 
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
-            changeModels.findObjects();
-
+        int totalObjects = 0;
+        int convertedCount = 0;
+        for (int index = 0; index < pids.size(); index++) {
+            String pid = pids.get(index);
+            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, oldModel, newModel);
+            changeModels.findObjects(searchInChildren);
+            totalObjects += changeModels.getPids().size();
             if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
+                ChangeModelProgress progress = new ChangeModelProgress(totalObjects, convertedCount, pid,
+                        changeModels.getPids(), pids.subList(index + 1, pids.size()));
+                progress.setValidation(returnLocalizedMessage(ERR_IS_LOCKED));
+                return new ProArcResponse<ChangeModelProgress>(ProArcResponse.STATUS_SUCCESS, 0, 0, -1,
+                        Collections.singletonList(progress));
             }
 
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
+            String parentPid = needsParentPid ? changeModels.findRootObject() : null;
+            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
             if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_PAGE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
+                convertedCount += result.getUpdatedCount();
+                changeModels.changeModelBack(result.getPid(), oldModel);
+                ChangeModelProgress progress = new ChangeModelProgress(totalObjects, convertedCount,
+                        result.getPid(), result.getUnprocessedPids(), pids.subList(index + 1, pids.size()));
+                progress.setValidation(returnLocalizedMessage(ERR_CHANGING_MODEL_FAILED, result.getEx().getMessage()));
+                return new ProArcResponse<ChangeModelProgress>(ProArcResponse.STATUS_SUCCESS, 0, 0, -1,
+                        Collections.singletonList(progress));
             }
+            convertedCount += changeModels.getPids().size();
         }
-        return returnFunctionSuccess();
+
+        ChangeModelProgress progress = new ChangeModelProgress(totalObjects, convertedCount, null,
+                Collections.emptyList(), Collections.emptyList());
+        progress.setStatus("OK");
+        return new ProArcResponse<ChangeModelProgress>(ProArcResponse.STATUS_SUCCESS, 0, 0, 1,
+                Collections.singletonList(progress));
+    }
+
+    private ProArcResponse<ChangeModelProgress> changeModelValidationError(String validation, List<String> unprocessedRootPids) {
+        ChangeModelProgress progress = new ChangeModelProgress(0, 0, null,
+                Collections.emptyList(), unprocessedRootPids);
+        progress.setValidation(validation);
+        return new ProArcResponse<ChangeModelProgress>(ProArcResponse.STATUS_SUCCESS, 0, 0, -1,
+                Collections.singletonList(progress));
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_NDK_PAGE)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<ChangeModelProgress> changePageToNdkPage(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
+    ) throws DigitalObjectException {
+        return changeModels(pids, NdkPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE, false);
     }
 
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkPageToPage(
+    public ProArcResponse<ChangeModelProgress> changeNdkPageToPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_NDK_PAGE, NdkPlugin.MODEL_PAGE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_NDK_PAGE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_NDK_PAGE, NdkPlugin.MODEL_PAGE, false);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_STT_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changePageToSttPage(
+    public ProArcResponse<ChangeModelProgress> changePageToSttPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_PAGE, OldPrintPlugin.MODEL_PAGE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_PAGE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_PAGE, OldPrintPlugin.MODEL_PAGE, false);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeSttPageToPage(
+    public ProArcResponse<ChangeModelProgress> changeSttPageToPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_PAGE, NdkPlugin.MODEL_PAGE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_PAGE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, OldPrintPlugin.MODEL_PAGE, NdkPlugin.MODEL_PAGE, false);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_NDK_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeSttPageToNdkPage(
+    public ProArcResponse<ChangeModelProgress> changeSttPageToNdkPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_PAGE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, OldPrintPlugin.MODEL_PAGE, NdkPlugin.MODEL_NDK_PAGE, false);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_STT_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkPageToSttPage(
+    public ProArcResponse<ChangeModelProgress> changeNdkPageToSttPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_NDK_PAGE, OldPrintPlugin.MODEL_PAGE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_NDK_PAGE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_NDK_PAGE, OldPrintPlugin.MODEL_PAGE, false);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeClippingsVolumeToNdkMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeClippingsVolumeToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, NdkPlugin.MODEL_MONOGRAPHVOLUME);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, NdkPlugin.MODEL_MONOGRAPHVOLUME, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToClippingsVolume(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographVolumeToClippingsVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_MONOGRAPHVOLUME, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHVOLUME);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_MONOGRAPHVOLUME, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographTitleToClippingsTitle(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographTitleToClippingsTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_MONOGRAPHTITLE, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHTITLE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_MONOGRAPHTITLE, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, false);
     }
 
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeClippingsTitleToNdkMonographTitle(
+    public ProArcResponse<ChangeModelProgress> changeClippingsTitleToNdkMonographTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, NdkPlugin.MODEL_MONOGRAPHTITLE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, NdkPlugin.MODEL_MONOGRAPHTITLE, false);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_TO_NDK_PERIODICAL)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeK4PeriodicalToNdkPeriodical(
+    public ProArcResponse<ChangeModelProgress> changeK4PeriodicalToNdkPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, K4Plugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICAL);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(null);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), K4Plugin.MODEL_PERIODICAL);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, K4Plugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICAL, false);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeK4PeriodicalVolumeToNdkPeriodicalVolume(
+    public ProArcResponse<ChangeModelProgress> changeK4PeriodicalVolumeToNdkPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, K4Plugin.MODEL_PERIODICALVOLUME, NdkPlugin.MODEL_PERIODICALVOLUME);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), K4Plugin.MODEL_PERIODICALVOLUME);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, K4Plugin.MODEL_PERIODICALVOLUME, NdkPlugin.MODEL_PERIODICALVOLUME, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeK4PeriodicalIssueToNdkPeriodicalIssue(
+    public ProArcResponse<ChangeModelProgress> changeK4PeriodicalIssueToNdkPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, K4Plugin.MODEL_PERIODICALITEM, NdkPlugin.MODEL_PERIODICALISSUE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), K4Plugin.MODEL_PERIODICALITEM);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, K4Plugin.MODEL_PERIODICALITEM, NdkPlugin.MODEL_PERIODICALISSUE, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeK4MonographToNdkMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeK4MonographToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, K4Plugin.MODEL_MONOGRAPH, NdkPlugin.MODEL_MONOGRAPHVOLUME);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), K4Plugin.MODEL_MONOGRAPH);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, K4Plugin.MODEL_MONOGRAPH, NdkPlugin.MODEL_MONOGRAPHVOLUME, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_VOLUME)
      @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeK4MonographUnitToNdkMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeK4MonographUnitToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, K4Plugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), K4Plugin.MODEL_MONOGRAPHUNIT);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, K4Plugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeK4MonographUnitToNdkMonographUnit(
+    public ProArcResponse<ChangeModelProgress> changeK4MonographUnitToNdkMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, K4Plugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHUNIT);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), K4Plugin.MODEL_MONOGRAPHUNIT);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, K4Plugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHUNIT, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TITLE_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographTitleToNdkMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographTitleToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_MONOGRAPHVOLUME);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHTITLE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_MONOGRAPHVOLUME, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographUnitToNdkMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographUnitToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHUNIT);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_TITLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographTitle(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographVolumeToNdkMonographTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHTITLE);
-            changeModels.findObjects(false);
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHVOLUME);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHTITLE, true, false);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographUnit(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographVolumeToNdkMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHUNIT);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHVOLUME);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHUNIT, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EMONOGRAPH_VOLUME_TO_NDK_EMONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEMonographVolumeToNdkEMonographUnit(
+    public ProArcResponse<ChangeModelProgress> changeNdkEMonographVolumeToNdkEMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EMONOGRAPH_UNIT_TO_NDK_EMONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEMonographUnitToNdkEMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeNdkEMonographUnitToNdkEMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkEbornPlugin.MODEL_EMONOGRAPHUNIT);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT, NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMusicsheetToOldprintMusicsheet(
+    public ProArcResponse<ChangeModelProgress> changeNdkMusicsheetToOldprintMusicsheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_SHEETMUSIC, OldPrintPlugin.MODEL_SHEETMUSIC);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_SHEETMUSIC);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_SHEETMUSIC, OldPrintPlugin.MODEL_SHEETMUSIC, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeSttMusicsheetToNdkMusicsheet(
+    public ProArcResponse<ChangeModelProgress> changeSttMusicsheetToNdkMusicsheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_SHEETMUSIC);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_SHEETMUSIC);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, OldPrintPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_SHEETMUSIC, true);
     }
 
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_CHAPTER_TO_STT_CHAPTER)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkChapterToOldprintChapter(
+    public ProArcResponse<ChangeModelProgress> changeNdkChapterToOldprintChapter(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_CHAPTER, OldPrintPlugin.MODEL_CHAPTER);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_CHAPTER);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_CHAPTER, OldPrintPlugin.MODEL_CHAPTER, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_CHAPTER_TO_NDK_CHAPTER)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldprintChapterToNdkChapter(
+    public ProArcResponse<ChangeModelProgress> changeOldprintChapterToNdkChapter(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_CHAPTER);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_CHAPTER);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, OldPrintPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_CHAPTER, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PICTURE_TO_STT_GRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkPictureToOldprintGraphic(
+    public ProArcResponse<ChangeModelProgress> changeNdkPictureToOldprintGraphic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_PICTURE, OldPrintPlugin.MODEL_GRAPHICS);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_PICTURE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_PICTURE, OldPrintPlugin.MODEL_GRAPHICS, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_GRAPHIC_TO_NDK_PICTURE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldprintGraphicToNdkPicture(
+    public ProArcResponse<ChangeModelProgress> changeOldprintGraphicToNdkPicture(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_GRAPHICS, NdkPlugin.MODEL_PICTURE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_GRAPHICS);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, OldPrintPlugin.MODEL_GRAPHICS, NdkPlugin.MODEL_PICTURE, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_CARTOGRAPHIC_TO_STT_CARTOGRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkCartographicToOldprintCartographic(
+    public ProArcResponse<ChangeModelProgress> changeNdkCartographicToOldprintCartographic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_CARTOGRAPHIC);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_CARTOGRAPHIC);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_CARTOGRAPHIC, OldPrintPlugin.MODEL_CARTOGRAPHIC, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_CARTOGRAPHIC_TO_NDK_CARTOGRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldprintCartographicToNdkCartographic(
+    public ProArcResponse<ChangeModelProgress> changeOldprintCartographicToNdkCartographic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_CARTOGRAPHIC);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_CARTOGRAPHIC);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, OldPrintPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_CARTOGRAPHIC, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TO_STT_MONOGRAPH)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToOldprintMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographVolumeToOldprintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHVOLUME);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_VOLUME_TO_STT_MONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldprintMonographVolumeToOldprintMonographUnit(
+    public ProArcResponse<ChangeModelProgress> changeOldprintMonographVolumeToOldprintMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_UNIT_TO_STT_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldprintMonographUnitToOldprintMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeOldprintMonographUnitToOldprintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_MONOGRAPHUNIT);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, OldPrintPlugin.MODEL_MONOGRAPHUNIT, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_NDK_MONOGRAPH)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldPrintMonographVolumeToNdkMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeOldPrintMonographVolumeToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHVOLUME);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHVOLUME, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_SUPPLEMENT_TO_STT_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographSupplementToOldPrintSupplement(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographSupplementToOldPrintSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, OldPrintPlugin.MODEL_SUPPLEMENT);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, OldPrintPlugin.MODEL_SUPPLEMENT, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_SUPPLEMENT_TO_NDK_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldPrintSupplementToNdkMonographSupplement(
+    public ProArcResponse<ChangeModelProgress> changeOldPrintSupplementToNdkMonographSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_SUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_SUPPLEMENT);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, OldPrintPlugin.MODEL_SUPPLEMENT, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_STT_GRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintGraphic(
+    public ProArcResponse<ChangeModelProgress> changeOldPrintMonographVolumeToOldprintGraphic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_GRAPHICS);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_GRAPHICS, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_GRAPHIC_TO_STT_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldPrintGraphicToOldPrintMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeOldPrintGraphicToOldPrintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_GRAPHICS);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, OldPrintPlugin.MODEL_GRAPHICS, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_STT_MUSICSHEET)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintMusicSheet(
+    public ProArcResponse<ChangeModelProgress> changeOldPrintMonographVolumeToOldprintMusicSheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_SHEETMUSIC);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), OldPrintPlugin.MODEL_MONOGRAPHVOLUME);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_SHEETMUSIC, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_TO_NDK_EPERIODICAL)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkPeriodicalToNdkEPeriodical(
+    public ProArcResponse<ChangeModelProgress> changeNdkPeriodicalToNdkEPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_PERIODICAL, NdkEbornPlugin.MODEL_EPERIODICAL);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_PERIODICAL);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_PERIODICAL, NdkEbornPlugin.MODEL_EPERIODICAL, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_VOLUME_TO_NDK_EPERIODICAL_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkPeriodicalVolumeToNdkEPeriodicalVolume(
+    public ProArcResponse<ChangeModelProgress> changeNdkPeriodicalVolumeToNdkEPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_PERIODICALVOLUME, NdkEbornPlugin.MODEL_EPERIODICALVOLUME);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_PERIODICALVOLUME);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_PERIODICALVOLUME, NdkEbornPlugin.MODEL_EPERIODICALVOLUME, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_ISSUE_TO_NDK_EPERIODICAL_ISSUE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkPeriodicalIssueToNdkEPeriodicalIssue(
+    public ProArcResponse<ChangeModelProgress> changeNdkPeriodicalIssueToNdkEPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_PERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALISSUE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_PERIODICALISSUE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_PERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALISSUE, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_SUPPLEMENT_TO_NDK_EPERIODICAL_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkPeriodicalSupplementToNdkEPeriodicalSupplement(
+    public ProArcResponse<ChangeModelProgress> changeNdkPeriodicalSupplementToNdkEPeriodicalSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_PERIODICALSUPPLEMENT);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_PERIODICALSUPPLEMENT, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_ARTICLE_TO_NDK_EARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkArticleToNdkEArticle(
+    public ProArcResponse<ChangeModelProgress> changeNdkArticleToNdkEArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkPlugin.MODEL_ARTICLE, NdkEbornPlugin.MODEL_EARTICLE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkPlugin.MODEL_ARTICLE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkPlugin.MODEL_ARTICLE, NdkEbornPlugin.MODEL_EARTICLE, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_BDM_ARTICLE_TO_NDK_EARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeBdmArticleToNdkEArticle(
+    public ProArcResponse<ChangeModelProgress> changeBdmArticleToNdkEArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, BornDigitalModsPlugin.MODEL_ARTICLE, NdkEbornPlugin.MODEL_EARTICLE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), BornDigitalModsPlugin.MODEL_ARTICLE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, BornDigitalModsPlugin.MODEL_ARTICLE, NdkEbornPlugin.MODEL_EARTICLE, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_TO_NDK_PERIODICAL)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalToNdkPeriodical(
+    public ProArcResponse<ChangeModelProgress> changeNdkEPeriodicalToNdkPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkEbornPlugin.MODEL_EPERIODICAL, NdkPlugin.MODEL_PERIODICAL);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkEbornPlugin.MODEL_EPERIODICAL);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkEbornPlugin.MODEL_EPERIODICAL, NdkPlugin.MODEL_PERIODICAL, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalVolumeToNdkPeriodicalVolume(
+    public ProArcResponse<ChangeModelProgress> changeNdkEPeriodicalVolumeToNdkPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkEbornPlugin.MODEL_EPERIODICALVOLUME, NdkPlugin.MODEL_PERIODICALVOLUME);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkEbornPlugin.MODEL_EPERIODICALVOLUME);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkEbornPlugin.MODEL_EPERIODICALVOLUME, NdkPlugin.MODEL_PERIODICALVOLUME, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalIssueToNdkPeriodicalIssue(
+    public ProArcResponse<ChangeModelProgress> changeNdkEPeriodicalIssueToNdkPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkPlugin.MODEL_PERIODICALISSUE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkEbornPlugin.MODEL_EPERIODICALISSUE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkPlugin.MODEL_PERIODICALISSUE, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_SUPPLEMENT_TO_NDK_PERIODICAL_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalSupplementToNdkPeriodicalSupplement(
+    public ProArcResponse<ChangeModelProgress> changeNdkEPeriodicalSupplementToNdkPeriodicalSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, NdkPlugin.MODEL_PERIODICALSUPPLEMENT);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, NdkPlugin.MODEL_PERIODICALSUPPLEMENT, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EARTICLE_TO_NDK_ARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEArticleToNdkArticle(
+    public ProArcResponse<ChangeModelProgress> changeNdkEArticleToNdkArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkEbornPlugin.MODEL_EARTICLE, NdkPlugin.MODEL_ARTICLE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkEbornPlugin.MODEL_EARTICLE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkEbornPlugin.MODEL_EARTICLE, NdkPlugin.MODEL_ARTICLE, true);
     }
 
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EARTICLE_TO_BDM_ARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEArticleToBdmArticle(
+    public ProArcResponse<ChangeModelProgress> changeNdkEArticleToBdmArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
-
-        checkPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL);
-
-        if (pids == null || pids.isEmpty()) {
-            return returnFunctionError(ERR_MISSING_PARAMETER, DigitalObjectResourceApi.DIGITALOBJECT_PID);
-        }
-        if (isLocked(pids)) {
-            return returnValidationError(ERR_IS_LOCKED);
-        }
-        for (String pid : pids) {
-            ChangeModels changeModels = new ChangeModels(appConfig, akubraConfiguration, pid, NdkEbornPlugin.MODEL_EARTICLE, BornDigitalModsPlugin.MODEL_ARTICLE);
-            changeModels.findObjects();
-
-            if (isLocked(changeModels.getPids())) {
-                return returnValidationError(ERR_IS_LOCKED);
-            }
-
-            String parentPid = changeModels.findRootObject();
-            ChangeModels.ChangeModelResult result = changeModels.changeModelsAndRepairMetadata(parentPid);
-            if (result != null) {
-                changeModels.changeModelBack(result.getPid(), NdkEbornPlugin.MODEL_EARTICLE);
-                return returnFunctionError(ERR_CHANGING_MODEL_FAILED, result.getEx());
-            }
-        }
-        return returnFunctionSuccess();
+        return changeModels(pids, NdkEbornPlugin.MODEL_EARTICLE, BornDigitalModsPlugin.MODEL_ARTICLE, true);
     }
 
 

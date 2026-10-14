@@ -8,7 +8,11 @@
  */
 package cz.cas.lib.proarc.common.process.export.sip;
 
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
+import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.mets.DivType;
 import cz.cas.lib.proarc.mets.FileType;
@@ -22,6 +26,69 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SipElementVisitorTest {
+
+    @Test
+    void printedPeriodicalIssueWithEArticleAndPageUsesCollectionType(
+            @Mocked IMetsElement issue,
+            @Mocked IMetsElement article,
+            @Mocked IMetsElement page
+    ) {
+        new Expectations() {{
+            issue.getChildren(); result = Arrays.asList(article, page);
+            issue.getModel(); result = NdkPlugin.MODEL_PERIODICALISSUE;
+            article.getModel(); result = "info:fedora/" + NdkEbornPlugin.MODEL_EARTICLE;
+            page.getElementType(); result = Const.PAGE;
+        }};
+
+        assertEquals("electronic_coll_journal", MetsElementVisitor.getPeriodicalType(issue));
+    }
+
+    @Test
+    void periodicalWithoutPrintedPageKeepsElectronicType(
+            @Mocked IMetsElement title,
+            @Mocked IMetsElement article
+    ) {
+        new Expectations() {{
+            title.getChildren(); result = Arrays.asList(article);
+            title.getModel(); result = NdkEbornPlugin.MODEL_EPERIODICALISSUE;
+        }};
+
+        assertEquals("electronic_periodical", MetsElementVisitor.getPeriodicalType(title));
+    }
+
+    @Test
+    void periodicalWithPageAndArticleUsesCollectionType(
+            @Mocked IMetsElement title,
+            @Mocked IMetsElement article,
+            @Mocked IMetsElement page
+    ) {
+        new Expectations() {{
+            title.getChildren(); result = Arrays.asList(article, page);
+            title.getModel(); result = NdkEbornPlugin.MODEL_EPERIODICALISSUE;
+            article.getModel(); result = NdkEbornPlugin.MODEL_EARTICLE;
+            page.getElementType(); result = Const.PAGE;
+        }};
+
+        assertEquals("electronic_coll_journal", MetsElementVisitor.getPeriodicalType(title));
+    }
+
+    @Test
+    void separateElectronicAndPrintedIssuesKeepTheirOwnTypes(
+            @Mocked IMetsElement electronicIssue,
+            @Mocked IMetsElement printedIssue,
+            @Mocked IMetsElement article,
+            @Mocked IMetsElement page
+    ) {
+        new Expectations() {{
+            electronicIssue.getChildren(); result = Arrays.asList(article);
+            electronicIssue.getModel(); result = NdkEbornPlugin.MODEL_EPERIODICALISSUE;
+            printedIssue.getChildren(); result = Arrays.asList(page);
+            page.getElementType(); result = Const.PAGE;
+        }};
+
+        assertEquals("electronic_periodical", MetsElementVisitor.getPeriodicalType(electronicIssue));
+        assertEquals("Periodical", MetsElementVisitor.getPeriodicalType(printedIssue));
+    }
 
     @Test
     void periodicalIssueWithSupplementsIncludesIssuePdf(

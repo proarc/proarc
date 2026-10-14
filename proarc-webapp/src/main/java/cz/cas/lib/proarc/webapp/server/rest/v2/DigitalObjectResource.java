@@ -34,6 +34,7 @@ import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
 import cz.cas.lib.proarc.webapp.server.rest.AnnotatedMetaModel;
 import cz.cas.lib.proarc.webapp.server.rest.LocalDateParam;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcRequest;
+import cz.cas.lib.proarc.webapp.server.rest.ChangeModelProgress;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
@@ -1675,7 +1676,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_NDK_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changePageToNdkPage(
+    public ProArcResponse<ChangeModelProgress> changePageToNdkPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -1702,7 +1703,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkPageToPage(
+    public ProArcResponse<ChangeModelProgress> changeNdkPageToPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -1728,7 +1729,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_PAGE_TO_STT_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changePageToSttPage(
+    public ProArcResponse<ChangeModelProgress> changePageToSttPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -1754,7 +1755,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeSttPageToPage(
+    public ProArcResponse<ChangeModelProgress> changeSttPageToPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -1780,7 +1781,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_PAGE_TO_NDK_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeSttPageToNdkPage(
+    public ProArcResponse<ChangeModelProgress> changeSttPageToNdkPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -1806,7 +1807,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PAGE_TO_STT_PAGE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkPageToSttPage(
+    public ProArcResponse<ChangeModelProgress> changeNdkPageToSttPage(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -1832,7 +1833,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_VOLUME_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeClippingsVolumeToNdkMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeClippingsVolumeToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -1858,7 +1859,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_CLIPPINGS_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToClippingsVolume(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographVolumeToClippingsVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -1884,7 +1885,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TITLE_TO_CLIPPINGS_TITLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographTitleToClippingsTitle(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographTitleToClippingsTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -1911,7 +1912,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_CLIPPINGS_TITLE_TO_NDK_MONOGRAPH_TITLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeClippingsTitleToNdkMonographTitle(
+    public ProArcResponse<ChangeModelProgress> changeClippingsTitleToNdkMonographTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -1937,7 +1938,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_TO_NDK_PERIODICAL)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeK4PeriodicalToNdkPeriodical(
+    public ProArcResponse<ChangeModelProgress> changeK4PeriodicalToNdkPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -1963,7 +1964,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeK4PeriodicalVolumeToNdkPeriodicalVolume(
+    public ProArcResponse<ChangeModelProgress> changeK4PeriodicalVolumeToNdkPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -1989,7 +1990,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_PERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeK4PeriodicalIssueToNdkPeriodicalIssue(
+    public ProArcResponse<ChangeModelProgress> changeK4PeriodicalIssueToNdkPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2015,7 +2016,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeK4MonographToNdkMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeK4MonographToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2041,7 +2042,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeK4MonographUnitToNdkMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeK4MonographUnitToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2067,7 +2068,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_K4_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeK4MonographUnitToNdkMonographUnit(
+    public ProArcResponse<ChangeModelProgress> changeK4MonographUnitToNdkMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2093,7 +2094,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TITLE_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographTitleToNdkMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographTitleToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2119,7 +2120,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_UNIT_TO_NDK_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographUnitToNdkMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographUnitToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2145,7 +2146,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_TITLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographTitle(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographVolumeToNdkMonographTitle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2171,7 +2172,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_VOLUME_TO_NDK_MONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToNdkMonographUnit(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographVolumeToNdkMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2197,7 +2198,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EMONOGRAPH_VOLUME_TO_NDK_EMONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEMonographVolumeToNdkEMonographUnit(
+    public ProArcResponse<ChangeModelProgress> changeNdkEMonographVolumeToNdkEMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2223,7 +2224,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EMONOGRAPH_UNIT_TO_NDK_EMONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEMonographUnitToNdkEMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeNdkEMonographUnitToNdkEMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2249,7 +2250,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MUSICSHEET_TO_STT_MUSICSHEET)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMusicsheetToOldprintMusicsheet(
+    public ProArcResponse<ChangeModelProgress> changeNdkMusicsheetToOldprintMusicsheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2275,7 +2276,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MUSICSHEET_TO_NDK_MUSICSHEET)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeSttMusicsheetToNdkMusicsheet(
+    public ProArcResponse<ChangeModelProgress> changeSttMusicsheetToNdkMusicsheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2302,7 +2303,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_CHAPTER_TO_STT_CHAPTER)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkChapterToOldprintChapter(
+    public ProArcResponse<ChangeModelProgress> changeNdkChapterToOldprintChapter(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2328,7 +2329,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_CHAPTER_TO_NDK_CHAPTER)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldprintChapterToNdkChapter(
+    public ProArcResponse<ChangeModelProgress> changeOldprintChapterToNdkChapter(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2354,7 +2355,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PICTURE_TO_STT_GRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkPictureToOldprintGraphic(
+    public ProArcResponse<ChangeModelProgress> changeNdkPictureToOldprintGraphic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2380,7 +2381,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_GRAPHIC_TO_NDK_PICTURE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldprintGraphicToNdkPicture(
+    public ProArcResponse<ChangeModelProgress> changeOldprintGraphicToNdkPicture(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2406,7 +2407,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_CARTOGRAPHIC_TO_STT_CARTOGRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkCartographicToOldprintCartographic(
+    public ProArcResponse<ChangeModelProgress> changeNdkCartographicToOldprintCartographic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2432,7 +2433,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_CARTOGRAPHIC_TO_NDK_CARTOGRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldprintCartographicToNdkCartographic(
+    public ProArcResponse<ChangeModelProgress> changeOldprintCartographicToNdkCartographic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2458,7 +2459,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_MONOGRAPH_TO_STT_MONOGRAPH)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographVolumeToOldprintMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographVolumeToOldprintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2484,7 +2485,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_VOLUME_TO_STT_MONOGRAPH_UNIT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldprintMonographVolumeToOldprintMonographUnit(
+    public ProArcResponse<ChangeModelProgress> changeOldprintMonographVolumeToOldprintMonographUnit(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2510,7 +2511,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_UNIT_TO_STT_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldprintMonographUnitToOldprintMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeOldprintMonographUnitToOldprintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2536,7 +2537,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_NDK_MONOGRAPH)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldPrintMonographVolumeToNdkMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeOldPrintMonographVolumeToNdkMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2562,7 +2563,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_SUPPLEMENT_TO_STT_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkMonographSupplementToOldPrintSupplement(
+    public ProArcResponse<ChangeModelProgress> changeNdkMonographSupplementToOldPrintSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2588,7 +2589,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_SUPPLEMENT_TO_NDK_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldPrintSupplementToNdkMonographSupplement(
+    public ProArcResponse<ChangeModelProgress> changeOldPrintSupplementToNdkMonographSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2614,7 +2615,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_STT_GRAPHIC)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintGraphic(
+    public ProArcResponse<ChangeModelProgress> changeOldPrintMonographVolumeToOldprintGraphic(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2640,7 +2641,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_GRAPHIC_TO_STT_MONOGRAPH_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldPrintGraphicToOldPrintMonographVolume(
+    public ProArcResponse<ChangeModelProgress> changeOldPrintGraphicToOldPrintMonographVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2666,7 +2667,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_STT_MONOGRAPH_TO_STT_MUSICSHEET)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeOldPrintMonographVolumeToOldprintMusicSheet(
+    public ProArcResponse<ChangeModelProgress> changeOldPrintMonographVolumeToOldprintMusicSheet(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CHANGE_MODEL)) {
@@ -2692,7 +2693,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_TO_NDK_EPERIODICAL)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkPeriodicalToNdkEPeriodical(
+    public ProArcResponse<ChangeModelProgress> changeNdkPeriodicalToNdkEPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
@@ -2719,7 +2720,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_VOLUME_TO_NDK_EPERIODICAL_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkPeriodicalVolumeToNdkEPeriodicalVolume(
+    public ProArcResponse<ChangeModelProgress> changeNdkPeriodicalVolumeToNdkEPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
@@ -2746,7 +2747,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_ISSUE_TO_NDK_EPERIODICAL_ISSUE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkPeriodicalIssueToNdkEPeriodicalIssue(
+    public ProArcResponse<ChangeModelProgress> changeNdkPeriodicalIssueToNdkEPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
@@ -2773,7 +2774,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_PERIODICAL_SUPPLEMENT_TO_NDK_EPERIODICAL_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkPeriodicalSupplementToNdkEPeriodicalSupplement(
+    public ProArcResponse<ChangeModelProgress> changeNdkPeriodicalSupplementToNdkEPeriodicalSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
@@ -2800,7 +2801,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_ARTICLE_TO_NDK_EARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkArticleToNdkEArticle(
+    public ProArcResponse<ChangeModelProgress> changeNdkArticleToNdkEArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
@@ -2827,7 +2828,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_BDM_ARTICLE_TO_NDK_EARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeBdmArticleToNdkEArticle(
+    public ProArcResponse<ChangeModelProgress> changeBdmArticleToNdkEArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
@@ -2854,7 +2855,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_TO_NDK_PERIODICAL)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalToNdkPeriodical(
+    public ProArcResponse<ChangeModelProgress> changeNdkEPeriodicalToNdkPeriodical(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
@@ -2881,7 +2882,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_VOLUME_TO_NDK_PERIODICAL_VOLUME)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalVolumeToNdkPeriodicalVolume(
+    public ProArcResponse<ChangeModelProgress> changeNdkEPeriodicalVolumeToNdkPeriodicalVolume(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
@@ -2908,7 +2909,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_ISSUE_TO_NDK_PERIODICAL_ISSUE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalIssueToNdkPeriodicalIssue(
+    public ProArcResponse<ChangeModelProgress> changeNdkEPeriodicalIssueToNdkPeriodicalIssue(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
@@ -2935,7 +2936,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EPERIODICAL_SUPPLEMENT_TO_NDK_PERIODICAL_SUPPLEMENT)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEPeriodicalSupplementToNdkPeriodicalSupplement(
+    public ProArcResponse<ChangeModelProgress> changeNdkEPeriodicalSupplementToNdkPeriodicalSupplement(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
@@ -2962,7 +2963,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EARTICLE_TO_NDK_ARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEArticleToNdkArticle(
+    public ProArcResponse<ChangeModelProgress> changeNdkEArticleToNdkArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
@@ -2989,7 +2990,7 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
     @POST
     @Path(DigitalObjectResourceApi.CHANGE_NDK_EARTICLE_TO_BDM_ARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<SearchViewItem> changeNdkEArticleToBdmArticle(
+    public ProArcResponse<ChangeModelProgress> changeNdkEArticleToBdmArticle(
             @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) List<String> pids
     ) throws DigitalObjectException {
 
