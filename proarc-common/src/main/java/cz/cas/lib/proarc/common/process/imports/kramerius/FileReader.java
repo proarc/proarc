@@ -392,7 +392,8 @@ public class FileReader {
                 NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALVOLUME,
                 OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_CONVOLUTTE,
                 NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_EPERIODICAL, NdkEbornPlugin.MODEL_EPERIODICALVOLUME,
-                NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH, NdkAudioPlugin.MODEL_SONG,
+                NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
+                NdkAudioPlugin.MODEL_AUDIO_DISC, NdkAudioPlugin.MODEL_DIGITAL_AUDIO, NdkAudioPlugin.MODEL_SONG,
                 ChroniclePlugin.MODEL_CHRONICLETITLE);
         return acceptableModels.contains(model);
     }
@@ -1089,7 +1090,8 @@ public class FileReader {
                     || OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(modelId) || OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId)
                     || OldPrintPlugin.MODEL_GRAPHICS.equals(modelId) || OldPrintPlugin.MODEL_CARTOGRAPHIC.equals(modelId) || OldPrintPlugin.MODEL_SHEETMUSIC.equals(modelId)
                     || NdkEbornPlugin.MODEL_EPERIODICAL.equals(modelId) || NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(modelId) || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(modelId)
-                    || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(modelId) || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(modelId)) {
+                    || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(modelId) || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(modelId)
+                    || NdkAudioPlugin.MODEL_AUDIO_DISC.equals(modelId) || NdkAudioPlugin.MODEL_DIGITAL_AUDIO.equals(modelId)) {
                 Batch batch = ctx.getBatch();
                 batch.setParentPid(localObject.getPid());
                 batch = iSession.getImportManager().update(batch);

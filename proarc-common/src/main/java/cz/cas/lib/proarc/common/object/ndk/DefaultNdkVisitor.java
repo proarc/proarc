@@ -86,7 +86,8 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
             return visitNdkEArticle(elm, p);
         } else if (NdkEbornPlugin.MODEL_ECHAPTER.equals(model)) {
             return visitNdkEChapter(elm, p);
-        } else if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(model) || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(model)) {
+        } else if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(model) || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(model)
+                || NdkAudioPlugin.MODEL_AUDIO_DISC.equals(model) || NdkAudioPlugin.MODEL_DIGITAL_AUDIO.equals(model)) {
             return visitNdkMusicDocument(elm, p);
         } else if (OldPrintPlugin.MODEL_PAGE.equals(model)) {
             return visitOldPrintPage(elm, p);

@@ -65,6 +65,8 @@ public class NdkMapperFactory {
         mappers.put(NdkPlugin.MODEL_GRAPHIC, NdkGraphicMapper::new);
         mappers.put(NdkPlugin.MODEL_SHEETMUSIC, NdkSheetMusicMapper::new);
         mappers.put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkSoundCollectionMapper::new);
+        mappers.put(NdkAudioPlugin.MODEL_AUDIO_DISC, NdkSoundCollectionMapper::new);
+        mappers.put(NdkAudioPlugin.MODEL_DIGITAL_AUDIO, NdkSoundCollectionMapper::new);
         mappers.put(NdkAudioPlugin.MODEL_PHONOGRAPH, NdkSoundPhonographMapper::new);
         mappers.put(NdkAudioPlugin.MODEL_SONG, NdkSoundRecordingMapper::new);
         mappers.put(NdkAudioPlugin.MODEL_TRACK, NdkSoundPartMapper::new);

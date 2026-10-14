@@ -166,6 +166,8 @@ public final class Kramerius4ExportOptions {
             put(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_TITLE, "model:convolute");
             put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, "model:soundrecording");
             put(NdkAudioPlugin.MODEL_PHONOGRAPH, "model:soundrecording");
+            put(NdkAudioPlugin.MODEL_AUDIO_DISC, "model:soundrecording");
+            put(NdkAudioPlugin.MODEL_DIGITAL_AUDIO, "model:soundrecording");
             put(NdkAudioPlugin.MODEL_SONG, "model:soundunit");
             put(NdkAudioPlugin.MODEL_TRACK, "model:track");
             put(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, "model:clippingcollection");

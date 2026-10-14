@@ -286,6 +286,8 @@ public abstract class NdkMapper {
                 put(OldPrintPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
 
                 put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, "model:soundrecording");
+                put(NdkAudioPlugin.MODEL_AUDIO_DISC, "model:soundrecording");
+                put(NdkAudioPlugin.MODEL_DIGITAL_AUDIO, "model:soundrecording");
                 put(NdkAudioPlugin.MODEL_PHONOGRAPH, "model:soundrecording");
 
                 put(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, "model:clippingcollection");

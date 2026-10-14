@@ -68,6 +68,8 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
     public static final String MODEL_TRACK = "model:ndktrack";
     public static final String MODEL_PAGE = "model:ndkaudiopage";
     public static final String MODEL_PHONOGRAPH = "model:ndkphonographcylinder";
+    public static final String MODEL_AUDIO_DISC = "model:ndkaudiodisc";
+    public static final String MODEL_DIGITAL_AUDIO = "model:ndkdigitalaudio";
 
     private SoundrecordingSearchViewHandler searchViewHandler;
 
@@ -83,6 +85,20 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
         models.add(new MetaModel(MODEL_PHONOGRAPH, true, null,
                 Arrays.asList(new ElementType("NDK Phonograph cylinder", "en"), new ElementType("NDK Fonografický váleček", "cs")),
                 ModsConstants.NS, MODEL_PHONOGRAPH, this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+        ));
+        models.add(new MetaModel(MODEL_AUDIO_DISC, true, null,
+                Arrays.asList(new ElementType("NDK Audio disc", "en"), new ElementType("NDK Zvukový disk", "cs")),
+                ModsConstants.NS, MODEL_AUDIO_DISC, this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
+                        DatastreamEditorType.ATM)
+        ));
+        models.add(new MetaModel(MODEL_DIGITAL_AUDIO, true, null,
+                Arrays.asList(new ElementType("NDK Digital audio", "en"), new ElementType("NDK Zvukový dokument bez nosiče", "cs")),
+                ModsConstants.NS, MODEL_DIGITAL_AUDIO, this,
                 EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
                         DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN,
                         DatastreamEditorType.ATM)
@@ -200,7 +216,9 @@ public class NdkAudioPlugin implements DigitalObjectPlugin, HasMetadataHandler<M
     }
 
     public static boolean isNdkAudioModel(String model) {
-        return MODEL_PAGE.equals(model) || MODEL_MUSICDOCUMENT.equals(model) || MODEL_PHONOGRAPH.equals(model) || MODEL_SONG.equals(model) || MODEL_TRACK.equals(model);
+        return MODEL_PAGE.equals(model) || MODEL_MUSICDOCUMENT.equals(model) || MODEL_PHONOGRAPH.equals(model)
+                || MODEL_AUDIO_DISC.equals(model) || MODEL_DIGITAL_AUDIO.equals(model)
+                || MODEL_SONG.equals(model) || MODEL_TRACK.equals(model);
     }
 
     private static class SoundrecordingSearchViewHandler implements SearchViewHandler {

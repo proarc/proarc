@@ -91,6 +91,8 @@ public class ArchiveObjectSelector {
                 || NdkEbornPlugin.MODEL_EPERIODICALISSUE.equals(modelId)
                 || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(modelId)
                 || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(modelId)
+                || NdkAudioPlugin.MODEL_AUDIO_DISC.equals(modelId)
+                || NdkAudioPlugin.MODEL_DIGITAL_AUDIO.equals(modelId)
         ) {
             if (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(modelId) && entryPath.size() > 1 && entryPath.get(1) != null &&
                     NdkPlugin.MODEL_MONOGRAPHTITLE.equals(entryPath.get(1).getModelId())) {

@@ -478,7 +478,9 @@ public class FileReader {
                 return NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT;
             } else if (NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(parentModel) || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(parentModel) || NdkEbornPlugin.MODEL_EMONOGRAPHUNIT.equals(parentModel)) {
                 return NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT;
-            } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parentModel) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentModel) || NdkAudioPlugin.MODEL_TRACK.equals(parentModel) || NdkAudioPlugin.MODEL_SONG.equals(parentModel)) {
+            } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parentModel) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentModel)
+                    || NdkAudioPlugin.MODEL_AUDIO_DISC.equals(parentModel) || NdkAudioPlugin.MODEL_DIGITAL_AUDIO.equals(parentModel)
+                    || NdkAudioPlugin.MODEL_TRACK.equals(parentModel) || NdkAudioPlugin.MODEL_SONG.equals(parentModel)) {
                 return NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT;
             } else if (OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(parentModel) || OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(parentModel) || OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(parentModel)) {
                 return OldPrintPlugin.MODEL_SUPPLEMENT;

@@ -218,6 +218,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                         new RelationCriteria(MODEL_MONOGRAPHUNIT, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_MUSICDOCUMENT, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_PHONOGRAPH, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_AUDIO_DISC, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_DIGITAL_AUDIO, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_GRAPHIC, RelationCriteria.Type.PID),
                         new RelationCriteria(MODEL_SHEETMUSIC, RelationCriteria.Type.PID)}
         ).setPriority(2));
@@ -286,6 +288,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                         new RelationCriteria(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_MUSICDOCUMENT, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_PHONOGRAPH, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_AUDIO_DISC, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_DIGITAL_AUDIO, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_SONG, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_TRACK, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkClippingPlugin.MODEL_CLIPPING_UNIT, RelationCriteria.Type.PID)
@@ -309,6 +313,8 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
                         new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_MUSICDOCUMENT, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_PHONOGRAPH, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_AUDIO_DISC, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_DIGITAL_AUDIO, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_SONG, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_TRACK, RelationCriteria.Type.PID),
                         new RelationCriteria(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID),

@@ -188,6 +188,9 @@ public class ArchiveObjectProcessor {
                         || (NdkPlugin.MODEL_MONOGRAPHVOLUME.equals(parentElm.getModelId()) && NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(elm.getModelId()))
                         || (NdkPlugin.MODEL_MONOGRAPHUNIT.equals(parentElm.getModelId()) && NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(elm.getModelId()))
                         || (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentElm.getModelId()))
+                        || (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parentElm.getModelId()))
+                        || (NdkAudioPlugin.MODEL_AUDIO_DISC.equals(parentElm.getModelId()))
+                        || (NdkAudioPlugin.MODEL_DIGITAL_AUDIO.equals(parentElm.getModelId()))
                         || (OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(elm.getModelId()))
                         || (OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(elm.getModelId()))))) {
                     checkUrnNbn(cache);

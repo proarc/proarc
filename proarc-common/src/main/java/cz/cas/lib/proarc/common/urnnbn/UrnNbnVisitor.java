@@ -106,6 +106,8 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             NdkEbornPlugin.MODEL_EPERIODICALVOLUME,
             NdkAudioPlugin.MODEL_MUSICDOCUMENT,
             NdkAudioPlugin.MODEL_PHONOGRAPH,
+            NdkAudioPlugin.MODEL_AUDIO_DISC,
+            NdkAudioPlugin.MODEL_DIGITAL_AUDIO,
             OldPrintPlugin.MODEL_MONOGRAPHVOLUME,
             OldPrintPlugin.MODEL_MONOGRAPHUNIT,
             OldPrintPlugin.MODEL_SUPPLEMENT,
@@ -323,7 +325,9 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                     || NdkPlugin.MODEL_MONOGRAPHUNIT.equals(registeringObject.getModelId())
                     || NdkPlugin.MODEL_SHEETMUSIC.equals(registeringObject.getModelId())
                     || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(registeringObject.getModelId())
-                    || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(registeringObject.getModelId()))) {
+                    || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(registeringObject.getModelId())
+                    || NdkAudioPlugin.MODEL_AUDIO_DISC.equals(registeringObject.getModelId())
+                    || NdkAudioPlugin.MODEL_DIGITAL_AUDIO.equals(registeringObject.getModelId()))) {
                 // supplement under monograph volume - ignore
                 // invalid hierarchy
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
