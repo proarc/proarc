@@ -524,7 +524,7 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
     }
 
     protected void insertPeriodical(IMetsElement metsElement) throws MetsExportException {
-        mets.setTYPE("electronic_coll_journal");
+        mets.setTYPE(getPeriodicalType(metsElement));
         DivType logicalDiv = new DivType();
         logicalStruct.setDiv(logicalDiv);
         DivType physicalDiv = new DivType();

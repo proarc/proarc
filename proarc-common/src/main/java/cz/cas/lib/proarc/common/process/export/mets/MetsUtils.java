@@ -807,37 +807,16 @@ public class MetsUtils {
         return output;
     }
 
-    private static void addModsIdentifiersRecursive(IMetsElement element, Info infoJaxb, String rootElementModel) throws MetsExportException {
-        Map<String, String> identifiers = element.getModsIdentifiers();
-        if (rootElementModel.contains(Const.NDK_EBORN_MODELS_IDENTIFIER)) {
-            addAllModsIdentifiersRecursive(Const.allowedNdkEbornIdentifiers, identifiers, infoJaxb);
+    private static void addRootModsIdentifiers(IMetsElement rootElement, Info infoJaxb) throws MetsExportException {
+        Map<String, String> identifiers = rootElement.getModsIdentifiers();
+        if (rootElement.getModel().contains(Const.NDK_EBORN_MODELS_IDENTIFIER)) {
+            addAllModsIdentifiers(Const.allowedNdkEbornIdentifiers, identifiers, infoJaxb);
         } else {
-            addAllModsIdentifiersRecursive(Const.allowedNdkIdentifiers, identifiers, infoJaxb);
-        }
-        /*for (String type : identifiers.keySet()) {
-            if (Const.allowedIdentifiers.contains(type)) {
-                boolean alreadyAdded = false;
-                for (Titleid titleId : infoJaxb.getTitleid()) {
-                    if ((titleId.getType().equals(type)) && (titleId.getValue().equals(identifiers.get(type)))) {
-                        alreadyAdded = true;
-                        break;
-                    }
-                }
-                if (!alreadyAdded) {
-                    Titleid titleId = new Titleid();
-                    titleId.setType(type);
-                    titleId.setValue(identifiers.get(type));
-                    infoJaxb.getTitleid().add(titleId);
-                }
-            }
-        }*/
-
-        for (IMetsElement child : element.getChildren()) {
-            addModsIdentifiersRecursive(child, infoJaxb, rootElementModel);
+            addAllModsIdentifiers(Const.allowedNdkIdentifiers, identifiers, infoJaxb);
         }
     }
 
-    private static void addAllModsIdentifiersRecursive(List<String> allowedIdentifiers, Map<String, String> identifiers, Info infoJaxb) {
+    private static void addAllModsIdentifiers(List<String> allowedIdentifiers, Map<String, String> identifiers, Info infoJaxb) {
         for (String type : identifiers.keySet()) {
             if (allowedIdentifiers.contains(type)) {
                 boolean alreadyAdded = false;
@@ -884,7 +863,7 @@ public class MetsUtils {
             checkSum.setValue(fileMd5Name);
             infoJaxb.setChecksum(checkSum);
         }
-        addModsIdentifiersRecursive(metsContext.getRootElement(), infoJaxb, metsContext.getRootElement().getModel());
+        addRootModsIdentifiers(metsContext.getRootElement(), infoJaxb);
         Validation validation = new Validation();
         validation.setValue("ProArc");
         validation.setVersion(getVersion(metsContext.getOptions().getVersion()));
