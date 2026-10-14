@@ -30,6 +30,7 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.ndk.ModsRules;
@@ -2621,6 +2622,16 @@ public class MetsElementVisitor implements IMetsElementVisitor {
         }
     }
 
+    private String getSoundCollectionType(IMetsElement packageElement) {
+        String model = ExportUtils.getModel(packageElement.getModel());
+        return switch (model) {
+            case NdkAudioPlugin.MODEL_PHONOGRAPH -> "audio cylinder";
+            case NdkAudioPlugin.MODEL_AUDIO_DISC -> "audio disc";
+            case NdkAudioPlugin.MODEL_DIGITAL_AUDIO -> "digital audio";
+            case null, default -> "sound recording";
+        };
+    }
+
     public static String getPeriodicalType(IMetsElement packageElement) {
         if (containsPrintedPage(packageElement) && containsEPeriodicalLeafModel(packageElement)) {
             return "electronic_coll_journal";
@@ -2837,7 +2848,7 @@ public class MetsElementVisitor implements IMetsElementVisitor {
     }
 
     private void insertSoundCollection(IMetsElement metsElement) throws MetsExportException {
-        mets.setTYPE("Sound recording");
+        mets.setTYPE(getSoundCollectionType(metsElement));
         addDmdSec(metsElement);
         DivType logicalDiv = new DivType();
         logicalStruct.setDiv(logicalDiv);
