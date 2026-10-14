@@ -79,16 +79,15 @@ public class GenericExternalProcessTest {
         confFile.createNewFile();
 
         File root = tempDir;
-        URL pdfaResource = TiffImporterTest.class.getResource("pdfa_test.pdf");
-        File pdfa = new File(root, "pdfa_test.pdf");
-        FileUtils.copyURLToFile(pdfaResource, pdfa);
+        URL imageResource = TiffImporterTest.class.getResource("testscan.jpg");
+        File image = new File(root, "testscan.jpg");
+        FileUtils.copyURLToFile(imageResource, image);
         FileUtils.writeLines(confFile, Arrays.asList(
-                "input.file.name=RESOLVED",
                 "exec=" + imageMagicExec,
 //                "arg=-verbose",
+                "arg=$${input.file}[0]",
                 "arg=-thumbnail",
                 "arg=120x128",
-                "arg=$${input.file}[0]",
                 "arg=-flatten",
                 "arg=$${output.file}",
                 "id=test"
@@ -101,8 +100,8 @@ public class GenericExternalProcessTest {
 
         PropertiesConfiguration conf = builder.getConfiguration();
         GenericExternalProcess gep = new GenericExternalProcess(conf);
-        gep.addInputFile(pdfa);
-        File output = new File(root, "pdfa.jpg");
+        gep.addInputFile(image);
+        File output = new File(root, "testscan-thumbnail.jpg");
         gep.addOutputFile(output);
         gep.run();
 //        System.out.printf("#exit: %s, out: %s\nresults: %s\n",
@@ -122,20 +121,19 @@ public class GenericExternalProcessTest {
         File confFile = new File(tempDir, "props.cfg");
         confFile.createNewFile();
         File root = tempDir;
-        URL pdfaResource = TiffImporterTest.class.getResource("pdfa_test.pdf");
-        File pdfa = new File(root, "pdfa_test.pdf");
-        FileUtils.copyURLToFile(pdfaResource, pdfa);
+        URL imageResource = TiffImporterTest.class.getResource("testscan.jpg");
+        File image = new File(root, "testscan.jpg");
+        FileUtils.copyURLToFile(imageResource, image);
         FileUtils.writeLines(confFile, Arrays.asList(
-                "input.file.name=RESOLVED",
                 "exec=" + imageMagicExec,
+                "arg=$${input.file}[0]",
                 "arg=-thumbnail",
                 "arg=120x128",
-                "arg=$${input.file}[0]",
                 "arg=-flatten",
-                "arg=$${input.folder}/$${input.file.name}.jpg",
-                "result.file=$${input.folder}/$${input.file.name}.jpg",
+                "arg=$${input.folder}/$${input.file.name}-thumbnail.jpg",
+                "result.file=$${input.folder}/$${input.file.name}-thumbnail.jpg",
                 "onExits=0",
-                "onExit.0.param.output.file=$${input.folder}/$${input.file.name}.jpg",
+                "onExit.0.param.output.file=$${input.folder}/$${input.file.name}-thumbnail.jpg",
                 "id=test"
         ));
         Parameters params = new Parameters();
@@ -146,7 +144,7 @@ public class GenericExternalProcessTest {
 
         PropertiesConfiguration conf = builder.getConfiguration();
         GenericExternalProcess gep = new GenericExternalProcess(conf);
-        gep.addInputFile(pdfa);
+        gep.addInputFile(image);
         gep.run();
 //        System.out.printf("#exit: %s, out: %s\nresults: %s\n",
 //                gep.getExitCode(), gep.getFullOutput(), gep.getResultParameters());
@@ -162,15 +160,14 @@ public class GenericExternalProcessTest {
         String imageMagicExec = findImageMagickConvert();
         assumeTrue(imageMagicExec != null, "ImageMagick convert is not available.");
         File confFile = new File(tempDir, "props.cfg");
-        tempDir.createNewFile();
         File root = tempDir;
-        File pdfa = new File(root, "pdfa_test.pdf");
+        File missingImage = new File(root, "missing.jpg");
         FileUtils.writeLines(confFile, Arrays.asList(
                 "input.file.name=RESOLVED",
                 "exec=" + imageMagicExec,
+                "arg=$${input.file}[0]",
                 "arg=-thumbnail",
                 "arg=120x128",
-                "arg=$${input.file}[0]",
                 "arg=-flatten",
                 "arg=$${input.folder}/$${input.file.name}.jpg",
                 "onExits=0",
@@ -185,7 +182,7 @@ public class GenericExternalProcessTest {
 
         PropertiesConfiguration conf = builder.getConfiguration();
         GenericExternalProcess gep = new GenericExternalProcess(conf);
-        gep.addInputFile(pdfa);
+        gep.addInputFile(missingImage);
         gep.run();
 //        System.out.printf("#exit: %s, out: %s\nresults: %s\n",
 //                gep.getExitCode(), gep.getFullOutput(), gep.getResultParameters());

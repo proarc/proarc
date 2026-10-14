@@ -1880,40 +1880,6 @@
         }
       }
     },
-    "/indexer/object": {
-      "post": {
-        "tags": [
-          "Indexer"
-        ],
-        "operationId": "indexDocument",
-        "requestBody": {
-          "content": {
-            "*/*": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "pid": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/response"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/indexer/parents": {
       "post": {
         "tags": [

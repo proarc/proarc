@@ -191,16 +191,16 @@ public class MetsUtilsTest {
         assertPackageVersion(2.0f,
                 NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALVOLUME,
                 NdkPlugin.MODEL_PERIODICALISSUE, NdkPlugin.MODEL_PERIODICALSUPPLEMENT,
-                NdkPlugin.MODEL_ARTICLE,
-                NdkEbornPlugin.MODEL_EPERIODICAL, NdkEbornPlugin.MODEL_EPERIODICALVOLUME,
+                NdkPlugin.MODEL_ARTICLE);
+        assertPackageVersion(2.4f, NdkEbornPlugin.MODEL_EPERIODICAL, NdkEbornPlugin.MODEL_EPERIODICALVOLUME,
                 NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT,
                 NdkEbornPlugin.MODEL_EARTICLE);
         assertPackageVersion(2.1f,
                 NdkPlugin.MODEL_MONOGRAPHTITLE, NdkPlugin.MODEL_MONOGRAPHUNIT,
                 NdkPlugin.MODEL_MONOGRAPHVOLUME, NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT,
                 NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_GRAPHIC,
-                NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE,
-                OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_MONOGRAPHUNIT,
+                NdkPlugin.MODEL_SHEETMUSIC, NdkPlugin.MODEL_CHAPTER, NdkPlugin.MODEL_PICTURE);
+        assertPackageVersion(1.0f, OldPrintPlugin.MODEL_MONOGRAPHTITLE, OldPrintPlugin.MODEL_MONOGRAPHUNIT,
                 OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_SUPPLEMENT,
                 OldPrintPlugin.MODEL_PAGE, OldPrintPlugin.MODEL_CHAPTER,
                 OldPrintPlugin.MODEL_CONVOLUTTE, OldPrintPlugin.MODEL_GRAPHICS,
@@ -213,7 +213,7 @@ public class MetsUtilsTest {
                 NdkEbornPlugin.MODEL_EMONOGRAPHTITLE, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT,
                 NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT,
                 NdkEbornPlugin.MODEL_ECHAPTER);
-        assertEquals(2.1f, MetsContext.getPackageVersion(Const.FEDORAPREFIX + OldPrintPlugin.MODEL_MONOGRAPHVOLUME));
+        assertEquals(1.0f, MetsContext.getPackageVersion(Const.FEDORAPREFIX + OldPrintPlugin.MODEL_MONOGRAPHVOLUME));
         assertEquals(0.0f, MetsContext.getPackageVersion("model:unsupported"));
         assertEquals(0.0f, MetsContext.getPackageVersion(NdkPlugin.MODEL_PAGE));
         assertEquals(0.0f, MetsContext.getPackageVersion(null));
@@ -236,7 +236,7 @@ public class MetsUtilsTest {
 
         MetsContext context = MetsContext.buildAkubraContext(object, null, tempDir, null, null);
 
-        assertEquals(2.0f, context.getPackageVersion().orElseThrow());
+        assertEquals(2.4f, context.getPackageVersion().orElseThrow());
     }
 
     /**
