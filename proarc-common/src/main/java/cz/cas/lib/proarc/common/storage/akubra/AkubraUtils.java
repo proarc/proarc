@@ -382,7 +382,7 @@ public class AkubraUtils {
     }
 
     public static void print(Element elm, Writer out) throws TransformerException {
-        TransformerFactory tFactory = TransformerFactory.newInstance();
+        TransformerFactory tFactory = TransformerFactory.newDefaultInstance();
         Transformer transformer = tFactory.newTransformer();
 
         DOMSource source = new DOMSource(elm);

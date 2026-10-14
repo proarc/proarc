@@ -29,6 +29,7 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.dublincore.DcUtils;
 import cz.cas.lib.proarc.common.image.ImageMimeType;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.mods.Mods38Converter;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -130,6 +131,7 @@ public class FileReader {
     private final File targetFolder;
     private final ImportSession iSession;
     private final AppConfiguration configuration;
+    private File metsFile;
     private Mets mets;
     private String pkgModelId;
     private boolean singleVolumeMonograph = false;
@@ -158,6 +160,7 @@ public class FileReader {
     }
 
     private void readImpl(File metsFile, ImportOptions ctx) {
+        this.metsFile = metsFile;
         this.rootFolder = metsFile.getParentFile();
         setPackageType();
         this.mets = JAXB.unmarshal(metsFile, Mets.class);
@@ -475,7 +478,9 @@ public class FileReader {
                 return NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT;
             } else if (NdkEbornPlugin.MODEL_EMONOGRAPHTITLE.equals(parentModel) || NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME.equals(parentModel) || NdkEbornPlugin.MODEL_EMONOGRAPHUNIT.equals(parentModel)) {
                 return NdkEbornPlugin.MODEL_EMONOGRAPHSUPPLEMENT;
-            } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parentModel) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentModel) || NdkAudioPlugin.MODEL_TRACK.equals(parentModel) || NdkAudioPlugin.MODEL_SONG.equals(parentModel)) {
+            } else if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(parentModel) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(parentModel)
+                    || NdkAudioPlugin.MODEL_AUDIO_DISC.equals(parentModel) || NdkAudioPlugin.MODEL_DIGITAL_AUDIO.equals(parentModel)
+                    || NdkAudioPlugin.MODEL_TRACK.equals(parentModel) || NdkAudioPlugin.MODEL_SONG.equals(parentModel)) {
                 return NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT;
             } else if (OldPrintPlugin.MODEL_MONOGRAPHTITLE.equals(parentModel) || OldPrintPlugin.MODEL_MONOGRAPHVOLUME.equals(parentModel) || OldPrintPlugin.MODEL_MONOGRAPHUNIT.equals(parentModel)) {
                 return OldPrintPlugin.MODEL_SUPPLEMENT;
@@ -1121,7 +1126,9 @@ public class FileReader {
                 MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
                 MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, localObject);
+        convertImportedMods(mods, localObject);
         mapper.createMods(mods, context);
+        validateImportedMods(mods, localObject);
         modsStreamEditor.write(mods, modsStreamEditor.getLastModified() < 0 ? 0 : modsStreamEditor.getLastModified(), null);
 
         OaiDcType dc = mapper.toDc(mods, context);
@@ -1176,7 +1183,9 @@ public class FileReader {
                 MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
                 MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
         ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, localObject);
+        convertImportedMods(mods, localObject);
         mapper.createMods(mods, context);
+        validateImportedMods(mods, localObject);
         modsStreamEditor.write(mods, modsStreamEditor.getLastModified() < 0 ? 0 : modsStreamEditor.getLastModified(), null);
 
         OaiDcType dc = mapper.toDc(mods, context);
@@ -1186,6 +1195,35 @@ public class FileReader {
         dcEditor.write(dobjHandler, dublinCoreRecord, null);
 
         localObject.setLabel(label == null ? mapper.toLabel(mods) : label);
+    }
+
+    private void convertImportedMods(ModsDefinition mods, LocalStorage.LocalObject localObject)
+            throws DigitalObjectException {
+        try {
+            Mods38Converter.convertAndValidate(mods, localObject.getModel());
+        } catch (Mods38Converter.ConversionException ex) {
+            throw modsConversionException(localObject, ex);
+        }
+    }
+
+    private void validateImportedMods(ModsDefinition mods, LocalStorage.LocalObject localObject)
+            throws DigitalObjectException {
+        try {
+            Mods38Converter.validate(mods);
+        } catch (Mods38Converter.ConversionException ex) {
+            throw modsConversionException(localObject, ex);
+        }
+    }
+
+    private DigitalObjectException modsConversionException(
+            LocalStorage.LocalObject localObject, Mods38Converter.ConversionException ex) {
+        File file = metsFile == null ? localObject.getFoxml() : metsFile;
+        String path = file == null ? "<unknown>" : file.getAbsolutePath();
+        String detail = "path=" + path
+                + ", model=" + String.valueOf(localObject.getModel())
+                + ", reason=" + ex.getMessage();
+        return new DigitalObjectException(localObject.getPid(), null,
+                ModsStreamEditor.DATASTREAM_ID, detail, ex);
     }
 
     private void createPageRelsExt(DigitalObjectHandler dobjHandler, String model, ImportOptions ctx) throws DigitalObjectException {

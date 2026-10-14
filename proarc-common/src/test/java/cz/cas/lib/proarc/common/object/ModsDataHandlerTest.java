@@ -19,10 +19,15 @@ package cz.cas.lib.proarc.common.object;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NameDefinition;
+import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.RecordInfoDefinition;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -81,6 +86,58 @@ public class ModsDataHandlerTest {
         assertEquals(List.of(
                 NdkAudioPlugin.MODEL_SONG,
                 NdkAudioPlugin.MODEL_MUSICDOCUMENT), handler.getSearchedModels());
+    }
+
+    @Test
+    public void clippingChildrenInheritSelectedMetadataFromDirectParent() throws Exception {
+        for (String parentModel : List.of(
+                NdkClippingPlugin.MODEL_CLIPPING_COLLECTION,
+                NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY)) {
+            for (String childModel : List.of(
+                    NdkClippingPlugin.MODEL_CLIPPING_UNIT,
+                    NdkClippingPlugin.MODEL_CLIPPING_INDEX,
+                    NdkClippingPlugin.MODEL_CARD_INDEX)) {
+                ModsDefinition parentMods = new ModsDefinition();
+                TitleInfoDefinition title = new TitleInfoDefinition();
+                NameDefinition name = new NameDefinition();
+                OriginInfoDefinition origin = new OriginInfoDefinition();
+                parentMods.getTitleInfo().add(title);
+                parentMods.getName().add(name);
+                parentMods.getOriginInfo().add(origin);
+                RecordInfoDefinition record = new RecordInfoDefinition();
+                StringPlusLanguagePlusAuthority standard = new StringPlusLanguagePlusAuthority();
+                standard.setValue("aacr");
+                record.getDescriptionStandard().add(standard);
+                parentMods.getRecordInfo().add(record);
+
+                TestModsDataHandler handler = createHandler();
+                handler.add(parentModel, parentMods);
+                ModsDefinition child = handler.createDefaultMetadata(
+                        "uuid:child", childModel, null, new Job().addModel(parentModel));
+
+                assertSame(title, child.getTitleInfo().get(0));
+                assertSame(name, child.getName().get(0));
+                assertSame(origin, child.getOriginInfo().get(0));
+                assertEquals("aacr", child.getRecordInfo().get(0).getDescriptionStandard().get(0).getValue());
+                assertEquals(List.of(parentModel), handler.getSearchedModels());
+            }
+        }
+    }
+
+    @Test
+    public void clippingDirectoryInheritsFromCollection() throws Exception {
+        ModsDefinition collection = new ModsDefinition();
+        TitleInfoDefinition title = new TitleInfoDefinition();
+        collection.getTitleInfo().add(title);
+        TestModsDataHandler handler = createHandler();
+        handler.add(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, collection);
+
+        ModsDefinition directory = handler.createDefaultMetadata(
+                "uuid:directory", NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, null,
+                new Job().addModel(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION));
+
+        assertSame(title, directory.getTitleInfo().get(0));
+        assertEquals(List.of(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION), handler.getSearchedModels());
     }
 
     private TestModsDataHandler createHandler() throws Exception {

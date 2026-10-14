@@ -53,6 +53,8 @@ public class NdkClippingPlugin implements DigitalObjectPlugin, HasMetadataHandle
     public static final String MODEL_CLIPPING_COLLECTION = "model:ndkclippingcollection";
     public static final String MODEL_CLIPPING_DIRECTORY = "model:ndkclippingdirectory";
     public static final String MODEL_CLIPPING_UNIT = "model:ndkclippingunit";
+    public static final String MODEL_CLIPPING_INDEX = "model:ndkclippingindex";
+    public static final String MODEL_CARD_INDEX = "model:ndkcardindex";
     public static final String MODEL_PAGE = "model:ndkpage";
 
     private NdkPlugin.NdkSearchViewHandler searchViewHandler;
@@ -64,7 +66,6 @@ public class NdkClippingPlugin implements DigitalObjectPlugin, HasMetadataHandle
 
     @Override
     public Collection<MetaModel> getModel() {
-        // for now it is read only repository
         List<MetaModel> models = new ArrayList<>();
         models.add(new MetaModel(MODEL_CLIPPING_COLLECTION, true, null,
                 Arrays.asList(new ElementType("NDK Clipping collection", "en"), new ElementType("NDK Soubor výstřižků", "cs")),
@@ -91,6 +92,26 @@ public class NdkClippingPlugin implements DigitalObjectPlugin, HasMetadataHandle
                         new RelationCriteria(MODEL_CLIPPING_COLLECTION, RelationCriteria.Type.PID)
                 }
         ));
+        models.add(new MetaModel(MODEL_CLIPPING_INDEX, null, null,
+                Arrays.asList(new ElementType("NDK Clipping index", "en"), new ElementType("NDK Soubor výstřižků", "cs")),
+                ModsConstants.NS, MODEL_CLIPPING_INDEX, this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[]{
+                        new RelationCriteria(MODEL_CLIPPING_DIRECTORY, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_CLIPPING_COLLECTION, RelationCriteria.Type.PID)
+                }
+        ));
+        models.add(new MetaModel(MODEL_CARD_INDEX, null, null,
+                Arrays.asList(new ElementType("NDK Card index", "en"), new ElementType("NDK Soubor kartotéčních lístků", "cs")),
+                ModsConstants.NS, MODEL_CARD_INDEX, this,
+                EnumSet.of(DatastreamEditorType.MODS, DatastreamEditorType.NOTE,
+                        DatastreamEditorType.PARENT, DatastreamEditorType.CHILDREN, DatastreamEditorType.ATM),
+                new RelationCriteria[]{
+                        new RelationCriteria(MODEL_CLIPPING_DIRECTORY, RelationCriteria.Type.PID),
+                        new RelationCriteria(MODEL_CLIPPING_COLLECTION, RelationCriteria.Type.PID)
+                }
+        ));
         models.add(new MetaModel(
                 MODEL_PAGE, null, true,
                 Arrays.asList(new ElementType("NDK Page", "en"), new ElementType("NDK Strana", "cs")),
@@ -110,9 +131,13 @@ public class NdkClippingPlugin implements DigitalObjectPlugin, HasMetadataHandle
                         new RelationCriteria(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_MUSICDOCUMENT, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_PHONOGRAPH, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_AUDIO_DISC, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_DIGITAL_AUDIO, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_SONG, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_TRACK, RelationCriteria.Type.PID),
-                        new RelationCriteria(NdkClippingPlugin.MODEL_CLIPPING_UNIT, RelationCriteria.Type.PID)
+                        new RelationCriteria(NdkClippingPlugin.MODEL_CLIPPING_UNIT, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkClippingPlugin.MODEL_CLIPPING_INDEX, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkClippingPlugin.MODEL_CARD_INDEX, RelationCriteria.Type.PID)
                 }).setPriority(2)
         );
 

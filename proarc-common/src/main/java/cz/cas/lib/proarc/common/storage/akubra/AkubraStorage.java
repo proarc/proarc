@@ -81,6 +81,7 @@ import static cz.cas.lib.proarc.common.storage.akubra.AkubraUtils.toXmlGregorian
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.VALIDATION_STATUS_ERROR;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.VALIDATION_STATUS_OK;
 import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.VALIDATION_STATUS_UNKNOWN;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.VALIDATION_STATUS_WARNING;
 
 
 public class AkubraStorage {
@@ -248,7 +249,7 @@ public class AkubraStorage {
                         Element element = datastreamVersion.getXmlContent().getAny().get(0);
                         StringWriter output = new StringWriter();
 
-                        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+                        Transformer transformer = TransformerFactory.newDefaultInstance().newTransformer();
                         transformer.transform(new DOMSource(element), new StreamResult(output));
 
                         String elementValue = output.toString();
@@ -371,6 +372,9 @@ public class AkubraStorage {
                 break;
             case INTERNAL_FAILED:
                 batchState = VALIDATION_STATUS_ERROR;
+                break;
+            case INTERNAL_WARNING:
+                batchState = VALIDATION_STATUS_WARNING;
                 break;
             default:
                 batchState = VALIDATION_STATUS_UNKNOWN;
@@ -1029,7 +1033,7 @@ public class AkubraStorage {
                                     Source xmlSource = new DOMSource(node);
                                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                                     Result outputTarget = new StreamResult(outputStream);
-                                    TransformerFactory.newInstance().newTransformer().transform(xmlSource, outputTarget);
+                                    TransformerFactory.newDefaultInstance().newTransformer().transform(xmlSource, outputTarget);
                                     this.data = new AkubraXmlStreamEditor.DatastreamContent(outputStream.toByteArray());
                                     break;
                                 }

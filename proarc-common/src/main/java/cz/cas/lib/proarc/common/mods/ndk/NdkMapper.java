@@ -27,21 +27,45 @@ import cz.cas.lib.proarc.common.object.emods.BornDigitalModsMapperFactory;
 import cz.cas.lib.proarc.common.object.graphic.GraphicMapperFactory;
 import cz.cas.lib.proarc.common.object.graphic.GraphicPlugin;
 import cz.cas.lib.proarc.common.object.k4.K4MapperFactory;
-import cz.cas.lib.proarc.common.object.ndk.*;
+import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler;
 import cz.cas.lib.proarc.common.object.ndk.NdkMetadataHandler.ModsWrapper;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintMapperFactory;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.mods.*;
+import cz.cas.lib.proarc.mods.ClassificationDefinition;
+import cz.cas.lib.proarc.mods.DetailDefinition;
+import cz.cas.lib.proarc.mods.ExtentDefinition;
+import cz.cas.lib.proarc.mods.GenreDefinition;
+import cz.cas.lib.proarc.mods.IdentifierDefinition;
+import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.NoteDefinition;
+import cz.cas.lib.proarc.mods.PartDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionDefinition;
+import cz.cas.lib.proarc.mods.PhysicalDescriptionNote;
+import cz.cas.lib.proarc.mods.StringPlusLanguage;
+import cz.cas.lib.proarc.mods.TitleInfoDefinition;
+import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
+import cz.cas.lib.proarc.mods.Yes;
 import cz.cas.lib.proarc.oaidublincore.ElementType;
 import cz.cas.lib.proarc.oaidublincore.OaiDcType;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.apache.empire.commons.StringUtils;
 
-import java.io.IOException;
-import java.util.*;
-
-import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.*;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.addPid;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.createTitleString;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillLocation;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.fillRecordInfo;
+import static cz.cas.lib.proarc.common.mods.ndk.MapperUtils.toValue;
 
 /**
  * Subclass to implement transformations of MODS data in NDK flavor
@@ -77,7 +101,7 @@ public abstract class NdkMapper {
             mapper = ndkMapperFactory.get(modelId);
         } else if (isChronicleModel(modelId)) {
             mapper = chronicleMapperFactory.get(modelId);
-        } else if (isClippingsModel(modelId)) {
+        } else if (isClippingModel(modelId)) {
             mapper = clippingMapperFactory.get(modelId);
         } else if (isGraphicModel(modelId)) {
             mapper = graphicMapperFactory.get(modelId);
@@ -96,8 +120,12 @@ public abstract class NdkMapper {
         return modelId != null && modelId.contains("bdmarticle");
     }
 
-    private static boolean isClippingsModel(String modelId) {
-        return modelId != null && modelId.contains("clipping");
+    public static boolean isClippingModel(String modelId) {
+        return modelId != null && (NdkClippingPlugin.MODEL_CLIPPING_COLLECTION.equals(modelId)
+                    || NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY.equals(modelId)
+                    || NdkClippingPlugin.MODEL_CLIPPING_UNIT.equals(modelId)
+                    || NdkClippingPlugin.MODEL_CLIPPING_INDEX.equals(modelId)
+                    || NdkClippingPlugin.MODEL_CARD_INDEX.equals(modelId));
     }
 
     private static boolean isGraphicModel(String modelId) {
@@ -157,7 +185,7 @@ public abstract class NdkMapper {
         String uuid = FoxmlUtils.pidAsUuid(pid);
         for (IdentifierDefinition id : mods.getIdentifier()) {
             if ("uuid".equals(id.getType()) && !uuid.equals(id.getValue())) {
-                id.setInvalid("yes");
+                id.setInvalid(Yes.YES);
             }
         }
     }
@@ -200,7 +228,7 @@ public abstract class NdkMapper {
         OaiDcType dc = new OaiDcType();
         List<ElementType> identifiers = dc.getIdentifiers();
         for (IdentifierDefinition identifier : mods.getIdentifier()) {
-            if (identifier.getInvalid() == null || "false".equals(identifier.getInvalid())) {
+            if (identifier.getInvalid() == null) {
                 String idVal = toValue(identifier.getValue());
                 if (idVal == null) {
                     continue;
@@ -286,11 +314,15 @@ public abstract class NdkMapper {
                 put(OldPrintPlugin.MODEL_SHEETMUSIC, "model:sheetmusic");
 
                 put(NdkAudioPlugin.MODEL_MUSICDOCUMENT, "model:soundrecording");
+                put(NdkAudioPlugin.MODEL_AUDIO_DISC, "model:soundrecording");
+                put(NdkAudioPlugin.MODEL_DIGITAL_AUDIO, "model:soundrecording");
                 put(NdkAudioPlugin.MODEL_PHONOGRAPH, "model:soundrecording");
 
-                put(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, "model:clippingcollection");
-                put(NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, "model:obálka");
-                put(NdkClippingPlugin.MODEL_CLIPPING_UNIT, "model:clipping");
+                put(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION, "model:unitcollection");
+                put(NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY, "model:collection");
+                put(NdkClippingPlugin.MODEL_CLIPPING_UNIT, "model:unit");
+                put(NdkClippingPlugin.MODEL_CLIPPING_INDEX, "model:unit");
+                put(NdkClippingPlugin.MODEL_CARD_INDEX, "model:unit");
 
                 put(OldPrintPlugin.MODEL_CONVOLUTTE, "model:convolutte");
             }

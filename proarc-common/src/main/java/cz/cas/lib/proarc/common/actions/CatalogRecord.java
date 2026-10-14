@@ -18,6 +18,7 @@
 package cz.cas.lib.proarc.common.actions;
 
 import cz.cas.lib.proarc.common.catalog.updateCatalog.AlephXmlUpdateCatalog;
+import cz.cas.lib.proarc.common.catalog.updateCatalog.CatalogUpdateResult;
 import cz.cas.lib.proarc.common.catalog.updateCatalog.UpdateCatalog;
 import cz.cas.lib.proarc.common.catalog.updateCatalog.VerbisUpdateCatalog;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -47,7 +48,12 @@ public class CatalogRecord {
 
 
     public boolean update(String catalogId, String pid) throws DigitalObjectException, IOException {
+        updateWithResult(catalogId, pid);
+        return true;
+    }
 
+    public CatalogUpdateResult updateWithResult(String catalogId, String pid)
+            throws DigitalObjectException, IOException {
         String field001 = UpdateCatalog.getObjectField001(pid);
         if (field001 == null || field001.isEmpty()) {
             throw new DigitalObjectException(pid, "Missing field 001");
@@ -65,7 +71,12 @@ public class CatalogRecord {
                 LOG.severe("Unsupported updateType for catalog configuration id " + catalogId);
                 throw new IOException("Unsupported updateType for catalog configuration id " + catalogId);
             }
-            return updateCatalog.process(bCatalog, field001, pid);
+            if (!updateCatalog.process(bCatalog, field001, pid)) {
+                throw new IOException("Zápis do katalogu nebyl potvrzen.");
+            }
+            var result = updateCatalog.getResult();
+            return new CatalogUpdateResult(result.warning(),
+                    "Identifikátor: " + field001 + "\n" + result.message());
         } else {
             LOG.severe("No catalog configuration for id " + catalogId);
             throw new IOException("No catalog configuration for id " + catalogId);

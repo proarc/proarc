@@ -43,6 +43,7 @@ import cz.cas.lib.proarc.mix.Mix;
 import cz.cas.lib.proarc.mix.MixType;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
+import cz.cas.lib.proarc.mods.Yes;
 import cz.cas.lib.proarc.urnnbn.NdkEntityFactory;
 import cz.cas.lib.proarc.urnnbn.ResolverClient;
 import cz.cas.lib.proarc.urnnbn.ResolverUtils;
@@ -105,13 +106,17 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
             NdkEbornPlugin.MODEL_EPERIODICALVOLUME,
             NdkAudioPlugin.MODEL_MUSICDOCUMENT,
             NdkAudioPlugin.MODEL_PHONOGRAPH,
+            NdkAudioPlugin.MODEL_AUDIO_DISC,
+            NdkAudioPlugin.MODEL_DIGITAL_AUDIO,
             OldPrintPlugin.MODEL_MONOGRAPHVOLUME,
             OldPrintPlugin.MODEL_MONOGRAPHUNIT,
             OldPrintPlugin.MODEL_SUPPLEMENT,
             OldPrintPlugin.MODEL_CARTOGRAPHIC,
             OldPrintPlugin.MODEL_SHEETMUSIC,
             OldPrintPlugin.MODEL_GRAPHICS,
-            NdkClippingPlugin.MODEL_CLIPPING_UNIT
+            NdkClippingPlugin.MODEL_CLIPPING_UNIT,
+            NdkClippingPlugin.MODEL_CLIPPING_INDEX,
+            NdkClippingPlugin.MODEL_CARD_INDEX
     ));
     private static final Logger LOG = Logger.getLogger(UrnNbnVisitor.class.getName());
 
@@ -322,7 +327,9 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
                     || NdkPlugin.MODEL_MONOGRAPHUNIT.equals(registeringObject.getModelId())
                     || NdkPlugin.MODEL_SHEETMUSIC.equals(registeringObject.getModelId())
                     || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(registeringObject.getModelId())
-                    || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(registeringObject.getModelId()))) {
+                    || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(registeringObject.getModelId())
+                    || NdkAudioPlugin.MODEL_AUDIO_DISC.equals(registeringObject.getModelId())
+                    || NdkAudioPlugin.MODEL_DIGITAL_AUDIO.equals(registeringObject.getModelId()))) {
                 // supplement under monograph volume - ignore
                 // invalid hierarchy
                 p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
@@ -399,6 +406,20 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
     @Override
     public Void visitNdkClippingUnit(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        return registerClippingUnit(elm, p, "clipping");
+    }
+
+    @Override
+    public Void visitNdkClippingIndex(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        return registerClippingUnit(elm, p, "clippingIndex");
+    }
+
+    @Override
+    public Void visitNdkCardIndex(DigitalObjectElement elm, UrnNbnContext p) throws VisitorException {
+        return registerClippingUnit(elm, p, "cardIndex");
+    }
+
+    private Void registerClippingUnit(DigitalObjectElement elm, UrnNbnContext p, String entityType) throws VisitorException {
         if (registeringObject != null) {
             // invalid hierarchy
             p.getStatus().error(elm, Status.UNEXPECTED_PARENT,
@@ -407,7 +428,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         }
         try {
             registeringObject = elm;
-            return processOtherEntity(elm, "clipping", p, null);
+            return processOtherEntity(elm, entityType, p, null);
         } catch (DigitalObjectException ex) {
             throw new VisitorException(ex);
         } finally {
@@ -2076,7 +2097,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
 
             IdentifierDefinition urnNbnIdOld = ResolverUtils.getIdentifierWithValue("urnnbn", urnNbnValueOld, elmMods);
             if (urnNbnIdOld != null) {
-                urnNbnIdOld.setInvalid("yes");
+                urnNbnIdOld.setInvalid(Yes.YES);
             } else {
                 p.getStatus().warning(elm, Status.URNNBN_DONT_EXISTS, "URN:NBN does not exists", elm.getPid());
                 return;
@@ -2098,7 +2119,7 @@ public class UrnNbnVisitor extends DefaultNdkVisitor<Void, UrnNbnContext> {
         try {
             IdentifierDefinition identifierDefinition = ResolverUtils.getIdentifier("urnnbn", elmMods);
             if (identifierDefinition != null) {
-                identifierDefinition.setInvalid("yes");
+                identifierDefinition.setInvalid(Yes.YES);
                 DigitalObjectHandler objectHandler = elm.getHandler();
                 elmDescription.setData(elmMods);
                 elmModsHandler.setMetadata(elmDescription, "Invalidate URN:NBN", NdkMetadataHandler.OPERATION_URNNBN);

@@ -4,7 +4,7 @@
                 xmlns:mods="http://www.loc.gov/mods/v3"
                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
                 exclude-result-prefixes="mods" >
-    <xsl:output method="html" indent="yes"/>
+    <xsl:output method="html" indent="yes" encoding="UTF-8"/>
     <!-- MODS2 records to html
     ntra added 4th child level 4/2/04
     -->
@@ -39,7 +39,46 @@
 
     <xsl:template match="mods:mods">
         <table>
-            <xsl:apply-templates/>
+            <xsl:apply-templates select="mods:titleInfo"/>
+            <xsl:apply-templates select="mods:name"/>
+            <xsl:apply-templates select="mods:originInfo"/>
+            <xsl:apply-templates select="mods:location"/>
+            <xsl:apply-templates select="mods:identifier"/>
+            <xsl:apply-templates select="mods:language"/>
+            <xsl:apply-templates select="mods:physicalDescription"/>
+            <xsl:apply-templates select="mods:abstract"/>
+            <xsl:apply-templates select="mods:note"/>
+            <xsl:apply-templates select="mods:typeOfResource"/>
+            <xsl:apply-templates select="mods:genre"/>
+            <xsl:apply-templates select="mods:classification"/>
+            <xsl:apply-templates select="mods:subject"/>
+            <xsl:apply-templates select="mods:part"/>
+            <xsl:apply-templates select="mods:tableOfContents"/>
+            <xsl:apply-templates select="mods:accessCondition"/>
+            <xsl:apply-templates select="mods:extension"/>
+            <xsl:apply-templates select="mods:targetAudience"/>
+            <xsl:apply-templates select="mods:recordInfo"/>
+            <xsl:apply-templates select="mods:relatedItem"/>
+            <xsl:apply-templates select="*[not(self::mods:titleInfo
+                    or self::mods:name
+                    or self::mods:originInfo
+                    or self::mods:location
+                    or self::mods:identifier
+                    or self::mods:language
+                    or self::mods:physicalDescription
+                    or self::mods:abstract
+                    or self::mods:note
+                    or self::mods:typeOfResource
+                    or self::mods:genre
+                    or self::mods:classification
+                    or self::mods:subject
+                    or self::mods:part
+                    or self::mods:tableOfContents
+                    or self::mods:accessCondition
+                    or self::mods:extension
+                    or self::mods:targetAudience
+                    or self::mods:recordInfo
+                    or self::mods:relatedItem)]"/>
         </table>
         <hr/>
     </xsl:template>
@@ -62,7 +101,9 @@
                         </b>
                     </td>
                 </tr>
-                <xsl:apply-templates mode="level2"/>
+                <xsl:apply-templates mode="nested">
+                    <xsl:with-param name="depth" select="1"/>
+                </xsl:apply-templates>
             </xsl:when>
 
             <xsl:otherwise>
@@ -102,14 +143,18 @@
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template match="*" mode="level2">
+    <xsl:template match="*" mode="nested">
+        <xsl:param name="depth" select="1"/>
 
         <xsl:choose>
 
             <xsl:when test="child::*">
                 <tr>
                     <td colspan="2">
-                        <div style="margin-left: 1em">
+                        <div>
+                            <xsl:call-template name="indent">
+                                <xsl:with-param name="depth" select="$depth"/>
+                            </xsl:call-template>
                             <xsl:call-template name="longName">
                                 <xsl:with-param name="name">
                                     <xsl:value-of select="local-name()"/>
@@ -120,13 +165,18 @@
                         </div>
                     </td>
                 </tr>
-                <xsl:apply-templates mode="level3"/>
+                <xsl:apply-templates mode="nested">
+                    <xsl:with-param name="depth" select="$depth + 1"/>
+                </xsl:apply-templates>
             </xsl:when>
 
             <xsl:otherwise>
                 <tr>
                     <td>
-                        <div style="margin-left: 1em">
+                        <div>
+                            <xsl:call-template name="indent">
+                                <xsl:with-param name="depth" select="$depth"/>
+                            </xsl:call-template>
                             <xsl:call-template name="longName">
                                 <xsl:with-param name="name">
                                     <xsl:value-of select="local-name()"/>
@@ -144,65 +194,14 @@
         </xsl:choose>
     </xsl:template>
 
-    <xsl:template match="*" mode="level3">
-
-        <xsl:choose>
-
-            <xsl:when test="child::*">
-                <tr>
-                    <td colspan="2">
-                        <div style="margin-left: 2em">
-                            <xsl:call-template name="longName">
-                                <xsl:with-param name="name">
-                                    <xsl:value-of select="local-name()"/>
-                                </xsl:with-param>
-                            </xsl:call-template>
-
-                            <xsl:call-template name="attr"/>
-                        </div>
-                    </td>
-                </tr>
-                <xsl:apply-templates mode="level4"/>
-            </xsl:when>
-
-            <xsl:otherwise>
-                <tr>
-                    <td>
-                        <div style="margin-left: 2em">
-                            <xsl:call-template name="longName">
-                                <xsl:with-param name="name">
-                                    <xsl:value-of select="local-name()"/>
-                                </xsl:with-param>
-                            </xsl:call-template>
-
-                            <xsl:call-template name="attr"/>
-                        </div>
-                    </td>
-                    <td>
-                        <xsl:call-template name="formatValue"/>
-                    </td>
-                </tr>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-
-    <xsl:template match="*" mode="level4">
-        <tr>
-            <td>
-                <div style="margin-left: 3em">
-                    <xsl:call-template name="longName">
-                        <xsl:with-param name="name">
-                            <xsl:value-of select="local-name()"/>
-                        </xsl:with-param>
-                    </xsl:call-template>
-
-                    <xsl:call-template name="attr"/>
-                </div>
-            </td>
-            <td>
-                <xsl:value-of select="text()"/>
-            </td>
-        </tr>
+    <xsl:template name="indent">
+        <xsl:param name="depth"/>
+        <xsl:if test="$depth &gt; 0">
+            <xsl:text>&#160;</xsl:text>
+            <xsl:call-template name="indent">
+                <xsl:with-param name="depth" select="$depth - 1"/>
+            </xsl:call-template>
+        </xsl:if>
     </xsl:template>
 
 
@@ -225,7 +224,8 @@
 
     <xsl:template name="attr">
 
-        <xsl:for-each select="@type|@point">:
+        <xsl:for-each select="@type|@point">
+            <xsl:text>: </xsl:text>
             <xsl:call-template name="longName">
                 <xsl:with-param name="name">
                     <xsl:value-of select="."/>
@@ -249,7 +249,7 @@
 
         <xsl:variable name="attrStr">
 
-            <xsl:for-each select="@*[local-name()!='edition' and local-name()!='type' and local-name()!='authority' and local-name()!='point']">
+            <xsl:for-each select="@*[local-name()!='edition' and local-name()!='type' and local-name()!='authority' and local-name()!='point' and local-name()!='usage' and local-name()!='eventType' and local-name()!='encoding' and local-name()!='objectPart' and local-name()!='source']">
 
                 <xsl:value-of select="local-name()"/>="
                 <xsl:value-of select="."/>",
@@ -261,6 +261,16 @@
         <xsl:if test="string-length($nattrStr)">(
             <xsl:value-of select="substring($nattrStr,1,string-length($nattrStr)-1)"/>)
         </xsl:if>
+
+        <xsl:for-each select="@usage|@eventType|@encoding|@objectPart|@source">
+            <xsl:text> (</xsl:text>
+            <xsl:call-template name="longName">
+                <xsl:with-param name="name">
+                    <xsl:value-of select="."/>
+                </xsl:with-param>
+            </xsl:call-template>
+            <xsl:text>)</xsl:text>
+        </xsl:for-each>
     </xsl:template>
 
 </xsl:stylesheet><!-- Stylus Studio meta-information - (c)1998-2003 Copyright Sonic Software Corporation. All rights reserved.

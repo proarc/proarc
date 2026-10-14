@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
@@ -150,7 +151,7 @@ public class ModsDataHandler {
                 inheritPhysicalDescriptionForm(defaultMods, titleMods.getPhysicalDescription());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
-            titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_MUSICDOCUMENT, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
+            titleMods = findEnclosingAudioCollection(objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                 defaultMods.getName().addAll(titleMods.getName());
@@ -217,6 +218,28 @@ public class ModsDataHandler {
                 defaultMods.getLocation().addAll(titleMods.getLocation());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
+        } else if (NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY.equals(modelId)
+                || NdkClippingPlugin.MODEL_CLIPPING_UNIT.equals(modelId)
+                || NdkClippingPlugin.MODEL_CLIPPING_INDEX.equals(modelId)
+                || NdkClippingPlugin.MODEL_CARD_INDEX.equals(modelId)) {
+            DigitalObjectHandler parentHandler = objectHandler != null ? objectHandler.getParameterParent() : null;
+            String parentModel = parentHandler != null ? parentHandler.relations().getModel()
+                    : parentJob != null ? parentJob.getModel() : null;
+            if (NdkClippingPlugin.MODEL_CLIPPING_COLLECTION.equals(parentModel)
+                    || NdkClippingPlugin.MODEL_CLIPPING_DIRECTORY.equals(parentModel)) {
+                ModsDefinition titleMods = findEnclosingObject(parentModel, parentHandler, parentJob);
+                if (titleMods != null) {
+                    defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
+                    defaultMods.getName().addAll(titleMods.getName());
+                    defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+                    defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                    defaultMods.getNote().addAll(titleMods.getNote());
+                    defaultMods.getSubject().addAll(titleMods.getSubject());
+                    inheritIdentifierExclude(defaultMods, titleMods.getIdentifier(), "uuid");
+                    defaultMods.getLocation().addAll(titleMods.getLocation());
+                    inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
+                }
+            }
         } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
             // issue 859
             RelatedItemDefinition relatedItem = new RelatedItemDefinition();
@@ -239,7 +262,7 @@ public class ModsDataHandler {
                 copyIdentifier(relatedItem, titleMods, "uuid");
             }
         } else if (NdkAudioPlugin.MODEL_SONG.equals(modelId)) {
-            ModsDefinition titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_MUSICDOCUMENT, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
+            ModsDefinition titleMods = findEnclosingAudioCollection(objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                 defaultMods.getName().addAll(titleMods.getName());
@@ -258,10 +281,7 @@ public class ModsDataHandler {
                 modsCopyMusicDocument(titleMods, defaultMods);
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             } else {
-                titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_MUSICDOCUMENT, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
-                if (titleMods == null) {
-                    titleMods = findEnclosingObject(NdkAudioPlugin.MODEL_PHONOGRAPH, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
-                }
+                titleMods = findEnclosingAudioCollection(objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
                 if (titleMods != null) {
                     modsCopyMusicDocument(titleMods, defaultMods);
                     inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
@@ -362,6 +382,17 @@ public class ModsDataHandler {
         RecordInfoDefinition recordInfo = new RecordInfoDefinition();
         recordInfo.getDescriptionStandard().add(0, descriptionStandard);
         mods.getRecordInfo().add(0, recordInfo);
+    }
+
+    private ModsDefinition findEnclosingAudioCollection(DigitalObjectHandler parentHandler, Job parentJob) throws DigitalObjectException {
+        for (String model : new String[]{NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
+                NdkAudioPlugin.MODEL_AUDIO_DISC, NdkAudioPlugin.MODEL_DIGITAL_AUDIO}) {
+            ModsDefinition mods = findEnclosingObject(model, parentHandler, parentJob);
+            if (mods != null) {
+                return mods;
+            }
+        }
+        return null;
     }
 
     ModsDefinition findEnclosingObject(String searchModelId, DigitalObjectHandler parentHandler, Job parentJob) throws DigitalObjectException {

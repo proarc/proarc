@@ -32,9 +32,9 @@ import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import cz.cas.lib.proarc.mets.Mets;
 import cz.cas.lib.proarc.webapp.server.ServerMessages;
+import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.RestException;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
-import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.shared.rest.SoftwareResourceApi;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.DELETE;
@@ -141,19 +141,22 @@ public class SoftwareResourceV1 {
     public ProArcResponse<Software> getSoftwares(
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_ID) String id,
             @QueryParam(SoftwareResourceApi.SOFTWARE_ITEM_MODEL) String model,
-            @QueryParam(SoftwareResourceApi.SOFTWARE_START_ROW_PARAM) int startRow
+            @QueryParam(SoftwareResourceApi.SOFTWARE_START_ROW_PARAM) int startRow,
+            @QueryParam(SoftwareResourceApi.SOFTWARE_PAGE_SIZE_PARAM) int pageSize
             ) throws SoftwareException, IOException {
 
+        startRow = Math.max(0, startRow);
+        pageSize = pageSize <= 0 ? 1000 : Math.min(pageSize, 1000);
         int total = 0;
         boolean fetchDescription = id != null && !id.isEmpty();
         List<Software> result = new ArrayList<>();
 
         if (id == null && model == null) {
-            total = devRepo.findAllSoftware(appConfig, 0).size();
-            result = devRepo.findAllSoftware(appConfig, startRow);
+            total = devRepo.countSoftware(null);
+            result = devRepo.findAllSoftware(appConfig, startRow, pageSize);
         } else {
-            result = devRepo.find(null, id, model, fetchDescription, startRow);
-            total = result.size();
+            result = devRepo.find(null, id, model, fetchDescription, startRow, pageSize);
+            total = id == null ? devRepo.countSoftware(model) : result.size();
         }
         int endRow = startRow + result.size() - 1;
         return new ProArcResponse<Software>(ProArcResponse.STATUS_SUCCESS, startRow, endRow, total, result);
@@ -164,7 +167,7 @@ public class SoftwareResourceV1 {
     @Produces({MediaType.APPLICATION_JSON})
     public ProArcResponse<Software> getSoftwareSet() {
         try {
-            return getSoftwares(null, SoftwareRepository.METAMODEL_SET_ID, 0);
+            return getSoftwares(null, SoftwareRepository.METAMODEL_SET_ID, 0, 1000);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);

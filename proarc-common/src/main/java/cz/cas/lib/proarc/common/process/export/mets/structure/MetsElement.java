@@ -242,13 +242,8 @@ public class MetsElement implements IMetsElement {
         }
         Document modsDoc = MetsUtils.getDocumentFromList(this.modsStream);
         try {
-            if ("3.6".equals(this.modsStream.get(0).getAttribute("version"))) {
-                validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods-3-6.xsd"));
-            } else if ("3.5".equals(this.modsStream.get(0).getAttribute("version"))) {
-                validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods-3-5.xsd"));
-            } else {
-                validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsDefinition.class.getResourceAsStream("mods-3-4.xsd"));
-            }
+            String modsVersion = this.modsStream.get(0).getAttribute("version");
+            validationErrors = MetsUtils.validateAgainstXSD(modsDoc, ModsUtils.getSchemaAsStream(modsVersion));
         } catch (Exception ex) {
             throw new MetsExportException(this.getOriginalPid(), "Error while validating MODS for:" + this.getOriginalPid() + "(" + this.getElementType() + ")", false, ex);
         }

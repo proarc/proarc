@@ -8,7 +8,7 @@
     <groupId>cz.cas.lib.proarc</groupId>
     <artifactId>proarc</artifactId>
     <packaging>pom</packaging>
-    <version>5.1.3-beta</version>
+    <version>5.1.4-DEV</version>
     <name>ProArc</name>
     <url>${proarc.wiki}</url>
 
@@ -37,6 +37,7 @@
         <module>proarc-oaidublincore</module>
         <module>proarc-premis</module>
         <module>proarc-urnnbn</module>
+        <module>proarc-copyrightmd</module>
         <module>proarc-webapp</module>
         <module>proarc-z3950</module>
     </modules>

@@ -339,6 +339,11 @@ public class DivType {
         return this.dmdid;
     }
 
+    /** Checks for descriptive metadata references without initializing the JAXB list. */
+    public boolean isSetDMDID() {
+        return dmdid != null && !dmdid.isEmpty();
+    }
+
     /**
      * Gets the value of the admid property.
      *

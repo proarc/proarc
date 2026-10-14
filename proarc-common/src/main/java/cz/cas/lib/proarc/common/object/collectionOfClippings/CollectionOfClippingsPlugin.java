@@ -136,6 +136,8 @@ public class CollectionOfClippingsPlugin implements DigitalObjectPlugin, HasMeta
                         new RelationCriteria(NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_MUSICDOCUMENT, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_PHONOGRAPH, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_AUDIO_DISC, RelationCriteria.Type.PID),
+                        new RelationCriteria(NdkAudioPlugin.MODEL_DIGITAL_AUDIO, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_SONG, RelationCriteria.Type.PID),
                         new RelationCriteria(NdkAudioPlugin.MODEL_TRACK, RelationCriteria.Type.PID),
                         new RelationCriteria(CollectionOfClippingsPlugin.MODEL_COLLECTION_OF_CLIPPINGS_VOLUME, RelationCriteria.Type.PID),

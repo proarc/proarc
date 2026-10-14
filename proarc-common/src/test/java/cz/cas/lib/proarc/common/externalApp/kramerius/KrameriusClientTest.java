@@ -17,6 +17,8 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -295,6 +297,37 @@ class KrameriusClientTest {
         assertEquals(
                 "/kramerius/import/" + exportFolder.getFileName(),
                 mapping.getString("importDirectory"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"5.4", "7.0"})
+    void waitsForIndexingAfterWarningAndRetainsWarning(String version, @TempDir Path exportFolder) throws Exception {
+        AtomicInteger polls = new AtomicInteger();
+        server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/login", exchange -> respond(exchange, 200, "{\"access_token\":\"test-token\"}"));
+        server.createContext("/import", exchange -> respond(exchange, 200, "{\"uuid\":\"warning-process\"}"));
+        server.createContext("/state/warning-process", exchange -> {
+            boolean indexing = polls.incrementAndGet() == 1;
+            String process = indexing ? "WARNING" : "FINISHED";
+            if (version.startsWith("5")) {
+                String batch = indexing ? "BATCH_STARTED" : "BATCH_FINISHED";
+                respond(exchange, 200, "[{\"state\":\"" + process + "\",\"batchState\":\"" + batch + "\"}]");
+            } else {
+                String batch = indexing ? "RUNNING" : "FINISHED";
+                respond(exchange, 200, "{\"process\":{\"state\":\"" + process
+                        + "\"},\"batch\":{\"state\":\"" + batch + "\"}}");
+            }
+        });
+        server.start();
+
+        String apiUrl = "http://localhost:" + server.getAddress().getPort();
+        try (KrameriusClient client = new KrameriusClient(apiUrl)) {
+            KUtils.ImportState state = client.importToKramerius(
+                    createInstance(apiUrl, version), exportFolder.toFile(), false, KUtils.EXPORT_KRAMERIUS, null, null);
+            assertEquals("WARNING", state.getOutcome());
+            assertEquals(version.startsWith("5") ? "BATCH_FINISHED" : "FINISHED", state.getBatchState());
+        }
+        assertEquals(2, polls.get());
     }
 
     private KrameriusOptions.KrameriusInstance createInstance(String apiUrl) {

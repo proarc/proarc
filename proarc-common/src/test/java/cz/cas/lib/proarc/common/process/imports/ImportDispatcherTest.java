@@ -206,7 +206,7 @@ public class ImportDispatcherTest {
         batch.setPriority(Batch.PRIORITY_MEDIUM);
         batch.setState(Batch.State.IMPORT_PLANNED);
         ImportProcess.ImportOptions options = new ImportProcess.ImportOptions(
-                importFolder, null, null, false, null, profile, Batch.PRIORITY_MEDIUM);
+                importFolder, null, null, false, false, null, profile, Batch.PRIORITY_MEDIUM);
         options.setBatch(batch);
         return new ImportProcess(options, batchManager, config);
     }

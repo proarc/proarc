@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://www.cdlib.org/inside/diglib/copyrightMD" targetNamespace="http://www.cdlib.org/inside/diglib/copyrightMD" elementFormDefault="qualified" attributeFormDefault="unqualified">
+        <xs:annotation>
+                <xs:documentation> Schema for expression of copyright information. </xs:documentation>
+        </xs:annotation>
+        <!-- set up the types required by the schema -->
+        <xs:complexType name="year.defined">
+                <xs:annotation>
+                        <xs:documentation>Data elements that are in the form of a date are defined as instances of the year.definition. The year.definition is a simple string with an attribute, year.type. year.type allows the coding of the level of precision of the year, such as "exact" or "approximate" or "unknown".</xs:documentation>
+                </xs:annotation>
+                <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                                <xs:attribute name="year.type" use="optional">
+                                        <xs:annotation>
+                                                <xs:documentation>Provides additional information about the year encoded. Three (3) enumerated values enforced by the copyrightMD schema: "exact", "approximate", and "unknown".</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                        <xs:enumeration value="exact">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Year is known.</xs:documentation>
+                                                                </xs:annotation></xs:enumeration>
+                                                        <xs:enumeration value="approximate">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Year is unknown, but it is possible for a reasonable estimation to be given based on additional available evidence.</xs:documentation>
+                                                                </xs:annotation></xs:enumeration>
+                                                        <xs:enumeration value="unknown">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Year is unknown and it is impossible to give a reasonable estimate. This value should only rarely be used, and institutions are encouraged to supply an approximate date for undated materials whenever feasible.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:enumeration>
+                                                </xs:restriction>
+                                        </xs:simpleType>
+                                </xs:attribute>
+                        </xs:extension>
+                </xs:simpleContent>
+        </xs:complexType>
+        <xs:complexType name="country.defined">
+                <xs:annotation>
+                        <xs:documentation>The country type is used for the country of publication and for the country of creation. It allows the user to input either a country name, or an ISO 3166-1 alpha 2-letter country code (as an attribute), or both.</xs:documentation>
+                </xs:annotation>
+                <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                                <xs:attribute name="iso.code" type="xs:string" use="optional">
+                                        <xs:annotation>
+                                                <xs:documentation>Specifies a standardized code for the name of the country of creation or publication. Data values should be taken from the ISO 3166-1 alpha 2-letter code list.</xs:documentation>
+                                        </xs:annotation>
+                                </xs:attribute>
+                        </xs:extension>
+                </xs:simpleContent>
+        </xs:complexType>
+        <xs:simpleType name="copyright.status">
+                <xs:annotation>
+                        <xs:documentation>Indicates copyright status for the resource. Six (6) enumerated values enforced by the copyrightMD schema: "copyrighted", "pd", "pd_usfed", "pd_holder", "pd_expired", and "unknown".</xs:documentation>
+                </xs:annotation>
+                <xs:restriction base="xs:string">
+                        <xs:enumeration value="copyrighted">
+                                <xs:annotation>
+                                        <xs:documentation>Under copyright.</xs:documentation>
+                                </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="pd">
+                                <xs:annotation>
+                                        <xs:documentation>Public domain: No further information.</xs:documentation>
+                                </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="pd_usfed">
+                                <xs:annotation>
+                                        <xs:documentation>Public domain: US Federal document.</xs:documentation>
+                                </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="pd_holder">
+                                <xs:annotation>
+                                        <xs:documentation>Public domain: Item dedicated to the public domain by the rights holder.</xs:documentation>
+                                </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="pd_expired">
+                                <xs:annotation>
+                                        <xs:documentation>Public domain: Item in the public domain because of expiration of copyright based on U.S. law.</xs:documentation>
+                                </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="unknown">
+                                <xs:annotation>
+                                        <xs:documentation>Copyright status of the resource is unknown.</xs:documentation>
+                                </xs:annotation>
+                        </xs:enumeration>
+                </xs:restriction>
+        </xs:simpleType>
+        <xs:simpleType name="publication.status">
+		<xs:annotation>
+			<xs:documentation>Indicates the publication status for the resource. Three (3) enumerated values enforced by the copyrightMD schema: "published", "unpublished", and "unknown".</xs:documentation>
+		</xs:annotation>
+                <xs:restriction base="xs:string">
+                        <xs:enumeration value="published">
+                                <xs:annotation>
+                                        <xs:documentation>Resource is published.</xs:documentation>
+                                </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="unpublished">
+                                <xs:annotation>
+                                        <xs:documentation>Resource is unpublished.</xs:documentation>
+                                </xs:annotation>
+                        </xs:enumeration>
+                        <xs:enumeration value="unknown">
+                                <xs:annotation>
+                                        <xs:documentation>Publication status of the resource is unknown.</xs:documentation>
+                                </xs:annotation>
+                        </xs:enumeration>
+                </xs:restriction>
+        </xs:simpleType>
+        <xs:element name="copyright">
+                <xs:annotation>
+                        <xs:documentation>Wrapper element for copyright-related information for the resource. Data values must be encoded either in attributes or subelements.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                        <xs:choice minOccurs="0" maxOccurs="unbounded">
+                                <xs:element name="publication" minOccurs="0">
+                                        <xs:annotation>
+                                                <xs:documentation>Wrapper element for publication information regarding the resource. Use only for published works. Data values must be encoded in subelements. When &lt;publication&gt; is used, also use the following encoding: &lt;copyright publication.status="published"&gt;.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                                                        <xs:element name="country.publication" type="country.defined" minOccurs="0">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains the name of the country in which the resource was published. Institutions are encouraged to use a standard thesaurus for the form of name supplied. Input the data directly within this element. Use the available attribute, if desired, to encode a machine-readable standard code for the name of the country. This element can also be used as an empty element, with data provided only as an attribute value.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                        <xs:element name="year.copyright" type="year.defined" minOccurs="0">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains the year the resource was copyrighted, typically based on a copyright notice on the resource itself. The resource does not have to have been registered with the copyright office. Institutions should not approximate copyright year if it does not appear on the work, or in some reliable alternate source for this information. Use the standardized form of YYYY, and do not include month or day information. Input the data directly within this element. Use the available attribute, if desired, to supply additional information about the copyright year encoded. This element can also be used as an empty element, with data provided only as an attribute value, when the copyright year is unknown or no attempt has been made by the institution to encode this information.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                        <xs:element name="year.renewal" type="year.defined" minOccurs="0">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains the year the copyright for the resource was renewed. Few items are likely to contain a copyright renewal notice. This will only pertain to works that were registered with the copyright office and subsequently renewed. Such works will have a copyright date before 1964 (i.e., up to and including 1963). Institutions should not approximate the year of copyright renewal if it does not appear on the work, or in some reliable alternate source for this information. Use the standardized form of YYYY, and do not include month or day information. Input the data directly within this element. Use the available attribute, if desired, to supply additional information about the copyright year encoded. This element can also be used as an empty element, with data provided only as an attribute value, when the year of copyright renewal is unknown or no attempt has been made by the institution to encode this information.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                        <xs:element name="year.publication" type="year.defined" minOccurs="0">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains the year the resource was published, typically based on information available on the resource itself. Use the standardized form of YYYY, and do not include month or day information. Input the data directly within this element. Use the available attribute, if desired, to supply additional information about the publication year encoded. This element can also be used as an empty element, with data provided only as an attribute value, when the publication year is unknown or no attempt has been made by the institution to encode this information.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                        <xs:element name="publisher" type="xs:string" minOccurs="0">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains the name of the publisher of the resource. Institutions are encouraged to use and document a standardized approach to formatting names in this element. Input the data directly within this element.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                        <xs:element name="note" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains a general note relating to the publication of the resource. Input the data directly within this element. Use this element only for information that cannot be accommodated within the parent element.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                </xs:choice>
+                                        </xs:complexType>
+                                </xs:element>
+                                <xs:element name="creation" minOccurs="0">
+                                        <xs:annotation>
+                                                <xs:documentation>Wrapper element for information about the creation of the resource. Unpublished resources are evaluated for copyright status based on the year of creation and the country in which creation occurred. Use primarily for unpublished resources, but can also be used for published resources if creation information is known and significant to the copyright analysis. Data values must be encoded in subelements.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                                <xs:all minOccurs="0">
+                                                        <xs:element name="year.creation" type="year.defined" minOccurs="0">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains the year the resource was created. This is crucial information for making a copyright determination for an unpublished resource created by a corporate entity, or when the death date of an individual responsible for the creation of the resource is unknown. Use the standardized form of YYYY, and do not include month or day information. Input the data directly within this element. Use the available attribute, if desired, to supply additional information about the year of creation encoded. This element can also be used as an empty element, with data provided only as an attribute value, when the year of creation is unknown or no attempt has been made by the institution to encode this information.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                        <xs:element name="country.creation" type="country.defined" minOccurs="0">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains the name of the country in which the resource was created. Institutions are encouraged to use a standard thesaurus for the form of name supplied.  Input the data directly within this element. Use the available attribute, if desired, to encode a machine-readable standard code for the name of the country. This element can also be used as an empty element, with data provided only as an attribute value.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                </xs:all>
+                                        </xs:complexType>
+                                </xs:element>
+                                <xs:element name="creator" minOccurs="0">
+                                        <xs:annotation>
+                                                <xs:documentation>Wrapper element for information about the creator(s) of the resource. Use primarily for unpublished resources, but can also be used for published resources if creation information is known and significant to the copyright analysis. Data values must be encoded in subelements.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                                                        <xs:element name="creator.person" minOccurs="0" maxOccurs="unbounded">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Wrapper element for information regarding an individual responsible for creating the resource. For unpublished resources created by an individual (or individuals), information regarding her/his death date is critical for evaluating copyright status. Families, though viable creators of resources, are not legally recognized as such in terms of copyright analysis. If a family name is the only name available as a creator of a resource, treat as an unknown creator in terms of copyright metadata and provide relevant information about the family in the descriptive metadata for the resource. Data values must be encoded in subelements.</xs:documentation>
+                                                                </xs:annotation>
+                                                                <xs:complexType>
+                                                                        <xs:all minOccurs="0">
+                                                                                <xs:element name="name" type="xs:string" minOccurs="0">
+                                                                                        <xs:annotation>
+                                                                                                <xs:documentation>Contains the name of an individual responsible for creating the resource. Institutions are encouraged to use and document a standardized approach to formatting names in this element. Input the data directly within this element.</xs:documentation>
+                                                                                        </xs:annotation>
+                                                                                </xs:element>
+                                                                                <xs:element name="year.birth" type="year.defined" minOccurs="0">
+                                                                                        <xs:annotation>
+                                                                                                <xs:documentation>Contains the year of birth of an individual responsible for the creation of the resource. Use the standardized form of YYYY, and do not include the month or day of birth. Input the data directly within this element. Use the available attribute, if desired, to supply additional information about the birth year encoded, especially if the year is an approximation. This element can also be used as an empty element, with data provided only as an attribute value, when the birth year is unknown or no attempt has been made by the institution to encode this information.</xs:documentation>
+                                                                                        </xs:annotation>
+                                                                                </xs:element>
+                                                                                <xs:element name="year.death" type="year.defined" minOccurs="0">
+                                                                                        <xs:annotation>
+                                                                                                <xs:documentation>Contains the year of death of an individual responsible for the creation of the resource.  This is crucial information for making a copyright determination for an unpublished resource created by an individual. Use the standardized form of YYYY, and do not include the month or day of death. Input the data directly within this element. Use the available attribute, if desired, to supply additional information about the death year encoded, especially if the year is an approximation. This element can also be used as an empty element, with data provided only as an attribute value, when the death year is unknown or no attempt has been made by the institution to encode this information.</xs:documentation>
+                                                                                        </xs:annotation>
+                                                                                </xs:element>
+                                                                        </xs:all>
+                                                                </xs:complexType>
+                                                        </xs:element>
+                                                        <xs:element name="creator.corporate" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains the name of a corporate entity responsible for creating the resource. Institutions are encouraged to use and document a standardized approach to formatting names in this element. Input the data directly within this element. See guidelines under &lt;creator.person&gt; for information on families as creators.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                        <xs:element name="note" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains a general note relating to one or more creators. Input the data directly within this element. Use this element only for information that cannot be accommodated within the parent element.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                </xs:choice>
+                                        </xs:complexType>
+                                </xs:element>
+                                <xs:element name="rights.holder" minOccurs="0">
+                                        <xs:annotation>
+                                                <xs:documentation>Wrapper element for information about the rights holder for the resource and contact information for the rights holder or rights holder's designee. Use to direct users to the appropriate point for questions about rights and permissions related to the resource. Data values must be encoded in subelements.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                                                        <xs:element name="name" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains the name of an individual or corporate entity identified as copyright holder for the resource. Institutions are encouraged to use and document a standardized approach to formatting names in this element. Input the data directly within this element. </xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                        <xs:element name="contact" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains contact information regarding the rights holder or the rights holder's designated agent. Provide relevant contact information, when available and not confidential, for the person or institution to whom a user should address questions regarding usage of or permissions regarding the resource. Input the data directly within this element.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                        <xs:element name="note" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains a general note relating to the rights holder(s). Input the data directly within this element. Use this element only for information that cannot be accommodated within the parent element.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                </xs:choice>
+                                        </xs:complexType>
+                                </xs:element>
+                                <xs:element name="services" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:annotation>
+                                                <xs:documentation>Wrapper element for information relating to services that might be offered relating to the resource, such as providing copies. Data values must be encoded in subelements. </xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                                                        <xs:element name="contact" minOccurs="0" maxOccurs="unbounded">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains contact information regarding the provider of services related to the resource. Use to specify the service(s) available and contact information for the person or institution providing the service(s). Input the data directly within this element.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                        <xs:element name="note" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Contains a general note relating to services available pertaining to the resource. Input the data directly within this element. Use this element only for information that cannot be accommodated within the parent element.</xs:documentation>
+                                                                </xs:annotation>
+                                                        </xs:element>
+                                                </xs:choice>
+                                        </xs:complexType>
+                                </xs:element>
+                                <xs:element name="notice" type="xs:string" minOccurs="0" maxOccurs="1">
+                                        <xs:annotation>
+                                                <xs:documentation>Contains the copyright notice as it appears on the resource. Transcribe the copyright notice exactly as it appears on the resource. Input the data directly within this element. </xs:documentation>
+                                        </xs:annotation>
+                                </xs:element>
+                                <xs:element name="general.note" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+                                        <xs:annotation>
+                                                <xs:documentation>Contains a general note regarding general information relating to copyright for the resource, or to the information provided in the record. Use this element only for information that cannot be accommodated in a more specific copyrightMD element. Input the data directly within this element. This is the appropriate place to encode a general boilerplate statement regarding copyright that the institution wishes to appear with the metadata about the resource.</xs:documentation>
+                                        </xs:annotation>
+                                </xs:element>
+                        </xs:choice>
+                        <xs:attribute name="copyright.status" type="copyright.status" use="required"/>
+                        <xs:attribute name="publication.status" type="publication.status" use="required"/>
+                </xs:complexType>
+        </xs:element>
+</xs:schema>

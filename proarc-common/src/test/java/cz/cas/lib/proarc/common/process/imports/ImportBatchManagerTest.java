@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.process.imports;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.dao.Batch;
+import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.Batch.State;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.process.BatchManager;
@@ -37,7 +38,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 /**
@@ -134,6 +137,29 @@ public class ImportBatchManagerTest {
 
         ImportFolderStatus result = ibm.getFolderStatus(b);
         assertNull(result);
+    }
+
+    @Test
+    public void restoresGeneratePageTypeOptionFromBatch() {
+        Batch batch = new Batch();
+        BatchParams params = new BatchParams();
+        params.setGeneratePageType(false);
+        batch.setParamsFromObject(params);
+
+        ImportProcess.ImportOptions options = ImportProcess.ImportOptions.fromBatch(
+                batch, tempDir, false, false, null, null);
+
+        assertFalse(options.isGeneratePageType());
+    }
+
+    @Test
+    public void enablesGeneratePageTypeForLegacyBatch() {
+        Batch batch = new Batch();
+
+        ImportProcess.ImportOptions options = ImportProcess.ImportOptions.fromBatch(
+                batch, tempDir, false, false, null, null);
+
+        assertTrue(options.isGeneratePageType());
     }
 
 }

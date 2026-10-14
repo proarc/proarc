@@ -57,7 +57,7 @@ public class MetaCheckImportTest {
         batch.setParamsFromObject(new BatchParams(Collections.singletonList(ROOT_PID)));
 
         ImportProcess.ImportOptions options = new ImportProcess.ImportOptions(
-                tempDir, null, null, false, null, profile, Batch.PRIORITY_MEDIUM);
+                tempDir, null, null, false, false, null, profile, Batch.PRIORITY_MEDIUM);
         options.setBatch(batch);
 
         DescriptionMetadata<String> rootMetadata = new DescriptionMetadata<>();
@@ -155,7 +155,7 @@ public class MetaCheckImportTest {
         batch.setParamsFromObject(new BatchParams(Collections.emptyList()));
 
         ImportProcess.ImportOptions options = new ImportProcess.ImportOptions(
-                tempDir, null, null, false, null, profile, Batch.PRIORITY_MEDIUM);
+                tempDir, null, null, false, false, null, profile, Batch.PRIORITY_MEDIUM);
         options.setBatch(batch);
 
         TestableMetaCheckImport importer = new TestableMetaCheckImport(dom);

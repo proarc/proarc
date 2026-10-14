@@ -257,6 +257,8 @@ public final class DigitalObjectResourceApi {
     public static final String TECHNICALMETADATA_AES_PATH = "technicalMetadataAes";
     public static final String TECHNICALMETADATA_CODING_HISTORY_PATH = "technicalMetadataCodingHistory";
     public static final String TECHNICALMETADATA_PREMIS_PATH = "technicalPremis";
+    public static final String TECHNICALMETADATA_COPYRIGHTMD_PATH = "technicalCopyrightMD";
+    public static final String TECHNICALMETADATA_XML_COPYRIGHTMD_PATH = "technicalMetadataXmlCopyrightMD";
     public static final String TECHNICALMETADATA_XML_AES_PATH = "technicalMetadataAesXml";
     public static final String TECHNICALMETADATA_XML_CODING_HISTORY_PATH = "technicalMetadataXmlCodingHistory";
     public static final String TECHNICALMETADATA_XML_PREMIS_PATH = "technicalMetadataXmlPremis";
@@ -316,6 +318,7 @@ public final class DigitalObjectResourceApi {
 
     public static final String REINDEX_PATH = "reindexObjects";
     public static final String UPDATE_ALL_OBJECTS_PATH = "updateAllObjectsObjects";
+    public static final String UPGRADE_MODS_38_PATH = "upgradeMods38";
 
     public static final String URNNBN_ITEM_URNNBN = "urnnbn";
     public static final String URNNBN_ITEM_MESSAGE = "message";

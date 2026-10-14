@@ -108,6 +108,7 @@ public final class AppConfiguration {
     public static final String EXPORT_LTP_CESNET_GROUP_TOKEN = "export.ltpCesnet.groupToken";
     public static final String EXPORT_LTP_CESNET_SCRIPT_PATH = "export.ltpCesnet.scriptPath";
     public static final String EXPORT_BAGIT_SCRIPT_PATH = "export.bagit.scriptPath";
+    public static final String CATALOG_UPDATE_MODELS = "catalog.update.models";
 
     public static final String BATCH_SCHEDULER_START = "batch.scheduler.startTime";
     public static final String BATCH_SCHEDULER_END = "batch.scheduler.endTime";
@@ -142,6 +143,12 @@ public final class AppConfiguration {
             users.mkdirs();
         }
         return users;
+    }
+
+    /** Models eligible for both manual and export-triggered catalog updates. */
+    public java.util.List<String> getCatalogUpdateModels() {
+        return java.util.Arrays.stream(config.getStringArray(CATALOG_UPDATE_MODELS))
+                .map(String::trim).filter(model -> !model.isEmpty()).distinct().toList();
     }
 
     public int getMaxSessionTime() {

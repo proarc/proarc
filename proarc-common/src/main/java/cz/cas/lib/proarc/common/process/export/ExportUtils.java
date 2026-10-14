@@ -323,7 +323,10 @@ public final class ExportUtils {
 
             MetsElement metsElement = getMetsElement(object, metsContext, true);
             List<String> PSPs = new ArrayList<>();
-            if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(ExportUtils.getModel(metsElement.getModel())) || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(ExportUtils.getModel(metsElement.getModel()))) {
+            if (NdkAudioPlugin.MODEL_PHONOGRAPH.equals(ExportUtils.getModel(metsElement.getModel()))
+                    || NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(ExportUtils.getModel(metsElement.getModel()))
+                    || NdkAudioPlugin.MODEL_AUDIO_DISC.equals(ExportUtils.getModel(metsElement.getModel()))
+                    || NdkAudioPlugin.MODEL_DIGITAL_AUDIO.equals(ExportUtils.getModel(metsElement.getModel()))) {
                 PSPs = Collections.singletonList(metsElement.getOriginalPid());
             } else {
                 PSPs = MetsUtils.findPSPPIDs(object.getPid(), metsContext, true);

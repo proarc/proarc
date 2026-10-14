@@ -86,7 +86,8 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
             return visitNdkEArticle(elm, p);
         } else if (NdkEbornPlugin.MODEL_ECHAPTER.equals(model)) {
             return visitNdkEChapter(elm, p);
-        } else if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(model) || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(model)) {
+        } else if (NdkAudioPlugin.MODEL_MUSICDOCUMENT.equals(model) || NdkAudioPlugin.MODEL_PHONOGRAPH.equals(model)
+                || NdkAudioPlugin.MODEL_AUDIO_DISC.equals(model) || NdkAudioPlugin.MODEL_DIGITAL_AUDIO.equals(model)) {
             return visitNdkMusicDocument(elm, p);
         } else if (OldPrintPlugin.MODEL_PAGE.equals(model)) {
             return visitOldPrintPage(elm, p);
@@ -114,6 +115,10 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
             return visitNdkClippingDirectory(elm, p);
         } else if (NdkClippingPlugin.MODEL_CLIPPING_UNIT.equals(model)) {
             return visitNdkClippingUnit(elm, p);
+        } else if (NdkClippingPlugin.MODEL_CLIPPING_INDEX.equals(model)) {
+            return visitNdkClippingIndex(elm, p);
+        } else if (NdkClippingPlugin.MODEL_CARD_INDEX.equals(model)) {
+            return visitNdkCardIndex(elm, p);
         } else {
             return super.visit(elm, p);
         }
@@ -274,6 +279,16 @@ public class DefaultNdkVisitor<R, P> extends HierarchyObjectVisitor<R, P> implem
 
     @Override
     public R visitNdkClippingUnit(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    @Override
+    public R visitNdkClippingIndex(DigitalObjectElement elm, P p) throws VisitorException {
+        return visitChildren(elm, p);
+    }
+
+    @Override
+    public R visitNdkCardIndex(DigitalObjectElement elm, P p) throws VisitorException {
         return visitChildren(elm, p);
     }
 

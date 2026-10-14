@@ -570,6 +570,112 @@ public class TransformersTest {
     }
 
     @Test
+    public void testModsAsHtmlLocalization() throws Exception {
+        String mods = "<mods xmlns=\"http://www.loc.gov/mods/v3\">"
+                + "<titleInfo><title>Value</title><subTitle>Value</subTitle>"
+                + "<partNumber>Value</partNumber><partName>Value</partName></titleInfo>"
+                + "<name type=\"personal\" usage=\"primary\"><namePart type=\"given\">Given</namePart>"
+                + "<namePart type=\"family\">Family</namePart><namePart type=\"date\">Date</namePart>"
+                + "<namePart type=\"termsOfAddress\">Terms</namePart></name>"
+                + "<originInfo eventType=\"publication\"><publisher>Publisher</publisher>"
+                + "<dateIssued encoding=\"marc\">2026</dateIssued></originInfo>"
+                + "<language objectPart=\"summary\"><languageTerm>cze</languageTerm></language>"
+                + "<recordInfo><recordChangeDate encoding=\"iso8601\">2026-09-29</recordChangeDate>"
+                + "<recordIdentifier source=\"CZ PrAS\">uuid:test</recordIdentifier></recordInfo>"
+                + "<targetAudience>adult</targetAudience>"
+                + "</mods>";
+
+        String csHtml = modsAsHtml(mods, Locale.forLanguageTag("cs-CZ"));
+        assertTrue(csHtml.contains("N&aacute;zev"), csHtml);
+        assertTrue(csHtml.contains("Podn&aacute;zev"), csHtml);
+        assertTrue(csHtml.contains("Č&iacute;slo č&aacute;sti"), csHtml);
+        assertTrue(csHtml.contains("Jm&eacute;no č&aacute;sti"), csHtml);
+        assertTrue(csHtml.contains("Autor: Osoba (prim&aacute;rn&iacute;)"), csHtml);
+        assertTrue(csHtml.contains("Původ předlohy (publikace)"), csHtml);
+        assertTrue(csHtml.contains("Datum vyd&aacute;n&iacute; (MARC)"), csHtml);
+        assertTrue(csHtml.contains("Jazyk (Shrnut&iacute;)"), csHtml);
+        assertTrue(csHtml.contains("Datum změny z&aacute;znamu (ISO 8601)"), csHtml);
+        assertTrue(csHtml.contains("Identifik&aacute;tor z&aacute;znamu (CZ PrAS)"), csHtml);
+        assertTrue(csHtml.contains("C&iacute;lov&aacute; skupina"), csHtml);
+        assertTrue(csHtml.contains("Křestn&iacute; jm&eacute;no"), csHtml);
+        assertTrue(csHtml.contains("Př&iacute;jmen&iacute;"), csHtml);
+        assertTrue(csHtml.contains("Datum"), csHtml);
+        assertTrue(csHtml.contains("Ostatn&iacute; souvisej&iacute;c&iacute; se jm&eacute;nem"), csHtml);
+        assertFalse(csHtml.contains("usage=\"primary\""), csHtml);
+        assertFalse(csHtml.contains("encoding=\""), csHtml);
+        assertFalse(csHtml.contains("objectPart=\""), csHtml);
+        assertFalse(csHtml.contains("source=\""), csHtml);
+
+        String enHtml = modsAsHtml(mods, Locale.ENGLISH);
+        assertTrue(enHtml.contains("Title info"));
+        assertTrue(enHtml.contains("Subtitle"));
+        assertTrue(enHtml.contains("Part number"));
+        assertTrue(enHtml.contains("Part name"));
+        assertTrue(enHtml.contains("Name: Personal (primary)"));
+        assertTrue(enHtml.contains("Origin info (publication)"));
+        assertTrue(enHtml.contains("Date issued (MARC)"));
+        assertTrue(enHtml.contains("Language (Summary)"));
+        assertTrue(enHtml.contains("Record change date (ISO 8601)"));
+        assertTrue(enHtml.contains("Record identifier (CZ PrAS)"));
+        assertTrue(enHtml.contains("Target audience"));
+        assertTrue(enHtml.contains("Given"));
+        assertTrue(enHtml.contains("Family"));
+        assertTrue(enHtml.contains("Date"));
+        assertTrue(enHtml.contains("Terms of Address"));
+        assertFalse(enHtml.contains("usage=\"primary\""));
+        assertFalse(enHtml.contains("encoding=\""));
+        assertFalse(enHtml.contains("objectPart=\""));
+        assertFalse(enHtml.contains("source=\""));
+    }
+
+    @Test
+    public void testModsAsHtmlElementOrderIsIndependentOfLocalization() throws Exception {
+        String mods = "<mods xmlns=\"http://www.loc.gov/mods/v3\">"
+                + "<note>Note</note>"
+                + "<physicalDescription><extent>Extent</extent></physicalDescription>"
+                + "<language><languageTerm>cze</languageTerm></language>"
+                + "<originInfo><publisher>Publisher</publisher></originInfo>"
+                + "<name><namePart>Author</namePart></name>"
+                + "<titleInfo><title>Title</title></titleInfo>"
+                + "</mods>";
+
+        assertInOrder(modsAsHtml(mods, Locale.forLanguageTag("cs-CZ")),
+                "N&aacute;zev", "Autor", "Původ předlohy", "Jazyk", "Fyzick&yacute; popis", "Pozn&aacute;mka");
+        assertInOrder(modsAsHtml(mods, Locale.ENGLISH),
+                "Title info", "Name", "Origin info", "Language", "Physical description", "Note");
+    }
+
+    @Test
+    public void testModsAsHtmlIndentsEveryNestedLevel() throws Exception {
+        String mods = "<mods xmlns=\"http://www.loc.gov/mods/v3\">"
+                + "<extension><levelOne><levelTwo><levelThree><levelFour>Value</levelFour>"
+                + "</levelThree></levelTwo></levelOne></extension></mods>";
+
+        String html = modsAsHtml(mods, Locale.ENGLISH);
+        assertInOrder(html,
+                "<div>&nbsp;levelOne</div>",
+                "<div>&nbsp;&nbsp;levelTwo</div>",
+                "<div>&nbsp;&nbsp;&nbsp;levelThree</div>",
+                "<div>&nbsp;&nbsp;&nbsp;&nbsp;levelFour</div>");
+    }
+
+    private void assertInOrder(String value, String... expectedParts) {
+        int previousIndex = -1;
+        for (String expectedPart : expectedParts) {
+            int index = value.indexOf(expectedPart, previousIndex + 1);
+            assertTrue(index > previousIndex, () -> expectedPart + " is out of order in: " + value);
+            previousIndex = index;
+        }
+    }
+
+    private String modsAsHtml(String mods, Locale locale) throws Exception {
+        StreamSource source = new StreamSource(new ByteArrayInputStream(mods.getBytes("UTF-8")));
+        byte[] result = new Transformers(null).transformAsBytes(
+                source, Transformers.Format.ModsAsHtml, ModsUtils.modsAsHtmlParameters(locale));
+        return new String(result, "UTF-8");
+    }
+
+    @Test
     public void testModsAsFedoraLabel_Page() throws Exception {
         assertEquals("[1], Blank",
                 modsAsFedoraLabel(PageMapperTest.class.getResourceAsStream("page_mods.xml"), "model:page"));

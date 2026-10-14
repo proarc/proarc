@@ -26,6 +26,8 @@ import cz.cas.lib.proarc.common.process.external.PdfaProcess;
 import cz.cas.lib.proarc.common.process.external.PeroProcess;
 import cz.cas.lib.proarc.common.process.external.ThumbnailPdfProcess;
 import cz.cas.lib.proarc.common.process.internal.DeleteProcess;
+import cz.cas.lib.proarc.common.process.internal.CatalogUpdateProcess;
+import cz.cas.lib.proarc.common.process.internal.Mods38UpgradeProcess;
 import cz.cas.lib.proarc.common.process.internal.ValidationProcess;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.user.UserManager;
@@ -41,7 +43,9 @@ import java.util.logging.Logger;
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExternalSuccessfully;
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExternalWithError;
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedInternalSuccessfully;
+import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedSuccessfully;
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedInternalWithError;
+import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedInternalWithWarning;
 
 /**
  * Other process
@@ -133,6 +137,8 @@ public final class InternalExternalProcess implements Runnable {
                     return finishedInternalWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
                 case Batch.INTERNAL_DELETION:
                     return finishedInternalWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
+                case Batch.INTERNAL_UPGRADE_MODS_38:
+                    return finishedInternalWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
                 default:
                     return finishedInternalWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
             }
@@ -154,9 +160,15 @@ public final class InternalExternalProcess implements Runnable {
                 case Batch.INTERNAL_VALIDATION:
                     batch = BatchUtils.startWaitingInternalBatch(batchManager, batch);
                     return validationProcess(batch, params);
+                case Batch.INTERNAL_UPDATE_CATALOG_RECORDS:
+                    return CatalogUpdateProcess.run(
+                            config, akubraConfiguration, batchManager, user, batch, params, options.getLocale());
                 case Batch.INTERNAL_REINDEX:
                     batch = BatchUtils.startWaitingInternalBatch(batchManager, batch);
                     return reindexProcess(batch, params);
+                case Batch.INTERNAL_UPGRADE_MODS_38:
+                    batch = BatchUtils.startWaitingInternalBatch(batchManager, batch);
+                    return upgradeMods38Process(batch);
                 default:
                     return finishedInternalWithError(batchManager, batch, batch.getFolder(), new Exception("Unknown profile."));
             }
@@ -219,6 +231,8 @@ public final class InternalExternalProcess implements Runnable {
             ValidationProcess.Result result = validationProcess.validate(ValidationProcess.Type.VALIDATION);
             if (result.isStatusOk(false)) {
                 batch = finishedInternalSuccessfully(this.batchManager, batch, batch.getFolder());
+            } else if (result.isStatusOk(true)) {
+                batch = finishedInternalWithWarning(this.batchManager, batch, batch.getFolder(), result.getMessages());
             } else {
                 batch = finishedInternalWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
             }
@@ -239,6 +253,19 @@ public final class InternalExternalProcess implements Runnable {
             return finishedInternalSuccessfully(this.batchManager, batch, batch.getFolder());
         } catch (Exception ex) {
             return finishedInternalWithError(this.batchManager, batch, batch.getFolder(), ex);
+        }
+    }
+
+    private Batch upgradeMods38Process(Batch batch) {
+        try {
+            Mods38UpgradeProcess process = new Mods38UpgradeProcess(akubraConfiguration);
+            Mods38UpgradeProcess.Result result = process.upgrade();
+            String log = result.toLog();
+            return finishedSuccessfully(batchManager, batch,
+                    akubraConfiguration.getObjectStorePath(), log, Batch.State.INTERNAL_DONE);
+        } catch (Exception ex) {
+            return finishedInternalWithError(batchManager, batch,
+                    akubraConfiguration.getObjectStorePath(), ex);
         }
     }
 

@@ -17,8 +17,12 @@
 
 package cz.cas.lib.proarc.common.catalog.updateCatalog;
 
+import cz.cas.lib.proarc.common.catalog.BibliographicCatalog;
+import cz.cas.lib.proarc.common.catalog.MetadataItem;
+import cz.cas.lib.proarc.common.catalog.OaiCatalog;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
+import cz.cas.lib.proarc.common.config.Catalogs;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
@@ -33,6 +37,8 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.RecordIdentifierDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 import java.util.logging.Logger;
 import org.json.JSONException;
 
@@ -61,6 +67,40 @@ public class UpdateCatalog {
 
     public boolean process(CatalogConfiguration bCatalog, String field001, String pid) throws DigitalObjectException, JSONException, IOException {
         throw new IOException("Method is not implemented");
+    }
+
+    protected CatalogUpdateResult result;
+
+    public CatalogUpdateResult getResult() {
+        return result == null ? CatalogUpdateResult.success("Zápis do katalogu proveden.") : result;
+    }
+
+    protected List<String> readCatalogLinks(CatalogConfiguration configuration, String identifier) throws IOException {
+        try {
+            BibliographicCatalog catalog = Catalogs.getCatalog(configuration, null);
+            if (VerbisUpdateCatalog.ID.equals(configuration.getCatalogUpdateType())
+                    && catalog instanceof OaiCatalog oai) {
+                return oai.findCatalogObjectIds(identifier, configuration.getUpdateField(),
+                        configuration.getUpdateSubfieldApp(), configuration.getUpdateSubfieldObject());
+            }
+            if (configuration.getDefaultSearchField() == null || configuration.getDefaultSearchField().isBlank()) {
+                throw new IOException("Chybí konfigurace vyhledávání identifikátoru: "
+                        + configuration.getPrefix() + ".defaultSearchField");
+            }
+            List<MetadataItem> records = catalog.find(
+                    configuration.getId(), configuration.getDefaultSearchField(), identifier, new Locale("cs"));
+            if (records == null || records.isEmpty()) {
+                throw new IOException("Nenalezena žádná data v katalogu " + configuration.getId() + " pro identifikátor " + identifier);
+            }
+            if (records.size() != 1) {
+                throw new IOException("Nejednoznačný katalogový identifikátor: " + identifier);
+            }
+            return CatalogLinks.read(records.get(0).getMods());
+        } catch (IOException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IOException("Nepodařilo se přečíst původní hodnoty z katalogu.", ex);
+        }
     }
 
     public static String getObjectField001(String pid) throws DigitalObjectException {

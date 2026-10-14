@@ -194,7 +194,7 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
             EmpireUtils.addWhereIs(cmd, tableJob.id, filter.getId());
         }
         EmpireUtils.addWhereLikeIgnoreCase(cmd, tableJob.label, filter.getLabel());
-        EmpireUtils.addWhereLike(cmd, tableJob.financed, filter.getFinanced());
+        EmpireUtils.addWhereLikeIgnoreCase(cmd, tableJob.financed, filter.getFinanced());
         EmpireUtils.addWhereLike(cmd, tpd.barcode, filter.getMaterialBarcode());
         EmpireUtils.addWhereLike(cmd, tpd.detail, filter.getMaterialDetail());
         EmpireUtils.addWhereLike(cmd, tpd.field001, filter.getMaterialField001());

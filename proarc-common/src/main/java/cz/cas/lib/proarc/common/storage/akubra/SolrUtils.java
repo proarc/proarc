@@ -70,6 +70,7 @@ public class SolrUtils {
 
     public static final String VALIDATION_STATUS_OK = "OK";
     public static final String VALIDATION_STATUS_ERROR = "ERROR";
+    public static final String VALIDATION_STATUS_WARNING = "WARNING";
     public static final String VALIDATION_STATUS_UNKNOWN = "UNKNOWN";
 
     public static final String PROPERTY_PARENTPID_NO_PARENT = "NO_PARENT";
@@ -357,15 +358,14 @@ public class SolrUtils {
         String status = VALIDATION_STATUS_OK;
 
         for (SearchViewItem child : children) {
-            if (VALIDATION_STATUS_OK.equals(child.getValidationStatus())) {
-                if (!status.equals(VALIDATION_STATUS_UNKNOWN)) {
-                    status = VALIDATION_STATUS_OK;
-                }
-            } else if (VALIDATION_STATUS_ERROR.equals(child.getValidationStatus())) {
+            if (VALIDATION_STATUS_ERROR.equals(child.getValidationStatus())) {
                 status = VALIDATION_STATUS_ERROR;
                 break;
             } else if (VALIDATION_STATUS_UNKNOWN.equals(child.getValidationStatus())) {
                 status = VALIDATION_STATUS_UNKNOWN;
+            } else if (VALIDATION_STATUS_WARNING.equals(child.getValidationStatus())
+                    && !VALIDATION_STATUS_UNKNOWN.equals(status)) {
+                status = VALIDATION_STATUS_WARNING;
             }
         }
         solrObjectFeeder.feedValidationResult(parents.get(0).getPid(), null, status);

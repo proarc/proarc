@@ -6,7 +6,6 @@ import cz.cas.lib.proarc.common.dublincore.DcStreamEditor;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
-import cz.cas.lib.proarc.common.mods.ndk.NdkNewPageMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.K4Plugin;
@@ -667,9 +666,6 @@ public class ChangeModels {
                 }
             }
         }
-        if (NdkNewPageMapper.PAGE_TYPE_NORMAL.equals(pageType)) {
-            pageType = null;
-        }
         partDefinitions.add(createPart(pageType, pageNumber, pageIndex));
 
         mods.getPart().clear();
@@ -693,9 +689,6 @@ public class ChangeModels {
                     pageIndex = getValue(detail);
                 }
             }
-        }
-        if (pageType == null) {
-            pageType = NdkNewPageMapper.PAGE_TYPE_NORMAL;
         }
         partDefinitions.add(createPageNumberDetail(pageType, pageNumber));
         partDefinitions.add(createPageIndexDetail(pageIndex));

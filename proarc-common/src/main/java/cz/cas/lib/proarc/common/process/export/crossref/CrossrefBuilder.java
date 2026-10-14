@@ -137,7 +137,7 @@ class CrossrefBuilder {
         dbf.setNamespaceAware(true);
         db = dbf.newDocumentBuilder();
 
-        TransformerFactory xslFactory = TransformerFactory.newInstance();
+        TransformerFactory xslFactory = TransformerFactory.newDefaultInstance();
         tranformationErrorHandler = new TransformErrorListener();
         crosssrefXsl = xslFactory.newTransformer(new StreamSource(
                 CrossrefBuilder.class.getResource("mods_crossref.xsl").toExternalForm()));
@@ -224,7 +224,7 @@ class CrossrefBuilder {
             Document document = db.parse(is);
 
 
-            TransformerFactory tf = TransformerFactory.newInstance();
+            TransformerFactory tf = TransformerFactory.newDefaultInstance();
             Transformer transformer = tf.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");

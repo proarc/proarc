@@ -59,6 +59,7 @@ public class Batch {
     public static final String INTERNAL_VALIDATION = "internalProfile.validation";
     public static final String INTERNAL_URNNBN = "internalProfile.urnnbn";
     public static final String INTERNAL_DELETION = "internalProfile.deletion";
+    public static final String INTERNAL_UPGRADE_MODS_38 = "internalProfile.upgradeMods38";
 
     public static final String EXTERNAL_PERO = "externalProfile.pero";
     public static final String EXTERNAL_PDFA = "externalProfile.pdfa";
@@ -67,11 +68,11 @@ public class Batch {
     public enum State {
 
         EMPTY, LOADING, IMPORT_PLANNED, LOADING_FAILED, LOADED, INGESTING, INGESTING_FAILED, INGESTED, LOADING_CONFLICT,
-        EXPORTING, EXPORT_PLANNED, EXPORT_FAILED, EXPORT_VALID_WARNING, EXPORT_DONE,
+        EXPORTING, EXPORT_PLANNED, EXPORT_FAILED, EXPORT_WARNING, EXPORT_DONE,
         //        REINDEXING, REINDEX_FAILED, REINDEX_DONE,
 //        CHANGING_OWNERS, CHANGE_OWNERS_FAILED, CHANGE_OWNERS_DONE,
-        UPLOADING, UPLOAD_FAILED, UPLOAD_DONE,
-        INTERNAL_RUNNING, INTERNAL_PLANNED, INTERNAL_FAILED, INTERNAL_DONE,
+        UPLOADING, UPLOAD_FAILED, UPLOAD_WARNING, UPLOAD_DONE,
+        INTERNAL_RUNNING, INTERNAL_PLANNED, INTERNAL_FAILED, INTERNAL_WARNING, INTERNAL_DONE,
         EXTERNAL_RUNNING, EXTERNAL_PLANNED, EXTERNAL_FAILED, EXTERNAL_DONE, EXTERNAL_EDITING,
         STOPPED
     }

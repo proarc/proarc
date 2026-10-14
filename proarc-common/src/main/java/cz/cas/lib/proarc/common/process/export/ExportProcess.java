@@ -46,6 +46,7 @@ import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.sip.NdkSipExport;
 import cz.cas.lib.proarc.common.process.export.workflow.WorkflowExport;
 import cz.cas.lib.proarc.common.process.internal.ValidationProcess;
+import cz.cas.lib.proarc.common.process.internal.CatalogUpdateProcess;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
@@ -77,6 +78,7 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -84,6 +86,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExportWithError;
@@ -387,6 +390,9 @@ public final class ExportProcess implements Runnable {
             if (Const.EXPORT_NDK4SIP.equals(typeOfPackage)) {
                 ArchiveProducer.fixPdfFile(targetFolder);
             }
+            RawScanCleanup rawScanCleanup = new RawScanCleanup();
+            boolean deleteRawScans = Boolean.TRUE.equals(params.isBagit())
+                    && Boolean.TRUE.equals(params.getDeleteRawScans());
             try {
                 if (config.getArchiveExportOptions().isExtendedPackage() && params.getExtendedArchivePackage()) { // pokud neni tak normalne jedu dal
                     for (File folder : targetFolder.listFiles()) {
@@ -398,11 +404,11 @@ public final class ExportProcess implements Runnable {
                                     File archivalCopiesDestination = new File(folder, config.getArchiveExportOptions().getArchivalCopyFolderName());
                                     if (!archivalCopiesDestination.mkdir()) {
                                         String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
-                                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se vytvořit složku k archivním kopiím: " + archivalCopiesDestination.getAbsolutePath());
+                                        return BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, "Nepodařilo se vytvořit složku k archivním kopiím: " + archivalCopiesDestination.getAbsolutePath());
                                     }
                                     if (!archivalCopiesDestination.exists()) {
                                         String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
-                                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se dostat do složky archivních kopií: " + archivalCopiesDestination.getAbsolutePath());
+                                        return BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, "Nepodařilo se dostat do složky archivních kopií: " + archivalCopiesDestination.getAbsolutePath());
                                     }
                                     String filename = config.getArchiveExportOptions().getNoTifAvailableFileName();
                                     writeToFile(new File(archivalCopiesDestination, filename.endsWith(".txt") ? filename : filename + ".txt"), params.getNoTifAvailableMessage());
@@ -410,34 +416,37 @@ public final class ExportProcess implements Runnable {
                                     File noTifAvailableSource = new File(noTifAvailablePath);
                                     if (noTifAvailableSource == null || !noTifAvailableSource.exists()) {
                                         String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
-                                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nenalezen soubor, ktery se kopiruje v pripade chybejicich skenu: " + noTifAvailableSource.getAbsolutePath());
+                                        return BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, "Nenalezen soubor, ktery se kopiruje v pripade chybejicich skenu: " + noTifAvailableSource.getAbsolutePath());
                                     }
                                     FileUtils.copyFile(noTifAvailableSource, new File(archivalCopiesDestination, noTifAvailableSource.getName()));
                                     createMd5File(archivalCopiesDestination);
                                 } else {
                                     if (archivalCopiesSource == null) {
                                         String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
-                                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nedefinovana cesta k archivnim kopiim.");
+                                        return BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, "Nedefinovana cesta k archivnim kopiim.");
                                     }
                                     String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
-                                    return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nenalezena cesta k archivnim kopiim: " + archivalCopiesSource.getAbsolutePath());
+                                    return BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, "Nenalezena cesta k archivnim kopiim: " + archivalCopiesSource.getAbsolutePath());
                                 }
                             } else {
                                 File archivalCopiesDestination = new File(folder, config.getArchiveExportOptions().getArchivalCopyFolderName());
                                 if (!archivalCopiesDestination.mkdir()) {
                                     String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
-                                    return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se vytvořit složku k archivním kopiím: " + archivalCopiesDestination.getAbsolutePath());
+                                    return BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, "Nepodařilo se vytvořit složku k archivním kopiím: " + archivalCopiesDestination.getAbsolutePath());
                                 }
                                 if (!archivalCopiesDestination.exists()) {
                                     String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
-                                    return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se dostat do složky archivních kopií: " + archivalCopiesDestination.getAbsolutePath());
+                                    return BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, "Nepodařilo se dostat do složky archivních kopií: " + archivalCopiesDestination.getAbsolutePath());
                                 }
                                 try {
                                     FileUtils.copyDirectory(archivalCopiesSource, archivalCopiesDestination);
+                                    if (deleteRawScans) {
+                                        rawScanCleanup.recordCopy(archivalCopiesSource.toPath());
+                                    }
                                 } catch (IOException ex) {
                                     ex.printStackTrace();
                                     String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
-                                    return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Nepodařilo se překopírovat obsah z " + archivalCopiesSource.getAbsolutePath() + " do " + archivalCopiesDestination.getAbsolutePath());
+                                    return BatchUtils.finishedExportWithError(this.batchManager, batch, exportPath, "Nepodařilo se překopírovat obsah z " + archivalCopiesSource.getAbsolutePath() + " do " + archivalCopiesDestination.getAbsolutePath());
                                 }
                                 if (params.getAdditionalInfoMessage() != null && !params.getAdditionalInfoMessage().isEmpty()) {
                                     String filename = config.getArchiveExportOptions().getAdditionalInfoFileName();
@@ -451,7 +460,7 @@ public final class ExportProcess implements Runnable {
             } catch (Exception ex) {
                 ex.printStackTrace();
                 String exportPath = MetsUtils.renameFolder(exportFolder, targetFolder, target);
-                return BatchUtils.finishedExportWithWarning(this.batchManager, batch, exportPath, "Neočekávaná chyba " + ex.getMessage());
+                return finishedExportWithError(this.batchManager, batch, exportPath, ex);
             }
 
             ExportUtils.writeExportResult(targetFolder, export.getResultLog());
@@ -496,7 +505,17 @@ public final class ExportProcess implements Runnable {
                         throw new IOException("Impossible to delete previous export " + bagitFolder.getAbsolutePath());
                     }
                 }
-                targetFolder.renameTo(bagitFolder);
+                Files.move(targetFolder.toPath(), bagitFolder.toPath());
+                targetFolder = bagitFolder;
+                if (deleteRawScans) {
+                    try {
+                        rawScanCleanup.deleteCopiedFolders();
+                    } catch (IOException ex) {
+                        LOG.log(Level.WARNING, "BAGIT export succeeded, but raw scan cleanup failed", ex);
+                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch,
+                                targetFolder.getAbsolutePath(), "BAGIT export dokoncen, ale mazani surovych skenu selhalo: " + ex.getMessage());
+                    }
+                }
             }
             return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, targetFolder.getAbsolutePath());
         } catch (Exception ex) {
@@ -707,25 +726,29 @@ public final class ExportProcess implements Runnable {
                     params.getLicense(),
                     params.getCollections(),
                     batch);
+            List<MetsExportException.MetsExportExceptionElement> validationIssues = new ArrayList<>();
             for (NdkExport.Result r : ndkResults) {
                 if (r.getError() != null) {
                     String exportPath = MetsUtils.renameFolder(exportFolder, r.getTargetFolder(), null);
                     batch = finishedExportWithError(this.batchManager, batch, exportPath, r.getError());
                     throw r.getError();
                 } else if (r.getValidationError() != null) {
+                    validationIssues.addAll(r.getValidationError().getExceptions());
                     if (isMissingURNNBN(r) && config.getExportParams().isDeletePackage()) {
                         MetsUtils.deleteFolder(r.getTargetFolder());
-                        batch = finishedExportWithError(batchManager, batch, r.getValidationError().getExceptions());
                     } else {
                         String exportPath = MetsUtils.renameFolder(exportFolder, r.getTargetFolder(), null);
-                        batch = finishedExportWithError(batchManager, batch, r.getValidationError().getExceptions());
+                        batch.setFolder(exportPath);
                     }
                 } else {
                     MetsUtils.setPermission(r.getTargetFolder());
-                    batch = BatchUtils.finishedExportSuccessfully(batchManager, batch, r.getTargetFolder().getAbsolutePath());
+                    batch.setFolder(r.getTargetFolder().getAbsolutePath());
                 }
             }
-            if (Batch.State.EXPORT_DONE.equals(batch.getState())) {
+            if (!validationIssues.isEmpty()) {
+                return BatchUtils.finishedExportWithWarning(batchManager, batch, batch.getFolder(), validationIssues);
+            }
+            if (!ndkResults.isEmpty()) {
                 if (params.getKrameriusInstanceId() == null || params.getKrameriusInstanceId().isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(params.getKrameriusInstanceId())) {
                     LOG.info("Export " + batch.getId() + " done.");
                     if (params.isBagit() || params.isLtpCesnet()) {
@@ -767,16 +790,22 @@ public final class ExportProcess implements Runnable {
                     }
                     return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, ndkResults.get(0).getTargetFolder().getAbsolutePath());
                 } else {
-                    for (NdkExport.Result r : ndkResults) {
-                        if (r.getKrameriusImportState() != null && KRAMERIUS_PROCESS_FAILED.equals(r.getKrameriusImportState())) {
-                            batch = finishedExportWithError(this.batchManager, batch, r.getTargetFolder().getAbsolutePath(), r.getMessage());
-                        } else if (r.getKrameriusImportState() != null && KRAMERIUS_PROCESS_WARNING.equals(r.getKrameriusImportState())) {
-                            batch = BatchUtils.finishedExportWithWarning(this.batchManager, batch, r.getTargetFolder().getAbsolutePath(), r.getMessage());
-                        } else if (r.getKrameriusImportState() != null && KRAMERIUS_PROCESS_FINISHED.equals(r.getKrameriusImportState())) {
-                            batch = BatchUtils.finishedExportSuccessfully(this.batchManager, batch, r.getTargetFolder().getAbsolutePath(), r.getMessage());
-                        }
+                    String outcome = KUtils.combineOutcomes(ndkResults.stream()
+                            .map(NdkExport.Result::getKrameriusImportState).toList());
+                    String messages = ndkResults.stream()
+                            .map(r -> r.getPid() + ": " + (r.getMessage() == null ? "Chybí výsledek importu do Krameria." : r.getMessage()))
+                            .collect(Collectors.joining("\n"));
+                    if (ndkResults.stream().allMatch(NdkExport.Result::isCatalogImportConfirmed)) {
+                        CatalogHandoff handoff = scheduleCatalogUpdates(batch, params);
+                        messages += handoff.message();
+                        if (handoff.warning()) outcome = KRAMERIUS_PROCESS_WARNING;
                     }
-                    return batch;
+                    if (KRAMERIUS_PROCESS_FAILED.equals(outcome)) {
+                        return finishedExportWithError(this.batchManager, batch, batch.getFolder(), messages);
+                    } else if (KRAMERIUS_PROCESS_WARNING.equals(outcome)) {
+                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch, batch.getFolder(), messages);
+                    }
+                    return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, batch.getFolder(), messages);
                 }
             } else {
                 LOG.info("Export " + batch.getId() + " undone.");
@@ -786,6 +815,34 @@ public final class ExportProcess implements Runnable {
             t.printStackTrace();
             IOException ex = new IOException(t.getMessage(), t);
             return finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
+        }
+    }
+
+    private record CatalogHandoff(boolean warning, String message) { }
+
+    private CatalogHandoff scheduleCatalogUpdates(Batch batch, BatchParams params) {
+        if (!Boolean.TRUE.equals(params.isUpdateCatalog()) || !user.hasImportToCatalogFunction()) {
+            return new CatalogHandoff(false, "");
+        }
+        KrameriusOptions.KrameriusInstance instance = KrameriusOptions.findKrameriusInstance(
+                config.getKrameriusOptions().getKrameriusInstances(), params.getKrameriusInstanceId());
+        if (instance == null || instance.uploadToCatalog() == null || instance.uploadToCatalog().isBlank()) {
+            return new CatalogHandoff(false, "\nCílová instance nemá nakonfigurovaný zápis do katalogu.");
+        }
+        try {
+            List<String> targets = CatalogUpdateProcess.selectTargets(
+                    AkubraStorage.getInstance(akubraConfiguration).getSearch(exportOptions.getLocale()),
+                    params.getPids(), config.getCatalogUpdateModels());
+            if (targets.isEmpty()) {
+                return new CatalogHandoff(true, "\nImport do Krameria proběhl, ale podle konfigurace nebyl nalezen žádný vhodný objekt pro zápis do katalogu.");
+            }
+            CatalogUpdateProcess.schedule(
+                    config, akubraConfiguration, batchManager, user, targets, instance.uploadToCatalog(),
+                    batch.isNightOnly(), batch.getPriority(), exportOptions.getLog(), exportOptions.getLocale());
+            return new CatalogHandoff(false, "\nZápis do katalogu byl naplánován.");
+        } catch (Exception ex) {
+            LOG.log(Level.SEVERE, "Nepodařilo se naplánovat zápis do katalogu po importu.", ex);
+            return new CatalogHandoff(true, "\nImport do Krameria proběhl, ale nepodařilo se naplánovat zápis do katalogu: " + ex.getMessage());
         }
     }
 
@@ -861,8 +918,13 @@ public final class ExportProcess implements Runnable {
                     batch = BatchUtils.finishedExportSuccessfully(this.batchManager, batch, k4Result.getFile().getAbsolutePath());
 //                    return BatchUtils.finishedExportSuccessfully(batchManager, batch, k4Result.getFile().getAbsolutePath());
                 } else {
-                    if (k4Result.getKrameriusImportState() != null && KRAMERIUS_PROCESS_FAILED.equals(k4Result.getKrameriusImportState())) {
-                        batch = finishedExportWithError(this.batchManager, batch, k4Result.getFile().getAbsolutePath(), k4Result.getMessage());
+                    if (k4Result.isCatalogImportConfirmed()) {
+                        CatalogHandoff handoff = scheduleCatalogUpdates(batch, params);
+                        k4Result.setMessage(k4Result.getMessage() + handoff.message());
+                        if (handoff.warning()) k4Result.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
+                    }
+                    if (k4Result.getKrameriusImportState() == null || KRAMERIUS_PROCESS_FAILED.equals(k4Result.getKrameriusImportState())) {
+                        return finishedExportWithError(this.batchManager, batch, k4Result.getFile().getAbsolutePath(), k4Result.getMessage());
                     } else if (k4Result.getKrameriusImportState() != null && KRAMERIUS_PROCESS_WARNING.equals(k4Result.getKrameriusImportState())) {
                         batch = BatchUtils.finishedExportWithWarning(this.batchManager, batch, k4Result.getFile().getAbsolutePath(), k4Result.getMessage());
                     } else if (k4Result.getKrameriusImportState() != null && KRAMERIUS_PROCESS_FINISHED.equals(k4Result.getKrameriusImportState())) {
@@ -870,7 +932,15 @@ public final class ExportProcess implements Runnable {
                     }
                 }
                 for (String pid : params.getPids()) {
-                    setWorkflowExport("task.exportK4", "param.exportK4", k4Result.getPageCount(), params, getRoot(pid, exportFolder));
+                    try {
+                        setWorkflowExport("task.exportK4", "param.exportK4", k4Result.getPageCount(), params, getRoot(pid, exportFolder));
+                    } catch (MetsExportException | DigitalObjectException | WorkflowException ex) {
+                        String message = "Vyexportováno, ale nepodařilo se propojit s RDflow: " + ex.getMessage();
+                        if (batch.getLog() != null) {
+                            message = batch.getLog() + "\n" + message;
+                        }
+                        return BatchUtils.finishedExportWithWarning(batchManager, batch, batch.getFolder(), message);
+                    }
                 }
             }
             return batch;

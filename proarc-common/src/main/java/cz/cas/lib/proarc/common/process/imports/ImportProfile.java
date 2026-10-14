@@ -215,7 +215,7 @@ public final class ImportProfile {
 
     public String getAltoFileVersion() {
         String version = config.getString(ALTO_VERSION, null);
-        return version.toLowerCase();
+        return version == null ? null : version.trim().toLowerCase();
     }
 
     public Configuration getNdkUserProcessor() {

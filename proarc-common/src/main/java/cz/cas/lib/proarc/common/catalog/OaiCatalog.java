@@ -142,7 +142,7 @@ public class OaiCatalog implements BibliographicCatalog {
 
                     if (LOG.isLoggable(Level.FINE)) {
                         StringWriter writer = new StringWriter();
-                        TransformerFactory tf = TransformerFactory.newInstance();
+                        TransformerFactory tf = TransformerFactory.newDefaultInstance();
                         Transformer transformer = tf.newTransformer();
                         transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
                         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -168,6 +168,20 @@ public class OaiCatalog implements BibliographicCatalog {
 
     public String findOaiRecord(String id) {
         return findOaiRecord(buildOaiQuery(id));
+    }
+
+    public List<String> findCatalogObjectIds(String id, String field, String appSubfield, String objectSubfield)
+            throws IOException, TransformerException {
+        String response = findOaiRecord(id);
+        if (response == null) {
+            throw new IOException("Katalogový záznam nenalezen: " + id);
+        }
+        DOMResult marc = transformOaiResponse(new StreamSource(new StringReader(response)), new DOMResult());
+        if (marc == null) {
+            throw new IOException("Katalogový záznam nenalezen: " + id);
+        }
+        return cz.cas.lib.proarc.common.catalog.updateCatalog.CatalogLinks.readMarcObjectIds(
+                marc.getNode(), field, appSubfield, objectSubfield);
     }
 
     String findOaiRecord(WebTarget query) {
@@ -270,7 +284,7 @@ public class OaiCatalog implements BibliographicCatalog {
     private static Templates createOai2MarcXslt() throws TransformerConfigurationException {
         if (OAI_MARC_XSLT == null) {
             String xsltSrc = OaiCatalog.class.getResource("/xml/Oai2MARC21slim.xsl").toExternalForm();
-            OAI_MARC_XSLT = TransformerFactory.newInstance().newTemplates(new StreamSource(xsltSrc));
+            OAI_MARC_XSLT = TransformerFactory.newDefaultInstance().newTemplates(new StreamSource(xsltSrc));
         }
         return OAI_MARC_XSLT;
     }

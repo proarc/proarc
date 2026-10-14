@@ -26,7 +26,10 @@ import cz.cas.lib.proarc.foxml.management.DatastreamProfile;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import javax.xml.XMLConstants;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
@@ -43,10 +46,8 @@ public final class AltoDatastream {
     public static final String ALTO_ID = "ALTO";
     public static final String ALTO_LABEL = "ALTO for this object";
     public static final String ALTO_FORMAT_URI = "http://www.loc.gov/standards/alto/ns-v2#";
-    private static Schema ALTO_SCHEMA;
-    private static final String ALTO_SCHEMA_PATH_20 = "/xml/alto-v2.0.xsd";
-    private static final String ALTO_SCHEMA_PATH_21 = "/xml/alto-v2.1.xsd";
-    private static final String ALTO_SCHEMA_PATH_30 = "/xml/alto-v3.0.xsd";
+    private static final Map<String, String> ALTO_SCHEMA_PATHS = createSchemaPaths();
+    public static final List<String> SUPPORTED_VERSIONS = List.copyOf(ALTO_SCHEMA_PATHS.keySet());
     public static ImportProfile config;
 
     public AltoDatastream(ImportProfile config) {
@@ -90,53 +91,56 @@ public final class AltoDatastream {
     }
 
     private static boolean validSchema(List<Schema> schemas, URI alto) throws IOException, SAXException {
-        SAXException exception = new SAXException();
-
         for (Schema schema : schemas) {
             try {
                 schema.newValidator().validate(new StreamSource(alto.toASCIIString()));
                 return true;
             } catch (SAXException ex) {
-                exception = ex;
+                // Try the next supported ALTO schema.
             }
-        }
-        if (!exception.getMessage().isEmpty()) {
-            throw exception;
         }
         return false;
     }
 
     public static List<Schema> getSchemas() throws SAXException {
-        List<Schema> schema = new ArrayList<>();
-        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-        schemaFactory.setResourceResolver(MetsLSResolver.getInstance());
-        if (config != null) {
-            switch (config.getAltoFileVersion()) {
-                case "2.0":
-                    schema.add(schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_20)));
-                    break;
-                case "2.1":
-                    schema.add(schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_21)));
-                    break;
-                case "3.0":
-                    schema.add(schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_30)));
-                    break;
-                default:
-                    schema.addAll(getSchemasList());
-            }
-        } else {
-            schema.addAll(getSchemasList());
+        String version = config == null ? null : config.getAltoFileVersion();
+        if (version == null || version.isBlank()) {
+            return getSchemasList();
         }
-        return schema;
+
+        String schemaPath = ALTO_SCHEMA_PATHS.get(version);
+        if (schemaPath == null) {
+            throw new SAXException("Unsupported ALTO version '" + version
+                    + "'. Supported versions: " + String.join(", ", SUPPORTED_VERSIONS));
+        }
+        return List.of(createSchema(schemaPath));
     }
 
     public static List<Schema> getSchemasList() throws SAXException {
-        List <Schema> schemas = new ArrayList<>();
+        List<Schema> schemas = new ArrayList<>();
+        for (String schemaPath : ALTO_SCHEMA_PATHS.values()) {
+            schemas.add(createSchema(schemaPath));
+        }
+        return schemas;
+    }
+
+    private static Schema createSchema(String schemaPath) throws SAXException {
         SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         schemaFactory.setResourceResolver(MetsLSResolver.getInstance());
-        schemas.add(schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_20)));
-        schemas.add(schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_21)));
-        schemas.add(schemaFactory.newSchema(AltoDatastream.class.getResource(ALTO_SCHEMA_PATH_30)));
-        return schemas;
+        return schemaFactory.newSchema(AltoDatastream.class.getResource(schemaPath));
+    }
+
+    private static Map<String, String> createSchemaPaths() {
+        Map<String, String> schemaPaths = new LinkedHashMap<>();
+        schemaPaths.put("2.0", "/xml/alto/alto-v2.0.xsd");
+        schemaPaths.put("2.1", "/xml/alto/alto-v2.1.xsd");
+        schemaPaths.put("3.0", "/xml/alto/alto-v3.0.xsd");
+        schemaPaths.put("3.1", "/xml/alto/alto-v3.1.xsd");
+        schemaPaths.put("4.0", "/xml/alto/alto-v4.0.xsd");
+        schemaPaths.put("4.1", "/xml/alto/alto-v4.1.xsd");
+        schemaPaths.put("4.2", "/xml/alto/alto-v4.2.xsd");
+        schemaPaths.put("4.3", "/xml/alto/alto-v4.3.xsd");
+        schemaPaths.put("4.4", "/xml/alto/alto-v4.4.xsd");
+        return Collections.unmodifiableMap(schemaPaths);
     }
 }

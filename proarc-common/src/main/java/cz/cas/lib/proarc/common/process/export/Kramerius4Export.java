@@ -21,7 +21,6 @@ import com.yourmediashelf.fedora.foxml.DatastreamVersionType;
 import com.yourmediashelf.fedora.foxml.DigitalObject;
 import com.yourmediashelf.fedora.foxml.PropertyType;
 import com.yourmediashelf.fedora.foxml.XmlContentType;
-import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
@@ -97,11 +96,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V5;
-import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V7;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V5;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V7;
-import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_KILLED_V7;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_NO_BATCH_V5;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
@@ -271,47 +267,23 @@ public final class Kramerius4Export {
                         MetsUtils.deleteFolder(krameriusResult.getFile());
                     }
                 }
-                switch (state.getBatchState()) {
-                    case KRAMERIUS_BATCH_FINISHED_V5:
-                    case KRAMERIUS_BATCH_FINISHED_V7:
-                        krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel bez chyby.");
-                        krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_FINISHED);
-
-                        try {
-                            if (instance.uploadToCatalog() != null && !instance.uploadToCatalog().isEmpty()) {
-                                LOG.info("Nahravam informace do katalogu.");
-                                CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
-                                catalogRecord.update(instance.uploadToCatalog(), pids[0]);
-                            } else {
-                                LOG.info("Neni zapnuta volba nahrani informaci do katalogu.");
-                            }
-                        } catch (DigitalObjectException | IOException e) {
-                            LOG.log(Level.SEVERE, e.getMessage(), e);
-                            krameriusResult.setMessage("Import do Krameria proběhl, ale nepodařilo se upravit záznam v katalogu." + e.getMessage());
-                            krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
+                switch (state.getOutcome()) {
+                    case KRAMERIUS_PROCESS_FINISHED:
+                    case KRAMERIUS_PROCESS_WARNING:
+                        krameriusResult.setMessage(KRAMERIUS_PROCESS_WARNING.equals(state.getOutcome())
+                                ? "Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") proběhl s upozorněním."
+                                : "Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel bez chyby.");
+                        krameriusResult.setKrameriusImportState(state.getOutcome());
+                        if (KRAMERIUS_BATCH_NO_BATCH_V5.equals(state.getBatchState())) {
+                            krameriusResult.setMessage(krameriusResult.getMessage() + " Nebyla spuštěna indexace.");
+                            break;
                         }
+
+                        krameriusResult.setCatalogImportConfirmed(state.isImportConfirmed());
                         break;
-                    case KRAMERIUS_BATCH_FAILED_V5:
-                    case KRAMERIUS_BATCH_FAILED_V7:
-                    case KRAMERIUS_BATCH_KILLED_V7:
+                    case KRAMERIUS_PROCESS_FAILED:
                         krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") selhal.");
                         krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_FAILED);
-                        break;
-                    case KRAMERIUS_BATCH_NO_BATCH_V5:
-                        switch (state.getProcessState()) {
-                            case KRAMERIUS_PROCESS_FINISHED:
-                                krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel, ale nebyla spuštěna indexace.");
-                                krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
-                                break;
-                            case KRAMERIUS_PROCESS_FAILED:
-                                krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") selhal.");
-                                krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_FAILED);
-                                break;
-                            case KRAMERIUS_PROCESS_WARNING:
-                                krameriusResult.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel s chybou.");
-                                krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
-                                break;
-                        }
                         break;
                     default:
                         krameriusResult.setKrameriusImportState(KRAMERIUS_PROCESS_FAILED);
@@ -1367,6 +1339,10 @@ public final class Kramerius4Export {
     }
 
     public static class Result {
+        private boolean catalogImportConfirmed;
+        public boolean isCatalogImportConfirmed() { return catalogImportConfirmed; }
+        public void setCatalogImportConfirmed(boolean confirmed) { this.catalogImportConfirmed = confirmed; }
+
         private File file;
         private Integer pageCount;
         private MetsExportException validationError;

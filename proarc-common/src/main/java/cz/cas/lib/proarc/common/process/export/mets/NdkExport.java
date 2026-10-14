@@ -17,7 +17,6 @@
 package cz.cas.lib.proarc.common.process.export.mets;
 
 import com.yourmediashelf.fedora.foxml.DigitalObject;
-import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
@@ -32,6 +31,7 @@ import cz.cas.lib.proarc.common.process.export.ExportResultLog.ItemList;
 import cz.cas.lib.proarc.common.process.export.ExportResultLog.ResultError;
 import cz.cas.lib.proarc.common.process.export.ExportResultLog.ResultStatus;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
+import cz.cas.lib.proarc.common.process.export.mets.structure.ClippingElementVisitor;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElementVisitor;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElementVisitor;
@@ -57,11 +57,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.Validate;
 
-import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V5;
-import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V7;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V5;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FINISHED_V7;
-import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_KILLED_V7;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_NO_BATCH_V5;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_FAILED;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
@@ -168,46 +165,22 @@ public class NdkExport {
                             MetsUtils.deleteFolder(result.getTargetFolder());
                         }
                     }
-                    switch (state.getBatchState()) {
-                        case KRAMERIUS_BATCH_FINISHED_V5:
-                        case KRAMERIUS_BATCH_FINISHED_V7:
-                            result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel bez chyby.");
-                            result.setKrameriusImportState(KRAMERIUS_PROCESS_FINISHED);
-                            try {
-                                if (instance.uploadToCatalog() != null && !instance.uploadToCatalog().isEmpty()) {
-                                    LOG.info("Nahravam informace do katalogu.");
-                                    CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
-                                    catalogRecord.update(instance.uploadToCatalog(), pid);
-                                } else {
-                                    LOG.info("Neni zapnuta volba nahrani informaci do katalogu.");
-                                }
-                            } catch (DigitalObjectException | IOException e) {
-                                LOG.log(Level.SEVERE, e.getMessage(), e);
-                                result.setMessage("Import do Krameria proběhl, ale nepodařilo se upravit záznam v katalogu." + e.getMessage());
-                                result.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
+                    switch (state.getOutcome()) {
+                        case KRAMERIUS_PROCESS_FINISHED:
+                        case KRAMERIUS_PROCESS_WARNING:
+                            result.setMessage(KRAMERIUS_PROCESS_WARNING.equals(state.getOutcome())
+                                    ? "Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") proběhl s upozorněním."
+                                    : "Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel bez chyby.");
+                            result.setKrameriusImportState(state.getOutcome());
+                            if (KRAMERIUS_BATCH_NO_BATCH_V5.equals(state.getBatchState())) {
+                                result.setMessage(result.getMessage() + " Nebyla spuštěna indexace.");
+                                break;
                             }
+                            result.setCatalogImportConfirmed(state.isImportConfirmed());
                             break;
-                        case KRAMERIUS_BATCH_FAILED_V5:
-                        case KRAMERIUS_BATCH_FAILED_V7:
-                        case KRAMERIUS_BATCH_KILLED_V7:
+                        case KRAMERIUS_PROCESS_FAILED:
                             result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") selhal.");
                             result.setKrameriusImportState(KRAMERIUS_PROCESS_FAILED);
-                            break;
-                        case KRAMERIUS_BATCH_NO_BATCH_V5:
-                            switch (state.getProcessState()) {
-                                case KRAMERIUS_PROCESS_FINISHED:
-                                    result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel, ale nebyla spuštěna indexace.");
-                                    result.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
-                                    break;
-                                case KRAMERIUS_PROCESS_FAILED:
-                                    result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") selhal.");
-                                    result.setKrameriusImportState(KRAMERIUS_PROCESS_FAILED);
-                                    break;
-                                case KRAMERIUS_PROCESS_WARNING:
-                                    result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") prošel s chybou.");
-                                    result.setKrameriusImportState(KRAMERIUS_PROCESS_WARNING);
-                                    break;
-                            }
                             break;
                         default:
                             result.setMessage("Import do Krameria (" + instance.getId() + " --> " + instance.getUrl() + ") selhal.");
@@ -353,10 +326,13 @@ public class NdkExport {
                     DigitalObject dobj = MetsUtils.readFoXML(pspPid, metsContext);
                     MetsElement mElm = MetsElement.getElement(dobj, null, metsContext, hierarchy);
                     mElm.setIgnoreValidation(ignoreMissingUrnNbn);
-                    if (NdkMapper.isNdkEModel(mElm.getModel().replaceAll("info:fedora/", ""))) {
+                    String modelId = ExportUtils.getModel(mElm.getModel());
+                    if (NdkMapper.isNdkEModel(modelId)) {
                         mElm.accept(new SipElementVisitor());
-                    } else if (NdkMapper.isOldprintModel(mElm.getModel().replaceAll("info:fedora/", ""))) {
+                    } else if (NdkMapper.isOldprintModel(modelId)) {
                         mElm.accept(new SttElementVisitor());
+                    } else if (NdkMapper.isClippingModel(modelId)) {
+                        mElm.accept(new ClippingElementVisitor());
                     } else {
                         mElm.accept(new MetsElementVisitor());
                     }
@@ -511,10 +487,13 @@ public class NdkExport {
                     DigitalObject dobj = MetsUtils.readFoXML(pspPid, metsContext);
                     MetsElement mElm = MetsElement.getElement(dobj, null, metsContext, hierarchy);
                     mElm.setIgnoreValidation(ignoreMissingUrnNbn);
-                    if (NdkMapper.isNdkEModel(mElm.getModel().replaceAll("info:fedora/", ""))) {
+                    String modelId = ExportUtils.getModel(mElm.getModel());
+                    if (NdkMapper.isNdkEModel(modelId)) {
                         mElm.accept(new SipElementVisitor());
-                    } else if (NdkMapper.isOldprintModel(mElm.getModel().replaceAll("info:fedora/", ""))) {
+                    } else if (NdkMapper.isOldprintModel(modelId)) {
                         mElm.accept(new SttElementVisitor());
+                    } else if (NdkMapper.isClippingModel(modelId)) {
+                        mElm.accept(new ClippingElementVisitor());
                     } else {
                         mElm.accept(new MetsElementVisitor());
                     }
@@ -602,6 +581,10 @@ public class NdkExport {
      * The export result.
      */
     public static class Result {
+        private boolean catalogImportConfirmed;
+        public boolean isCatalogImportConfirmed() { return catalogImportConfirmed; }
+        public void setCatalogImportConfirmed(boolean confirmed) { this.catalogImportConfirmed = confirmed; }
+
 
         private File targetFolder;
         private MetsExportException validationError;

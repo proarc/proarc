@@ -17,26 +17,17 @@
 
 package cz.cas.lib.proarc.common.catalog.updateCatalog;
 
-import cz.cas.lib.proarc.common.catalog.BibliographicCatalog;
-import cz.cas.lib.proarc.common.catalog.MetadataItem;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.CatalogConfiguration;
-import cz.cas.lib.proarc.common.config.Catalogs;
-import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import cz.cas.lib.proarc.mods.LocationDefinition;
-import cz.cas.lib.proarc.mods.ModsCollectionDefinition;
-import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.cas.lib.proarc.mods.UrlDefinition;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.transform.TransformerException;
 import org.apache.commons.io.FileUtils;
 import org.json.JSONException;
 
@@ -94,7 +85,6 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
                 Integer expectedLength = getExpectedLength(catalogConfiguration);
                 String base = null;
                 String sysno = null;
-                boolean containsDigitalizationInfo = false;
                 if (expectedLength == null) {
                     sysno = field001;
                 } else if (expectedLength == field001.length() || expectedLength == field001.length() + catalogConfiguration.getField001BaseDefault().length()) {
@@ -104,19 +94,28 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
                     LOG.log(Level.SEVERE, "Špatná délka SYSNa. Očekávaná délka je " + expectedLength + " ale délka pole 001 (" + field001 + ") je " + field001.length());
                     throw new IOException("Špatná délka SYSNa. Očekávaná délka je " + expectedLength + " ale délka pole 001 (" + field001 + ") je " + field001.length());
                 }
-                if (catalogConfiguration.checkValidSysnoBeforeUpdate()) {
-                    try {
-                        containsDigitalizationInfo = checkValidSysnoInCatalog(catalogConfiguration, sysno, pid);
-                    } catch (UpdateCatalogException ex) {
-                        throw new IOException(ex.getMessage(), ex);
-                    } catch (Exception ex) {
-                        throw new IOException("Nepodařilo se zvalidovat sysno proti katalogu.", ex);
+                String expected = CatalogLinks.link(catalogConfiguration.getCatalogUrlLink(), pid);
+                List<String> previous = new ArrayList<>(readCatalogLinks(catalogConfiguration, sysno));
+                // Aleph consumes these files asynchronously. Include already queued links too.
+                String recordPrefix = prepareString(base, sysno, "");
+                File[] queued = new File(catalogConfiguration.getCatalogDirectory()).listFiles(
+                        (dir, name) -> name.endsWith(".csv"));
+                if (queued != null) {
+                    for (File file : queued) {
+                        String line = FileUtils.readFileToString(file, Charset.defaultCharset());
+                        if (line.startsWith(recordPrefix)) {
+                            String link = line.substring(recordPrefix.length()).trim();
+                            if (!link.isEmpty() && !previous.contains(link)) previous.add(link);
+                        }
                     }
                 }
-                if (containsDigitalizationInfo) {
-                    throw new IOException("Záznam v katalogu (" + catalogConfiguration.getId() + ", sysno: " + sysno + ") již obsahuje info o digitalizaci.");
+                if (CatalogLinks.contains(previous, expected)) {
+                    result = CatalogUpdateResult.success("Shodný odkaz již existuje.\nOdkaz: " + expected);
+                    return true;
                 }
-                return updateRecord(base, sysno, catalogConfiguration.getCatalogUrlLink(), pid, catalogConfiguration.getCatalogDirectory());
+                boolean updated = updateRecord(base, sysno, catalogConfiguration.getCatalogUrlLink(), pid, catalogConfiguration.getCatalogDirectory());
+                result = CatalogLinks.result(previous, expected);
+                return updated;
             } catch (StringIndexOutOfBoundsException ex) {
                 LOG.log(Level.SEVERE, ex.getMessage(), ex);
                 throw new IOException("Wrong value in proarc.cfg for base or sysno lenght.", ex);
@@ -125,39 +124,6 @@ public class AlephXmlUpdateCatalog extends UpdateCatalog {
             LOG.severe("Catalog with id " + catalogConfiguration.getId() + " does not support Record modification");
             throw new IOException("Catalog with id " + catalogConfiguration.getId() + " does not support Record modification");
         }
-    }
-
-    private boolean checkValidSysnoInCatalog(CatalogConfiguration catalogConfiguration, String sysno, String pid) throws IOException, TransformerException, UpdateCatalogException {
-        BibliographicCatalog catalog = Catalogs.getCatalog(catalogConfiguration, null);
-        List<MetadataItem> data = catalog.find(catalogConfiguration.getId(), catalogConfiguration.getDefaultSearchField(), sysno, new Locale("cs"));
-        if (data == null || data.isEmpty()) {
-            throw new UpdateCatalogException("Nenalezena žádná data v katalogu " + catalogConfiguration.getId() + " pro identifikator " + sysno + ".");
-        }
-        MetadataItem item = data.get(0);
-        return checkDigitalizationInfo(item.getMods(), catalogConfiguration, pid);
-    }
-
-    private boolean checkDigitalizationInfo(String modsAsString, CatalogConfiguration catalogConfiguration, String pid) {
-        ModsCollectionDefinition modsCollection = ModsUtils.unmarshal(modsAsString, ModsCollectionDefinition.class);
-        ModsDefinition mods = null;
-        if (modsCollection == null || modsCollection.getMods().isEmpty()) {
-            mods = ModsUtils.unmarshal(modsAsString, ModsDefinition.class);
-        } else {
-            mods = modsCollection.getMods().get(0);
-        }
-
-        if (mods.getLocation() == null || mods.getLocation().isEmpty()) {
-            return false;
-        }
-        String expectedLinkValue = createCatalogLink(catalogConfiguration.getCatalogUrlLink(), pid);
-        for (LocationDefinition location : mods.getLocation()) {
-            for (UrlDefinition url : location.getUrl()) {
-                if (url.getValue() != null && (url.getValue().equalsIgnoreCase(expectedLinkValue) || url.getValue().equalsIgnoreCase(expectedLinkValue.replaceAll("/view/", "/uuid/")))) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     private Integer getExpectedLength(CatalogConfiguration catalogConfiguration) {

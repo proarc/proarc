@@ -42,6 +42,7 @@ public final class ImportResourceApi {
     public static final String NEWBATCH_DEVICE_PARAM = "device";
     public static final String NEWBATCH_SOFTWARE_PARAM = "software";
     public static final String NEWBATCH_INDICES_PARAM = "indices";
+    public static final String NEWBATCH_PAGE_TYPE_PARAM = "generatePageType";
 
     public static final String BATCH_GENERATE_PATH = "generate";
     public static final String BATCH_METACHECK_URL_PATH = "metacheckUrl";

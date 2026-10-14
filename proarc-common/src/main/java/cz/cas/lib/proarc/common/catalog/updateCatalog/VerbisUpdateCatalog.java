@@ -109,8 +109,17 @@ public class VerbisUpdateCatalog extends UpdateCatalog {
     @Override
     public boolean process(CatalogConfiguration catalogConfiguration, String field001, String pid) throws DigitalObjectException, JSONException, IOException {
         if (allowUpdateRecord(catalogConfiguration)) {
+            java.util.List<String> previous = readCatalogLinks(catalogConfiguration, field001);
+            String expected = CatalogLinks.link(catalogConfiguration.getCatalogUrlLink(), pid);
+            if (CatalogLinks.contains(previous, expected)
+                    || previous.stream().anyMatch(link -> link.equals(pid) || link.endsWith("/" + pid))) {
+                result = CatalogUpdateResult.success("Shodný odkaz již existuje.\nOdkaz: " + expected);
+                return true;
+            }
             String verbisToken = getCatalogToken(catalogConfiguration);
-            return updateRecord(catalogConfiguration, verbisToken, field001, pid);
+            boolean updated = updateRecord(catalogConfiguration, verbisToken, field001, pid);
+            result = CatalogLinks.result(previous, expected);
+            return updated;
         } else {
             LOG.severe("Catalog with id " + catalogConfiguration.getId() + " does not support Record modification");
             throw new IOException("Catalog with id " + catalogConfiguration.getId() + " does not support Record modification");

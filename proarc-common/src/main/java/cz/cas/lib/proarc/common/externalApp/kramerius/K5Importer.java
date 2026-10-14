@@ -34,10 +34,8 @@ import org.json.JSONObject;
 
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_FAILED_V5;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_NO_BATCH_V5;
-import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_STARTED_V5;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_PLANNED;
-import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_RUNNING;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_ACCEPTED;
@@ -120,6 +118,7 @@ final class K5Importer extends AbstractKrameriusImporter {
         String processState = KRAMERIUS_PROCESS_PLANNED;
         String batchState = KRAMERIUS_BATCH_NO_BATCH_V5;
         int forbiddenRetries = 0;
+        boolean warningSeen = false;
 
         while (isRunning(processState, batchState)) {
             HttpGet request = new HttpGet(url);
@@ -135,6 +134,7 @@ final class K5Importer extends AbstractKrameriusImporter {
                     JSONObject state = result.getJSONObject(0);
                     processState = state.getString("state");
                     batchState = state.getString("batchState");
+                    warningSeen |= KUtils.KRAMERIUS_PROCESS_WARNING.equals(processState);
                 } else if (status == HTTP_FORBIDDEN && forbiddenRetries++ < MAX_FORBIDDEN_RETRIES) {
                     TimeUnit.SECONDS.sleep(30);
                     continue;
@@ -147,14 +147,12 @@ final class K5Importer extends AbstractKrameriusImporter {
                 TimeUnit.SECONDS.sleep(20);
             }
         }
-        return new KUtils.ImportState(processState, batchState);
+        return new KUtils.ImportState(warningSeen && KRAMERIUS_PROCESS_FINISHED.equals(processState)
+                ? KUtils.KRAMERIUS_PROCESS_WARNING : processState, batchState);
     }
 
     private boolean isRunning(String processState, String batchState) {
-        return KRAMERIUS_PROCESS_PLANNED.equals(processState)
-                || KRAMERIUS_PROCESS_RUNNING.equals(processState)
-                || (KRAMERIUS_PROCESS_FINISHED.equals(processState)
-                && KRAMERIUS_BATCH_STARTED_V5.equals(batchState));
+        return new KUtils.ImportState(processState, batchState).isRunning();
     }
 
     @Override

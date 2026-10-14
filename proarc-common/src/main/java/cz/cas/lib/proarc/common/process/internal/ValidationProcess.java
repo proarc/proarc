@@ -46,8 +46,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static cz.cas.lib.proarc.common.object.ndk.ModsRules.PAGE_PART_TYPE;
-
 public class ValidationProcess {
 
     private static final Logger LOG = Logger.getLogger(ValidationProcess.class.getName());
@@ -88,6 +86,7 @@ public class ValidationProcess {
             NdkPlugin.MODEL_MONOGRAPHUNIT, NdkPlugin.MODEL_MONOGRAPHVOLUME,
             NdkPlugin.MODEL_CARTOGRAPHIC, NdkPlugin.MODEL_GRAPHIC, NdkPlugin.MODEL_SHEETMUSIC,
             NdkAudioPlugin.MODEL_MUSICDOCUMENT, NdkAudioPlugin.MODEL_PHONOGRAPH,
+            NdkAudioPlugin.MODEL_AUDIO_DISC, NdkAudioPlugin.MODEL_DIGITAL_AUDIO,
             NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME, NdkEbornPlugin.MODEL_EMONOGRAPHUNIT,
             NdkEbornPlugin.MODEL_EPERIODICALISSUE, NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT,
             OldPrintPlugin.MODEL_MONOGRAPHVOLUME, OldPrintPlugin.MODEL_MONOGRAPHUNIT,
@@ -210,7 +209,7 @@ public class ValidationProcess {
 
         // seznam validaci
         if (PAGE_MODELS.contains(model)) {
-            validatePage(item, result);
+            validatePage(item, result, parentItem == null ? null : parentItem.getModel());
         }
         if (CONTAINS_PDF.contains(model)) {
             validateContainsPdf(akubraObject, !children.isEmpty(), result);
@@ -454,7 +453,7 @@ public class ValidationProcess {
         }
     }
 
-    private void validatePage(SearchViewItem item, Result result) {
+    private void validatePage(SearchViewItem item, Result result, String parentModel) {
         if (item.getPageIndex() == null || item.getPageIndex().isEmpty()) {
             result.getValidationResults().add(new ValidationResult(item.getPid(), "Není vyplněný index strany.", Level.SEVERE));
             indexPageValue++;
@@ -471,10 +470,10 @@ public class ValidationProcess {
             result.getValidationResults().add(new ValidationResult(item.getPid(), "Není vyplněný číslo strany.", Level.SEVERE));
         }
 
-        /* normalPage pageType vyplněný nemá. Nutné zrušit kontrolu  @link https://github.com/proarc/proarc-client/issues/592 */
-//        if (item.getPageType() == null || item.getPageType().isEmpty()) {
-//            result.getValidationResults().add(new ValidationResult(item.getPid(), "Není vyplněný typ strany.", Level.SEVERE));
-//        }
+        if (ModsRules.isPageTypeRequired(item.getModel())
+                && (item.getPageType() == null || item.getPageType().trim().isEmpty())) {
+            result.getValidationResults().add(new ValidationResult(item.getPid(), "Není vyplněný typ strany.", Level.SEVERE));
+        }
 
         if (item.getPageRepre() != null && !item.getPageRepre().isEmpty()) {
             if ("reprePage".equals(item.getPageRepre())) {
@@ -486,7 +485,7 @@ public class ValidationProcess {
             }
         }
         if (item.getPageType() != null && !item.getPageType().isEmpty()) {
-            if (!PAGE_PART_TYPE.contains(item.getPageType())) {
+            if (!ModsRules.getPagePartTypes(parentModel).contains(item.getPageType())) {
                 result.getValidationResults().add(new ValidationResult(item.getPid(), String.format("Zvolený typ strany \"%s\" není podporován.", item.getPageType()), Level.SEVERE));
             }
             if (pageTypeMap.containsKey(item.getPageType())) {
@@ -558,7 +557,7 @@ public class ValidationProcess {
         }
     }
 
-    private static class ValidationResult {
+   public static class ValidationResult {
 
         private String pid;
         private String message;

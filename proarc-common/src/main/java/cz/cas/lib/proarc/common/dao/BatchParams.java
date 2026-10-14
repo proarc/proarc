@@ -29,7 +29,10 @@ public class BatchParams {
     private String license;
     private List<String> collections;
     private Boolean updateMods;
+    private Boolean updateCatalog;
+    private String catalogId;
     private Boolean extendedArchivePackage;
+    private Boolean deleteRawScans;
     private Boolean purge;
     private Boolean restore;
     private String type;
@@ -37,6 +40,7 @@ public class BatchParams {
     private String metakatEngine;
     private String notBefore;
     private String notAfter;
+    private Boolean generatePageType;
 
     public BatchParams() {
     }
@@ -277,6 +281,15 @@ public class BatchParams {
         this.extendedArchivePackage = extendedArchivePackage;
     }
 
+    @XmlElement(name = "deleteRawScans")
+    public Boolean getDeleteRawScans() {
+        return deleteRawScans;
+    }
+
+    public void setDeleteRawScans(Boolean deleteRawScans) {
+        this.deleteRawScans = deleteRawScans;
+    }
+
     @XmlElement(name = "purge")
     public Boolean isPurge() {
         return purge;
@@ -338,5 +351,32 @@ public class BatchParams {
 
     public void setNotAfter(String notAfter) {
         this.notAfter = notAfter;
+    }
+
+    @XmlElement(name = "generatePageType")
+    public Boolean isGeneratePageType() {
+        return generatePageType;
+    }
+
+    public void setGeneratePageType(Boolean generatePageType) {
+        this.generatePageType = generatePageType;
+    }
+
+    @XmlElement(name = "updateCatalog")
+    public Boolean isUpdateCatalog() {
+        return updateCatalog;
+    }
+
+    public void setUpdateCatalog(Boolean updateCatalog) {
+        this.updateCatalog = updateCatalog;
+    }
+
+    @XmlElement(name = "catalogId")
+    public String getCatalogId() {
+        return catalogId;
+    }
+
+    public void setCatalogId(String catalogId) {
+        this.catalogId = catalogId;
     }
 }

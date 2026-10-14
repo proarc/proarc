@@ -163,7 +163,7 @@ public class CopyObject {
         while (iterator.hasNext()) {
             OriginInfoDefinition originInfo = iterator.next();
             if (originInfo.getPlace().isEmpty() &&
-                    originInfo.getPublisher().isEmpty() &&
+                    originInfo.getAgent().isEmpty() &&
                     originInfo.getDateCreated().isEmpty() &&
                     originInfo.getDateIssued().isEmpty() &&
                     originInfo.getCopyrightDate().isEmpty() &&

@@ -32,8 +32,8 @@ class OpenApiSpecificationTest {
         assertEquals("../rest/v2", spec.getJSONArray("servers").getJSONObject(0).getString("url"));
 
         JSONObject paths = spec.getJSONObject("paths");
-        assertEquals(165, paths.length());
-        assertEquals(201, countOperations(paths));
+        assertEquals(168, paths.length());
+        assertEquals(205, countOperations(paths));
         assertTrue(paths.has("/authorities"));
         assertTrue(paths.has("/bibliographies/query"));
         assertTrue(paths.has("/device"));
@@ -47,6 +47,21 @@ class OpenApiSpecificationTest {
         assertTrue(paths.has("/workflow"));
         assertFalse(paths.has("/rest/v2/object"));
         assertFalse(paths.has("/swagger/openapi.json"));
+    }
+
+    @Test
+    void copyrightMdDocumentsRepositoryXmlEditingAndConcurrency() throws Exception {
+        JSONObject paths = loadSpec().getJSONObject("paths");
+        JSONObject read = paths.getJSONObject("/object/technicalMetadataXmlCopyrightMD").getJSONObject("get");
+        assertEquals("getCopyrightMd", read.getString("operationId"));
+        assertDefaultJsonResponse(read, "#/components/schemas/StringRecord");
+        JSONObject edit = paths.getJSONObject("/object/technicalCopyrightMD").getJSONObject("put");
+        assertEquals("updateCopyrightMd", edit.getString("operationId"));
+        JSONObject data = edit.getJSONObject("requestBody").getJSONObject("content").getJSONObject("*/*").getJSONObject("schema");
+        assertTrue(data.getJSONArray("required").toString().contains("timestamp"));
+        assertTrue(data.getJSONObject("properties").has("xmlData"));
+        assertTrue(data.getJSONObject("properties").has("jsonData"));
+        assertEquals("deleteCopyrightMd", paths.getJSONObject("/object/technicalCopyrightMD").getJSONObject("delete").getString("operationId"));
     }
 
     @Test
@@ -184,6 +199,18 @@ class OpenApiSpecificationTest {
             assertTrue(properties.has(property), property);
         }
         assertDefaultJsonResponse(put, "#/components/schemas/response");
+    }
+
+    @Test
+    void objectUpgradeMods38DocumentsScheduledUpgrade() throws Exception {
+        JSONObject post = loadSpec()
+                .getJSONObject("paths")
+                .getJSONObject("/object/upgradeMods38")
+                .getJSONObject("post");
+
+        assertEquals("upgradeMods38", post.getString("operationId"));
+        assertFalse(post.has("requestBody"));
+        assertDefaultJsonResponse(post, "#/components/schemas/response");
     }
 
     @Test
@@ -334,6 +361,107 @@ class OpenApiSpecificationTest {
     }
 
     @Test
+    void modelConversionDocumentsProgressResponse() throws Exception {
+        JSONObject spec = loadSpec();
+        JSONObject operation = spec.getJSONObject("paths")
+                .getJSONObject("/object/changePageToNdkPage")
+                .getJSONObject("post");
+        assertDefaultJsonResponse(operation, "#/components/schemas/ChangeModelResponse");
+
+        JSONObject schemas = spec.getJSONObject("components").getJSONObject("schemas");
+        JSONObject progress = schemas.getJSONObject("ChangeModelProgress").getJSONObject("properties");
+        assertTrue(progress.has("totalObjects"));
+        assertTrue(progress.has("convertedObjects"));
+        assertTrue(progress.has("failedPid"));
+        assertTrue(progress.has("unprocessedPids"));
+        assertTrue(progress.has("unprocessedRootPids"));
+        assertEquals("#/components/schemas/ChangeModelProgress",
+                schemas.getJSONObject("ChangeModelResponse")
+                        .getJSONObject("properties")
+                        .getJSONObject("data")
+                        .getJSONArray("oneOf")
+                        .getJSONObject(0)
+                        .getJSONObject("items")
+                        .getString("$ref"));
+    }
+
+    @Test
+    void catalogQueriesDocumentResultsAndStructuredErrors() throws Exception {
+        JSONObject spec = loadSpec();
+        JSONObject paths = spec.getJSONObject("paths");
+
+        for (String path : List.of("/authorities/query", "/bibliographies/query")) {
+            JSONObject response = paths.getJSONObject(path)
+                    .getJSONObject("get")
+                    .getJSONObject("responses")
+                    .getJSONObject("default");
+            String description = response.getString("description");
+            assertTrue(description.contains("empty entry array"), path);
+            assertTrue(description.contains("catalog.connection-failed"), path);
+            assertTrue(description.contains("catalog.remote-error"), path);
+            assertTrue(description.contains("catalog.transformation-failed"), path);
+            assertTrue(description.contains("catalog.search-failed"), path);
+
+            JSONArray alternatives = response
+                    .getJSONObject("content")
+                    .getJSONObject("application/json")
+                    .getJSONObject("schema")
+                    .getJSONArray("oneOf");
+            assertEquals(2, alternatives.length(), path);
+            assertEquals("#/components/schemas/metadataCatalogEntries",
+                    alternatives.getJSONObject(0).getString("$ref"), path);
+            assertEquals("#/components/schemas/catalogErrorResponse",
+                    alternatives.getJSONObject(1).getString("$ref"), path);
+        }
+
+        JSONObject errorSchema = spec
+                .getJSONObject("components")
+                .getJSONObject("schemas")
+                .getJSONObject("catalogErrorResponse");
+        assertTrue(errorSchema.getJSONArray("required").toList().containsAll(List.of("status", "errors")));
+        assertEquals(-4, errorSchema
+                .getJSONObject("properties")
+                .getJSONObject("status")
+                .getJSONArray("enum")
+                .getInt(0));
+    }
+
+    @Test
+    void objectMemberDistributeDocumentsBatchDistribution() throws Exception {
+        JSONObject put = loadSpec()
+                .getJSONObject("paths")
+                .getJSONObject("/object/member/distribute")
+                .getJSONObject("put");
+
+        assertEquals("#/components/schemas/DistributeMembersRequest", put.getJSONObject("requestBody")
+                .getJSONObject("content")
+                .getJSONObject("application/json")
+                .getJSONObject("schema")
+                .getString("$ref"));
+
+        JSONObject requestProperties = loadSpec()
+                .getJSONObject("components")
+                .getJSONObject("schemas")
+                .getJSONObject("DistributeMembersRequest")
+                .getJSONObject("properties");
+        assertTrue(requestProperties.has("targets"));
+        assertTrue(requestProperties.has("runReindex"));
+        assertFalse(requestProperties.has("batchId"));
+        assertEquals("#/components/schemas/DistributeMembersTarget", requestProperties
+                .getJSONObject("targets")
+                .getJSONObject("items")
+                .getString("$ref"));
+
+        JSONObject moveProperties = loadSpec()
+                .getJSONObject("components")
+                .getJSONObject("schemas")
+                .getJSONObject("MoveMembersRequest")
+                .getJSONObject("properties");
+        assertFalse(moveProperties.has("targets"));
+        assertFalse(moveProperties.has("runReindex"));
+    }
+
+    @Test
     void allDocumentedEndpointsHaveOperationsAndResponses() throws Exception {
         JSONObject paths = loadSpec().getJSONObject("paths");
         Set<String> operationIds = new HashSet<>();
@@ -390,8 +518,8 @@ class OpenApiSpecificationTest {
             assertTrue(pathOperationCount > 0, path);
         }
 
-        assertEquals(201, operationCount);
-        assertEquals(201, responseCount);
+        assertEquals(205, operationCount);
+        assertEquals(205, responseCount);
     }
 
     @Test

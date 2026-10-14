@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.actions.AddReference;
-import cz.cas.lib.proarc.common.actions.CatalogRecord;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
 import cz.cas.lib.proarc.common.actions.CopyObject;
 import cz.cas.lib.proarc.common.actions.DistributeObjects;
@@ -73,12 +72,13 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.process.internal.ValidationProcess;
+import cz.cas.lib.proarc.common.process.internal.CatalogUpdateProcess;
 import cz.cas.lib.proarc.common.storage.AesEditor;
 import cz.cas.lib.proarc.common.storage.AtmEditor;
 import cz.cas.lib.proarc.common.storage.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.common.storage.BinaryEditor;
 import cz.cas.lib.proarc.common.storage.CodingHistoryEditor;
+import cz.cas.lib.proarc.common.storage.CopyrightMdEditor;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectNotFoundException;
 import cz.cas.lib.proarc.common.storage.DigitalObjectValidationException;
@@ -197,7 +197,6 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONException;
 
-import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExportWithError;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_ADDING_REFERENCE_FAILED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_CHANGING_MODEL_FAILED;
@@ -212,6 +211,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTIO
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_DELETE_ACTION;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_IMPORT_TO_CATALOG;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_LOCK_OBJECT;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_SYS_ADMIN;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UNLOCK_OBJECT;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UPDATE_ALL_OBJECTS;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UPDATE_MODEL;
@@ -567,12 +567,12 @@ public class DigitalObjectResourceV1 {
         int page = 20;
         switch (type) {
             case ALPHABETICAL:
-                total = search.countModels(queryModel, organization);
+                total = search.countByModels(organization, queryModel);
                 items = search.findAlphabetical(startRow, queryModel, organization, 100, sort.toString());
                 items = sortItems(items, sort);
                 break;
             case LAST_MODIFIED:
-                total = search.countModels(queryModel, organization);
+                total = search.countByModels(organization, queryModel);
                 items = search.findLastModified(startRow, queryModel, organization, 100, sort.toString());
                 break;
             case QUERY:
@@ -624,7 +624,7 @@ public class DigitalObjectResourceV1 {
                 }
                 break;
             default:
-                total = search.countModels(queryModel, organization);
+                total = search.countByModels(organization, queryModel);
                 items = search.findLastCreated(startRow, queryModel, organization, 100, sort.toString());
         }
         repairItemsModel(items);
@@ -2498,6 +2498,71 @@ public class DigitalObjectResourceV1 {
         return new ProArcResponse<DescriptionMetadata<Object>>(metadata);
     }
 
+    private ProArcObject findCopyrightMdObject(String pid, Integer batchId, boolean readOnly) throws IOException, DigitalObjectException {
+        if (pid == null || pid.isBlank()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing pid");
+        }
+        if (batchId != null) {
+            throw RestException.plainText(Status.BAD_REQUEST, "copyrightMD is available only in the repository");
+        }
+        if (!readOnly && isLocked(pid)) {
+            throw RestException.plainText(Status.BAD_REQUEST, returnLocalizedMessage(ERR_IS_LOCKED));
+        }
+        ProArcObject object = findFedoraObject(pid, null, readOnly);
+        if (!TechnicalMetadataMapper.supportsCopyrightMd(new RelationEditor(object).getModel())) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Unsupported copyrightMD model");
+        }
+        return object;
+    }
+
+    @GET
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_COPYRIGHTMD_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public StringRecord getCopyrightMd(@QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId) throws IOException, DigitalObjectException {
+        ProArcObject object = findCopyrightMdObject(pid, batchId, true);
+        CopyrightMdEditor editor = new CopyrightMdEditor(object);
+        StringRecord record = new StringRecord(editor.readAsString(), editor.getLastModified(), object.getPid());
+        record.setModel(new RelationEditor(object).getModel());
+        return record;
+    }
+
+    @PUT
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_COPYRIGHTMD_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<StringRecord> updateCopyrightMd(
+            @FormParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @FormParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @FormParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_XMLDATA) String xmlData,
+            @FormParam(DigitalObjectResourceApi.TECHNICAL_CUSTOM_JSONDATA) String jsonData) throws IOException, DigitalObjectException {
+        if (timestamp == null || (xmlData == null && jsonData == null)) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp or copyrightMD data");
+        }
+        ProArcObject object = findCopyrightMdObject(pid, batchId, false);
+        TechnicalMetadataMapper mapper = new TechnicalMetadataMapper(new RelationEditor(object).getModel(), null, pid, appConfig, akubraConfiguration);
+        if (xmlData != null) {
+            mapper.updateMetadataAsXml(object, xmlData, timestamp, session.asFedoraLog(), TechnicalMetadataMapper.COPYRIGHTMD);
+        } else {
+            mapper.updateMetadataAsJson(object, jsonData, timestamp, session.asFedoraLog(), TechnicalMetadataMapper.COPYRIGHTMD);
+        }
+        return new ProArcResponse<>(getCopyrightMd(pid, null));
+    }
+
+    @DELETE
+    @Path(DigitalObjectResourceApi.TECHNICALMETADATA_COPYRIGHTMD_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<StringRecord> deleteCopyrightMd(
+            @QueryParam(DigitalObjectResourceApi.DIGITALOBJECT_PID) String pid,
+            @QueryParam(DigitalObjectResourceApi.BATCHID_PARAM) Integer batchId,
+            @QueryParam(DigitalObjectResourceApi.TIMESTAMP_PARAM) Long timestamp) throws IOException, DigitalObjectException {
+        if (timestamp == null) { throw RestException.plainText(Status.BAD_REQUEST, "Missing timestamp"); }
+        ProArcObject object = findCopyrightMdObject(pid, batchId, false);
+        new CopyrightMdEditor(object).delete(timestamp, session.asFedoraLog());
+        object.flush();
+        return new ProArcResponse<>(getCopyrightMd(pid, null));
+    }
+
     @POST
     @Path(DigitalObjectResourceApi.TECHNICALMETADATA_XML_PREMIS_GENERATE_PATH)
     @Produces(MediaType.APPLICATION_JSON)
@@ -2757,7 +2822,7 @@ public class DigitalObjectResourceV1 {
     }
 
     private boolean updateAtmChildrenDonator(String oldValue, String newValue) {
-        return !Objects.equals(oldValue, normalizeAtmDonator(newValue));
+        return newValue != null && !Objects.equals(oldValue, normalizeAtmDonator(newValue));
     }
 
     private String normalizeAtmDonator(String value) {
@@ -3761,6 +3826,22 @@ public class DigitalObjectResourceV1 {
     }
 
     @POST
+    @Path(DigitalObjectResourceApi.UPGRADE_MODS_38_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<InternalExternalProcessResult> upgradeMods38() throws IOException {
+        checkPermission(user, PERMISSION_FUNCTION_SYS_ADMIN);
+
+        BatchParams params = new BatchParams(Collections.singletonList("mods-3.8"));
+        Batch batch = BatchUtils.addNewInternalBatch(importManager, "mods-3.8", user,
+                Batch.INTERNAL_UPGRADE_MODS_38, false, params);
+        InternalExternalProcess process = InternalExternalProcess.prepare(
+                appConfig, akubraConfiguration, batch, importManager, user,
+                session.asFedoraLog(), session.getLocale(httpHeaders));
+        InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
+        return new ProArcResponse<>(new InternalExternalProcessResult(batch.getId(), "Proces naplánován."));
+    }
+
+    @POST
     @Path(DigitalObjectResourceApi.UPDATE_NDK_ARTICLE)
     @Produces(MediaType.APPLICATION_JSON)
     public ProArcResponse<SearchViewItem> updateNdkArticeObjects(
@@ -3874,40 +3955,37 @@ public class DigitalObjectResourceV1 {
     ) throws DigitalObjectException, JSONException, IOException {
         checkPermission(user, PERMISSION_FUNCTION_IMPORT_TO_CATALOG);
 
-        CatalogRecord catalogRecord = new CatalogRecord(appConfig, akubraConfiguration);
-
-        BatchParams params = new BatchParams(pids);
-        Batch batch = BatchUtils.addNewBatch(this.importManager, pids, user, Batch.INTERNAL_UPDATE_CATALOG_RECORDS, Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, isNightOnly, params);
-
-        StringBuilder builder = new StringBuilder();
-        int count = 0;
-        for (String pid : pids) {
-            try {
-                if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-                    Locale locale = session.getLocale(httpHeaders);
-                    ValidationProcess validationProcess = new ValidationProcess(appConfig, akubraConfiguration, params.getPids(), locale);
-                    ValidationProcess.Result result = validationProcess.validate(ValidationProcess.Type.UPDATE_CATALOG_RECORD);
-                    if (!result.isStatusOk(true)) {
-                        finishedExportWithError(this.batchManager, batch, batch.getFolder(), result.getMessages());
-                        throw new IOException(result.getMessages());
-                    }
-                }
-                catalogRecord.update(catalogId, pid);
-                count++;
-            } catch (Throwable t) {
-                builder.append(pid).append(" ").append(t.getMessage()).append("\n");
-                t.printStackTrace();
-            }
+        if (catalogId == null || catalogId.isBlank() || pids == null || pids.isEmpty()) {
+            throw new IOException("Chybí katalog nebo cílové objekty.");
         }
-
-        if (count == pids.size()) {
-            BatchUtils.finishedSuccessfully(this.importManager, batch, batch.getFolder(), "Updatovano " + count + " z " + pids.size(), Batch.State.INTERNAL_DONE);
-            return returnFunctionSuccess();
-        } else {
-            String message = "Updatovano " + count + " z " + pids.size() + "\n" + builder.toString();
-            BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), message, Batch.State.INTERNAL_FAILED);
-            throw new IOException(message);
+        List<SearchViewItem> items = AkubraStorage.getInstance(akubraConfiguration).getSearch(session.getLocale(httpHeaders)).find(pids);
+        if (items.size() != new java.util.HashSet<>(pids).size()
+                || items.stream().anyMatch(item -> !appConfig.getCatalogUpdateModels().contains(item.getModel()))) {
+            throw new IOException("Objekt neexistuje nebo jeho model není povolen pro zápis do katalogu.");
         }
+        if (appConfig.getCatalogs().findConfiguration(catalogId) == null) {
+            throw new IOException("Neznámý katalog: " + catalogId);
+        }
+        CatalogUpdateProcess.schedule(
+                appConfig, akubraConfiguration, batchManager, user, pids, catalogId,
+                Boolean.TRUE.equals(isNightOnly), Batch.PRIORITY_MEDIUM, session.asFedoraLog(), session.getLocale(httpHeaders));
+        return returnFunctionSuccess();
+    }
+
+    @POST
+    @Path(DigitalObjectResourceApi.UPDATE_CATALOG_RECORD + "/retry")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<SearchViewItem> retryCatalogRecord(@FormParam("batchId") Integer batchId) throws IOException {
+        checkPermission(user, PERMISSION_FUNCTION_IMPORT_TO_CATALOG);
+        if (batchId == null) throw new IOException("Chybí ID katalogové dávky.");
+        Batch batch = batchManager.get(batchId);
+        if (batch == null || !(java.util.Objects.equals(batch.getUserId(), user.getId())
+                || cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission(user, PERMISSION_FUNCTION_SYS_ADMIN))) {
+            throw new IOException("Katalogová dávka neexistuje nebo k ní nemáte oprávnění.");
+        }
+        CatalogUpdateProcess.retry(appConfig, akubraConfiguration,
+                batchManager, user, batchId, session.asFedoraLog(), session.getLocale(httpHeaders));
+        return returnFunctionSuccess();
     }
 
     @POST

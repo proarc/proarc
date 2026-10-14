@@ -4,8 +4,8 @@
 <!-- Prepared for the Digital Library Federation by Jerome McDonough, New York University,
 with the assistance of Michael Alexander (British Library), Joachim Bauer (Content Conversion Specialists, Germany), Rick Beaubien (University of California), Terry Catapano (Columbia University), Morgan Cundiff (Library of Congress), Susan Dahl (University of Alberta), Markus Enders (State and University Library, Göttingen/British Library),  Richard Gartner (Bodleian Library at Oxford/King's College, London), Nancy Hoebelheinrich (Stanford University/Knowledge Motifs LLC), Arwen Hutt (U.C. San Diego), Mark Kornbluh (Michigan State University), Cecilia Preston (Preston & Lynch), Merrilee Proffitt (Research Libraries Group), Clay Redding (Library of Congress), Jenn Riley (Indiana University), Richard Rinehart (Berkeley Art Museum/Pacific Film Archive), Mackenzie Smith (Massachusetts Institute of Technology), Tobias Steinke (German National Library), Taylor Surface (OCLC), Brian Tingle (California Digital Library) and Robin Wendler (Harvard University), Robert Wolfe (Massachusetts Institute of Technology), Patrick Yott (Brown University).
 -->
-<!-- Febuary 2010 -->
-<!-- Version 1.9 -->
+<!-- March 2012 -->
+<!-- Version 1.9.1 -->
 <!-- Change History -->
 <!-- April 23, 2001: Alpha Draft completed -->
 <!-- June 7, 2001: Beta completed -->
@@ -159,6 +159,10 @@ mptr and area elements for mapping MPEG21 DII Identifier values
 	2. Added "ISO 19115:2003 NAP" to the enumerated values for the MDTYPE attribute in the METADATA attribute group.
 	3. Added "XPTR" to the enumerated values for the BETYPE attribute on the areaType data type
 	4. Added BEGIN, END and BETYPE attributes to the <file> and <stream> elements for specifying the location of a nested file or a stream within it's parent file.
+-->
+<!--March 2012: Version 1.9.1-->
+<!--Version 1.9.1 Changes:
+	1. Added "EAC-CPF" as a potential metadata scheme to the MDTYPE enumeration.
 -->
 <xsd:schema targetNamespace="http://www.loc.gov/METS/" xmlns="http://www.loc.gov/METS/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:jxb="https://jakarta.ee/xml/ns/jaxb"
             jxb:version="3.0" elementFormDefault="qualified" attributeFormDefault="unqualified">
@@ -1578,6 +1582,7 @@ PREMIS:EVENT: PREMIS Event entity
 TEXTMD: textMD Technical metadata for text
 METSRIGHTS: Rights Declaration Schema
 ISO 19115:2003 NAP: North American Profile of ISO 19115:2003 descriptive metadata
+EAC-CPF: Encoded Archival Context - Corporate Bodies, Persons, and Families
 OTHER: metadata in a format not specified above
 				</xsd:documentation>
 			</xsd:annotation>
@@ -1602,6 +1607,7 @@ OTHER: metadata in a format not specified above
 					<xsd:enumeration value="TEXTMD"/>
 					<xsd:enumeration value="METSRIGHTS"/>
 					<xsd:enumeration value="ISO 19115:2003 NAP"/>
+					<xsd:enumeration value="EAC-CPF"/>
 					<xsd:enumeration value="OTHER"/>
 				</xsd:restriction>
 			</xsd:simpleType>

@@ -29,7 +29,12 @@
         <mods:place>
             <mods:placeTerm type="text">Hradec Králové</mods:placeTerm>
         </mods:place>
-        <mods:publisher>Okresní pedagogické středisko</mods:publisher>
+        <mods:agent>
+            <mods:namePart>Okresní pedagogické středisko</mods:namePart>
+            <mods:role>
+                <mods:roleTerm>publisher</mods:roleTerm>
+            </mods:role>
+        </mods:agent>
         <mods:dateIssued>1967</mods:dateIssued>
         <mods:dateIssued encoding="marc" point="start">1967</mods:dateIssued>
         <mods:dateIssued encoding="marc" point="end">9999</mods:dateIssued>

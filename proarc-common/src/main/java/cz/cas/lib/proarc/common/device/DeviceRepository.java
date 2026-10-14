@@ -391,7 +391,7 @@ public final class DeviceRepository {
             if (Storage.AKUBRA.equals(typeOfStorage)) {
                 searchView = akubraStorage.getSearch().setAllowDevicesAndSoftware(true);
             }
-            items = searchView.findByModels(offset, METAMODEL_ID, METAMODEL_AUDIODEVICE_ID);
+            items = searchView.findByModels(offset, 1000, METAMODEL_ID, METAMODEL_AUDIODEVICE_ID);
         } catch (IOException ex) {
             throw new DeviceException(ex.getMessage());
         }
