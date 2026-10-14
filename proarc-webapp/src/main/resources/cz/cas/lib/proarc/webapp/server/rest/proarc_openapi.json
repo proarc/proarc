@@ -1917,40 +1917,6 @@
         }
       }
     },
-    "/indexer/object": {
-      "post": {
-        "tags": [
-          "Indexer"
-        ],
-        "operationId": "indexDocument",
-        "requestBody": {
-          "content": {
-            "*/*": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "pid": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "default": {
-            "description": "default response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/response"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/indexer/parents": {
       "post": {
         "tags": [
@@ -3042,7 +3008,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3079,7 +3045,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3116,7 +3082,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3153,7 +3119,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3190,7 +3156,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3227,7 +3193,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3264,7 +3230,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3301,7 +3267,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3338,7 +3304,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3375,7 +3341,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3412,7 +3378,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3449,7 +3415,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3486,7 +3452,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3523,7 +3489,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3560,7 +3526,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3597,7 +3563,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3634,7 +3600,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3671,7 +3637,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3708,7 +3674,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3745,7 +3711,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3782,7 +3748,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3819,7 +3785,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3856,7 +3822,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3893,7 +3859,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3930,7 +3896,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -3967,7 +3933,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4004,7 +3970,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4041,7 +4007,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4078,7 +4044,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4115,7 +4081,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4152,7 +4118,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4189,7 +4155,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4226,7 +4192,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4263,7 +4229,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4300,7 +4266,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4337,7 +4303,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4374,7 +4340,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4411,7 +4377,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4448,7 +4414,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4485,7 +4451,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4522,7 +4488,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4559,7 +4525,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4596,7 +4562,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4633,7 +4599,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4670,7 +4636,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4707,7 +4673,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4744,7 +4710,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4822,7 +4788,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4859,7 +4825,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4896,7 +4862,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -4933,7 +4899,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/ChangeModelResponse"
                 }
               }
             }
@@ -15968,6 +15934,99 @@
               "type": "object"
             }
           }
+        }
+      },
+      "ChangeModelProgress": {
+        "type": "object",
+        "description": "Progress for a model conversion. On failure, totalObjects counts objects found in roots visited before the failure; unprocessedRootPids identifies roots whose descendants have not been searched.",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "OK on success."
+          },
+          "validation": {
+            "type": "string",
+            "description": "Localized error message on failure."
+          },
+          "totalObjects": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Objects found in roots visited so far."
+          },
+          "convertedObjects": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Objects converted successfully before the response."
+          },
+          "failedPid": {
+            "type": "string",
+            "nullable": true,
+            "description": "PID where processing stopped."
+          },
+          "unprocessedPids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Remaining object PIDs in the current root."
+          },
+          "unprocessedRootPids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Remaining input root PIDs, whose descendants have not been searched."
+          }
+        }
+      },
+      "ChangeModelResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startRow": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "endRow": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalRows": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ChangeModelProgress"
+                }
+              },
+              {
+                "type": "string",
+                "description": "Error text when the request fails before conversion starts."
+              }
+            ]
+          },
+          "errorMessage": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ErrorMessage"
+              }
+            }
+          }
+        },
+        "xml": {
+          "name": "response"
         }
       }
     }

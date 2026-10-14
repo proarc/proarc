@@ -24,7 +24,6 @@ import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.SessionContext;
 import cz.cas.lib.proarc.webapp.shared.rest.IndexerResourceApi;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -372,21 +371,21 @@ public class IndexerResourceV1 {
     }
 
 
-    @POST
-    @Path(IndexerResourceApi.OBJECT_PATH)
-    @Produces({MediaType.APPLICATION_JSON})
-    public ProArcResponse<SearchViewItem> indexDocument (
-            @FormParam(IndexerResourceApi.DIGITALOBJECT_PID) String pid
-    ) {
-        if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
-            throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
-        }
-
-        checkPermission(user, PERMISSION_FUNCTION_SOLR);
-
-        LOG.info("Indexing document with pid started");
-        return new ProArcResponse<>();
-    }
+//    @POST
+//    @Path(IndexerResourceApi.OBJECT_PATH)
+//    @Produces({MediaType.APPLICATION_JSON})
+//    public ProArcResponse<SearchViewItem> indexDocument (
+//            @FormParam(IndexerResourceApi.DIGITALOBJECT_PID) String pid
+//    ) {
+//        if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+//            throw new UnsupportedOperationException("This function is possible only with AKUBRA storage. / Funkce je dostupná jen s uložištěm AKUBRA.");
+//        }
+//
+//        checkPermission(user, PERMISSION_FUNCTION_SOLR);
+//
+//        LOG.info("Indexing document with pid started");
+//        return new ProArcResponse<>();
+//    }
 
     protected String returnLocalizedMessage(String key, Object... arguments) {
         Locale locale = session.getLocale(httpHeaders);

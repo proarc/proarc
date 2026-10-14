@@ -853,7 +853,7 @@ public class BatchManager {
 
     public static String toString(Throwable ex) {
         StringWriter sw = new StringWriter();
-        ex.printStackTrace();
+//        ex.printStackTrace();
         ex.printStackTrace(new PrintWriter(sw, true));
         String log = sw.toString();
         return processLog(log);

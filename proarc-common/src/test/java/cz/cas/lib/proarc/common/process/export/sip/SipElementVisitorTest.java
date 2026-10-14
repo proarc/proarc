@@ -8,9 +8,6 @@
  */
 package cz.cas.lib.proarc.common.process.export.sip;
 
-import com.yourmediashelf.fedora.foxml.DatastreamType;
-import com.yourmediashelf.fedora.foxml.DatastreamVersionType;
-import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
@@ -31,24 +28,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class SipElementVisitorTest {
 
     @Test
-    void printedPeriodicalIssueWithPdfEArticleAndPageUsesCollectionType(
+    void printedPeriodicalIssueWithEArticleAndPageUsesCollectionType(
             @Mocked IMetsElement issue,
             @Mocked IMetsElement article,
             @Mocked IMetsElement page
     ) {
-        DigitalObject articleObject = new DigitalObject();
-        DatastreamType raw = new DatastreamType();
-        raw.setID("RAW");
-        DatastreamVersionType version = new DatastreamVersionType();
-        version.setMIMETYPE("application/pdf");
-        raw.getDatastreamVersion().add(version);
-        articleObject.getDatastream().add(raw);
-
         new Expectations() {{
             issue.getChildren(); result = Arrays.asList(article, page);
             issue.getModel(); result = NdkPlugin.MODEL_PERIODICALISSUE;
             article.getModel(); result = "info:fedora/" + NdkEbornPlugin.MODEL_EARTICLE;
-            article.getSourceObject(); result = articleObject;
             page.getElementType(); result = Const.PAGE;
         }};
 
@@ -69,7 +57,7 @@ class SipElementVisitorTest {
     }
 
     @Test
-    void periodicalWithPageAndArticleWithoutPdfKeepsElectronicType(
+    void periodicalWithPageAndArticleUsesCollectionType(
             @Mocked IMetsElement title,
             @Mocked IMetsElement article,
             @Mocked IMetsElement page
@@ -81,7 +69,7 @@ class SipElementVisitorTest {
             page.getElementType(); result = Const.PAGE;
         }};
 
-        assertEquals("electronic_periodical", MetsElementVisitor.getPeriodicalType(title));
+        assertEquals("electronic_coll_journal", MetsElementVisitor.getPeriodicalType(title));
     }
 
     @Test

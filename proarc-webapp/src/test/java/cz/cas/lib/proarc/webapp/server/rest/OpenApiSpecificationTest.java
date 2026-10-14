@@ -361,6 +361,31 @@ class OpenApiSpecificationTest {
     }
 
     @Test
+    void modelConversionDocumentsProgressResponse() throws Exception {
+        JSONObject spec = loadSpec();
+        JSONObject operation = spec.getJSONObject("paths")
+                .getJSONObject("/object/changePageToNdkPage")
+                .getJSONObject("post");
+        assertDefaultJsonResponse(operation, "#/components/schemas/ChangeModelResponse");
+
+        JSONObject schemas = spec.getJSONObject("components").getJSONObject("schemas");
+        JSONObject progress = schemas.getJSONObject("ChangeModelProgress").getJSONObject("properties");
+        assertTrue(progress.has("totalObjects"));
+        assertTrue(progress.has("convertedObjects"));
+        assertTrue(progress.has("failedPid"));
+        assertTrue(progress.has("unprocessedPids"));
+        assertTrue(progress.has("unprocessedRootPids"));
+        assertEquals("#/components/schemas/ChangeModelProgress",
+                schemas.getJSONObject("ChangeModelResponse")
+                        .getJSONObject("properties")
+                        .getJSONObject("data")
+                        .getJSONArray("oneOf")
+                        .getJSONObject(0)
+                        .getJSONObject("items")
+                        .getString("$ref"));
+    }
+
+    @Test
     void catalogQueriesDocumentResultsAndStructuredErrors() throws Exception {
         JSONObject spec = loadSpec();
         JSONObject paths = spec.getJSONObject("paths");

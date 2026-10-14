@@ -22,7 +22,6 @@ import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.IndexerResourceV1;
 import cz.cas.lib.proarc.webapp.shared.rest.IndexerResourceApi;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -88,21 +87,21 @@ public class IndexerResource extends IndexerResourceV1 {
         }
     }
 
-    @POST
-    @Path(IndexerResourceApi.OBJECT_PATH)
-    @Produces({MediaType.APPLICATION_JSON})
-    public ProArcResponse<SearchViewItem> indexDocument (
-            @FormParam(IndexerResourceApi.DIGITALOBJECT_PID) String pid
-    ) {
-        if (!hasPermission(user, PERMISSION_FUNCTION_SOLR)) {
-            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
-        }
-
-        try {
-            return super.indexDocument(pid);
-        } catch (Throwable t) {
-            LOG.log(Level.SEVERE, t.getMessage(), t);
-            return ProArcResponse.asError(t);
-        }
-    }
+//    @POST
+//    @Path(IndexerResourceApi.OBJECT_PATH)
+//    @Produces({MediaType.APPLICATION_JSON})
+//    public ProArcResponse<SearchViewItem> indexDocument (
+//            @FormParam(IndexerResourceApi.DIGITALOBJECT_PID) String pid
+//    ) {
+//        if (!hasPermission(user, PERMISSION_FUNCTION_SOLR)) {
+//            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+//        }
+//
+//        try {
+//            return super.indexDocument(pid);
+//        } catch (Throwable t) {
+//            LOG.log(Level.SEVERE, t.getMessage(), t);
+//            return ProArcResponse.asError(t);
+//        }
+//    }
 }

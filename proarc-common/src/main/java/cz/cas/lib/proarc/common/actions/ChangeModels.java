@@ -55,12 +55,12 @@ public class ChangeModels {
 
     private static final Logger LOG = Logger.getLogger(ChangeModels.class.getName());
 
-    private static AppConfiguration appConfig;
-    private static AkubraConfiguration akubraConfiguration;
-    private static String pid;
-    private static String oldModel;
-    private static String newModel;
-    private List<String> pids;
+    private final AppConfiguration appConfig;
+    private final AkubraConfiguration akubraConfiguration;
+    private final String pid;
+    private final String oldModel;
+    private final String newModel;
+    private final List<String> pids;
 
 
     public ChangeModels(AppConfiguration appConfig, AkubraConfiguration akubraConfiguration, String pid, String oldModel, String newModel) {
@@ -103,13 +103,11 @@ public class ChangeModels {
 
     public ChangeModelResult changeModelsAndRepairMetadata(String parentPid) {
         int updated = 0;
-        String updatedPid = "";
+        String updatedPid = null;
         try {
             for (String pid : pids) {
                 updatedPid = pid;
-                DigitalObjectManager dom = DigitalObjectManager.getDefault();
-                changeModel(dom, pid, newModel);
-                repairMetadata(dom, pid, parentPid);
+                convertObject(pid, parentPid);
                 updated++;
             }
             if (updated == 0) {
@@ -118,10 +116,19 @@ public class ChangeModels {
                 LOG.log(Level.WARNING, "Object changed from " + oldModel + " to " + newModel + " succesfully. Total items (" + updated + ").");
             }
             return null;
-        } catch (DigitalObjectException ex) {
-            LOG.log(Level.SEVERE, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + " items.");
-            return new ChangeModelResult(updatedPid, new DigitalObjectException(pid, "Changing objects failed, totaly items (" + pids.size() + "), changed only " + updated + " items."));
+        } catch (DigitalObjectException | RuntimeException ex) {
+            LOG.log(Level.SEVERE, "Changing objects failed, total items (" + pids.size() + "), changed only " + updated + " items.", ex);
+            DigitalObjectException error = ex instanceof DigitalObjectException
+                    ? (DigitalObjectException) ex
+                    : new DigitalObjectException(updatedPid, ex);
+            return new ChangeModelResult(updatedPid, updated, new ArrayList<>(pids.subList(updated + 1, pids.size())), error);
         }
+    }
+
+    void convertObject(String pid, String parentPid) throws DigitalObjectException {
+        DigitalObjectManager dom = DigitalObjectManager.getDefault();
+        changeModel(dom, pid, newModel);
+        repairMetadata(dom, pid, parentPid);
     }
 
     public void changeModelBack(String pid, String model) throws DigitalObjectException {
@@ -812,13 +819,17 @@ public class ChangeModels {
         }
     }
 
-    public class ChangeModelResult {
+    public static class ChangeModelResult {
 
-        private String pid;
-        private DigitalObjectException ex;
+        private final String pid;
+        private final int updatedCount;
+        private final List<String> unprocessedPids;
+        private final DigitalObjectException ex;
 
-        public ChangeModelResult(String updatedPid, DigitalObjectException e) {
+        public ChangeModelResult(String updatedPid, int updatedCount, List<String> unprocessedPids, DigitalObjectException e) {
             pid = updatedPid;
+            this.updatedCount = updatedCount;
+            this.unprocessedPids = unprocessedPids;
             ex = e;
         }
 
@@ -828,6 +839,14 @@ public class ChangeModels {
 
         public DigitalObjectException getEx() {
             return ex;
+        }
+
+        public int getUpdatedCount() {
+            return updatedCount;
+        }
+
+        public List<String> getUnprocessedPids() {
+            return unprocessedPids;
         }
     }
 }
