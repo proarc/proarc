@@ -18,7 +18,6 @@ package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.actions.AddReference;
-import cz.cas.lib.proarc.common.process.internal.CatalogUpdateProcess;
 import cz.cas.lib.proarc.common.actions.ChangeModels;
 import cz.cas.lib.proarc.common.actions.CopyObject;
 import cz.cas.lib.proarc.common.actions.DistributeObjects;
@@ -73,7 +72,7 @@ import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.process.export.mets.structure.IMetsElement;
 import cz.cas.lib.proarc.common.process.export.mets.structure.MetsElement;
-import cz.cas.lib.proarc.common.process.internal.ValidationProcess;
+import cz.cas.lib.proarc.common.process.internal.CatalogUpdateProcess;
 import cz.cas.lib.proarc.common.storage.AesEditor;
 import cz.cas.lib.proarc.common.storage.AtmEditor;
 import cz.cas.lib.proarc.common.storage.AtmEditor.AtmItem;
@@ -198,7 +197,6 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONException;
 
-import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExportWithError;
 import static cz.cas.lib.proarc.common.process.export.mets.MetsContext.buildAkubraContext;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_ADDING_REFERENCE_FAILED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_CHANGING_MODEL_FAILED;
@@ -1128,7 +1126,7 @@ public class DigitalObjectResourceV1 {
             }
         }
 
-        BatchParams params = new BatchParams(movePids);
+        BatchParams params = new BatchParams(Collections.singletonList(srcParentPid));
         Batch internalBatch = BatchUtils.addNewBatch(this.importManager,
                 Collections.singletonList(srcParentPid), user, Batch.INTERNAL_OBJECT_DISTRIBUTION,
                 Batch.State.INTERNAL_RUNNING, Batch.State.INTERNAL_FAILED, false, params);

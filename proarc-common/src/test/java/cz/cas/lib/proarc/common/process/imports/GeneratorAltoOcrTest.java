@@ -107,7 +107,7 @@ class GeneratorAltoOcrTest {
             configuration.setProperty("processor.pero.timeout", 0);
             ImportProfile profile = new ImportProfile(configuration);
             ImportProcess.ImportOptions options = new ImportProcess.ImportOptions(
-                    tempDir, null, null, false, null, profile, null);
+                    tempDir, null, null, false, true, null, profile, null);
             File first = new File(tempDir, "first.jpg");
             File second = new File(tempDir, "second.jpg");
             first.createNewFile();
