@@ -28,7 +28,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/** Distributes members of one source object among multiple destination objects. */
+/** Distributes source members among destinations; a source target keeps its members in place. */
 public class DistributeObjects {
 
     private final AppConfiguration appConfig;
@@ -72,18 +72,26 @@ public class DistributeObjects {
 
         Set<String> movePids = new HashSet<String>();
         for (Target target : targets) {
-            movePids.addAll(target.pids);
+            if (!isSourceTarget(target)) {
+                movePids.addAll(target.pids);
+            }
         }
         deleteMembers(movePids);
 
         List<SearchViewItem> added = new ArrayList<SearchViewItem>(movePids.size());
         for (Target target : targets) {
-            added.addAll(addMembers(target));
+            if (!isSourceTarget(target)) {
+                added.addAll(addMembers(target));
+            }
         }
 
-        sourceHandler.commit();
+        if (!movePids.isEmpty()) {
+            sourceHandler.commit();
+        }
         for (Target target : targets) {
-            target.destinationHandler.commit();
+            if (!isSourceTarget(target)) {
+                target.destinationHandler.commit();
+            }
         }
 
         if (runReindex) {
@@ -108,8 +116,11 @@ public class DistributeObjects {
                 if (!sourceMembers.contains(pid)) {
                     throw new DigitalObjectException(pid, "Source parent does not contain member: " + pid);
                 }
-                if (existingPids.contains(pid)) {
+                if (!isSourceTarget(target) && existingPids.contains(pid)) {
                     throw new DigitalObjectException(pid, destinationPid + " already contains: " + pid);
+                }
+                if (isSourceTarget(target)) {
+                    continue;
                 }
                 if (!searchItems.containsKey(pid)) {
                     throw new DigitalObjectException(pid, "Unknown pid: " + pid);
@@ -169,7 +180,14 @@ public class DistributeObjects {
     }
 
     private void reindex() throws DigitalObjectException, IOException {
+        String sourcePid = sourceHandler.getFedoraObject().getPid();
+        ReindexDigitalObjects sourceReindex = new ReindexDigitalObjects(
+                appConfig, akubraConfiguration, user, sourcePid, null);
+        sourceReindex.reindex(sourcePid, locale);
         for (Target target : targets) {
+            if (isSourceTarget(target)) {
+                continue;
+            }
             if (target.batchObjects == null) {
                 ReindexDigitalObjects reindex = new ReindexDigitalObjects(
                         appConfig, akubraConfiguration, user, target.getDestinationPid(), null);
@@ -181,6 +199,10 @@ public class DistributeObjects {
                 reindex.reindexLocal(target.batchObjects);
             }
         }
+    }
+
+    private boolean isSourceTarget(Target target) {
+        return sourceHandler.getFedoraObject().getPid().equals(target.getDestinationPid());
     }
 
     private AkubraStorage getAkubraStorage() throws IOException {

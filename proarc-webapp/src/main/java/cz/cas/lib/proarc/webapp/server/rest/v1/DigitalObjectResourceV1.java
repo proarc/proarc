@@ -1096,14 +1096,11 @@ public class DigitalObjectResourceV1 {
         }
 
         Set<String> destinationPids = new HashSet<String>();
-        Set<String> movePidSet = new HashSet<String>();
+        Set<String> selectedPidSet = new HashSet<String>();
         List<String> movePids = new ArrayList<String>();
         for (ProArcRequest.DistributeMembersTarget target : targets) {
             if (target == null || target.dstParentPid == null) {
                 throw RestException.plainText(Status.BAD_REQUEST, "Missing target PID!");
-            }
-            if (srcParentPid.equals(target.dstParentPid)) {
-                throw RestException.plainText(Status.BAD_REQUEST, "src == dst!");
             }
             if (!destinationPids.add(target.dstParentPid)) {
                 throw RestException.plainText(Status.BAD_REQUEST, "Duplicate target PID in the request!");
@@ -1113,15 +1110,17 @@ public class DigitalObjectResourceV1 {
                         "Missing children PIDs for target: " + target.dstParentPid);
             }
             for (String pid : target.pids) {
-                if (pid == null || !movePidSet.add(pid)) {
+                if (pid == null || !selectedPidSet.add(pid)) {
                     throw RestException.plainText(Status.BAD_REQUEST,
                             "Duplicate or missing child PID in the request!");
                 }
-                movePids.add(pid);
+                if (!srcParentPid.equals(target.dstParentPid)) {
+                    movePids.add(pid);
+                }
             }
         }
         for (String destinationPid : destinationPids) {
-            if (movePidSet.contains(destinationPid)) {
+            if (selectedPidSet.contains(destinationPid)) {
                 throw RestException.plainText(Status.BAD_REQUEST, "A target parent is listed as child!");
             }
         }
@@ -1136,12 +1135,16 @@ public class DigitalObjectResourceV1 {
             }
 
             DigitalObjectHandler srcHandler = findHandler(srcParentPid, (Batch) null, false);
-            Map<String, SearchViewItem> memberSearchMap = loadSearchItems(movePidSet);
+            Map<String, SearchViewItem> memberSearchMap = loadSearchItems(new HashSet<String>(movePids));
             DistributeObjects distribute = new DistributeObjects(
                     appConfig, akubraConfiguration, user, session.getLocale(httpHeaders),
                     session.asFedoraLog(), srcHandler, memberSearchMap);
 
             for (ProArcRequest.DistributeMembersTarget target : targets) {
+                if (srcParentPid.equals(target.dstParentPid)) {
+                    distribute.addTarget(srcHandler, target.pids, Collections.emptyList(), null);
+                    continue;
+                }
                 DigitalObjectHandler destinationHandler = findHandler(target.dstParentPid, (Batch) null, false);
                 List<DigitalObjectHandler> childHandlers = new ArrayList<DigitalObjectHandler>(target.pids.size());
                 for (String pid : target.pids) {
@@ -1153,6 +1156,9 @@ public class DigitalObjectResourceV1 {
             List<SearchViewItem> added = distribute.execute(runReindex);
 
             for (ProArcRequest.DistributeMembersTarget target : targets) {
+                if (srcParentPid.equals(target.dstParentPid)) {
+                    continue;
+                }
                 try {
                     setWorkflow("task.metadataDescriptionInProArc", getIMetsElement(target.dstParentPid, true));
                 } catch (MetsExportException | DigitalObjectException | WorkflowException e) {
