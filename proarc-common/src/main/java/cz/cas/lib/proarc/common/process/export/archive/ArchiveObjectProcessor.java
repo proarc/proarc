@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.process.export.archive;
 
+import cz.cas.lib.proarc.common.process.AuditLog;
+
 import com.yourmediashelf.fedora.foxml.DatastreamType;
 import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
@@ -86,6 +88,7 @@ public class ArchiveObjectProcessor {
     }
 
     private final HashSet<String> devicePids = new HashSet<String>();
+    private final java.util.Set<String> exportedPids = new java.util.LinkedHashSet<>();
     private AppConfiguration appConfig;
     private AkubraConfiguration akubraConfiguration;
     private boolean ignoreMissingUrnNbn = false;
@@ -110,6 +113,7 @@ public class ArchiveObjectProcessor {
      * @throws DigitalObjectException a failure
      */
     public void process(List<DigitalObjectElement> objectPath) throws DigitalObjectException, MetsExportException, IOException {
+        exportedPids.clear();
         builder = new PackageBuilder(targetFolder);
         DigitalObjectElement entry = objectPath.get(0);
         packageObjectPid = entry.getPid();
@@ -119,6 +123,7 @@ public class ArchiveObjectProcessor {
         processParents(objectPath);
         processObject(1, objectPath, lobj);
         builder.build();
+        AuditLog.record(packageObjectPid, exportedPids);
     }
 
     private MetsElement getElement(DigitalObjectElement digitalObjectElement) throws DigitalObjectException {
@@ -177,6 +182,7 @@ public class ArchiveObjectProcessor {
         DigitalObjectElement parentElm = objectPath.size() <= 1 ? null : objectPath.get(1);
         DigitalObjectHandler handler = elm.getHandler();
         builder.addObject(siblingIdx, elm, parentElm);
+        exportedPids.add(elm.getPid());
         for (DatastreamType dt : cache.getDigitalObject().getDatastream()) {
             String dsId = dt.getID();
             if (ModsStreamEditor.DATASTREAM_ID.equals(dsId)) {

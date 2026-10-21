@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2026 Lukas Sykora
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package cz.cas.lib.proarc.common.storage.akubra;
 
 import cz.cas.lib.proarc.common.device.DeviceRepository;
@@ -19,10 +35,13 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 
@@ -59,6 +78,35 @@ public class SolrSearchView extends SearchView {
     private final AkubraStorage storage;
     private final SolrClient solrClient;
     private boolean allowDevicesAndSoftware;
+
+    @Override
+    public Map<String, Long> countObjectsByModel(String organization, boolean active) throws IOException {
+        SolrQuery query = new SolrQuery("*:*");
+        query.setRows(0);
+        query.setFilterQueries(defaultFilterQuery().toArray(new String[0]));
+        String state = active ? SolrUtils.PROPERTY_STATE_ACTIVE : SolrUtils.PROPERTY_STATE_DEACTIVE;
+        query.addFilterQuery(FIELD_STATE + ":\"" + state + "\"");
+        if (organization != null && !organization.isEmpty()) {
+            query.addFilterQuery(FIELD_ORGANIZATION + ":\"" + ClientUtils.escapeQueryChars(organization) + "\"");
+        }
+        query.setFacet(true);
+        query.addFacetField(FIELD_MODEL);
+        query.setFacetMinCount(1);
+        query.setFacetLimit(-1);
+        query.setFacetSort("count");
+        try {
+            FacetField models = solrClient.query(query).getFacetField(FIELD_MODEL);
+            Map<String, Long> counts = new LinkedHashMap<>();
+            if (models != null && models.getValues() != null) {
+                for (FacetField.Count model : models.getValues()) {
+                    counts.put(model.getName(), model.getCount());
+                }
+            }
+            return counts;
+        } catch (SolrServerException ex) {
+            throw new IOException("Cannot count objects by model", ex);
+        }
+    }
 
     public SolrSearchView(AkubraStorage storage, SolrClient solrClient) {
         this(storage, Integer.MAX_VALUE, solrClient);

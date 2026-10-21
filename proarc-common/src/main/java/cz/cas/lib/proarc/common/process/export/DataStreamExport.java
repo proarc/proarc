@@ -20,6 +20,7 @@ import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
+import cz.cas.lib.proarc.common.process.AuditLog;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
@@ -66,6 +67,7 @@ public final class DataStreamExport {
      * already exported PIDs to prevent loops
      */
     private HashSet<String> exportedPids = new HashSet<String>();
+    private final HashSet<String> writtenPids = new HashSet<>();
     /**
      * PIDs scheduled for export
      */
@@ -98,6 +100,7 @@ public final class DataStreamExport {
         for (String pid = toExport.poll(); pid != null; pid = toExport.poll()) {
             exportPid(target, hierarchy, pid, dsIds);
         }
+        AuditLog.record(pids.get(0), writtenPids);
         return target;
     }
 
@@ -135,6 +138,7 @@ public final class DataStreamExport {
         for (String dsId : dsIds) {
             try {
                 exportPid(target, object, dsId, extension);
+                writtenPids.add(pid);
             } catch (TransformerException | JAXBException | DigitalObjectException | IOException | MetsExportException ex) {
                 throw new ExportException(filename(pid, dsId), ex);
             }

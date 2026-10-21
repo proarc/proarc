@@ -25,8 +25,9 @@ import cz.cas.lib.proarc.common.process.export.ExportDispatcher;
 import cz.cas.lib.proarc.common.process.external.PdfaProcess;
 import cz.cas.lib.proarc.common.process.external.PeroProcess;
 import cz.cas.lib.proarc.common.process.external.ThumbnailPdfProcess;
-import cz.cas.lib.proarc.common.process.internal.DeleteProcess;
 import cz.cas.lib.proarc.common.process.internal.CatalogUpdateProcess;
+import cz.cas.lib.proarc.common.process.internal.DeleteProcess;
+import cz.cas.lib.proarc.common.process.internal.LoggingMetadataBackfillProcess;
 import cz.cas.lib.proarc.common.process.internal.Mods38UpgradeProcess;
 import cz.cas.lib.proarc.common.process.internal.ValidationProcess;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
@@ -43,9 +44,9 @@ import java.util.logging.Logger;
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExternalSuccessfully;
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedExternalWithError;
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedInternalSuccessfully;
-import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedSuccessfully;
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedInternalWithError;
 import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedInternalWithWarning;
+import static cz.cas.lib.proarc.common.dao.BatchUtils.finishedSuccessfully;
 
 /**
  * Other process
@@ -163,6 +164,8 @@ public final class InternalExternalProcess implements Runnable {
                 case Batch.INTERNAL_UPDATE_CATALOG_RECORDS:
                     return CatalogUpdateProcess.run(
                             config, akubraConfiguration, batchManager, user, batch, params, options.getLocale());
+                case Batch.INTERNAL_BACKFILL_LOG_METADATA:
+                    return LoggingMetadataBackfillProcess.run(akubraConfiguration, batchManager, batch);
                 case Batch.INTERNAL_REINDEX:
                     batch = BatchUtils.startWaitingInternalBatch(batchManager, batch);
                     return reindexProcess(batch, params);

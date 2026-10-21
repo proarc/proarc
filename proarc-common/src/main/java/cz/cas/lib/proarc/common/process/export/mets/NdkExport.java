@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.process.export.mets;
 
+import cz.cas.lib.proarc.common.process.AuditLog;
+
 import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
@@ -48,12 +50,10 @@ import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang.Validate;
 
@@ -311,6 +311,7 @@ public class NdkExport {
                 MetsElement mElm = MetsElement.getElement(dobj, null, metsContext, hierarchy);
                 mElm.setIgnoreValidation(ignoreMissingUrnNbn);
                 mElm.accept(createMetsVisitor());
+                AuditLog.recordTree(mElm);
             } else {
                 List<String> PSPs = MetsUtils.findPSPPIDs(object.getPid(), metsContext, hierarchy);
                 if (PSPs.size() == 0) {
@@ -336,6 +337,7 @@ public class NdkExport {
                     } else {
                         mElm.accept(new MetsElementVisitor());
                     }
+                    AuditLog.recordTree(mElm);
                     // XXX use relative path to users folder?
                 }
             }
@@ -477,6 +479,7 @@ public class NdkExport {
             if (Const.SOUND_COLLECTION.equals(metsElement.getElementType())) {
                 metsElement.setIgnoreValidation(ignoreMissingUrnNbn);
                 metsElement.accept(new MetsElementVisitor());
+                AuditLog.recordTree(metsElement);
             } else {
                 List<String> PSPs = MetsUtils.findPSPPIDs(object.getPid(), metsContext, hierarchy);
                 if (PSPs.size() == 0) {
@@ -498,6 +501,7 @@ public class NdkExport {
                         mElm.accept(new MetsElementVisitor());
                     }
 
+                    AuditLog.recordTree(mElm);
                     // XXX use relative path to users folder?
                 }
             }

@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.process.export.crossref;
 
+import cz.cas.lib.proarc.common.process.AuditLog;
+
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
@@ -140,6 +142,10 @@ public class CrossrefExport {
                 aPackage.setArticles(articles);
                 crossRefBuilder.createPackage(aPackage);
                 addExportedPids(aPackage, articles);
+                java.util.Set<String> exported = new java.util.LinkedHashSet<>();
+                aPackage.getPath().forEach(item -> exported.add(item.getPid()));
+                articles.forEach(item -> exported.add(item.getPid()));
+                AuditLog.record(elm.getPid(), exported);
             }
         } catch (ExportException ex) {
             status.error(ex);

@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
+import cz.cas.lib.proarc.common.process.AuditLog;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.WorkWindow;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveOldPrintProducer;
@@ -172,26 +173,30 @@ public final class ExportProcess implements Runnable {
         if (params == null) {
             return finishedExportWithError(batchManager, batch, batch.getFolder(), new Exception("Batch params are null."));
         }
-        try {
+        try (AuditLog audit = AuditLog.begin()) {
             batch = BatchUtils.startWaitingExportBatch(batchManager, batch);
-            switch (profileId) {
-                case Batch.EXPORT_KRAMERIUS:
-                    return krameriusExport(batch, params);
-                case Batch.EXPORT_DATASTREAM:
-                    return datastreamExport(batch, params);
-                case Batch.EXPORT_NDK:
-                    return ndkExport(batch, params);
-                case Batch.EXPORT_CEJSH:
-                    return cejshExport(batch, params);
-                case Batch.EXPORT_CROSSREF:
-                    return crossrefExport(batch, params);
-                case Batch.EXPORT_ARCHIVE:
-                    return archiveExport(batch, params);
-                case Batch.EXPORT_KWIS:
-                    return kwisExport(batch, params);
-                default:
-                    return finishedExportWithError(batchManager, batch, batch.getFolder(), new Exception("Unknown export profile."));
+            Batch result = switch (profileId) {
+                case Batch.EXPORT_KRAMERIUS -> krameriusExport(batch, params);
+                case Batch.EXPORT_DATASTREAM -> datastreamExport(batch, params);
+                case Batch.EXPORT_NDK -> ndkExport(batch, params);
+                case Batch.EXPORT_CEJSH -> cejshExport(batch, params);
+                case Batch.EXPORT_CROSSREF -> crossrefExport(batch, params);
+                case Batch.EXPORT_ARCHIVE -> archiveExport(batch, params);
+                case Batch.EXPORT_KWIS -> kwisExport(batch, params);
+                default -> finishedExportWithError(batchManager, batch, batch.getFolder(), new Exception("Unknown export profile."));
+            };
+            if (result != null && (result.getState() == Batch.State.EXPORT_DONE
+                    || result.getState() == Batch.State.EXPORT_WARNING)) {
+                try {
+                    audit.complete(result, user, AkubraStorage.getInstance(akubraConfiguration).getSolrLoggingFeeder());
+                } catch (DigitalObjectException | IOException ex) {
+                    LOG.log(Level.SEVERE, "Export completed but audit logging failed", ex);
+                    return BatchUtils.finishedExportWithWarning(batchManager, result, result.getFolder(),
+                            (result.getLog() == null ? "" : result.getLog() + "\n")
+                            + "Export dokončen, zápis do loggingCore selhal: " + ex.getMessage());
+                }
             }
+            return result;
         } catch (InterruptedException ex) {
             // rollback files on batch resume
             return null;

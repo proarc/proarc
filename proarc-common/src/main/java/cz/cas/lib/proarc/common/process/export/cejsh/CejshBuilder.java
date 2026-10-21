@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.process.export.cejsh;
 
+import cz.cas.lib.proarc.common.process.AuditLog;
+
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DescriptionMetadata;
 import cz.cas.lib.proarc.common.object.DigitalObjectElement;
@@ -286,6 +288,17 @@ class CejshBuilder {
 
             if (validationErrors.isEmpty()) {
                 writeZip(packageFolder, p.getStatus(), packageElm);
+                if (p.getStatus().isOk()) {
+                    java.util.Set<String> exported = new java.util.LinkedHashSet<>();
+                    exported.add(packageElm.getPid());
+                    if (p.getTitle() != null) exported.add(p.getTitle().getPid());
+                    if (p.getVolume() != null) exported.add(p.getVolume().getPid());
+                    if (p.getIssue() != null) exported.add(p.getIssue().getPid());
+                    for (Article article : articles) {
+                        if (article.getDigitalObject() != null) exported.add(article.getDigitalObject().getPid());
+                    }
+                    AuditLog.record(packageElm.getPid(), exported);
+                }
             } else {
                 p.getStatus().error(packageElm, "Validation error!", ExportUtils.toString(validationErrors), null);
             }

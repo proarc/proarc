@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2026 Lukas Sykora
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package cz.cas.lib.proarc.common.storage.akubra;
 
 import com.yourmediashelf.fedora.foxml.ContentLocationType;
@@ -130,6 +146,7 @@ public class AkubraStorage {
             this.manager = new AkubraManager(configuration);
             this.solrObjectFeeder = solrObjectFeeder;
             this.solrLoggingFeeder = solrLogFeeder;
+            this.solrLoggingFeeder.setObjectResolver(this::find);
         } catch (Exception e) {
             throw new IOException(e);
         }
@@ -158,6 +175,18 @@ public class AkubraStorage {
 
     public SolrObjectFeeder getSolrObjectFeeder() {
         return solrObjectFeeder;
+    }
+
+    public SolrLogFeeder getSolrLoggingFeeder() {
+        return solrLoggingFeeder;
+    }
+
+    public SolrLogSearchView getLogSearch() {
+        return new SolrLogSearchView(solrLoggingClient);
+    }
+
+    public SolrExportStatistics getExportStatistics() {
+        return new SolrExportStatistics(solrLoggingClient);
     }
 
 
@@ -215,7 +244,7 @@ public class AkubraStorage {
             String xml = FoxmlUtils.toXml(digitalObject, false);
             InputStream inputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
             this.manager.addOrReplaceObject(object.getPid(), inputStream);
-            indexDocument(object);
+            indexDocument(object.getPid(), object.getModel(), ingestUser);
             indexParentPid(object.getPid(), parentPid);
             LOG.log(Level.FINE, "Object with PID {0} added to repository.", object.getPid());
         } catch (TransformerException | URISyntaxException | LowlevelStorageException | IOException e) {
@@ -560,7 +589,7 @@ public class AkubraStorage {
                     LOG.warning("Removing object from index, because object not exists in Low-Level storage. (" + getPid() + ").");
                     this.objectFeeder.deleteByPid(getPid());
                     this.objectFeeder.commit();
-                    this.loggingFeeder.feedDeleteLog(getPid(), logMessage);
+                    this.loggingFeeder.feedDeleteLog(getPid(), logMessage, SolrLogMetadata.EMPTY);
 //                    throw new DigitalObjectException(getPid(), "Object " + getPid() + "is can not be flushed to Low-Level storage.");
                 } else {
                     InputStream inputStream = this.manager.marshallObject(object);
@@ -599,10 +628,11 @@ public class AkubraStorage {
 
         public void purge(String logMessage) throws DigitalObjectException {
             try {
+                SolrLogMetadata metadata = this.loggingFeeder.metadataFor(getPid());
                 this.manager.deleteObject(getPid(), true);
                 this.objectFeeder.deleteByPid(getPid());
                 this.objectFeeder.commit();
-                this.loggingFeeder.feedPurgeLog(getPid(), logMessage);
+                this.loggingFeeder.feedPurgeLog(getPid(), logMessage, metadata);
             } catch (IOException | SolrServerException ex) {
                 throw new DigitalObjectException(getPid(), ex);
             }

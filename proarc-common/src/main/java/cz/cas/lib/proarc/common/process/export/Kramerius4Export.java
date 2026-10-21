@@ -39,6 +39,7 @@ import cz.cas.lib.proarc.common.object.chronicle.ChroniclePlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.process.AuditLog;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
@@ -86,7 +87,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -242,6 +242,7 @@ public final class Kramerius4Export {
                 exportPid(target, hierarchy, object, hasParent(object.getPid()));
             }
             exportParents(target, selectedPids);
+            AuditLog.record(pids[0], exportedPids);
             storeExportResult(target, log);
             result.setStatus(ExportResultLog.ResultStatus.OK);
             result.setEnd();

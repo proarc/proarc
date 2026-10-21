@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2026 Lukas Sykora
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
 import com.yourmediashelf.fedora.foxml.DigitalObject;
@@ -8,6 +24,9 @@ import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
+import cz.cas.lib.proarc.common.process.InternalExternalProcess;
+import cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1.InternalExternalProcessResult;
 import cz.cas.lib.proarc.common.storage.LocalStorage;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.SearchView;
@@ -168,6 +187,23 @@ public class IndexerResourceV1 {
             BatchUtils.finishedWithError(this.importManager, batch, batch.getFolder(), BatchManager.toString(ex), Batch.State.INTERNAL_FAILED);
             throw ex;
         }
+    }
+
+    @POST
+    @Path(IndexerResourceApi.BACKFILL_LOG_METADATA_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<InternalExternalProcessResult> backfillLogMetadata() throws IOException {
+        checkPermission(user, PERMISSION_FUNCTION_SYS_ADMIN);
+        if (!Storage.AKUBRA.equals(appConfiguration.getTypeOfStorage())) {
+            throw new UnsupportedOperationException("Doplňování loggingCore je dostupné pouze pro úložiště AKUBRA.");
+        }
+        BatchParams params = new BatchParams(Collections.singletonList("loggingCore"));
+        Batch batch = BatchUtils.addNewInternalBatch(importManager, "Doplnění Logů do LoggingCore", user,
+                Batch.INTERNAL_BACKFILL_LOG_METADATA, false, params);
+        InternalExternalProcess process = InternalExternalProcess.prepare(appConfiguration, akubraConfiguration,
+                batch, importManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
+        InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
+        return new ProArcResponse<>(new InternalExternalProcessResult(batch.getId(), "Doplňování metadat loggingCore naplánováno."));
     }
 
     private void processRoot(SolrObjectFeeder feeder, String storePath, boolean rebuildIndex) throws IOException, SolrServerException {

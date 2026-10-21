@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.object.ndk;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
+import cz.cas.lib.proarc.common.object.emods.BdmArticleMapper;
 import cz.cas.lib.proarc.common.object.emods.BornDigitalModsPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
@@ -201,8 +202,12 @@ public class ModsRules {
                         if (!CHAPTER_GENRE_MAP.contains(genreType)) {
                             exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, modelId);
                         }
-                    } else if (NdkPlugin.MODEL_ARTICLE.equals(modelId) || NdkEbornPlugin.MODEL_EARTICLE.equals(modelId) || BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)) {
+                    } else if (NdkPlugin.MODEL_ARTICLE.equals(modelId) || NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
                         if (!ARTICLE_GENRE_MAP.contains(genreType)) {
+                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, modelId);
+                        }
+                    } else if (BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)) {
+                        if (!(ARTICLE_GENRE_MAP.contains(genreType) || BdmArticleMapper.GENRE_PEER_REVIEWED_TYPE.equals(genreType))) {
                             exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, modelId);
                         }
                     } else if (NdkPlugin.MODEL_PICTURE.equals(modelId)) {

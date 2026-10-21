@@ -64,6 +64,12 @@ public class SolrUtils {
     public static final String FIELD_VALIDATION_PROCES = "validationProcessId";
     public static final String FIELD_PART_NUMBER = "partNumber";
     public static final String FIELD_IDENTIFIRES = "identifiers";
+    public static final String FIELD_SIGLA = "sigla";
+    public static final String FIELD_DOI = "doi";
+    public static final String FIELD_PAGE_COUNT = "pageCount";
+    public static final String FIELD_OTHER_MODEL_COUNT = "otherModelCount";
+    public static final String FIELD_EXPORT_TYPE = "exportType";
+
 
     public static final String PROPERTY_STATE_ACTIVE = "Active";
     public static final String PROPERTY_STATE_DEACTIVE = "Deactive";

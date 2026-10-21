@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.webapp.server.rest.ProArcResponse;
 import cz.cas.lib.proarc.webapp.server.rest.v1.IndexerResourceV1;
+import cz.cas.lib.proarc.webapp.server.rest.v1.DigitalObjectResourceV1.InternalExternalProcessResult;
 import cz.cas.lib.proarc.webapp.shared.rest.IndexerResourceApi;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.POST;
@@ -81,6 +82,22 @@ public class IndexerResource extends IndexerResourceV1 {
 
         try {
             return super.setParentsPid();
+        } catch (Throwable t) {
+            LOG.log(Level.SEVERE, t.getMessage(), t);
+            return ProArcResponse.asError(t);
+        }
+    }
+
+    @Override
+    @POST
+    @Path(IndexerResourceApi.BACKFILL_LOG_METADATA_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<InternalExternalProcessResult> backfillLogMetadata() {
+        if (!hasPermission(user, PERMISSION_FUNCTION_SYS_ADMIN)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
+        try {
+            return super.backfillLogMetadata();
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);

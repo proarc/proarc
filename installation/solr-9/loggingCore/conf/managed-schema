@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- This schema is designed for Solr 9.x -->
-<schema name="loggingCore" version="2.0">
-    
-	
-	<uniqueKey>source</uniqueKey>
-	
-	
+<schema name="loggingCore" version="3.0">
+    <!-- add field organization, device, software, sigla, pageCount, otherModelCount, exportType, doi -->
+
+    <uniqueKey>source</uniqueKey>
+
     <fieldType name="_nest_path_" class="solr.NestPathField" maxCharsForDocValues="-1" omitNorms="true" omitTermFreqAndPositions="true" stored="false" multiValued="false"/>
     <fieldType name="ancestor_path" class="solr.TextField">
         <analyzer type="index">
@@ -23,30 +21,30 @@
             <tokenizer class="solr.KeywordTokenizerFactory"/>
         </analyzer>
     </fieldType>
-	<fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
-		<analyzer type="index">
-			<tokenizer class="solr.StandardTokenizerFactory"/>
-			<filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords.txt"/>
-			<filter class="solr.LowerCaseFilterFactory"/>
-		</analyzer>
-		<analyzer type="query">
-			<tokenizer class="solr.StandardTokenizerFactory"/>
-			<filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords.txt"/>
-			<filter class="solr.LowerCaseFilterFactory"/>
-		</analyzer>
+    <fieldType name="text_general" class="solr.TextField" positionIncrementGap="100">
+        <analyzer type="index">
+            <tokenizer class="solr.StandardTokenizerFactory"/>
+            <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords.txt"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
+        <analyzer type="query">
+            <tokenizer class="solr.StandardTokenizerFactory"/>
+            <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords.txt"/>
+            <filter class="solr.LowerCaseFilterFactory"/>
+        </analyzer>
     </fieldType>
     <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
-	<fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
+    <fieldType name="booleans" class="solr.BoolField" sortMissingLast="true" multiValued="true"/>
     <fieldType name="date" class="solr.TrieDateField" positionIncrementGap="0" docValues="true" precisionStep="0"/>
-	<fieldType name="pdates" class="solr.DatePointField" docValues="true" multiValued="true"/>
+    <fieldType name="pdates" class="solr.DatePointField" docValues="true" multiValued="true"/>
     <fieldType name="double" class="solr.TrieDoubleField" positionIncrementGap="0" docValues="true" precisionStep="0"/>
-	<fieldType name="pdoubles" class="solr.DoublePointField" docValues="true" multiValued="true"/>
+    <fieldType name="pdoubles" class="solr.DoublePointField" docValues="true" multiValued="true"/>
     <fieldType name="float" class="solr.TrieFloatField" positionIncrementGap="0" docValues="true" precisionStep="0"/>
-	<fieldType name="pfloats" class="solr.FloatPointField" docValues="true" multiValued="true"/>
+    <fieldType name="pfloats" class="solr.FloatPointField" docValues="true" multiValued="true"/>
     <fieldType name="plong" class="solr.LongPointField" docValues="true"/>
-	<fieldType name="plongs" class="solr.LongPointField" docValues="true" multiValued="true"/>
+    <fieldType name="plongs" class="solr.LongPointField" docValues="true" multiValued="true"/>
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" docValues="true"/>
-	<fieldType name="strings" class="solr.StrField" sortMissingLast="true" docValues="true" multiValued="true"/>
+    <fieldType name="strings" class="solr.StrField" sortMissingLast="true" docValues="true" multiValued="true"/>
     <fieldType name="text_cz" class="solr.TextField" positionIncrementGap="100">
         <analyzer>
             <tokenizer class="solr.StandardTokenizerFactory"/>
@@ -55,8 +53,8 @@
             <filter class="solr.CzechStemFilterFactory"/>
         </analyzer>
     </fieldType>
-    
-	
+
+
     <field name="_nest_path_" type="_nest_path_"/>
     <field name="_root_" type="string" docValues="false" indexed="true" stored="false"/>
     <field name="_text_" type="text_cz" multiValued="true" indexed="true" stored="false" docValues="false"/>
@@ -67,7 +65,14 @@
     <field name="pid" type="string" multiValued="false" indexed="true" required="true" stored="true"/>
     <field name="stream" type="string"/>
     <field name="operation" type="string"/>
-	<field name="model" type="string"/>
-	
-	
+    <field name="model" type="string"/>
+    <field name="organization" type="string" indexed="true" stored="true"/>
+    <field name="device" type="strings" indexed="true" stored="true"/>
+    <field name="software" type="strings" indexed="true" stored="true"/>
+    <field name="sigla" type="strings" indexed="true" stored="true"/>
+    <field name="pageCount" type="plong" indexed="true" stored="true"/>
+    <field name="otherModelCount" type="plong" indexed="true" stored="true"/>
+    <field name="exportType" type="string" indexed="true" stored="true"/>
+    <field name="doi" type="strings" indexed="true" stored="true"/>
+
 </schema>

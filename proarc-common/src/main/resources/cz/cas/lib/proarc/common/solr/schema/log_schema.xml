@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Solr managed schema - automatically generated - DO NOT EDIT -->
-<schema name="loggingCore" version="2.0">
-
+<schema name="loggingCore" version="3.0">
+    <!-- add field organization, device, software, sigla, pageCount, otherModelCount, exportType, doi -->
 
     <uniqueKey>source</uniqueKey>
-
 
     <fieldType name="_nest_path_" class="solr.NestPathField" maxCharsForDocValues="-1" omitNorms="true" omitTermFreqAndPositions="true" stored="false" multiValued="false"/>
     <fieldType name="ancestor_path" class="solr.TextField">
@@ -68,6 +66,13 @@
     <field name="stream" type="string"/>
     <field name="operation" type="string"/>
     <field name="model" type="string"/>
-
+    <field name="organization" type="string" indexed="true" stored="true"/>
+    <field name="device" type="strings" indexed="true" stored="true"/>
+    <field name="software" type="strings" indexed="true" stored="true"/>
+    <field name="sigla" type="strings" indexed="true" stored="true"/>
+    <field name="pageCount" type="plong" indexed="true" stored="true"/>
+    <field name="otherModelCount" type="plong" indexed="true" stored="true"/>
+    <field name="exportType" type="string" indexed="true" stored="true"/>
+    <field name="doi" type="strings" indexed="true" stored="true"/>
 
 </schema>
