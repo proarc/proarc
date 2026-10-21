@@ -23,6 +23,56 @@ class OpenApiSpecificationTest {
     private static final Set<String> HTTP_METHODS = Set.of("get", "post", "put", "delete", "patch");
 
     @Test
+    void statisticsParametersMatchResourceDefaultsAndPagination() throws Exception {
+        JSONObject paths = loadSpec().getJSONObject("paths");
+        for (var method : cz.cas.lib.proarc.webapp.server.rest.v1.StatisticsResourceV1.class.getMethods()) {
+            var path = method.getAnnotation(jakarta.ws.rs.Path.class);
+            if (path == null) continue;
+            JSONObject operation = paths.getJSONObject("/statistics/" + path.value()).getJSONObject("get");
+            Map<String, JSONObject> documented = new LinkedHashMap<>();
+            for (Object entry : operation.getJSONArray("parameters")) {
+                JSONObject parameter = (JSONObject) entry;
+                documented.put(parameter.getString("name"), parameter.getJSONObject("schema"));
+            }
+            Set<String> expected = new HashSet<>();
+            for (var parameter : method.getParameters()) {
+                var query = parameter.getAnnotation(jakarta.ws.rs.QueryParam.class);
+                if (query == null) continue;
+                expected.add(query.value());
+                var defaultValue = parameter.getAnnotation(jakarta.ws.rs.DefaultValue.class);
+                if (defaultValue != null) {
+                    assertEquals(defaultValue.value(), String.valueOf(documented.get(query.value()).get("default")),
+                            path.value() + " " + query.value());
+                }
+                if (parameter.getType() == List.class) {
+                    assertEquals("array", documented.get(query.value()).getString("type"));
+                }
+            }
+            assertEquals(expected, documented.keySet(), path.value());
+        }
+        JSONObject articles = paths.getJSONObject("/statistics/exports/articles").getJSONObject("get");
+        assertTrue(articles.getString("description").contains("Deduplication precedes pagination"));
+        assertDefaultJsonResponse(articles, "#/components/schemas/ArticleExportStatisticsResponse");
+        JSONObject schemas = loadSpec().getJSONObject("components").getJSONObject("schemas");
+        assertEquals("int64", schemas.getJSONObject("ArticleExportStatistics").getJSONObject("properties")
+                .getJSONObject("count").getString("format"));
+        assertEquals("#/components/schemas/ArticleExportStatistics", schemas.getJSONObject("ArticleExportStatisticsResponse")
+                .getJSONObject("properties").getJSONObject("response").getJSONObject("properties")
+                .getJSONObject("data").getJSONObject("items").getString("$ref"));
+    }
+
+    @Test
+    void loggingMetadataBackfillDocumentsSchedulingAndPermissions() throws Exception {
+        JSONObject operation = loadSpec().getJSONObject("paths").getJSONObject("/indexer/logging/metadata")
+                .getJSONObject("post");
+        assertEquals("backfillLogMetadata", operation.getString("operationId"));
+        assertTrue(operation.getString("description").contains("system administrator"));
+        assertTrue(operation.getString("description").contains("UNKNOWN"));
+        assertFalse(operation.has("requestBody"));
+        assertDefaultJsonResponse(operation, "#/components/schemas/LogMetadataBackfillResponse");
+    }
+
+    @Test
     void proarcOpenApiDocumentsCurrentRestV2Contract() throws Exception {
         JSONObject spec = loadSpec();
 
@@ -32,8 +82,8 @@ class OpenApiSpecificationTest {
         assertEquals("../rest/v2", spec.getJSONArray("servers").getJSONObject(0).getString("url"));
 
         JSONObject paths = spec.getJSONObject("paths");
-        assertEquals(168, paths.length());
-        assertEquals(205, countOperations(paths));
+        assertEquals(175, paths.length());
+        assertEquals(212, countOperations(paths));
         assertTrue(paths.has("/authorities"));
         assertTrue(paths.has("/bibliographies/query"));
         assertTrue(paths.has("/device"));
@@ -346,7 +396,7 @@ class OpenApiSpecificationTest {
         JSONObject schemas = loadSpec()
                 .getJSONObject("components")
                 .getJSONObject("schemas");
-        assertEquals(230, schemas.length());
+        assertEquals(246, schemas.length());
 
         JSONObject response = schemas.getJSONObject("response");
         JSONObject properties = response.getJSONObject("properties");
@@ -518,8 +568,8 @@ class OpenApiSpecificationTest {
             assertTrue(pathOperationCount > 0, path);
         }
 
-        assertEquals(205, operationCount);
-        assertEquals(205, responseCount);
+        assertEquals(212, operationCount);
+        assertEquals(212, responseCount);
     }
 
     @Test

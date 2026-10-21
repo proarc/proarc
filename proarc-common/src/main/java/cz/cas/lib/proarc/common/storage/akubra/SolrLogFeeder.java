@@ -84,11 +84,11 @@ public class SolrLogFeeder extends ProcessingIndexFeeder {
                 organization = profile.getOrganization();
             }
             SolrInputDocument sdoc = new SolrInputDocument();
-            sdoc.addField(FIELD_SOURCE, UUID.randomUUID());
+            sdoc.addField(FIELD_SOURCE, UUID.randomUUID().toString());
             sdoc.addField(FIELD_USER, user);
             sdoc.addField(FIELD_DATE, LOG_DATE.format(Instant.now()));
             sdoc.addField(FIELD_PID, pid);
-            if (!stream.isEmpty()) sdoc.addField(FIELD_STREAM, stream);
+            if (stream != null && !stream.isEmpty()) sdoc.addField(FIELD_STREAM, stream);
             sdoc.addField(FIELD_OPERATION, operation);
             sdoc.addField(FIELD_MODEL, metadata.model());
             sdoc.addField(FIELD_ORGANIZATION, organization);

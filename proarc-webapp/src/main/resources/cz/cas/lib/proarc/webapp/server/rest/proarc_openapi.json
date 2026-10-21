@@ -70,6 +70,10 @@
     },
     {
       "name": "Workflow"
+    },
+    {
+      "name": "Statistics",
+      "description": "Repository counts and historical audit statistics (AKUBRA storage only)."
     }
   ],
   "paths": {
@@ -9183,6 +9187,554 @@
           }
         }
       }
+    },
+    "/statistics/models": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "operationId": "getModelStatistics",
+        "summary": "Count repository objects by model",
+        "description": "AKUBRA only. Counts current active or inactive repository objects using searchCore.",
+        "parameters": [
+          {
+            "name": "active",
+            "in": "query",
+            "description": "Select active objects when true, inactive objects when false.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "respectOrganization",
+            "in": "query",
+            "description": "Restrict current repository objects to the current user's organization.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "ProArc response; inspect response.status and response.errors for application errors.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelStatisticsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/statistics/productivity": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "operationId": "getProductivityStatistics",
+        "summary": "Count created objects from audit history",
+        "description": "AKUBRA only. Counts distinct PIDs from INGEST events by actor and date, grouped by model. Includes later deactivated or removed objects whose audit records remain. Filters use historical metadata; backfilled values reflect current repository/user data.",
+        "parameters": [
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "description": "Inclusive start date (YYYY-MM-DD) in the server time zone. Must not be after dateTo.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "description": "Inclusive end date (YYYY-MM-DD) in the server time zone.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "description": "Filter by audit actor username. Repeat this parameter to select multiple users.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "description": "Filter by model identifier, for example model:ndkmonographunit.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "sigla",
+            "in": "query",
+            "description": "Filter by historical sigla. Multiple selected values are combined with OR.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "respectOrganization",
+            "in": "query",
+            "description": "Restrict to the current user's organization. Audit statistics use organization recorded in the log; records without a matching organization are excluded.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "ProArc response; inspect response.status and response.errors for application errors.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductivityStatisticsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/statistics/productivity/options": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "operationId": "getProductivityStatisticsOptions",
+        "summary": "List productivity filter options",
+        "description": "AKUBRA only. Returns available historical siglas for productivity filtering.",
+        "parameters": [
+          {
+            "name": "respectOrganization",
+            "in": "query",
+            "description": "Restrict to the current user's organization. Audit statistics use organization recorded in the log; records without a matching organization are excluded.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "ProArc response; inspect response.status and response.errors for application errors.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductivityStatisticsOptionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/statistics/exports": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "operationId": "getExportStatistics",
+        "summary": "Calculate exported package statistics",
+        "description": "AKUBRA only. Uses completed EXPORT audit snapshots in loggingCore without repository lookups. Excludes article models (model:ndkarticle, model:ndkearticle and model:bdmarticle) even when explicitly selected. Page and other-object counts include the whole package. Missing historical counts are reported through incompleteCount.",
+        "parameters": [
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "description": "Inclusive start date (YYYY-MM-DD) in the server time zone. Must not be after dateTo.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "description": "Inclusive end date (YYYY-MM-DD) in the server time zone.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "description": "Filter by audit actor username. Repeat this parameter to select multiple users.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "description": "Filter by model identifier, for example model:ndkmonographunit.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "exportType",
+            "in": "query",
+            "description": "Filter by export profile identifier, for example exportProfile.crossref.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "device",
+            "in": "query",
+            "description": "Filter by historical device identifier.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "software",
+            "in": "query",
+            "description": "Filter by historical software identifier.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "sigla",
+            "in": "query",
+            "description": "Filter by historical sigla. Multiple selected values are combined with OR.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "groupBy",
+            "in": "query",
+            "description": "Group by model, optionally separated by export type, devices, software or combined equipment. Uniqueness is applied within each group.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "model",
+              "enum": [
+                "model",
+                "exportType",
+                "device",
+                "software",
+                "equipment"
+              ]
+            }
+          },
+          {
+            "name": "unique",
+            "in": "query",
+            "description": "Count each PID once per result group using the latest matching export; ties are resolved by source descending. When false, count every matching export.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "respectOrganization",
+            "in": "query",
+            "description": "Restrict to the current user's organization. Audit statistics use organization recorded in the log; records without a matching organization are excluded.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "ProArc response; inspect response.status and response.errors for application errors.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportStatisticsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/statistics/exports/options": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "operationId": "getExportStatisticsOptions",
+        "summary": "List historical export filter options",
+        "description": "AKUBRA only. Returns sorted, nonempty facet values. By default article records and article models are excluded. With articles=true, only article export history is used, including its siglas and export types.",
+        "parameters": [
+          {
+            "name": "articles",
+            "in": "query",
+            "description": "Select article export filter options instead of package export options.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "respectOrganization",
+            "in": "query",
+            "description": "Restrict to the current user's organization. Audit statistics use organization recorded in the log; records without a matching organization are excluded.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "ProArc response; inspect response.status and response.errors for application errors.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportStatisticsOptionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/statistics/exports/articles": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "operationId": "getArticleExportStatistics",
+        "summary": "List exported articles with historical DOI values",
+        "description": "AKUBRA only. Uses EXPORT audit records for model:ndkarticle, model:ndkearticle and model:bdmarticle. DOI values are captured at export time and may be empty. With unique=true, each PID appears once with its latest matching export, across export types. Deduplication precedes pagination and count is the total number of matching unique articles. With unique=false, each completed export appears separately. Ordered by date descending, then source descending. Older exports without article audit records are not included.",
+        "parameters": [
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "description": "Inclusive start date (YYYY-MM-DD) in the server time zone. Must not be after dateTo.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "description": "Inclusive end date (YYYY-MM-DD) in the server time zone.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "description": "Filter by audit actor username. Repeat this parameter to select multiple users.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "description": "Filter by article model (model:ndkarticle, model:ndkearticle and model:bdmarticle). Other models yield no matches.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "exportType",
+            "in": "query",
+            "description": "Filter by export profile identifier, for example exportProfile.crossref.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "sigla",
+            "in": "query",
+            "description": "Filter by historical sigla. Multiple selected values are combined with OR.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Zero-based offset after deduplication.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of rows per page.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 50
+            }
+          },
+          {
+            "name": "unique",
+            "in": "query",
+            "description": "Return each PID once using its latest matching export before pagination. When false, return all matching exports.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "respectOrganization",
+            "in": "query",
+            "description": "Restrict to the current user's organization. Audit statistics use organization recorded in the log; records without a matching organization are excluded.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "ProArc response; inspect response.status and response.errors for application errors.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticleExportStatisticsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/indexer/logging/metadata": {
+      "post": {
+        "tags": [
+          "Indexer"
+        ],
+        "operationId": "backfillLogMetadata",
+        "summary": "Schedule loggingCore metadata backfill",
+        "description": "Requires system administrator permission and AKUBRA storage. Schedules an internal batch and immediately returns its batch id and message, not the completed backfill result. Fills missing model and organization from current objects and users. Missing or unknown users are normalized to UNKNOWN and their organization is cleared. Existing nonempty metadata is otherwise preserved. Progress is available through the internal batch workflow.",
+        "responses": {
+          "default": {
+            "description": "ProArc response; inspect response.status and response.errors for application errors.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogMetadataBackfillResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -16028,6 +16580,691 @@
         "xml": {
           "name": "response"
         }
+      },
+      "ModelStatistic": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "ProductivityStatistic": {
+        "type": "object",
+        "properties": {
+          "usernames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dateFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "dateTo": {
+            "type": "string",
+            "format": "date"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "siglas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "modelCounts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModelStatistic"
+            }
+          }
+        }
+      },
+      "StatisticsFilters": {
+        "type": "object",
+        "properties": {
+          "dateFrom": {
+            "type": "string",
+            "format": "date"
+          },
+          "dateTo": {
+            "type": "string",
+            "format": "date"
+          },
+          "usernames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "exportTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "devices": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "software": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "siglas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "organization": {
+            "type": "string",
+            "nullable": true,
+            "description": "Organization from audit history selected by respectOrganization; null means all organizations."
+          },
+          "groupBy": {
+            "type": "string",
+            "enum": [
+              "model",
+              "exportType",
+              "device",
+              "software",
+              "equipment"
+            ]
+          },
+          "unique": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ExportStatisticsGroup": {
+        "type": "object",
+        "properties": {
+          "exportType": {
+            "type": "string",
+            "nullable": true
+          },
+          "devices": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "software": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "model": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "pageCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "otherModelCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "incompleteCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "ExportStatistics": {
+        "type": "object",
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/StatisticsFilters"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportStatisticsGroup"
+            }
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "pageCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "otherModelCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "incompleteCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "ExportArticle": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "pid": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "dois": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "DOI values captured at export time. Empty when the historical record has no DOI."
+          },
+          "exportType": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "siglas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "exportId": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ArticleExportStatistics": {
+        "type": "object",
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/StatisticsFilters"
+          },
+          "articles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportArticle"
+            }
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500
+          }
+        }
+      },
+      "ExportStatisticsOptions": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "model": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "exportType": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "device": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "software": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sigla": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ProductivityStatisticsOptions": {
+        "type": "object",
+        "properties": {
+          "sigla": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ModelStatisticsResponse": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ModelStatistic"
+                }
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "description": "ProArc JSON response envelope. On success, response.status is 0 and response.data contains the result rows."
+      },
+      "ProductivityStatisticsResponse": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ProductivityStatistic"
+                },
+                "maxItems": 1
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "description": "ProArc JSON response envelope. On success, response.status is 0 and response.data contains one result object."
+      },
+      "ProductivityStatisticsOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ProductivityStatisticsOptions"
+                },
+                "maxItems": 1
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "description": "ProArc JSON response envelope. On success, response.status is 0 and response.data contains one result object."
+      },
+      "ExportStatisticsResponse": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ExportStatistics"
+                },
+                "maxItems": 1
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "description": "ProArc JSON response envelope. On success, response.status is 0 and response.data contains one result object."
+      },
+      "ExportStatisticsOptionsResponse": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ExportStatisticsOptions"
+                },
+                "maxItems": 1
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "description": "ProArc JSON response envelope. On success, response.status is 0 and response.data contains one result object."
+      },
+      "ArticleExportStatisticsResponse": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ArticleExportStatistics"
+                },
+                "maxItems": 1
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "description": "ProArc JSON response envelope. On success, response.status is 0 and response.data contains one result object."
+      },
+      "LogMetadataBackfillResponse": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/InternalExternalProcessResult"
+                },
+                "maxItems": 1
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "description": "ProArc JSON response envelope. On success, response.status is 0 and response.data contains one result object."
       }
     }
   }
