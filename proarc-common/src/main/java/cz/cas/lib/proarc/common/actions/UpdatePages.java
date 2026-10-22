@@ -355,6 +355,19 @@ public class UpdatePages {
     }
 
     private void setPageType(ModsDefinition mods, boolean setGenre) {
+        if (Const.EMPTY_VALUE.equals(this.pageType)) {
+            for (PartDefinition part : mods.getPart()) {
+                if (isPageNumberElement(part)) {
+                    part.setType(null);
+                }
+            }
+            if (setGenre) {
+                for (GenreDefinition genre : mods.getGenre()) {
+                    genre.setType(null);
+                }
+            }
+            return;
+        }
         boolean updated = false;
         if (this.pageType != null && !this.pageType.isEmpty()) {
             for (PartDefinition part : mods.getPart()) {
