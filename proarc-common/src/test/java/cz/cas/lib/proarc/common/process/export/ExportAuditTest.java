@@ -56,7 +56,7 @@ class ExportAuditTest {
         try (AuditLog audit = AuditLog.begin()) {
             AuditLog.record("root", List.of("root", "article0", "article1", "article2"));
             AuditLog.record("article0", List.of("article0"));
-            audit.complete(batch(Batch.State.EXPORT_DONE), actor, feeder);
+            audit.complete(batch(Batch.State.EXPORT_DONE), actor, feeder, feeder::exportMetadata);
         }
         assertEquals(2, feeder.exports.size());
         assertEquals(3, feeder.articles.size());
@@ -68,14 +68,15 @@ class ExportAuditTest {
 
     @Test
     void countsActualMembersOnceAcrossFragmentsAndKeepsDeviceAndSiglaSnapshots() throws Exception {
-        feeder.snapshots.put("root", new SolrLogMetadata("model:ndkmonographunit", Set.of(), Set.of("ABA001"), Set.of("software:root")));
+        feeder.snapshots.put("root", new SolrLogMetadata("model:ndkmonographunit", Set.of(), Set.of("ABA001"),
+                Set.of("software:root"), Set.of(), Set.of("urn:nbn:cz:test"), "Historical book title"));
         feeder.snapshots.put("page1", new SolrLogMetadata(NdkPlugin.MODEL_NDK_PAGE, Set.of("device:first"), Set.of(), Set.of("software:page")));
         feeder.snapshots.put("page2", new SolrLogMetadata(NdkPlugin.MODEL_PAGE, Set.of("device:second"), Set.of(), Set.of("software:page")));
         feeder.snapshots.put("chapter", new SolrLogMetadata("model:ndkchapter", Set.of(), Set.of()));
         try (AuditLog audit = AuditLog.begin()) {
             AuditLog.record("root", List.of("root", "page1", "page1"));
             AuditLog.record("root", List.of("page1", "page2", "chapter"));
-            audit.complete(batch(Batch.State.EXPORT_DONE), actor, feeder);
+            audit.complete(batch(Batch.State.EXPORT_DONE), actor, feeder, feeder::exportMetadata);
         }
         assertEquals(1, feeder.exports.size());
         CapturedExport log = feeder.exports.get(0);
@@ -85,6 +86,8 @@ class ExportAuditTest {
         assertEquals(2, log.others());
         assertEquals(Batch.EXPORT_NDK, log.type());
         assertEquals("model:ndkmonographunit", log.metadata().model());
+        assertEquals("Historical book title", log.metadata().label());
+        assertEquals(Set.of("urn:nbn:cz:test"), log.metadata().urnNbns());
         assertEquals(Set.of("ABA001"), log.metadata().siglas());
         assertEquals(Set.of("device:first", "device:second"), log.metadata().devices());
         assertEquals(Set.of("software:root", "software:page"), log.metadata().software());
@@ -96,7 +99,7 @@ class ExportAuditTest {
     void neverLogsFailedStoppedOrIncompleteExports(Batch.State state) throws Exception {
         try (AuditLog audit = AuditLog.begin()) {
             AuditLog.record("root", List.of("root"));
-            audit.complete(batch(state), actor, feeder);
+            audit.complete(batch(state), actor, feeder, feeder::exportMetadata);
         }
         assertTrue(feeder.exports.isEmpty());
         assertTrue(feeder.articles.isEmpty());
@@ -108,7 +111,7 @@ class ExportAuditTest {
         feeder.snapshots.put("page", new SolrLogMetadata(NdkPlugin.MODEL_NDK_PAGE, Set.of(), Set.of()));
         try (AuditLog audit = AuditLog.begin()) {
             AuditLog.record("page", List.of("page"));
-            audit.complete(batch(Batch.State.EXPORT_WARNING), actor, feeder);
+            audit.complete(batch(Batch.State.EXPORT_WARNING), actor, feeder, feeder::exportMetadata);
         }
         assertEquals(1, feeder.exports.size());
         assertEquals(1, feeder.exports.get(0).pages());
@@ -119,7 +122,7 @@ class ExportAuditTest {
     void closesBatchScopeWithoutLeakingMembersIntoNextExport() throws Exception {
         try (AuditLog first = AuditLog.begin()) { AuditLog.record("old", List.of("old")); }
         AuditLog.record("outside", List.of("outside"));
-        try (AuditLog second = AuditLog.begin()) { second.complete(batch(Batch.State.EXPORT_DONE), actor, feeder); }
+        try (AuditLog second = AuditLog.begin()) { second.complete(batch(Batch.State.EXPORT_DONE), actor, feeder, feeder::exportMetadata); }
         assertTrue(feeder.exports.isEmpty());
         assertTrue(feeder.reads.isEmpty());
     }
@@ -133,7 +136,7 @@ class ExportAuditTest {
         feeder.snapshots.put("page", new SolrLogMetadata(NdkPlugin.MODEL_NDK_PAGE, Set.of(), Set.of()));
         try (AuditLog audit = AuditLog.begin()) {
             AuditLog.recordTree(element("root", tree));
-            audit.complete(batch(Batch.State.EXPORT_DONE), actor, feeder);
+            audit.complete(batch(Batch.State.EXPORT_DONE), actor, feeder, feeder::exportMetadata);
         }
         assertEquals(1, feeder.exports.get(0).pages());
         assertEquals(2, feeder.exports.get(0).others());
@@ -160,6 +163,10 @@ class ExportAuditTest {
         CapturingFeeder() { super(null); }
 
         @Override public SolrLogMetadata metadataFor(String pid) {
+            throw new AssertionError("Export audit must use the supplied metadata resolver");
+        }
+
+        SolrLogMetadata exportMetadata(String pid) {
             reads.merge(pid, 1, Integer::sum);
             return snapshots.get(pid);
         }

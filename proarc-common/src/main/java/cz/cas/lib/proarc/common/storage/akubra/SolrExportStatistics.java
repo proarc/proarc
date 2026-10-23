@@ -35,6 +35,22 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_DATE;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_DEVICE;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_DOI;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_EXPORT_TYPE;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_LABEL;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_MODEL;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_ORGANIZATION;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_OTHER_MODEL_COUNT;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PAGE_COUNT;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_PID;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_SIGLA;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_SOFTWARE;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_SOURCE;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_URNNBN;
+import static cz.cas.lib.proarc.common.storage.akubra.SolrUtils.FIELD_USER;
+
 /** Export package statistics from historical audit snapshots, without repository/searchCore lookups. */
 public final class SolrExportStatistics {
     private static final DateTimeFormatter DATE = new DateTimeFormatterBuilder().appendInstant(3).toFormatter();
@@ -53,7 +69,7 @@ public final class SolrExportStatistics {
 
         public Filters {
             if (from == null || to == null || from.isAfter(to)) throw new IllegalArgumentException("Invalid date range");
-            if (!List.of("model", "exportType", "device", "software", "equipment").contains(groupBy)) {
+            if (!List.of(FIELD_MODEL, FIELD_EXPORT_TYPE, FIELD_DEVICE, FIELD_SOFTWARE, "equipment").contains(groupBy)) {
                 throw new IllegalArgumentException("Invalid export grouping");
             }
             users = clean(users); models = clean(models); exportTypes = clean(exportTypes);
@@ -64,9 +80,9 @@ public final class SolrExportStatistics {
             Map<String, Object> values = new LinkedHashMap<>();
             values.put("dateFrom", from.toString()); values.put("dateTo", to.toString());
             values.put("usernames", users); values.put("models", models); values.put("exportTypes", exportTypes);
-            values.put("devices", devices); values.put("software", software);
+            values.put("devices", devices); values.put(FIELD_SOFTWARE, software);
             values.put("siglas", siglas);
-            values.put("organization", organization); values.put("groupBy", groupBy); values.put("unique", unique);
+            values.put(FIELD_ORGANIZATION, organization); values.put("groupBy", groupBy); values.put("unique", unique);
             return values;
         }
     }
@@ -77,12 +93,12 @@ public final class SolrExportStatistics {
 
     public Map<String, List<String>> options(String organization, boolean articles) throws IOException {
         SolrQuery query = new SolrQuery("operation:EXPORT");
-        if (articles) values(query, "model", AuditLog.ARTICLE_MODELS.stream().sorted().toList());
+        if (articles) values(query, FIELD_MODEL, AuditLog.ARTICLE_MODELS.stream().sorted().toList());
         else excludeArticles(query);
         query.setRows(0);
         organization(query, organization);
         query.setFacet(true); query.setFacetLimit(-1); query.setFacetMinCount(1); query.setFacetSort("index");
-        List<String> names = List.of("user", "model", "exportType", "device", "software", "sigla");
+        List<String> names = List.of(FIELD_USER, FIELD_MODEL, FIELD_EXPORT_TYPE, FIELD_DEVICE, FIELD_SOFTWARE, FIELD_SIGLA);
         names.forEach(query::addFacetField);
         try {
             QueryResponse response = client.query(query);
@@ -91,7 +107,7 @@ public final class SolrExportStatistics {
                 FacetField facet = response.getFacetField(name);
                 options.put(name, facet == null || facet.getValues() == null ? List.of() : facet.getValues().stream()
                         .map(FacetField.Count::getName).filter(value -> value != null && !value.isBlank())
-                        .filter(value -> !"model".equals(name)
+                        .filter(value -> !FIELD_MODEL.equals(name)
                                 || (value.startsWith("model:") && AuditLog.ARTICLE_MODELS.contains(value) == articles)).toList());
             }
             return options;
@@ -102,8 +118,8 @@ public final class SolrExportStatistics {
         SolrQuery query = query(filters, "EXPORT");
         excludeArticles(query);
         query.setRows(500);
-        query.setFields("source", "pid", "date", "model", "exportType", "device", "software", "pageCount", "otherModelCount");
-        query.setSort("source", SolrQuery.ORDER.asc);
+        query.setFields(FIELD_SOURCE, FIELD_PID, FIELD_DATE, FIELD_MODEL, FIELD_EXPORT_TYPE, FIELD_DEVICE, FIELD_SOFTWARE, FIELD_PAGE_COUNT, FIELD_OTHER_MODEL_COUNT);
+        query.setSort(FIELD_SOURCE, SolrQuery.ORDER.asc);
         Map<GroupKey, Group> groups = new LinkedHashMap<>();
         Map<Identity, Snapshot> latest = new LinkedHashMap<>();
         String cursor = "*";
@@ -135,15 +151,49 @@ public final class SolrExportStatistics {
                 .thenComparing(group -> group.getModel())).toList());
     }
 
+    /** A row per matching package export, with the same filters and uniqueness as the chart. */
+    public PackageResult packages(Filters filters, int offset, int limit) throws IOException {
+        if (offset < 0 || limit < 1 || limit > 500) throw new IllegalArgumentException("Invalid export pagination");
+        SolrQuery query = query(filters, "EXPORT");
+        excludeArticles(query);
+        if (filters.unique) query.addFilterQuery("{!collapse field=pid sort='date desc,source desc'}");
+        query.setStart(offset); query.setRows(limit);
+        query.setSort(FIELD_DATE, SolrQuery.ORDER.desc); query.addSort(FIELD_SOURCE, SolrQuery.ORDER.desc);
+        query.setFields(FIELD_SOURCE, FIELD_PID, FIELD_MODEL, FIELD_URNNBN, FIELD_LABEL, FIELD_EXPORT_TYPE, 
+                FIELD_DATE, FIELD_USER, FIELD_SIGLA, FIELD_DEVICE, FIELD_SOFTWARE, FIELD_PAGE_COUNT, FIELD_OTHER_MODEL_COUNT);
+        try {
+            QueryResponse response = client.query(query);
+            if (response.getResponseHeader() != null && "true".equalsIgnoreCase(String.valueOf(response.getResponseHeader().get("partialResults")))) {
+                throw new IOException("Incomplete package statistics response");
+            }
+            if (response.getResults() == null) throw new IOException("Missing package export records");
+            java.util.ArrayList<PackageExport> packages = new java.util.ArrayList<>();
+            for (SolrDocument doc : response.getResults()) {
+                packages.add(new PackageExport(required(doc, FIELD_SOURCE), required(doc, FIELD_PID), text(doc, FIELD_MODEL),
+                        strings(doc.getFieldValue(FIELD_URNNBN)), text(doc, FIELD_LABEL), text(doc, FIELD_EXPORT_TYPE),
+                        required(doc, FIELD_DATE), text(doc, FIELD_USER), strings(doc.getFieldValue(FIELD_SIGLA)),
+                        strings(doc.getFieldValue(FIELD_DEVICE)), strings(doc.getFieldValue(FIELD_SOFTWARE)),
+                        count(doc.getFieldValue(FIELD_PAGE_COUNT)), count(doc.getFieldValue(FIELD_OTHER_MODEL_COUNT))));
+            }
+            return new PackageResult(filters.asMap(), List.copyOf(packages), response.getResults().getNumFound(), offset, limit);
+        } catch (SolrServerException ex) { throw new IOException("Cannot read package export statistics", ex); }
+    }
+
+    public record PackageExport(String source, String pid, String model, List<String> urnNbns, String label,
+            String exportType, String date, String username, List<String> siglas, List<String> devices,
+            List<String> software, Long pageCount, Long otherModelCount) { }
+
+    public record PackageResult(Map<String, Object> filters, List<PackageExport> packages, long count, int offset, int limit) { }
+
     private SolrQuery query(Filters filters, String operation) {
         SolrQuery query = new SolrQuery("operation:" + operation);
         ZoneId zone = ZoneId.systemDefault();
         query.addFilterQuery("date:[\"" + DATE.format(filters.from.atStartOfDay(zone).toInstant()) + "\" TO \""
                 + DATE.format(filters.to.plusDays(1).atStartOfDay(zone).toInstant()) + "\"}");
-        values(query, "user", filters.users); values(query, "model", filters.models);
-        values(query, "exportType", filters.exportTypes); values(query, "device", filters.devices);
-        values(query, "software", filters.software); organization(query, filters.organization);
-        values(query, "sigla", filters.siglas);
+        values(query, FIELD_USER, filters.users); values(query, FIELD_MODEL, filters.models);
+        values(query, FIELD_EXPORT_TYPE, filters.exportTypes); values(query, FIELD_DEVICE, filters.devices);
+        values(query, FIELD_SOFTWARE, filters.software); organization(query, filters.organization);
+        values(query, FIELD_SIGLA, filters.siglas);
         return query;
     }
 
@@ -151,11 +201,11 @@ public final class SolrExportStatistics {
     public ArticleResult articles(Filters filters, int offset, int limit) throws IOException {
         if (offset < 0 || limit < 1 || limit > 500) throw new IllegalArgumentException("Invalid article pagination");
         SolrQuery query = query(filters, "EXPORT");
-        values(query, "model", AuditLog.ARTICLE_MODELS.stream().sorted().toList());
+        values(query, FIELD_MODEL, AuditLog.ARTICLE_MODELS.stream().sorted().toList());
         if (filters.unique) query.addFilterQuery("{!collapse field=pid sort='date desc,source desc'}");
         query.setStart(offset); query.setRows(limit);
-        query.setSort("date", SolrQuery.ORDER.desc); query.addSort("source", SolrQuery.ORDER.desc);
-        query.setFields("source", "pid", "model", "doi", "exportType", "date", "user", "sigla", "exportId");
+        query.setSort(FIELD_DATE, SolrQuery.ORDER.desc); query.addSort(FIELD_SOURCE, SolrQuery.ORDER.desc);
+        query.setFields(FIELD_SOURCE, FIELD_PID, FIELD_MODEL, FIELD_DOI, FIELD_EXPORT_TYPE, FIELD_DATE, FIELD_USER, FIELD_SIGLA);
         try {
             QueryResponse response = client.query(query);
             if (response.getResponseHeader() != null && "true".equalsIgnoreCase(String.valueOf(response.getResponseHeader().get("partialResults")))) {
@@ -164,16 +214,16 @@ public final class SolrExportStatistics {
             if (response.getResults() == null) throw new IOException("Missing article export records");
             java.util.ArrayList<Article> articles = new java.util.ArrayList<>();
             for (SolrDocument doc : response.getResults()) {
-                articles.add(new Article(required(doc, "source"), required(doc, "pid"), required(doc, "model"),
-                        strings(doc.getFieldValue("doi")), required(doc, "exportType"), required(doc, "date"),
-                        text(doc, "user"), strings(doc.getFieldValue("sigla")), text(doc, "exportId")));
+                articles.add(new Article(required(doc, FIELD_SOURCE), required(doc, FIELD_PID), required(doc, FIELD_MODEL),
+                        strings(doc.getFieldValue(FIELD_DOI)), required(doc, FIELD_EXPORT_TYPE), required(doc, FIELD_DATE),
+                        text(doc, FIELD_USER), strings(doc.getFieldValue(FIELD_SIGLA))));
             }
             return new ArticleResult(filters, articles, response.getResults().getNumFound(), offset, limit);
         } catch (SolrServerException ex) { throw new IOException("Cannot read article export statistics", ex); }
     }
 
     public record Article(String source, String pid, String model, List<String> dois, String exportType,
-            String date, String username, List<String> siglas, String exportId) { }
+            String date, String username, List<String> siglas) { }
 
     public static final class ArticleResult {
         private final Filters filters;
@@ -192,16 +242,16 @@ public final class SolrExportStatistics {
     }
 
     private static Snapshot snapshot(SolrDocument doc, String grouping) throws IOException {
-        String source = required(doc, "source");
-        String pid = required(doc, "pid");
-        String date = required(doc, "date");
-        String model = text(doc, "model");
+        String source = required(doc, FIELD_SOURCE);
+        String pid = required(doc, FIELD_PID);
+        String date = required(doc, FIELD_DATE);
+        String model = text(doc, FIELD_MODEL);
         if (model == null || !model.startsWith("model:")) model = SolrLogSearchView.UNKNOWN_MODEL;
-        GroupKey key = new GroupKey("exportType".equals(grouping) ? text(doc, "exportType") : null,
-                List.of("device", "equipment").contains(grouping) ? strings(doc.getFieldValue("device")) : List.of(),
-                List.of("software", "equipment").contains(grouping) ? strings(doc.getFieldValue("software")) : List.of(), model);
-        Long pages = count(doc.getFieldValue("pageCount"));
-        Long others = count(doc.getFieldValue("otherModelCount"));
+        GroupKey key = new GroupKey(FIELD_EXPORT_TYPE.equals(grouping) ? text(doc, FIELD_EXPORT_TYPE) : null,
+                List.of(FIELD_DEVICE, "equipment").contains(grouping) ? strings(doc.getFieldValue(FIELD_DEVICE)) : List.of(),
+                List.of(FIELD_SOFTWARE, "equipment").contains(grouping) ? strings(doc.getFieldValue(FIELD_SOFTWARE)) : List.of(), model);
+        Long pages = count(doc.getFieldValue(FIELD_PAGE_COUNT));
+        Long others = count(doc.getFieldValue(FIELD_OTHER_MODEL_COUNT));
         return new Snapshot(source, pid, date, key, pages == null ? 0 : pages, others == null ? 0 : others,
                 pages == null || others == null);
     }
@@ -241,7 +291,7 @@ public final class SolrExportStatistics {
                 .map(value -> "\"" + ClientUtils.escapeQueryChars(value) + "\"").collect(java.util.stream.Collectors.joining(" OR ")) + ")");
     }
     private static void organization(SolrQuery query, String organization) {
-        if (organization != null && !organization.isBlank()) values(query, "organization", List.of(organization));
+        if (organization != null && !organization.isBlank()) values(query, FIELD_ORGANIZATION, List.of(organization));
     }
 
     private static void excludeArticles(SolrQuery query) {

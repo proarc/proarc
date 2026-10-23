@@ -88,17 +88,24 @@ public class SolrLogFeeder extends ProcessingIndexFeeder {
             sdoc.addField(FIELD_USER, user);
             sdoc.addField(FIELD_DATE, LOG_DATE.format(Instant.now()));
             sdoc.addField(FIELD_PID, pid);
-            if (stream != null && !stream.isEmpty()) sdoc.addField(FIELD_STREAM, stream);
             sdoc.addField(FIELD_OPERATION, operation);
             sdoc.addField(FIELD_MODEL, metadata.model());
             sdoc.addField(FIELD_ORGANIZATION, organization);
-            if (!metadata.devices().isEmpty()) sdoc.addField(FIELD_DEVICE, metadata.devices());
-            if (!metadata.software().isEmpty()) sdoc.addField(FIELD_SOFTWARE, metadata.software());
-            if (!metadata.siglas().isEmpty()) sdoc.addField(FIELD_SIGLA, metadata.siglas());
-            if (!metadata.dois().isEmpty()) sdoc.addField(FIELD_DOI, metadata.dois());
-            if (pageCount != null) sdoc.addField(FIELD_PAGE_COUNT, pageCount);
-            if (otherModelCount != null) sdoc.addField(FIELD_OTHER_MODEL_COUNT, otherModelCount);
+
+            if (stream != null) sdoc.addField(FIELD_STREAM, stream);
             if (exportType != null) sdoc.addField(FIELD_EXPORT_TYPE, exportType);
+
+            if ("EXPORT".equals(operation)) {
+                if (metadata.label() != null && !metadata.label().isBlank()) sdoc.addField(SolrUtils.FIELD_LABEL, metadata.label());
+                if (!metadata.devices().isEmpty()) sdoc.addField(FIELD_DEVICE, metadata.devices());
+                if (!metadata.software().isEmpty()) sdoc.addField(FIELD_SOFTWARE, metadata.software());
+                if (!metadata.siglas().isEmpty()) sdoc.addField(FIELD_SIGLA, metadata.siglas());
+                if (!metadata.dois().isEmpty()) sdoc.addField(FIELD_DOI, metadata.dois());
+                if (!metadata.urnNbns().isEmpty()) sdoc.addField(SolrUtils.FIELD_URNNBN, metadata.urnNbns());
+                if (pageCount != null) sdoc.addField(FIELD_PAGE_COUNT, pageCount);
+                if (otherModelCount != null) sdoc.addField(FIELD_OTHER_MODEL_COUNT, otherModelCount);
+            }
+
             feedDescriptionDocument(sdoc);
             commit();
         } catch (SolrServerException | IOException ex) {

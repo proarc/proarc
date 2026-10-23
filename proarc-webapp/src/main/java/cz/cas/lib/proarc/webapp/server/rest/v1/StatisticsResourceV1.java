@@ -186,6 +186,38 @@ public class StatisticsResourceV1 {
     }
 
     @GET
+    @Path(StatisticsResourceApi.PACKAGE_EXPORTS_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<SolrExportStatistics.PackageResult> getPackageExportStatistics(
+            @QueryParam(StatisticsResourceApi.USERNAME_PARAM) List<String> usernames,
+            @QueryParam(StatisticsResourceApi.DATE_FROM_PARAM) String dateFrom,
+            @QueryParam(StatisticsResourceApi.DATE_TO_PARAM) String dateTo,
+            @QueryParam(StatisticsResourceApi.MODEL_PARAM) List<String> models,
+            @QueryParam(StatisticsResourceApi.EXPORT_TYPE_PARAM) List<String> exportTypes,
+            @QueryParam(StatisticsResourceApi.DEVICE_PARAM) List<String> devices,
+            @QueryParam(StatisticsResourceApi.SOFTWARE_PARAM) List<String> software,
+            @QueryParam(StatisticsResourceApi.SIGLA_PARAM) List<String> siglas,
+            @DefaultValue("0") @QueryParam(StatisticsResourceApi.OFFSET_PARAM) int offset,
+            @DefaultValue("50") @QueryParam(StatisticsResourceApi.LIMIT_PARAM) int limit,
+            @DefaultValue("true") @QueryParam(StatisticsResourceApi.UNIQUE_PARAM) boolean unique,
+            @DefaultValue("false") @QueryParam(StatisticsResourceApi.RESPECT_ORGANIZATION_PARAM) boolean respectOrganization) throws IOException {
+        if (!Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
+            throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
+        }
+        SolrExportStatistics.Filters filters;
+        try {
+            if (offset < 0 || limit < 1 || limit > 500) throw new IllegalArgumentException("Invalid pagination");
+            filters = new SolrExportStatistics.Filters(
+                    LocalDate.parse(dateFrom == null ? "" : dateFrom),
+                    LocalDate.parse(dateTo == null ? "" : dateTo), usernames, models, exportTypes,
+                    devices, software, siglas, respectOrganization ? user.getOrganization() : null, "model", unique);
+        } catch (IllegalArgumentException | DateTimeParseException ex) {
+            throw RestException.plainBadRequest("packageExportStatistics", dateFrom + "/" + dateTo);
+        }
+        return new ProArcResponse<>(AkubraStorage.getInstance(akubraConfiguration).getExportStatistics().packages(filters, offset, limit));
+    }
+
+    @GET
     @Path(StatisticsResourceApi.ARTICLE_EXPORTS_PATH)
     @Produces(MediaType.APPLICATION_JSON)
     public ProArcResponse<SolrExportStatistics.ArticleResult> getArticleExportStatistics(

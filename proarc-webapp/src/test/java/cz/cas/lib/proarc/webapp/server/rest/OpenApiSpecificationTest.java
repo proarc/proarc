@@ -62,6 +62,45 @@ class OpenApiSpecificationTest {
     }
 
     @Test
+    void packageExportStatisticsDocumentHistoricalRowsAndPagination() throws Exception {
+        JSONObject spec = loadSpec();
+        JSONObject operation = spec.getJSONObject("paths").getJSONObject("/statistics/exports/packages").getJSONObject("get");
+        assertEquals("getPackageExportStatistics", operation.getString("operationId"));
+        assertTrue(operation.getString("description").contains("Deduplication precedes pagination"));
+        assertDefaultJsonResponse(operation, "#/components/schemas/PackageExportStatisticsResponse");
+        Map<String, JSONObject> parameters = new LinkedHashMap<>();
+        for (Object entry : operation.getJSONArray("parameters")) {
+            JSONObject parameter = (JSONObject) entry;
+            parameters.put(parameter.getString("name"), parameter.getJSONObject("schema"));
+        }
+        assertEquals(0, parameters.get("offset").getInt("minimum"));
+        assertEquals(1, parameters.get("limit").getInt("minimum"));
+        assertEquals(500, parameters.get("limit").getInt("maximum"));
+        assertFalse(parameters.containsKey("groupBy"));
+        JSONObject schemas = spec.getJSONObject("components").getJSONObject("schemas");
+        JSONObject result = schemas.getJSONObject("PackageExportStatistics").getJSONObject("properties");
+        assertEquals("int64", result.getJSONObject("count").getString("format"));
+        assertEquals("#/components/schemas/ExportPackage", result.getJSONObject("packages")
+                .getJSONObject("items").getString("$ref"));
+        assertEquals("#/components/schemas/PackageExportStatistics", schemas.getJSONObject("PackageExportStatisticsResponse")
+                .getJSONObject("properties").getJSONObject("response").getJSONObject("properties")
+                .getJSONObject("data").getJSONObject("items").getString("$ref"));
+        JSONObject row = schemas.getJSONObject("ExportPackage").getJSONObject("properties");
+        Set<String> recordFields = java.util.Arrays.stream(
+                cz.cas.lib.proarc.common.storage.akubra.SolrExportStatistics.PackageExport.class.getRecordComponents())
+                .map(java.lang.reflect.RecordComponent::getName).collect(java.util.stream.Collectors.toSet());
+        assertEquals(recordFields, row.keySet());
+        assertTrue(row.getJSONObject("label").getBoolean("nullable"));
+        for (String field : List.of("pageCount", "otherModelCount")) {
+            assertTrue(row.getJSONObject(field).getBoolean("nullable"));
+            assertEquals("int64", row.getJSONObject(field).getString("format"));
+        }
+        assertTrue(row.getJSONObject("urnNbns").getString("description").contains("invalid=\"yes\""));
+        assertTrue(schemas.getJSONObject("ExportArticle").getJSONObject("properties").getJSONObject("dois")
+                .getString("description").contains("invalid=\"yes\""));
+    }
+
+    @Test
     void loggingMetadataBackfillDocumentsSchedulingAndPermissions() throws Exception {
         JSONObject operation = loadSpec().getJSONObject("paths").getJSONObject("/indexer/logging/metadata")
                 .getJSONObject("post");
@@ -82,8 +121,8 @@ class OpenApiSpecificationTest {
         assertEquals("../rest/v2", spec.getJSONArray("servers").getJSONObject(0).getString("url"));
 
         JSONObject paths = spec.getJSONObject("paths");
-        assertEquals(175, paths.length());
-        assertEquals(212, countOperations(paths));
+        assertEquals(176, paths.length());
+        assertEquals(213, countOperations(paths));
         assertTrue(paths.has("/authorities"));
         assertTrue(paths.has("/bibliographies/query"));
         assertTrue(paths.has("/device"));
@@ -396,7 +435,7 @@ class OpenApiSpecificationTest {
         JSONObject schemas = loadSpec()
                 .getJSONObject("components")
                 .getJSONObject("schemas");
-        assertEquals(246, schemas.length());
+        assertEquals(249, schemas.length());
 
         JSONObject response = schemas.getJSONObject("response");
         JSONObject properties = response.getJSONObject("properties");
@@ -568,8 +607,8 @@ class OpenApiSpecificationTest {
             assertTrue(pathOperationCount > 0, path);
         }
 
-        assertEquals(212, operationCount);
-        assertEquals(212, responseCount);
+        assertEquals(213, operationCount);
+        assertEquals(213, responseCount);
     }
 
     @Test

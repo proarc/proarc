@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.storage.akubra;
 
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
+import cz.cas.lib.proarc.common.mods.ModsUtils;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
@@ -24,10 +25,14 @@ import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import java.util.LinkedHashSet;
+import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /** Metadata captured when an event happens, independent of later object changes. */
-public record SolrLogMetadata(String model, Set<String> devices, Set<String> siglas, Set<String> software, Set<String> dois) {
+public record SolrLogMetadata(String model, Set<String> devices, Set<String> siglas, Set<String> software,
+        Set<String> dois, Set<String> urnNbns, String label) {
     public static final SolrLogMetadata EMPTY = new SolrLogMetadata(null, Set.of(), Set.of());
 
     public SolrLogMetadata(String model, Set<String> devices, Set<String> siglas) {
@@ -38,11 +43,16 @@ public record SolrLogMetadata(String model, Set<String> devices, Set<String> sig
         this(model, devices, siglas, software, Set.of());
     }
 
+    public SolrLogMetadata(String model, Set<String> devices, Set<String> siglas, Set<String> software, Set<String> dois) {
+        this(model, devices, siglas, software, dois, Set.of(), null);
+    }
+
     public SolrLogMetadata {
         devices = Set.copyOf(devices);
         siglas = Set.copyOf(siglas);
         software = Set.copyOf(software);
         dois = Set.copyOf(dois);
+        urnNbns = Set.copyOf(urnNbns);
     }
 
     public static SolrLogMetadata from(ProArcObject object) throws DigitalObjectException {
@@ -52,9 +62,31 @@ public record SolrLogMetadata(String model, Set<String> devices, Set<String> sig
         String software = relations.getSoftware();
         Set<String> siglas = new LinkedHashSet<>();
         Set<String> dois = new LinkedHashSet<>();
+        Set<String> urnNbns = new LinkedHashSet<>();
+        String title = null;
         if (object.getStreamProfile(null).stream().anyMatch(profile -> ModsStreamEditor.DATASTREAM_ID.equals(profile.getDsID()))) {
             ModsDefinition mods = new ModsStreamEditor(object).read();
-            mods.getIdentifier().stream().filter(id -> "doi".equalsIgnoreCase(id.getType()))
+            if (!SolrUtils.isPage(model) && !isIssue(model)) title = ModsUtils.getLabel(mods, model);
+            mods.getIdentifier().stream().filter(id -> id.getInvalid() == null)
+                    .filter(id -> "urnnbn".equalsIgnoreCase(id.getType())
+                    || "urn:nbn".equalsIgnoreCase(id.getType()))
+                    .map(id -> id.getValue()).filter(value -> value != null && !value.isBlank())
+                    .map(String::trim).forEach(urnNbns::add);
+            // Issue labels need the date as well as the issue number.
+            if (isIssue(model)) {
+                List<String> parts = new ArrayList<>();
+                mods.getPart().stream().flatMap(part -> part.getDetail().stream())
+                        .filter(detail -> "issue".equals(detail.getType()))
+                        .map(detail -> !detail.getCaption().isEmpty() ? detail.getCaption() : detail.getNumber())
+                        .flatMap(Collection::stream).map(number -> number.getValue())
+                        .filter(value -> value != null && !value.isBlank()).map(String::trim).distinct().forEach(parts::add);
+                mods.getPart().stream().flatMap(part -> part.getDate().stream())
+                        .map(date -> date.getValue()).filter(value -> value != null && !value.isBlank())
+                        .map(String::trim).distinct().forEach(parts::add);
+                title = String.join(", ", parts);
+            }
+            mods.getIdentifier().stream().filter(id -> id.getInvalid() == null)
+                    .filter(id -> "doi".equalsIgnoreCase(id.getType()))
                     .map(id -> id.getValue()).filter(value -> value != null && !value.isBlank())
                     .map(String::trim).forEach(dois::add);
             for (LocationDefinition location : mods.getLocation()) {
@@ -69,6 +101,11 @@ public record SolrLogMetadata(String model, Set<String> devices, Set<String> sig
             }
         }
         return new SolrLogMetadata(model, device == null || device.isBlank() ? Set.of() : Set.of(device), siglas,
-                software == null || software.isBlank() ? Set.of() : Set.of(software), dois);
+                software == null || software.isBlank() ? Set.of() : Set.of(software), dois, urnNbns, title);
+    }
+
+    public static boolean isIssue(String model) {
+        return Set.of("model:periodicalitem", "model:ndkperiodicalissue", "model:ndkeperiodicalissue",
+                "model:oldprintperiodicalissue").contains(model == null ? "" : model);
     }
 }

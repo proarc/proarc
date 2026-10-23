@@ -69,7 +69,13 @@ public final class AuditLog implements AutoCloseable {
         record(root.getOriginalPid(), pids);
     }
 
-    public void complete(Batch batch, UserProfile user, SolrLogFeeder feeder) throws DigitalObjectException {
+    @FunctionalInterface
+    public interface MetadataResolver {
+        SolrLogMetadata resolve(String pid) throws DigitalObjectException;
+    }
+
+    public void complete(Batch batch, UserProfile user, SolrLogFeeder feeder, MetadataResolver metadataResolver)
+            throws DigitalObjectException {
         if (batch == null || (batch.getState() != Batch.State.EXPORT_DONE
                 && batch.getState() != Batch.State.EXPORT_WARNING)) return;
         Map<String, SolrLogMetadata> snapshots = new LinkedHashMap<>();
@@ -81,18 +87,19 @@ public final class AuditLog implements AutoCloseable {
             Set<String> software = new LinkedHashSet<>();
             Set<String> siglas = new LinkedHashSet<>();
             for (String pid : entry.getValue()) {
-                SolrLogMetadata metadata = snapshot(pid, feeder, snapshots);
+                SolrLogMetadata metadata = snapshot(pid, metadataResolver, snapshots);
                 if (ARTICLE_MODELS.contains(metadata.model())) articles.add(pid);
                 if (SolrUtils.isPage(metadata.model())) pages++; else others++;
                 devices.addAll(metadata.devices());
                 software.addAll(metadata.software());
                 siglas.addAll(metadata.siglas());
             }
-            SolrLogMetadata root = snapshot(entry.getKey(), feeder, snapshots);
+            SolrLogMetadata root = snapshot(entry.getKey(), metadataResolver, snapshots);
             devices.addAll(root.devices());
             software.addAll(root.software());
             siglas.addAll(root.siglas());
-            feeder.feedExportLog(entry.getKey(), user, new SolrLogMetadata(root.model(), devices, siglas, software),
+            feeder.feedExportLog(entry.getKey(), user, new SolrLogMetadata(root.model(), devices, siglas, software,
+                    root.dois(), root.urnNbns(), root.label()),
                     pages, others, batch.getProfileId());
         }
         for (String pid : articles) {
@@ -100,11 +107,11 @@ public final class AuditLog implements AutoCloseable {
         }
     }
 
-    private SolrLogMetadata snapshot(String pid, SolrLogFeeder feeder, Map<String, SolrLogMetadata> snapshots)
+    private SolrLogMetadata snapshot(String pid, MetadataResolver metadataResolver, Map<String, SolrLogMetadata> snapshots)
             throws DigitalObjectException {
         SolrLogMetadata metadata = snapshots.get(pid);
         if (metadata == null) {
-            metadata = feeder.metadataFor(pid);
+            metadata = metadataResolver.resolve(pid);
             if (metadata.model() == null) throw new DigitalObjectException(pid, "Missing model for export audit");
             snapshots.put(pid, metadata);
         }

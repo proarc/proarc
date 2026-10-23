@@ -102,6 +102,25 @@ class SolrLogFeederTest {
     }
 
     @Test
+    void packageExportPersistsHistoricalTitleUrnAndRootIdentity() throws Exception {
+        new Expectations() {{ UserUtil.getDefaultManger(); result = users; }};
+        var metadata = new SolrLogMetadata("model:ndkmonographunit", Set.of(), Set.of(), Set.of(), Set.of(),
+                Set.of("urn:nbn:cz:test"), "Historical book title");
+        SolrLogFeeder writer = new SolrLogFeeder(client) {
+            @Override public SolrLogMetadata metadataFor(String pid) {
+                throw new AssertionError("Export writer must only use supplied metadata");
+            }
+        };
+        writer.feedExportLog("uuid:book", null, metadata, 5, 1, "exportProfile.ndk");
+        new Verifications() {{
+            SolrInputDocument document; client.add(document = withCapture());
+            assertEquals("uuid:book", document.getFieldValue("pid"));
+            assertEquals("Historical book title", document.getFieldValue(SolrUtils.FIELD_LABEL));
+            assertEquals(Set.of("urn:nbn:cz:test"), Set.copyOf(document.getFieldValues("urnNbn")));
+        }};
+    }
+
+    @Test
     void articleExportStoresDoiAndUsesSeparateEventIdentity() throws Exception {
         new Expectations() {{ UserUtil.getDefaultManger(); result = users; }};
         var metadata = new SolrLogMetadata("model:ndkarticle", Set.of(), Set.of(), Set.of(), Set.of("10.1234/article"));

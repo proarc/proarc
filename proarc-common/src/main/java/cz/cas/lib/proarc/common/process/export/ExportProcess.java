@@ -54,6 +54,7 @@ import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraStorage;
+import cz.cas.lib.proarc.common.storage.akubra.SolrLogMetadata;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
 import cz.cas.lib.proarc.common.user.UserManager;
 import cz.cas.lib.proarc.common.user.UserProfile;
@@ -188,7 +189,11 @@ public final class ExportProcess implements Runnable {
             if (result != null && (result.getState() == Batch.State.EXPORT_DONE
                     || result.getState() == Batch.State.EXPORT_WARNING)) {
                 try {
-                    audit.complete(result, user, AkubraStorage.getInstance(akubraConfiguration).getSolrLoggingFeeder());
+                    AkubraStorage storage = AkubraStorage.getInstance(akubraConfiguration);
+                    ExportLogMetadata metadata = new ExportLogMetadata(
+                            pid -> SolrLogMetadata.from(storage.find(pid)),
+                            storage.getSearch());
+                    audit.complete(result, user, storage.getSolrLoggingFeeder(), metadata);
                 } catch (DigitalObjectException | IOException ex) {
                     LOG.log(Level.SEVERE, "Export completed but audit logging failed", ex);
                     return BatchUtils.finishedExportWithWarning(batchManager, result, result.getFolder(),

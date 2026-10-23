@@ -51,7 +51,7 @@ class StatisticsResourceRoutingTest {
         assertEquals((v2 ? "v2" : "v1") + "/statistics", resource.getPath());
         Map<String, Resource> endpoints = resource.getChildResources().stream()
                 .collect(Collectors.toMap(Resource::getPath, child -> child));
-        assertEquals(Set.of("models", "productivity", "productivity/options", "exports", "exports/options", "exports/articles"),
+        assertEquals(Set.of("models", "productivity", "productivity/options", "exports", "exports/options", "exports/articles", "exports/packages"),
                 endpoints.keySet());
         endpoints.values().forEach(endpoint -> {
             assertEquals(1, endpoint.getResourceMethods().size());

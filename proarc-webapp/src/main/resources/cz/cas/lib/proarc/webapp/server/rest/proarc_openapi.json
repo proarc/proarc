@@ -9735,6 +9735,177 @@
           }
         }
       }
+    },
+    "/statistics/exports/packages": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "operationId": "getPackageExportStatistics",
+        "summary": "List individual package exports with historical identifiers and titles",
+        "description": "AKUBRA only. Lists completed EXPORT audit snapshots from loggingCore without repository or searchCore lookups. Uses the same date, user, model, export type, device, software, sigla and organization filters as aggregated export statistics, but returns individual package rows instead of model groups. Excludes article models (model:ndkarticle, model:ndkearticle and model:bdmarticle) even when explicitly selected. With unique=true, each PID appears once with its latest matching export across export types. Deduplication precedes pagination; count is the total number of matching unique packages. With unique=false, every matching export appears separately. Ordered by date descending, then source descending. Identifiers and labels are captured at export time; older records may lack them. Newly captured URN:NBN values exclude MODS identifiers marked invalid. An empty exportType selection includes all export profiles; the client default NDK is not a server default.",
+        "parameters": [
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "description": "Inclusive start date (YYYY-MM-DD) in the server time zone. Must not be after dateTo.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "description": "Inclusive end date (YYYY-MM-DD) in the server time zone.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "description": "Filter by audit actor username. Repeat this parameter to select multiple users.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "description": "Filter by model identifier, for example model:ndkmonographunit.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "exportType",
+            "in": "query",
+            "description": "Filter by export profile identifier, for example exportProfile.ndk. An empty selection includes all profiles.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "device",
+            "in": "query",
+            "description": "Filter by historical device identifier.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "software",
+            "in": "query",
+            "description": "Filter by historical software identifier.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "sigla",
+            "in": "query",
+            "description": "Filter by historical sigla. Multiple selected values are combined with OR.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Zero-based offset after deduplication.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of rows per page.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 50
+            }
+          },
+          {
+            "name": "unique",
+            "in": "query",
+            "description": "Return each PID once using its latest matching export before pagination. When false, return all matching exports.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "respectOrganization",
+            "in": "query",
+            "description": "Restrict to the current user's organization. Audit statistics use organization recorded in the log; records without a matching organization are excluded.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "ProArc response; inspect response.status and response.errors for application errors.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PackageExportStatisticsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -16798,7 +16969,7 @@
             "items": {
               "type": "string"
             },
-            "description": "DOI values captured at export time. Empty when the historical record has no DOI."
+            "description": "DOIs captured at export time. Empty when the historical record has no DOI. Newly captured values exclude MODS identifiers marked invalid=\"yes\"."
           },
           "exportType": {
             "type": "string"
@@ -17240,6 +17411,160 @@
                 "type": "array",
                 "items": {
                   "$ref": "#/components/schemas/InternalExternalProcessResult"
+                },
+                "maxItems": 1
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "description": "ProArc JSON response envelope. On success, response.status is 0 and response.data contains one result object."
+      },
+      "ExportPackage": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "Unique audit event identifier, distinct from the object PID."
+          },
+          "pid": {
+            "type": "string",
+            "description": "Actual package root PID (uuid:...), not a MODS identifier."
+          },
+          "model": {
+            "type": "string",
+            "nullable": true
+          },
+          "urnNbns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Historical URN:NBN values; empty when not recorded. Newly captured values exclude MODS identifiers marked invalid=\"yes\"."
+          },
+          "label": {
+            "type": "string",
+            "nullable": true,
+            "description": "Historical package title. For a periodical issue, combines the periodical title with the issue number and date. May be missing in older records."
+          },
+          "exportType": {
+            "type": "string",
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "siglas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "devices": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "software": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pageCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "nullable": true,
+            "description": "Whole-package page count; null when the historical count is missing or invalid."
+          },
+          "otherModelCount": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "nullable": true,
+            "description": "Whole-package count of other objects; null when the historical count is missing or invalid."
+          }
+        }
+      },
+      "PackageExportStatistics": {
+        "type": "object",
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/StatisticsFilters"
+          },
+          "packages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportPackage"
+            }
+          },
+          "count": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Total number of matching packages before pagination, after optional deduplication."
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500
+          }
+        }
+      },
+      "PackageExportStatisticsResponse": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/PackageExportStatistics"
                 },
                 "maxItems": 1
               },

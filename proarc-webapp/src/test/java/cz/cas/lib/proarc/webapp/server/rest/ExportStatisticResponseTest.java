@@ -36,6 +36,25 @@ class ExportStatisticResponseTest {
 
 
     @Test
+    void serializesPackageRowsWithHistoricalMetadataAndPagination() throws Exception {
+        SolrDocument doc = new SolrDocument();
+        doc.setField("pid", "uuid:book"); doc.setField("source", "package-event");
+        doc.setField("date", "2026-02-01T00:00:00.000Z"); doc.setField("model", "model:ndkmonographunit");
+        doc.setField("urnNbn", List.of("urn:nbn:cz:test")); doc.setField("label", "Book");
+        SolrDocumentList records = new SolrDocumentList(); records.add(doc); records.setNumFound(101);
+        var filters = new SolrExportStatistics.Filters(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 10, 20),
+                List.of(), List.of(), List.of("exportProfile.ndk"), List.of(), List.of(), null, "model", true);
+        var result = new SolrExportStatistics(client(records, new NamedList<>())).packages(filters, 50, 50);
+        ObjectMapper mapper = new JacksonProvider().getContext(ProArcResponse.class);
+        JsonNode value = mapper.readTree(mapper.writeValueAsString(new ProArcResponse<>(result)))
+                .path("response").path("data").get(0);
+        assertEquals("Book", value.path("packages").get(0).path("label").asText());
+        assertEquals("urn:nbn:cz:test", value.path("packages").get(0).path("urnNbns").get(0).asText());
+        assertEquals(101, value.path("count").asLong()); assertEquals(50, value.path("offset").asInt());
+        assertTrue(value.path("filters").path("unique").asBoolean());
+    }
+
+    @Test
     void serializesHistoricalOptionsAsOneResponseObject() throws Exception {
         org.apache.solr.client.solrj.response.FacetField model = new org.apache.solr.client.solrj.response.FacetField("model");
         model.add("model:page", 1); model.add("device:scanner", 1);

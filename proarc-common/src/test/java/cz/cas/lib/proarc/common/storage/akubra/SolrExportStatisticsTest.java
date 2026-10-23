@@ -60,6 +60,53 @@ class SolrExportStatisticsTest {
     }
 
     @Test
+    void listsPackageSnapshotsWithAllChartFiltersAndPagination() throws Exception {
+        SolrDocument document = doc("package-log", "uuid:root", "2026-02-01T00:00:00.000Z", "exportProfile.ndk", 1234);
+        document.setField("urnNbn", List.of("urn:nbn:cz:test")); document.setField("label", "Historical title");
+        SolrDocumentList documents = new SolrDocumentList(); documents.add(document); documents.setNumFound(101);
+        new Expectations() {{
+            client.query((SolrQuery) any); result = response;
+            response.getResults(); result = documents;
+        }};
+        var filters = new SolrExportStatistics.Filters(LocalDate.of(2026, 1, 1), LocalDate.of(2026, 10, 20),
+                List.of("actor"), List.of("model:ndkmonographunit"), List.of("exportProfile.ndk"),
+                List.of("scanner"), List.of("software"), List.of("ABA001"), "Library A", "model", true);
+        var result = new SolrExportStatistics(client).packages(filters, 50, 50);
+        assertEquals(101, result.count()); assertEquals(50, result.offset());
+        assertEquals(filters.asMap(), result.filters());
+        var row = result.packages().get(0);
+        assertEquals("Historical title", row.label()); assertEquals("uuid:root", row.pid());
+        assertEquals(List.of("urn:nbn:cz:test"), row.urnNbns()); assertEquals(1234L, row.pageCount());
+        new Verifications() {{
+            SolrQuery query; client.query(query = withCapture());
+            assertEquals(50, query.getStart()); assertEquals(50, query.getRows());
+            String fq = String.join(" ", query.getFilterQueries());
+            for (String field : List.of("date:", "user:", "model:", "exportType:", "device:", "software:", "sigla:", "organization:")) {
+                assertTrue(fq.contains(field), fq);
+            }
+            assertTrue(fq.contains("-model:"));
+            assertTrue(fq.contains("{!collapse field=pid sort='date desc,source desc'}"));
+        }};
+    }
+
+    @Test
+    void packageHistoryRetainsRepeatedExportsAndToleratesOldMissingMetadata() throws Exception {
+        SolrDocumentList documents = new SolrDocumentList();
+        documents.add(doc("old-log", "uuid:root", "2026-01-01T00:00:00.000Z", "exportProfile.ndk", 0));
+        new Expectations() {{
+            client.query((SolrQuery) any); result = response;
+            response.getResults(); result = documents;
+        }};
+        var result = new SolrExportStatistics(client).packages(filters("model", false), 0, 50);
+        assertNull(result.packages().get(0).label());
+        assertTrue(result.packages().get(0).urnNbns().isEmpty());
+        new Verifications() {{
+            SolrQuery query; client.query(query = withCapture());
+            assertFalse(String.join(" ", query.getFilterQueries()).contains("{!collapse"));
+        }};
+    }
+
+    @Test
     void listsArticleExportsWithPaginationAndHistoricalDoi() throws Exception {
         SolrDocument doc = doc("article-log", "article", "2026-01-01T00:00:00.000Z", "exportProfile.crossref", 0);
         doc.setField("model", "model:ndkarticle"); doc.setField("doi", List.of("10.1234/article"));

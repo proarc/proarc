@@ -131,6 +131,22 @@ public class ModsDataHandler {
                 //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
+            titleMods = findEnclosingObject(NdkPlugin.MODEL_PERIODICALVOLUME, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
+            if (titleMods != null) {
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+            }
+            titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
+            if (titleMods != null) {
+                defaultMods.getLanguage().addAll(titleMods.getLanguage());
+            }
+            titleMods = findEnclosingObject(NdkPlugin.MODEL_PERIODICALISSUE, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
+            if (titleMods != null) {
+                defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+            }
+            titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICALISSUE, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
+            if (titleMods != null) {
+                defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+            }
         } else if (NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(modelId)) {
             // issue 240
             ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHVOLUME, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);

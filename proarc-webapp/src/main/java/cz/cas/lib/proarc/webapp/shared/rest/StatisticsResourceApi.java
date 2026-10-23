@@ -23,6 +23,7 @@ public final class StatisticsResourceApi {
     public static final String PRODUCTIVITY_PATH = "productivity";
     public static final String PRODUCTIVITY_OPTIONS_PATH = "productivity/options";
     public static final String EXPORTS_PATH = "exports";
+    public static final String PACKAGE_EXPORTS_PATH = "exports/packages";
     public static final String ARTICLE_EXPORTS_PATH = "exports/articles";
     public static final String EXPORT_OPTIONS_PATH = "exports/options";
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema name="loggingCore" version="3.0">
-    <!-- add field organization, device, software, sigla, pageCount, otherModelCount, exportType, doi -->
+    <!-- add field organization, device, software, sigla, pageCount, otherModelCount, exportType, doi, urnNbn, label -->
 
     <uniqueKey>source</uniqueKey>
 
@@ -74,5 +74,7 @@
     <field name="otherModelCount" type="plong" indexed="true" stored="true"/>
     <field name="exportType" type="string" indexed="true" stored="true"/>
     <field name="doi" type="strings" indexed="true" stored="true"/>
+    <field name="urnNbn" type="strings" indexed="true" stored="true"/>
+    <field name="label" type="string" indexed="true" stored="true"/>
 
 </schema>
