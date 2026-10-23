@@ -79,27 +79,27 @@ class SolrLogMetadataTest {
         assertThrows(UnsupportedOperationException.class, () -> metadata.siglas().add("XXX001"));
     }
 
-    @Test
-    void capturesIssueCaptionDateAndUrnNbn() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {"model:ndkperiodicalissue", "model:ndkeperiodicalissue"})
+    void capturesIssueMapperLabelAndUrnNbn(String model) throws Exception {
         ModsDefinition mods = new ModsDefinition();
         var identifier = new cz.cas.lib.proarc.mods.IdentifierDefinition();
         identifier.setType("urn:nbn"); identifier.setValue(" urn:nbn:cz:issue ");
         mods.getIdentifier().add(identifier);
-        var part = new cz.cas.lib.proarc.mods.PartDefinition();
-        var detail = new cz.cas.lib.proarc.mods.DetailDefinition(); detail.setType("issue");
-        var number = new cz.cas.lib.proarc.mods.StringPlusLanguage(); number.setValue("1");
-        var caption = new cz.cas.lib.proarc.mods.StringPlusLanguage(); caption.setValue("2–3");
-        detail.getNumber().add(number); detail.getCaption().add(caption); part.getDetail().add(detail);
-        var date = new cz.cas.lib.proarc.mods.DateDefinition(); date.setValue("23.10.2026");
-        part.getDate().add(date); mods.getPart().add(part);
+        var titleInfo = new cz.cas.lib.proarc.mods.TitleInfoDefinition();
+        var number = new cz.cas.lib.proarc.mods.StringPlusLanguage(); number.setValue("12");
+        titleInfo.getPartNumber().add(number); mods.getTitleInfo().add(titleInfo);
+        var originInfo = new cz.cas.lib.proarc.mods.OriginInfoDefinition();
+        var date = new cz.cas.lib.proarc.mods.DateDefinition(); date.setValue("12.12.2025");
+        originInfo.getDateIssued().add(date); mods.getOriginInfo().add(originInfo);
         DatastreamProfile profile = new DatastreamProfile(); profile.setDsID(ModsStreamEditor.DATASTREAM_ID);
         new Expectations() {{
-            relations.getModel(); result = "model:ndkperiodicalissue";
+            relations.getModel(); result = model;
             object.getStreamProfile(null); result = List.of(profile);
             modsEditor.read(); result = mods;
         }};
         var metadata = SolrLogMetadata.from(object);
-        assertEquals("2–3, 23.10.2026", metadata.label());
+        assertEquals("12, 12.12.2025", metadata.label());
         assertEquals(Set.of("urn:nbn:cz:issue"), metadata.urnNbns());
     }
 

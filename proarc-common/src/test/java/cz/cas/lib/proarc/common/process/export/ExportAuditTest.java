@@ -31,6 +31,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ExportAuditTest {
@@ -143,11 +144,47 @@ class ExportAuditTest {
         assertEquals(Set.of("root", "chapter", "page"), feeder.reads.keySet());
     }
 
+    @ParameterizedTest
+    @ValueSource(ints = {0, 2})
+    void issueCountsItsAncestorsAndNestedSupplementsWithoutOtherIssues(int supplementCount) throws Exception {
+        Map<String, List<String>> tree = new HashMap<>();
+        tree.put("periodical", List.of("volume"));
+        tree.put("volume", List.of("issue", "otherIssue"));
+        tree.put("issue", supplementCount == 0 ? List.of("page") : List.of("page", "supplement1"));
+        tree.put("supplement1", List.of("supplement2", "supplementPage"));
+        tree.put("supplement2", List.of("supplementPage"));
+        Map<String, String> parents = Map.of("issue", "volume", "volume", "periodical");
+        feeder.snapshots.put("periodical", new SolrLogMetadata(NdkPlugin.MODEL_PERIODICAL, Set.of(), Set.of()));
+        feeder.snapshots.put("volume", new SolrLogMetadata(NdkPlugin.MODEL_PERIODICALVOLUME, Set.of(), Set.of()));
+        feeder.snapshots.put("issue", new SolrLogMetadata(NdkPlugin.MODEL_PERIODICALISSUE, Set.of(), Set.of()));
+        feeder.snapshots.put("page", new SolrLogMetadata(NdkPlugin.MODEL_NDK_PAGE, Set.of(), Set.of()));
+        feeder.snapshots.put("supplement1", new SolrLogMetadata(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, Set.of(), Set.of()));
+        feeder.snapshots.put("supplement2", new SolrLogMetadata(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, Set.of(), Set.of()));
+        feeder.snapshots.put("supplementPage", new SolrLogMetadata(NdkPlugin.MODEL_NDK_PAGE, Set.of(), Set.of()));
+        try (AuditLog audit = AuditLog.begin()) {
+            AuditLog.recordTree(element("issue", tree, parents));
+            AuditLog.recordTree(element("issue", tree, parents));
+            audit.complete(batch(Batch.State.EXPORT_DONE), actor, feeder, feeder::exportMetadata);
+        }
+        assertEquals(1, feeder.exports.size());
+        assertEquals("issue", feeder.exports.get(0).pid());
+        assertEquals(3 + supplementCount, feeder.exports.get(0).others());
+        assertEquals(supplementCount == 0 ? 1 : 2, feeder.exports.get(0).pages());
+        assertFalse(feeder.reads.containsKey("otherIssue"));
+        assertTrue(feeder.reads.values().stream().allMatch(reads -> reads == 1));
+    }
+
     private IMetsElement element(String pid, Map<String, List<String>> tree) {
+        return element(pid, tree, Map.of());
+    }
+
+    private IMetsElement element(String pid, Map<String, List<String>> tree, Map<String, String> parents) {
         return (IMetsElement) java.lang.reflect.Proxy.newProxyInstance(IMetsElement.class.getClassLoader(),
                 new Class<?>[] {IMetsElement.class}, (proxy, method, args) -> switch (method.getName()) {
                     case "getOriginalPid" -> pid;
-                    case "getChildren" -> tree.getOrDefault(pid, List.of()).stream().map(child -> element(child, tree)).toList();
+                    case "getModel" -> feeder.snapshots.get(pid).model();
+                    case "getParent" -> parents.containsKey(pid) ? element(parents.get(pid), tree, parents) : null;
+                    case "getChildren" -> tree.getOrDefault(pid, List.of()).stream().map(child -> element(child, tree, parents)).toList();
                     default -> throw new UnsupportedOperationException(method.getName());
                 });
     }

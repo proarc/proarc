@@ -17,7 +17,7 @@
 package cz.cas.lib.proarc.common.storage.akubra;
 
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
-import cz.cas.lib.proarc.common.mods.ModsUtils;
+import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
 import cz.cas.lib.proarc.common.storage.relation.RelationEditor;
@@ -25,9 +25,6 @@ import cz.cas.lib.proarc.mods.LocationDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.PhysicalLocationDefinition;
 import java.util.LinkedHashSet;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /** Metadata captured when an event happens, independent of later object changes. */
@@ -66,25 +63,14 @@ public record SolrLogMetadata(String model, Set<String> devices, Set<String> sig
         String title = null;
         if (object.getStreamProfile(null).stream().anyMatch(profile -> ModsStreamEditor.DATASTREAM_ID.equals(profile.getDsID()))) {
             ModsDefinition mods = new ModsStreamEditor(object).read();
-            if (!SolrUtils.isPage(model) && !isIssue(model)) title = ModsUtils.getLabel(mods, model);
+            if (!SolrUtils.isPage(model)) {
+                title = NdkMapper.get(model).toLabel(mods);
+            }
             mods.getIdentifier().stream().filter(id -> id.getInvalid() == null)
                     .filter(id -> "urnnbn".equalsIgnoreCase(id.getType())
                     || "urn:nbn".equalsIgnoreCase(id.getType()))
                     .map(id -> id.getValue()).filter(value -> value != null && !value.isBlank())
                     .map(String::trim).forEach(urnNbns::add);
-            // Issue labels need the date as well as the issue number.
-            if (isIssue(model)) {
-                List<String> parts = new ArrayList<>();
-                mods.getPart().stream().flatMap(part -> part.getDetail().stream())
-                        .filter(detail -> "issue".equals(detail.getType()))
-                        .map(detail -> !detail.getCaption().isEmpty() ? detail.getCaption() : detail.getNumber())
-                        .flatMap(Collection::stream).map(number -> number.getValue())
-                        .filter(value -> value != null && !value.isBlank()).map(String::trim).distinct().forEach(parts::add);
-                mods.getPart().stream().flatMap(part -> part.getDate().stream())
-                        .map(date -> date.getValue()).filter(value -> value != null && !value.isBlank())
-                        .map(String::trim).distinct().forEach(parts::add);
-                title = String.join(", ", parts);
-            }
             mods.getIdentifier().stream().filter(id -> id.getInvalid() == null)
                     .filter(id -> "doi".equalsIgnoreCase(id.getType()))
                     .map(id -> id.getValue()).filter(value -> value != null && !value.isBlank())

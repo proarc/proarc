@@ -51,7 +51,7 @@ class SolrLogFeederTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"INGEST", "UPDATE", "DEACTIVATE", "RESTORE", "PURGE"})
-    void recordsObjectSnapshotAndTheActingUsersOrganization(String operation) throws Exception {
+    void recordsModelAndActingUsersOrganizationWithoutExportMetadata(String operation) throws Exception {
         UserProfile actor = UserProfile.create("actor", "password", "Actor");
         actor.setOrganization("Library A");
         new Expectations() {{ UserUtil.getDefaultManger(); result = users; users.find("actor"); result = actor; }};
@@ -63,13 +63,15 @@ class SolrLogFeederTest {
             assertEquals("actor", document.getFieldValue("user"));
             assertEquals("Library A", document.getFieldValue("organization"));
             assertEquals("model:ndkpage", document.getFieldValue("model"));
-            assertEquals(Set.of("device:scanner"), Set.copyOf(document.getFieldValues("device")));
-            assertEquals(Set.of("software:scanner"), Set.copyOf(document.getFieldValues("software")));
-            assertEquals(Set.of("ABA001"), Set.copyOf(document.getFieldValues("sigla")));
+            assertNull(document.getFieldValues("device"));
+            assertNull(document.getFieldValues("software"));
+            assertNull(document.getFieldValues("sigla"));
             assertEquals(operation, document.getFieldValue("operation"));
             assertEquals("uuid:page", document.getFieldValue("pid"));
             assertFalse(Instant.parse((String) document.getFieldValue("date")).isBefore(before.minusMillis(1)));
             assertNull(document.getFieldValue("pageCount"));
+            assertNull(document.getFieldValue("otherModelCount"));
+            assertNull(document.getFieldValue("exportType"));
             client.commit(); times = 1;
         }};
     }
@@ -89,12 +91,14 @@ class SolrLogFeederTest {
             SolrInputDocument first = documents.get(0);
             assertEquals("EXPORT", first.getFieldValue("operation"));
             assertEquals("actor", first.getFieldValue("user"));
+            assertEquals(Set.of("device:scanner"), Set.copyOf(first.getFieldValues("device")));
             assertEquals(Set.of("software:scanner"), Set.copyOf(first.getFieldValues("software")));
-            assertEquals(null, first.getFieldValue("stream"));
+            assertEquals(Set.of("ABA001"), Set.copyOf(first.getFieldValues("sigla")));
+            assertNull(first.getFieldValue("stream"));
             assertEquals("EXPORT_NDK", first.getFieldValue("exportType"));
             assertEquals("Library B", first.getFieldValue("organization"));
             assertEquals(3_000_000_000L, first.getFieldValue("pageCount"));
-            assertEquals(3L, first.getFieldValue("otherModelCount"));;
+            assertEquals(3L, first.getFieldValue("otherModelCount"));
             assertNotEquals(first.getFieldValue("source"), documents.get(1).getFieldValue("source"));
             assertEquals(0L, documents.get(1).getFieldValue("pageCount"));
             assertEquals(first.getFieldValue("pid"), documents.get(2).getFieldValue("pid"));

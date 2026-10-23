@@ -56,7 +56,7 @@ public final class AuditLog implements AutoCloseable {
         }
     }
 
-    /** Restrict a METS package to its own tree; the context cache can contain other packages. */
+    /** Collect the package subtree and its exported ancestors, without siblings or other cached packages. */
     public static void recordTree(IMetsElement root) {
         if (CURRENT.get() == null) return;
         Set<String> pids = new LinkedHashSet<>();
@@ -65,6 +65,9 @@ public final class AuditLog implements AutoCloseable {
         while (!pending.isEmpty()) {
             IMetsElement element = pending.removeFirst();
             if (pids.add(element.getOriginalPid()) && element.getChildren() != null) pending.addAll(element.getChildren());
+        }
+        for (IMetsElement parent = root.getParent(); parent != null && pids.add(parent.getOriginalPid()); parent = parent.getParent()) {
+            // Ancestors supply package metadata; their other children belong to different packages.
         }
         record(root.getOriginalPid(), pids);
     }
