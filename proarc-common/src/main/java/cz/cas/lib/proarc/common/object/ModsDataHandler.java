@@ -89,11 +89,13 @@ public class ModsDataHandler {
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
                 inheritLocation(defaultMods, titleMods.getLocation());
+                inheritOriginInfoExceptDateIssued(defaultMods, titleMods.getOriginInfo());
                 //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
             }
             titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICAL, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 inheritTitleInfo(defaultMods, titleMods.getTitleInfo());
+                inheritOriginInfoExceptDateIssued(defaultMods, titleMods.getOriginInfo());
 
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
@@ -352,6 +354,22 @@ public class ModsDataHandler {
         }
 
         return defaultMods;
+    }
+
+    private void inheritOriginInfoExceptDateIssued(ModsDefinition defaultMods, List<OriginInfoDefinition> originInfo) {
+        for (OriginInfoDefinition oi : originInfo) {
+            if (!ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION.equals(oi.getEventType())) {
+                continue;
+            }
+            OriginInfoDefinition newOi = new OriginInfoDefinition();
+            newOi.getPlace().addAll(oi.getPlace());
+            newOi.getEdition().addAll(oi.getEdition());
+            newOi.getIssuance().addAll(oi.getIssuance());
+            newOi.getFrequency().addAll(oi.getFrequency());
+            newOi.getAgent().addAll(oi.getAgent());
+            newOi.setEventType(oi.getEventType());
+            defaultMods.getOriginInfo().add(newOi);
+        }
     }
 
     private void replaceSigla(ModsDefinition defaultMods, String siglaVal) {
