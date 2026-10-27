@@ -88,7 +88,7 @@ public class ModsDataHandler {
 
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-                inheritLocation(defaultMods, titleMods.getLocation());
+                inheritLocation(defaultMods, titleMods.getLocation(), false);
                 inheritOriginInfoExceptDateIssued(defaultMods, titleMods.getOriginInfo());
                 //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
             }
@@ -99,7 +99,7 @@ public class ModsDataHandler {
 
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
-                inheritLocation(defaultMods, titleMods.getLocation());
+                inheritLocation(defaultMods, titleMods.getLocation(), false);
                 //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
             }
             if (objectHandler != null) {
@@ -123,6 +123,7 @@ public class ModsDataHandler {
             if (titleMods != null) {
                 inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                inheritLocation(defaultMods, titleMods.getLocation(), false);
                 //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
@@ -130,6 +131,7 @@ public class ModsDataHandler {
             if (titleMods != null) {
                 inheritSupplementTitleInfo(defaultMods, titleMods.getTitleInfo());
                 defaultMods.getLanguage().addAll(titleMods.getLanguage());
+                inheritLocation(defaultMods, titleMods.getLocation(), false);
                 //inheritIdentifier(defaultMods, titleMods.getIdentifier(), "ccnb", "issn");
                 inheritRecordInfo(defaultMods, titleMods.getRecordInfo());
             }
@@ -144,10 +146,13 @@ public class ModsDataHandler {
             titleMods = findEnclosingObject(NdkPlugin.MODEL_PERIODICALISSUE, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+                defaultMods.getLocation().clear();
+                inheritLocation(defaultMods, titleMods.getLocation(), true);
             }
             titleMods = findEnclosingObject(NdkEbornPlugin.MODEL_EPERIODICALISSUE, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
                 defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
+                inheritLocation(defaultMods, titleMods.getLocation(), true);
             }
         } else if (NdkPlugin.MODEL_MONOGRAPHSUPPLEMENT.equals(modelId)) {
             // issue 240
@@ -634,7 +639,9 @@ public class ModsDataHandler {
         }
     }
 
-    public static void inheritLocation(ModsDefinition mods, List<LocationDefinition> locs) {
+    public static void inheritLocation(ModsDefinition mods, List<LocationDefinition> locs, boolean clear) {
+        if (clear) mods.getLocation().clear();
+
         for (LocationDefinition loc : locs) {
             List<PhysicalLocationDefinition> pls = loc.getPhysicalLocation();
             List<StringPlusLanguage> sls = loc.getShelfLocator();
