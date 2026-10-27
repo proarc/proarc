@@ -24,19 +24,28 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.xml.transform.Source;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.validation.Validator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -51,6 +60,8 @@ import org.xmlunit.xpath.JAXPXPathEngine;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -115,6 +126,132 @@ public class TransformersTest {
         } finally {
             close(xmlIS);
             close(goldenIS);
+        }
+    }
+
+    @Test
+    public void testMarcAsModsWithLocalAlphabeticTag() throws Exception {
+        String record = "<record xmlns=\"http://www.loc.gov/MARC21/slim\">"
+                + "<leader>00000nam a2200000 a 4500</leader>"
+                + "<datafield tag=\"245\" ind1=\"0\" ind2=\"0\">"
+                + "<subfield code=\"a\">Test title</subfield></datafield>"
+                + "<datafield tag=\"264\" ind1=\" \" ind2=\"1\">"
+                + "<subfield code=\"b\">Test publisher</subfield></datafield>"
+                + "<datafield tag=\"997\" ind1=\" \" ind2=\" \">"
+                + "<subfield code=\"t\">KN</subfield></datafield>"
+                + "<datafield tag=\"TRI\" ind1=\" \" ind2=\" \">"
+                + "<subfield code=\"t\">KN</subfield></datafield></record>";
+        Transformers transformers = new Transformers(null);
+
+        for (Transformers.Format format : new Transformers.Format[] {
+                Transformers.Format.MarcxmlAsMods3, Transformers.Format.MarcxmlAsMods34}) {
+            byte[] contents = transformers.transformAsBytes(
+                    new StreamSource(new ByteArrayInputStream(record.getBytes("UTF-8"))), format);
+            Map<String, String> namespaces = new HashMap<>();
+            namespaces.put("m", ModsConstants.NS);
+            JAXPXPathEngine xpathEngine = new JAXPXPathEngine();
+            xpathEngine.setNamespaceContext(namespaces);
+            String result = new String(contents, "UTF-8");
+            assertEquals("Test title", xpathEngine.evaluate(
+                    "/m:mods/m:titleInfo/m:title", Input.fromString(result).build()));
+            assertEquals("Test publisher", xpathEngine.evaluate(
+                    "/m:mods/m:originInfo/m:agent/m:namePart", Input.fromString(result).build()));
+            assertFalse(result.contains("KN"), result);
+            validateMods(new StreamSource(new ByteArrayInputStream(contents)));
+        }
+    }
+
+    @Test
+    public void testMarcAsModsWithNonNumericIndicators() throws Exception {
+        Transformers transformers = new Transformers(null);
+        Map<String, String> namespaces = new HashMap<>();
+        namespaces.put("m", ModsConstants.NS);
+        JAXPXPathEngine xpath = new JAXPXPathEngine();
+        xpath.setNamespaceContext(namespaces);
+        for (String indicator : new String[] {" ", "X", "0", "4"}) {
+            String record = "<record xmlns=\"http://www.loc.gov/MARC21/slim\">"
+                    + "<leader>00000nam a2200000 a 4500</leader>"
+                    + "<datafield tag=\"245\" ind1=\"0\" ind2=\"" + indicator + "\">"
+                    + "<subfield code=\"a\">The title</subfield></datafield>"
+                    + "<datafield tag=\"242\" ind1=\"0\" ind2=\"" + indicator + "\">"
+                    + "<subfield code=\"a\">The translated title</subfield></datafield>"
+                    + "<datafield tag=\"655\" ind1=\" \" ind2=\"" + indicator + "\">"
+                    + "<subfield code=\"a\">Genre</subfield></datafield>"
+                    + "<datafield tag=\"264\" ind1=\" \" ind2=\"" + indicator + "\">"
+                    + "<subfield code=\"c\">2026</subfield></datafield>"
+                    + "<datafield tag=\"260\" ind1=\" \" ind2=\" \">"
+                    + "<subfield code=\"b\">Publisher</subfield></datafield></record>";
+            byte[] contents = transformers.transformAsBytes(
+                    new StreamSource(new StringReader(record)), Transformers.Format.MarcxmlAsMods3);
+            Source result = Input.fromByteArray(contents).build();
+            assertEquals("4".equals(indicator) ? "title" : "The title",
+                    xpath.evaluate("/m:mods/m:titleInfo[1]/m:title", result));
+            assertEquals("4".equals(indicator) ? "The" : "",
+                    xpath.evaluate("normalize-space(/m:mods/m:titleInfo[1]/m:nonSort)", Input.fromByteArray(contents).build()));
+            assertEquals("Genre", xpath.evaluate("/m:mods/m:genre", Input.fromByteArray(contents).build()));
+            assertEquals("4".equals(indicator) ? "translated title" : "The translated title",
+                    xpath.evaluate("/m:mods/m:titleInfo[@type='translated']/m:title", Input.fromByteArray(contents).build()));
+            validateMods(new StreamSource(new ByteArrayInputStream(contents)));
+        }
+    }
+
+    @Test
+    public void testFailedTransformationLogsOriginalRecord() throws Exception {
+        Path stylesheet = Files.createTempFile("failing-marc-transform", ".xsl");
+        Logger logger = Logger.getLogger(Transformers.class.getName());
+        List<LogRecord> records = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override public void publish(LogRecord record) { records.add(record); }
+            @Override public void flush() { }
+            @Override public void close() { }
+        };
+        boolean useParentHandlers = logger.getUseParentHandlers();
+        Level level = logger.getLevel();
+        try {
+            Files.writeString(stylesheet, "<xsl:stylesheet version=\"1.0\" "
+                    + "xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">"
+                    + "<xsl:template match=\"/\"><xsl:message terminate=\"yes\">"
+                    + "Intentional failure</xsl:message></xsl:template></xsl:stylesheet>");
+            Transformers transformers = new Transformers(stylesheet.toString());
+            logger.addHandler(handler);
+            logger.setUseParentHandlers(false);
+            logger.setLevel(Level.ALL);
+            for (String encoding : new String[] {"UTF-8", "ISO-8859-2"}) {
+                String record = "<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>\n"
+                        + "<record><title>Příliš žluťoučký kůň</title>"
+                        + "<datafield tag=\"TRI\"><subfield code=\"t\">KN</subfield></datafield></record>";
+                for (Source source : new Source[] {
+                        new StreamSource(new StringReader(record)),
+                        new StreamSource(new ByteArrayInputStream(record.getBytes(Charset.forName(encoding)))),
+                        new DOMSource(DocumentBuilderFactory.newDefaultInstance().newDocumentBuilder().parse(
+                                new ByteArrayInputStream(record.getBytes(Charset.forName(encoding)))))}) {
+                    source.setSystemId("file:/original-record.xml");
+                    TransformerException failure = assertThrows(TransformerException.class,
+                            () -> transformers.transformAsBytes(source, Transformers.Format.MarcxmlAsMods3));
+                    LogRecord logged = records.get(records.size() - 1);
+                    assertEquals(Level.SEVERE, logged.getLevel());
+                    assertTrue(logged.getMessage().contains("MarcxmlAsMods3"));
+                    if (source instanceof StreamSource) {
+                        assertTrue(logged.getMessage().contains(record), logged.getMessage());
+                    } else {
+                        assertTrue(logged.getMessage().contains("<title>Příliš žluťoučký kůň</title>"));
+                        assertTrue(logged.getMessage().contains("<subfield code=\"t\">KN</subfield>"));
+                        assertTrue(logged.getMessage().contains("</record>"));
+                    }
+                    assertSame(failure, logged.getThrown());
+                }
+            }
+            assertEquals(6, records.size());
+            new Transformers(null).transformAsBytes(new StreamSource(new StringReader(
+                    "<mods xmlns=\"http://www.loc.gov/mods/v3\"><titleInfo><title>Title</title>"
+                            + "</titleInfo></mods>")), Transformers.Format.ModsAsTitle);
+            assertEquals(6, records.size(), "Successful transformations must not log the record");
+        } finally {
+            logger.removeHandler(handler);
+            logger.setUseParentHandlers(useParentHandlers);
+            logger.setLevel(level);
+            new Transformers(null);
+            Files.deleteIfExists(stylesheet);
         }
     }
 

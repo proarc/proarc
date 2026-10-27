@@ -19,8 +19,12 @@ package cz.cas.lib.proarc.common.xml;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -35,9 +39,11 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.URIResolver;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import net.sf.saxon.TransformerFactoryImpl;
+import org.apache.commons.io.input.XmlStreamReader;
 
 /**
  * Transforms MARCXML and MODS documents to various {@link Format formats}.
@@ -94,14 +100,56 @@ public final class Transformers {
     }
 
     public byte[] transformAsBytes(Source input, Format format, Map<String, Object> params) throws TransformerException {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        Result output = new StreamResult(buffer);
-        Transformer t = createTransformer(format);
-        for (Map.Entry<String, Object> param : params.entrySet()) {
-            t.setParameter(param.getKey(), param.getValue());
+        StringBuilder original = new StringBuilder();
+        try {
+            // Sources can contain streams that cannot be read again after a failed transformation.
+            Source replayableInput = captureInput(input, original);
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            Result output = new StreamResult(buffer);
+            Transformer t = createTransformer(format);
+            for (Map.Entry<String, Object> param : params.entrySet()) {
+                t.setParameter(param.getKey(), param.getValue());
+            }
+            t.transform(replayableInput, output);
+            return buffer.toByteArray();
+        } catch (TransformerException | RuntimeException ex) {
+            LOG.log(Level.SEVERE, "Transformation to " + format + " failed. Original XML record:\n" + original, ex);
+            throw ex;
         }
-        t.transform(input, output);
-        return buffer.toByteArray();
+    }
+
+    private static Source captureInput(Source input, StringBuilder original) throws TransformerException {
+        Source replayable;
+        try {
+            if (input instanceof StreamSource && ((StreamSource) input).getReader() != null) {
+                StringWriter writer = new StringWriter();
+                ((StreamSource) input).getReader().transferTo(writer);
+                original.append(writer);
+                replayable = new StreamSource(new StringReader(writer.toString()));
+            } else {
+                byte[] bytes;
+                if (input instanceof StreamSource && ((StreamSource) input).getInputStream() != null) {
+                    bytes = ((StreamSource) input).getInputStream().readAllBytes();
+                } else {
+                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                    TransformerFactory.newDefaultInstance().newTransformer().transform(input, new StreamResult(buffer));
+                    bytes = buffer.toByteArray();
+                }
+                try (XmlStreamReader reader = new XmlStreamReader(new ByteArrayInputStream(bytes))) {
+                    StringWriter writer = new StringWriter();
+                    reader.transferTo(writer);
+                    original.append(writer);
+                } catch (IOException ex) {
+                    // Keep the original bytes available even for a malformed XML declaration.
+                    original.append(new String(bytes, StandardCharsets.UTF_8));
+                }
+                replayable = input instanceof DOMSource ? input : new StreamSource(new ByteArrayInputStream(bytes));
+            }
+        } catch (IOException ex) {
+            throw new TransformerException("Cannot capture original XML record", ex);
+        }
+        replayable.setSystemId(input.getSystemId());
+        return replayable;
     }
 
     public Source toSource(byte[] buffer) {
