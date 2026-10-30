@@ -224,6 +224,7 @@ public class UpdateObjects {
                 if (originInfo.getDateIssued().isEmpty()) {
                     originInfo.getDateIssued().add(new DateDefinition());
                 }
+                originInfo.getDateIssued().subList(1, originInfo.getDateIssued().size()).clear();
                 for (DateDefinition dateIssued : originInfo.getDateIssued()) {
                     dateIssued.setValue(this.dateIssuedValue);
                 }
@@ -232,10 +233,12 @@ public class UpdateObjects {
                 if (originInfo.getAgent().isEmpty()) {
                     originInfo.getAgent().add(new NameDefinition());
                 }
+                originInfo.getAgent().subList(1, originInfo.getAgent().size()).clear();
                 for (NameDefinition agent : originInfo.getAgent()) {
                     if (agent.getNamePart().isEmpty()) {
                         agent.getNamePart().add(new NamePartDefinition());
                     }
+                    agent.getNamePart().subList(1, agent.getNamePart().size()).clear();
                     for (NamePartDefinition namePart : agent.getNamePart()) {
                         namePart.setValue(this.agentValue);
                     }
@@ -246,10 +249,12 @@ public class UpdateObjects {
                 if (originInfo.getPlace().isEmpty()) {
                     originInfo.getPlace().add(new PlaceDefinition());
                 }
+                originInfo.getPlace().subList(1, originInfo.getPlace().size()).clear();
                 for (PlaceDefinition place : originInfo.getPlace()) {
                     if (place.getPlaceTerm().isEmpty()) {
                         place.getPlaceTerm().add(new PlaceTermDefinition());
                     }
+                    place.getPlaceTerm().subList(1, place.getPlaceTerm().size()).clear();
                     for (PlaceTermDefinition placeTerm : place.getPlaceTerm()) {
                         placeTerm.setValue(this.placeValue);
                     }
@@ -262,12 +267,14 @@ public class UpdateObjects {
         if (this.noteValue == null) {
             return;
         }
-        if (mods.getNote().isEmpty()) {
-            mods.getNote().add(new NoteDefinition());
-        }
         for (NoteDefinition note : mods.getNote()) {
-            note.setValue(this.noteValue);
+            if (this.noteValue.equals(note.getValue())) {
+                return;
+            }
         }
+        NoteDefinition note = new NoteDefinition();
+        note.setValue(this.noteValue);
+        mods.getNote().add(note);
     }
 
     private void setTitleInfo(ModsDefinition mods) {
@@ -283,6 +290,7 @@ public class UpdateObjects {
                 if (titleInfo.getTitle().isEmpty()) {
                     titleInfo.getTitle().add(new StringPlusLanguage());
                 }
+                titleInfo.getTitle().subList(1, titleInfo.getTitle().size()).clear();
                 for (StringPlusLanguage title : titleInfo.getTitle()) {
                     title.setValue(this.titleValue);
                 }
@@ -291,6 +299,7 @@ public class UpdateObjects {
                 if (titleInfo.getSubTitle().isEmpty()) {
                     titleInfo.getSubTitle().add(new StringPlusLanguage());
                 }
+                titleInfo.getSubTitle().subList(1, titleInfo.getSubTitle().size()).clear();
                 for (StringPlusLanguage subTitle : titleInfo.getSubTitle()) {
                     subTitle.setValue(this.subTitleValue);
                 }
@@ -299,6 +308,7 @@ public class UpdateObjects {
                 if (titleInfo.getPartName().isEmpty()) {
                     titleInfo.getPartName().add(new StringPlusLanguage());
                 }
+                titleInfo.getPartName().subList(1, titleInfo.getPartName().size()).clear();
                 for (StringPlusLanguage partName : titleInfo.getPartName()) {
                     partName.setValue(this.partNameValue);
                 }
@@ -307,15 +317,18 @@ public class UpdateObjects {
                 if (titleInfo.getPartNumber().isEmpty()) {
                     titleInfo.getPartNumber().add(new StringPlusLanguage());
                 }
+                titleInfo.getPartNumber().subList(1, titleInfo.getPartNumber().size()).clear();
                 for (StringPlusLanguage partNumber : titleInfo.getPartNumber()) {
                     if (this.partNumberValue == -1) {
                         partNumber.setValue(null);
                     } else if (this.partNumberValue > -1) {
                         partNumber.setValue(String.valueOf(this.partNumberValue));
-                        this.partNumberValue++;
                     }
                 }
             }
+        }
+        if (this.partNumberValue != null && this.partNumberValue > -1) {
+            this.partNumberValue++;
         }
     }
 
@@ -329,6 +342,7 @@ public class UpdateObjects {
                     if (location.getPhysicalLocation().isEmpty()) {
                         location.getPhysicalLocation().add(new PhysicalLocationDefinition());
                     }
+                    location.getPhysicalLocation().subList(1, location.getPhysicalLocation().size()).clear();
                     for (PhysicalLocationDefinition physicalLocation : location.getPhysicalLocation()) {
                         physicalLocation.setValue(this.siglaValue);
                         physicalLocation.setAuthority("siglaADR");
@@ -338,15 +352,11 @@ public class UpdateObjects {
                     if (location.getShelfLocator().isEmpty()) {
                         location.getShelfLocator().add(new StringPlusLanguage());
                     }
+                    location.getShelfLocator().subList(1, location.getShelfLocator().size()).clear();
                     for (StringPlusLanguage shelfLocator : location.getShelfLocator()) {
                         shelfLocator.setValue(this.signaturaValue);
                     }
                 }
-            }
-            if (mods.getLocation().size() > 0) {
-                LocationDefinition location = mods.getLocation().get(0);
-                mods.getLocation().clear();
-                mods.getLocation().add(location);
             }
         }
     }
