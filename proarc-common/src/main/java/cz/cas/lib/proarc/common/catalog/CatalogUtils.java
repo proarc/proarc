@@ -225,13 +225,6 @@ public class CatalogUtils {
                     locationDefinition.getPhysicalLocation().add(physicalLocationDefinition);
                 }
             }
-            ListIterator<LocationDefinition> iterator = mods.getLocation().listIterator();
-            while (iterator.hasNext()) {
-                LocationDefinition location = iterator.next();
-                if (location.getUrl().isEmpty() && location.getShelfLocator().isEmpty()) {
-                    iterator.remove();
-                }
-            }
         }
     }
 
