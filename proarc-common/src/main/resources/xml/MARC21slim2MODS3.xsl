@@ -5,6 +5,7 @@
 		Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
 	    MARC21slim2MODS3-8_XSLT2-0
 
+        Revision ProArc 2.79.02 - stahovani valueURI pro subject elementy
 	    Revision ProArc 2.79.01 - oprava a transformace neciselnych tagu a identifikatoru
 
 		MODS 3.8  (Revision 2.79) 20250328
@@ -1547,8 +1548,8 @@
     <xsl:template match="marc:datafield[@tag='655'] | marc:datafield[@tag='880'][starts-with(marc:subfield[@code='6'],'655')]" mode="genre">
         <!--  2.37   -->
         <genre>
-            <!--  2.54  -->
-            <xsl:apply-templates select="marc:subfield[@code='0'][. != '']" mode="valueURI"/>
+            <!--  2.79.02  -->
+            <xsl:call-template name="subjectValueURI"/>
             <!--  2.25  -->
             <xsl:choose>
                 <xsl:when test="marc:subfield[@code='2']">
@@ -3921,6 +3922,14 @@
         </subject>
     </xsl:template>
     <!--  6xx: Subjects  -->
+    <!-- 2.79.02: $7 contains a Czech authority identifier; construct its NK URI. -->
+    <xsl:template name="subjectValueURI">
+        <xsl:param name="field" select="."/>
+        <xsl:variable name="identifier" select="normalize-space($field/marc:subfield[@code='7'][normalize-space(.) != ''][1])"/>
+        <xsl:if test="$identifier != ''">
+            <xsl:attribute name="valueURI" select="concat('https://aleph.nkp.cz/dai/', $identifier)"/>
+        </xsl:if>
+    </xsl:template>
     <!--  600 610 611 name  -->
     <xsl:template match="marc:datafield[@tag='600'] | marc:datafield[@tag='880'][starts-with(marc:subfield[@code='6'],'600')]" mode="subject">
         <subject>
@@ -3930,8 +3939,6 @@
             <!--  2.34  -->
             <!-- 			<xsl:apply-templates select="marc:subfield[@code='0']" mode="xlink"/> -->
             <name type="personal">
-                <!--  2.54  -->
-                <xsl:apply-templates select="marc:subfield[@code='0'][. != '']" mode="valueURI"/>
                 <!--  termsOfAddress subfields  -->
                 <xsl:apply-templates select="marc:subfield[@code='b' or @code='c']" mode="termsOfAddress"/>
                 <!--  namePart subfields  -->
@@ -3946,6 +3953,9 @@
                 <xsl:apply-templates select="marc:subfield[@code='e'] | marc:subfield[@code='4']" mode="role"/>
                 <!--  2.55  -->
                 <xsl:apply-templates select="marc:subfield[@code='1'] " mode="nameIdentifier"/>
+                <xsl:for-each select="marc:subfield[@code='7'][normalize-space(.) != '']">
+                    <nameIdentifier><xsl:value-of select="normalize-space(.)"/></nameIdentifier>
+                </xsl:for-each>
             </name>
             <!--  title as subject  -->
             <xsl:apply-templates select="marc:subfield[@code='t']" mode="subjectTitle"/>
@@ -3961,8 +3971,6 @@
             <!--  2.34  -->
             <!-- 			<xsl:apply-templates select="marc:subfield[@code='0']" mode="xlink"/> -->
             <name type="corporate">
-                <!--  2.54  -->
-                <xsl:apply-templates select="marc:subfield[@code='0'][. != '']" mode="valueURI"/>
                 <!--  namePart  -->
                 <xsl:apply-templates select="marc:subfield[@code='a']" mode="namePart"/>
                 <xsl:apply-templates select="marc:subfield[@code='b']" mode="namePart"/>
@@ -3974,6 +3982,9 @@
                 </xsl:if>
                 <!--  role  -->
                 <xsl:apply-templates select="marc:subfield[@code='e'] | marc:subfield[@code='4']" mode="role"/>
+                <xsl:for-each select="marc:subfield[@code='7'][normalize-space(.) != '']">
+                    <nameIdentifier><xsl:value-of select="normalize-space(.)"/></nameIdentifier>
+                </xsl:for-each>
             </name>
             <!--  title as subject  -->
             <xsl:apply-templates select="marc:subfield[@code='t']" mode="subjectTitle"/>
@@ -3989,13 +4000,14 @@
             <!--  2.34  -->
             <!-- 			<xsl:apply-templates select="marc:subfield[@code='0']" mode="xlink"/> -->
             <name type="conference">
-                <!--  2.54  -->
-                <xsl:apply-templates select="marc:subfield[@code='0'][. != '']" mode="valueURI"/>
                 <namePart>
                     <xsl:value-of select="local:subfieldSelect(.,'abcdeqnp')"/>
                 </namePart>
                 <!--  role  -->
                 <xsl:apply-templates select="marc:subfield[@code='4']" mode="role"/>
+                <xsl:for-each select="marc:subfield[@code='7'][normalize-space(.) != '']">
+                    <nameIdentifier><xsl:value-of select="normalize-space(.)"/></nameIdentifier>
+                </xsl:for-each>
             </name>
             <!--  title as subject  -->
             <xsl:apply-templates select="marc:subfield[@code='t']" mode="subjectTitle"/>
@@ -4032,6 +4044,8 @@
             <!--  2.34  -->
             <xsl:apply-templates select="marc:subfield[@code='0']" mode="xlink"/>
             <temporal>
+                <!--  2.79.02  -->
+                <xsl:call-template name="subjectValueURI"/>
                 <xsl:value-of select="local:stripPunctuation(local:subfieldSelect(.,'abcd'))"/>
             </temporal>
             <!--  Additional subjects  -->
@@ -4047,6 +4061,8 @@
             <!--  2.34  -->
             <xsl:apply-templates select="marc:subfield[@code='0']" mode="xlink"/>
             <topic>
+                <!--  2.79.02  -->
+                <xsl:call-template name="subjectValueURI"/>
                 <xsl:value-of select="local:stripPunctuation(local:subfieldSelect(.,'abcd'))"/>
             </topic>
             <!--  Additional subjects  -->
@@ -4063,6 +4079,10 @@
             <xsl:apply-templates select="marc:subfield[@code='0']" mode="xlink"/>
             <xsl:for-each select="marc:subfield[@code='a']">
                 <geographic>
+                    <!--  2.79.02  -->
+                    <xsl:call-template name="subjectValueURI">
+                        <xsl:with-param name="field" select=".."/>
+                    </xsl:call-template>
                     <xsl:value-of select="local:stripPunctuation(.)"/>
                 </geographic>
             </xsl:for-each>
@@ -4161,6 +4181,8 @@
             <!--  2.34  -->
             <xsl:apply-templates select="marc:subfield[@code='0']" mode="xlink"/>
             <occupation>
+                <!--  2.79.02  -->
+                <xsl:call-template name="subjectValueURI"/>
                 <xsl:value-of select="local:stripPunctuation(local:subfieldSelect(.,'a'))"/>
             </occupation>
         </subject>

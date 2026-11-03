@@ -72,6 +72,60 @@ class Marc21ToMods38CompatibilityTest {
         assertAgentRole(field("264", " ", "3", sub("b", "Manufacturer")), "Manufacturer", "manufacturer");
     }
 
+    @TestFactory
+    Stream<DynamicTest> importsSubjectAuthorityUris() {
+        String[][] mappings = {
+            {"648", "m:subject/m:temporal"}, {"650", "m:subject/m:topic"},
+            {"651", "m:subject/m:geographic"}, {"655", "m:genre"}, {"656", "m:subject/m:occupation"}
+        };
+        String[][] identifiers = {
+            {sub("7", " ph123456 "), "https://aleph.nkp.cz/dai/ph123456"},
+            {sub("7", "fd133957"), "https://aleph.nkp.cz/dai/fd133957"},
+            {sub("0", "https://example.org/authority") + sub("7", "ph123456"), "https://aleph.nkp.cz/dai/ph123456"},
+            {sub("0", "https://example.org/authority"), ""},
+            {sub("0", "(CZ-PrNK)ph123456") + sub("7", "ph123456"), "https://aleph.nkp.cz/dai/ph123456"},
+            {sub("7", " "), ""},
+            {"", ""},
+            {sub("7", " ") + sub("7", "ph123456") + sub("7", "ph999999"), "https://aleph.nkp.cz/dai/ph123456"}
+        };
+        return Stream.of(mappings).flatMap(mapping -> IntStream.range(0, identifiers.length).mapToObj(i ->
+                DynamicTest.dynamicTest(mapping[0] + " authority URI case " + i, () -> {
+                    String fields = field(mapping[0], "1", "7", sub("a", "Main heading"),
+                            sub("x", "Subdivision"), sub("2", "czenas"), identifiers[i][0]);
+                    String mods = transform(mods38Template, aCase("authority", fields, "").marc);
+                    assertEquals(identifiers[i][1], xpath(mods,
+                            "string(/m:mods/" + mapping[1] + "/@valueURI)"));
+                    assertEquals("0", xpath(mods,
+                            "string(count(/m:mods/m:subject/m:topic[.='Subdivision']/@valueURI))"));
+                })));
+    }
+
+    @Test
+    void importsPersonalSubjectAuthorityAsNameIdentifier() throws Exception {
+        for (String tag : new String[]{"600", "880"}) {
+            for (String identifier : new String[]{" jo20000080627 ", " ", ""}) {
+                String fields = field(tag, "1", "7", sub("a", "Pratchett, Terry,"),
+                        sub("d", "1948-2015"), sub("2", "czenas"),
+                        sub("6", "600-01"), sub("7", identifier));
+                String mods = transform(mods38Template, aCase("personal subject authority", fields, "").marc);
+                assertEquals(identifier.trim(), xpath(mods,
+                        "string(/m:mods/m:subject/m:name/m:nameIdentifier)"));
+                assertEquals(identifier.trim().isEmpty() ? "0" : "1", xpath(mods,
+                        "string(count(/m:mods/m:subject/m:name/m:nameIdentifier))"));
+                assertEquals("0", xpath(mods, "string(count(/m:mods/m:subject/m:name/@valueURI))"));
+            }
+        }
+    }
+
+    @Test
+    void importsAuthorityFromAlternateScriptField() throws Exception {
+        String fields = field("880", " ", "7", sub("6", "651-01"),
+                sub("a", "Prague"), sub("7", "ge118011"), sub("2", "czenas"));
+        String mods = transform(mods38Template, aCase("alternate script authority", fields, "").marc);
+        assertEquals("https://aleph.nkp.cz/dai/ge118011",
+                xpath(mods, "string(/m:mods/m:subject/m:geographic/@valueURI)"));
+    }
+
     @Test
     void stripsPunctuationFromOriginInfoValues() throws Exception {
         String fields = field("260", "1", " ",
