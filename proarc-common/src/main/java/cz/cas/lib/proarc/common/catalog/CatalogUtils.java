@@ -226,6 +226,24 @@ public class CatalogUtils {
                 }
             }
         }
+        removeRedundantLocations(mods);
+    }
+
+    private static void removeRedundantLocations(ModsDefinition mods) {
+        ListIterator<LocationDefinition> iterator = mods.getLocation().listIterator();
+        while (iterator.hasNext()) {
+            LocationDefinition location = iterator.next();
+            if (location.getPhysicalLocation().size() != 1
+                    || !location.getShelfLocator().isEmpty() || !location.getUrl().isEmpty()) {
+                continue;
+            }
+            String sigla = location.getPhysicalLocation().get(0).getValue();
+            if (sigla != null && !sigla.isBlank() && mods.getLocation().stream()
+                    .anyMatch(other -> other != location && other.getPhysicalLocation().stream()
+                            .anyMatch(physicalLocation -> sigla.equals(physicalLocation.getValue())))) {
+                iterator.remove();
+            }
+        }
     }
 
     private static String getPhysicalLocationValue(ModsDefinition mods) {

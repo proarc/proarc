@@ -5,6 +5,7 @@
 		Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
 	    MARC21slim2MODS3-8_XSLT2-0
 
+        Revision ProArc 2.79.03 - mapovani 996$3 a 996$c do location/shelfLocator a carove kody 996$b a 980$b
         Revision ProArc 2.79.02 - stahovani valueURI pro subject elementy
 	    Revision ProArc 2.79.01 - oprava a transformace neciselnych tagu a identifikatoru
 
@@ -423,6 +424,12 @@
             <xsl:apply-templates select="marc:datafield[@tag='852'] | marc:datafield[@tag='880'][starts-with(marc:subfield[@code='6'],'852')]" mode="location"/>
             <xsl:apply-templates select="marc:datafield[@tag='856'] | marc:datafield[@tag='880'][starts-with(marc:subfield[@code='6'],'856')]" mode="location"/>
             <xsl:apply-templates select="marc:datafield[@tag='910']" mode="location"/>
+            <!-- ProArc 2.79.03 -->
+            <xsl:apply-templates select="marc:datafield[@tag='996']" mode="location"/>
+            <!-- ProArc 2.79.03 -->
+            <xsl:for-each select="marc:datafield[@tag='996' or @tag='980']/marc:subfield[@code='b'][normalize-space(.) != '']">
+                <identifier type="barcode"><xsl:value-of select="."/></identifier>
+            </xsl:for-each>
             <!--  Call templates for related item  -->
             <!--  series  -->
             <!--  2.32 - @490$ind1  -->
@@ -510,7 +517,7 @@
                         <xsl:apply-templates/>
                     </recordIdentifier>
                 </xsl:for-each>
-                <recordOrigin>Converted from MARCXML to MODS version 3.8 using MARC21slim_MODS3-8_XSL2-0.xsl (Revision 2.79 2025/03/28)</recordOrigin>
+                <recordOrigin>Converted from MARCXML to MODS version 3.8 using MARC21slim_MODS3-8_XSL2-0.xsl (ProArc Revision 2.79.03 2026/11/03)</recordOrigin>
                 <xsl:for-each select="marc:datafield[@tag='040']/marc:subfield[@code='b']">
                     <languageOfCataloging>
                         <languageTerm authority="iso639-2b" type="code">
@@ -5902,6 +5909,15 @@
                 <shelfLocator><xsl:value-of select="."/></shelfLocator>
             </xsl:for-each>
         </location>
+    </xsl:template>
+
+    <!-- ProArc 2.79.03 -->
+    <xsl:template match="marc:datafield[@tag='996']" mode="location">
+        <xsl:for-each select="marc:subfield[@code='3' or @code='c'][normalize-space(.) != '']">
+            <location>
+                <shelfLocator><xsl:value-of select="."/></shelfLocator>
+            </location>
+        </xsl:for-each>
     </xsl:template>
 
     <xsl:template match="marc:datafield[@tag='264'][@ind2='4']" mode="proarc-copyright">
