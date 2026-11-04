@@ -79,6 +79,7 @@ public final class DigitalObjectResourceApi {
     public static final String SEARCH_QUERY_IDENTIFIER_PARAM = "queryIdentifier";
     public static final String SEARCH_QUERY_LABEL_PARAM = "queryLabel";
     public static final String SEARCH_QUERY_MODEL_PARAM = "queryModel";
+    public static final String SEARCH_TYPE_OF_RESOURCE_PARAM = "typeOfResource";
     public static final String SEARCH_QUERY_TITLE_PARAM = "queryTitle";
     public static final String SEARCH_TYPE_PARAM = "type";
     public static final String SEARCH_STATUS_PARAM = "status";

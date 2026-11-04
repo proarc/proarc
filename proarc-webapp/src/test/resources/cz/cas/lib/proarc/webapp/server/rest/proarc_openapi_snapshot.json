@@ -6219,6 +6219,16 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "typeOfResource",
+            "in": "query",
+            "description": "Exact root MODS resource type filter for advanced, phrase, deleted and orphan searches. Indexed only for model:ndkmonographtitle and model:ndkmonographunit; omit queryModel to search both models.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "notated music"
           }
         ],
         "responses": {

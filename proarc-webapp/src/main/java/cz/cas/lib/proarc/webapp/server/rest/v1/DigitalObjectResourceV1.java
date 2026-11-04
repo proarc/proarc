@@ -512,7 +512,7 @@ public class DigitalObjectResourceV1 {
     }
 
     public ProArcResponse<SearchViewItem> search(String pid) throws IOException {
-        return search(null, SearchType.PIDS, Collections.singletonList(pid), null, null, null, null, null, null, null, null, null, 0, null, null);
+        return search(null, SearchType.PIDS, Collections.singletonList(pid), null, null, null, null, null, null, null, null, null, 0, null, null, null);
     }
 
 //    @DELETE
@@ -549,7 +549,8 @@ public class DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.SEARCH_START_ROW_PARAM) int startRow,
             @DefaultValue(SearchSort.DEFAULT_DESC)
             @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_PARAM) SearchSort sort,
-            @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_FIELD_PARAM) String sortField
+            @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_FIELD_PARAM) String sortField,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_OF_RESOURCE_PARAM) String typeOfResource
     ) throws IOException {
 
         Locale locale = session.getLocale(httpHeaders);
@@ -589,8 +590,8 @@ public class DigitalObjectResourceV1 {
                 page = 1;
                 break;
             case PHRASE:
-                items = search.findPhrase(phrase, null, null, null, queryModel, sortField, sort.toString(), startRow, 100);
-                total = items.size();
+                items = search.findPhrase(phrase, null, null, null, queryModel, sortField, sort.toString(), startRow, 100, typeOfResource);
+                total = search.findPhraseCount(phrase, null, null, null, queryModel, typeOfResource);
                 page = 1;
                 break;
             case PARENT:
@@ -602,12 +603,12 @@ public class DigitalObjectResourceV1 {
                 if (organization == null) {
                     organization = queryOrganization;
                 }
-                total = search.findAdvancedSearchCount(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT);
-                items = search.findAdvancedSearchItems(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, typeOfResource);
+                items = search.findAdvancedSearchItems(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, sortField, sort.toString(), startRow, 100, typeOfResource);
                 break;
             case DELETED:
-                total = search.findAdvancedSearchCount(false, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null);
-                items = search.findAdvancedSearchItems(false, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(false, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, typeOfResource);
+                items = search.findAdvancedSearchItems(false, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, sortField, sort.toString(), startRow, 100, typeOfResource);
                 break;
             case ALL:
                 items = search.findAllObjects();
@@ -617,8 +618,8 @@ public class DigitalObjectResourceV1 {
                 if (organization == null) {
                     organization = queryOrganization;
                 }
-                total = search.findAdvancedSearchCount(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null);
-                items = search.findAdvancedSearchItems(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, sortField, sort.toString(), startRow, 100);
+                total = search.findAdvancedSearchCount(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, typeOfResource);
+                items = search.findAdvancedSearchItems(true, queryIdentifier, queryLabel, owner, queryStatus, organization, queryProcessor, queryModel, null, sortField, sort.toString(), startRow, 100, typeOfResource);
                 if (sortField == null || sortField.isEmpty() || "label".equals(sortField)) {
                     items = sortItems(items, sort);
                 }

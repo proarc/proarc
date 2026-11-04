@@ -105,8 +105,12 @@ public abstract class SearchView {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findPhrase(String phrase, String status, String organization, String processor, String model, String sortField, String sort, int offset, int limit) throws IOException {
+    public List<SearchViewItem> findPhrase(String phrase, String status, String organization, String processor, String model, String sortField, String sort, int offset, int limit, String typeOfResource) throws IOException {
         throw new IOException("Method is not implmeneted");
+    }
+
+    public int findPhraseCount(String phrase, String status, String organization, String processor, String model, String typeOfResource) throws IOException {
+        throw new IOException("Method is not implemented");
     }
 
     public List<SearchViewItem> findAlphabetical(int offset, String model, String organization, int limit, String sort) throws IOException {
@@ -121,7 +125,7 @@ public abstract class SearchView {
         throw new IOException("Method is not implmeneted");
     }
 
-    public List<SearchViewItem> findAdvancedSearchItems(Boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid, String sortField, String sort, int offset, int limit) throws IOException {
+    public List<SearchViewItem> findAdvancedSearchItems(Boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid, String sortField, String sort, int offset, int limit, String typeOfResource) throws IOException {
         throw new IOException("Method is not implmeneted");
     }
 
@@ -129,16 +133,16 @@ public abstract class SearchView {
         throw new IOException("Method is not implmeneted");
     }
 
-    public int findAdvancedSearchCount(Boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid) throws IOException {
-        throw new IOException("Method is not implmeneted");
+    public int findAdvancedSearchCount(Boolean onlyActive, String identifier, String label, String owner, String status, String organization, String processor, String model, String parentPid, String typeOfResource) throws IOException {
+        throw new IOException("Method is not implemented");
     }
 
     public List<SearchViewItem> findByOwner(String owner) throws IOException {
-        return findAdvancedSearchItems(true, null, null, owner, null, null, null, null, null, "label", "desc", 0, Integer.MAX_VALUE);
+        return findAdvancedSearchItems(true, null, null, owner, null, null, null, null, null, "label", "desc", 0, Integer.MAX_VALUE, null);
     }
 
     public List<SearchViewItem> findByProcessor(String processor) throws IOException {
-        return findAdvancedSearchItems(true, null, null, null, null, null, processor, null, null, "label", "desc", 0, Integer.MAX_VALUE);
+        return findAdvancedSearchItems(true, null, null, null, null, null, processor, null, null, "label", "desc", 0, Integer.MAX_VALUE, null);
     }
 
     public int countByOwner(String owner) throws IOException {

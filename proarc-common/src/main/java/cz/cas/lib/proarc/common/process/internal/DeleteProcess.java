@@ -199,11 +199,11 @@ public class DeleteProcess {
             List<SearchViewItem> items = new ArrayList<>();
             switch (type.toLowerCase()) {
                 case "orphan":
-                    items = search.findAdvancedSearchItems(true, null, null, null, null, null, null, MetaModelUtils.LEAF_MODELS_CONST, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, "created", "desc", 0, 100);
+                    items = search.findAdvancedSearchItems(true, null, null, null, null, null, null, MetaModelUtils.LEAF_MODELS_CONST, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, "created", "desc", 0, 100, null);
                     break;
                 case "deleted":
                     if (Storage.AKUBRA.equals(appConfig.getTypeOfStorage())) {
-                        items = search.findAdvancedSearchItems(false, null, null, null, null, null, null, MetaModelUtils.LEAF_MODELS_CONST, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, "created", "desc", 0, 100);
+                        items = search.findAdvancedSearchItems(false, null, null, null, null, null, null, MetaModelUtils.LEAF_MODELS_CONST, SolrUtils.PROPERTY_PARENTPID_NO_PARENT, "created", "desc", 0, 100, null);
                         break;
                     } else {
                         throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());

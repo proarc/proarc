@@ -282,11 +282,12 @@ public class DigitalObjectResource extends DigitalObjectResourceV1 {
             @QueryParam(DigitalObjectResourceApi.SEARCH_START_ROW_PARAM) int startRow,
             @DefaultValue(SearchSort.DEFAULT_DESC)
             @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_PARAM) SearchSort sort,
-            @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_FIELD_PARAM) String sortField
+            @QueryParam(DigitalObjectResourceApi.SEARCH_SORT_FIELD_PARAM) String sortField,
+            @QueryParam(DigitalObjectResourceApi.SEARCH_TYPE_OF_RESOURCE_PARAM) String typeOfResource
     ) {
         try {
             return super.search(owner, type, pids, batchId, phrase, queryIdentifier, queryLabel, queryModel,
-                    queryTitle, queryStatus, queryOrganization, queryProcessor, startRow, sort, sortField);
+                    queryTitle, queryStatus, queryOrganization, queryProcessor, startRow, sort, sortField, typeOfResource);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);

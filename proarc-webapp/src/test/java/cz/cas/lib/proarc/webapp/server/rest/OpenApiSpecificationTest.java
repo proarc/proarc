@@ -232,6 +232,7 @@ class OpenApiSpecificationTest {
         assertTrue(parameters.contains("lastCreated"));
         assertTrue(parameters.contains("pid"));
         assertTrue(parameters.contains("batchId"));
+        assertTrue(parameters.contains("typeOfResource"));
         assertTrue(parameters.contains("_startRow"));
         assertTrue(parameters.contains("_sort"));
         assertDefaultJsonResponse(get, "#/components/schemas/response");
