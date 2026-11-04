@@ -21,6 +21,7 @@ import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.mods.AbstractDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
 import cz.cas.lib.proarc.mods.DateDefinition;
+import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.DetailDefinition;
 import cz.cas.lib.proarc.mods.DigitalOriginDefinition;
 import cz.cas.lib.proarc.mods.ExtentDefinition;
@@ -60,6 +61,15 @@ import java.util.List;
  * @author Jan Pokorsky
  */
 public final class MapperUtils {
+
+    /** Fills missing date types without overwriting explicit types from the catalog or editor. */
+    public static void fillDateOtherTypes(OriginInfoDefinition originInfo) {
+        for (DateOtherDefinition date : originInfo.getDateOther()) {
+            if (date.getType() == null || date.getType().isBlank()) {
+                date.setType(originInfo.getEventType());
+            }
+        }
+    }
 
     public static ModsDefinition addPid(ModsDefinition mods, String pid) {
         String uuid = FoxmlUtils.pidAsUuid(pid);

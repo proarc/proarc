@@ -19,7 +19,6 @@ package cz.cas.lib.proarc.common.mods.ndk;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
-import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.LocationDefinition;
@@ -75,10 +74,7 @@ public class NdkSoundCollectionMapper extends RdaNdkMapper {
                     }
                 }
             }
-            // sets type in element dateOther
-            for (DateOtherDefinition dateOther : oi.getDateOther()) {
-                dateOther.setType(oi.getEventType());
-            }
+            MapperUtils.fillDateOtherTypes(oi);
         }
         // mods/physicalDescription/form="print"
         // mods/physicalDescription/form@authority="marcform"

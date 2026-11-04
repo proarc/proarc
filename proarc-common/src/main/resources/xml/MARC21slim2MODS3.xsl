@@ -5,6 +5,7 @@
 		Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
 	    MARC21slim2MODS3-8_XSLT2-0
 
+        Revision ProArc 2.79.04 - stahovani 260 a 264 ind1 = 2/3 pro dateOther type=intervening/latest
         Revision ProArc 2.79.03 - mapovani 996$3 a 996$c do location/shelfLocator a carove kody 996$b a 980$b
         Revision ProArc 2.79.02 - stahovani valueURI pro subject elementy
 	    Revision ProArc 2.79.01 - oprava a transformace neciselnych tagu a identifikatoru
@@ -1999,6 +2000,8 @@
                         </xsl:when>
                     </xsl:choose>
                 </xsl:if>
+                <!-- 2.79.04 -->
+                <xsl:call-template name="proarc-publication-history-date"/>
                 <!--  2.63  -->
                 <xsl:if test="../marc:datafield[@tag='334'][marc:subfield[@code='a']]">
                     <issuance>
@@ -2006,6 +2009,17 @@
                     </issuance>
                 </xsl:if>
             </originInfo>
+        </xsl:if>
+    </xsl:template>
+    <!-- 2.79.04 -->
+    <xsl:template name="proarc-publication-history-date">
+        <xsl:if test="@ind1='2' or @ind1='3'">
+            <xsl:for-each select="marc:subfield[@code='3'][normalize-space(.) != '']">
+                <dateOther>
+                    <xsl:attribute name="type" select="if (../@ind1='2') then 'intervening' else 'latest'"/>
+                    <xsl:value-of select="normalize-space(.)"/>
+                </dateOther>
+            </xsl:for-each>
         </xsl:if>
     </xsl:template>
     <!--  Concats all altRepGroup numbers together  -->
@@ -2151,6 +2165,8 @@
     <!--  2.44 -->
     <xsl:template match="marc:datafield[@tag='260'] | marc:datafield[@tag='880'][starts-with(marc:subfield[@code='6'],'260')]" mode="originInfo">
         <xsl:param name="leader6"/>
+        <!-- 2.79.04 -->
+        <xsl:call-template name="proarc-publication-history-date"/>
         <!--  2.57   -->
         <xsl:for-each select="marc:subfield[@code='a']">
             <place>

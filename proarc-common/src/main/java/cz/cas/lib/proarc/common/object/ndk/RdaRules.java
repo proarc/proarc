@@ -57,6 +57,7 @@ public class RdaRules {
 
     public static final String ERR_NDK_RDA_EMPTYEVENTTYPE = "Err_Ndk_Rda_EmptyEventType";
     public static final String ERR_NDK_RDA_EMPTYVALUE = "Err_Ndk_Rda_EmptyValue";
+    public static final String ERR_NDK_RDA_DATEOTHER_TYPE = "Err_Ndk_Rda_DateOther_Type";
     public static final String ERR_NDK_RDA_FILLVALUE = "Err_Ndk_Rda_FillValue";
     public static final String ERR_NDK_DESCRIPTIONSTANDARD = "Err_Ndk_DescriptionStandard";
     public static final String ERR_NDK_AACR_EMPTYVALUE = "Err_Ndk_Aacr_EmptyValue";
@@ -91,8 +92,8 @@ public class RdaRules {
         String eventType = oi.getEventType();
         if (eventType == null || ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION.equals(eventType)) {
             checkDateNull(oi.getCopyrightDate(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_COPYRIGHT, false);
-            checkDateOtherNull4Publication(oi.getDateOther(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_OTHER, false);
-            if (!hasDateOtherPublication(oi.getDateOther())) {
+            checkDateOtherTypes(oi.getDateOther(), eventType);
+            if (eventType == null || !hasDateOtherPublication(oi.getDateOther())) {
                 if (!checkDateEmpty(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, true)) {
                     checkDateNull(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, true);
                 }
@@ -100,6 +101,7 @@ public class RdaRules {
         } else if (ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION.equals(eventType)
                 || ModsConstants.VALUE_ORIGININFO_EVENTTYPE_DISTRIBUTION.equals(eventType)
                 || ModsConstants.VALUE_ORIGININFO_EVENTTYPE_MANUFACTURE.equals(eventType)) {
+            checkDateOtherTypes(oi.getDateOther(), eventType);
             checkDateNull(oi.getCopyrightDate(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_COPYRIGHT, false);
             if (!checkDateEmpty(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false)) {
                 checkDateNull(oi.getDateIssued(), eventType, ModsConstants.FIELD_ORIGININFO_DATE_ISSUED, false);
@@ -137,19 +139,20 @@ public class RdaRules {
         }
     }
 
-    /**
-     * Checks if elements in List is null
-     */
-    private void checkDateOtherNull4Publication(List dates, String event, String element, boolean mustBeFill) {
-        for (Object date : dates) {
-            Object dateValue = ((DateOtherDefinition) date).getValue();
-            String dateType = ((DateOtherDefinition) date).getType();
-            if (!"publication".equals(dateType)) {
-                if (mustBeFill && dateValue == null) {
-                    exception.addValidation("RDA rules", ERR_NDK_RDA_FILLVALUE, true);
-                } else if (!mustBeFill && dateValue != null) {
-                    exception.addValidation("RDA rules", ERR_NDK_RDA_EMPTYVALUE, true, element, event);
-                }
+    private void checkDateOtherTypes(List<DateOtherDefinition> dates, String eventType) {
+        for (DateOtherDefinition date : dates) {
+            String type = date.getType();
+            boolean allowed;
+            if (eventType == null) {
+                allowed = "intervening".equals(type) || "latest".equals(type) || "manufacture".equals(type);
+            } else if (ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION.equals(eventType)) {
+                allowed = "publication".equals(type) || "intervening".equals(type) || "latest".equals(type);
+            } else {
+                allowed = eventType.equals(type);
+            }
+            if (!allowed && date.getValue() != null) {
+                exception.addValidation("RDA rules", ERR_NDK_RDA_DATEOTHER_TYPE, true,
+                        type == null ? "" : type, eventType == null ? "" : eventType);
             }
         }
     }

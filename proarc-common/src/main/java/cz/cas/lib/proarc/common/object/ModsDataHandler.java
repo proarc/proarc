@@ -369,8 +369,6 @@ public class ModsDataHandler {
             OriginInfoDefinition newOi = new OriginInfoDefinition();
             newOi.getPlace().addAll(oi.getPlace());
             newOi.getEdition().addAll(oi.getEdition());
-            newOi.getIssuance().addAll(oi.getIssuance());
-            newOi.getFrequency().addAll(oi.getFrequency());
             newOi.getAgent().addAll(oi.getAgent());
             newOi.setEventType(oi.getEventType());
             defaultMods.getOriginInfo().add(newOi);

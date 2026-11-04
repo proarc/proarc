@@ -21,7 +21,6 @@ import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.mods.ClassificationDefinition;
 import cz.cas.lib.proarc.mods.CodeOrText;
-import cz.cas.lib.proarc.mods.DateOtherDefinition;
 import cz.cas.lib.proarc.mods.Extent;
 import cz.cas.lib.proarc.mods.FormDefinition;
 import cz.cas.lib.proarc.mods.IssuanceDefinition;
@@ -119,10 +118,7 @@ public class NdkMonographVolumeMapper extends RdaNdkMapper {
                     }
                 }
             }
-            // sets type in element dateOther
-            for (DateOtherDefinition dateOther : oi.getDateOther()) {
-                dateOther.setType(oi.getEventType());
-            }
+            MapperUtils.fillDateOtherTypes(oi);
             oi.getIssuance().clear();
             oi.getIssuance().add(IssuanceDefinition.SINGLE_UNIT);
         }
