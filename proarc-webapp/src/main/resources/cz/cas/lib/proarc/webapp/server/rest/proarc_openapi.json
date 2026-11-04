@@ -14712,6 +14712,11 @@
           "partNumber": {
             "type": "string"
           },
+          "typeOfResource": {
+            "type": "array",
+            "description": "Root MODS resource types, indexed only for NDK multipart documents and their volumes.",
+            "items": { "type": "string" }
+          },
           "descriptionStandard": {
             "type": "string"
           },

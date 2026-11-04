@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- This schema is designed for Solr 8.x -->
-<schema name="searchCore" version="7.0">
-    <!-- log: pridani pole software -->
-    <!-- log: pridani pole parentPid -->
+<!-- This schema is designed for Solr 9.x -->
+<schema name="searchCore" version="8.0">
+    <!-- log: pridani pole typeOfResource -->
 
 
     <uniqueKey>pid</uniqueKey>
@@ -58,6 +57,7 @@
             <filter class="solr.LowerCaseFilterFactory"/>
         </analyzer>
     </fieldType>
+    <fieldType name="collatedCZECH" class="solr.ICUCollationField"  locale="cs" strength="tertiary" />
 
 
     <field name="_nest_path_" type="_nest_path_"/>
@@ -97,6 +97,7 @@
     <field name="validationStatus" type="string"/>
     <field name="validationProcessId" type="pint"/>
     <field name="partNumber" type="string"/>
+    <field name="typeOfResource" type="string" multiValued="true" indexed="true" stored="true"/>
     <field name="identifiers" type="string" multiValued="true"/>
 
 

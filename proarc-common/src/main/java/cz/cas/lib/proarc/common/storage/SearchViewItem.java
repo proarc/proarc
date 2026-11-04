@@ -1,5 +1,7 @@
 package cz.cas.lib.proarc.common.storage;
 
+import java.util.List;
+
 public class SearchViewItem {
 
     private String pid;
@@ -49,6 +51,7 @@ public class SearchViewItem {
     private String urnNbn;
     private String partNumber;
     private String descriptionStandard;
+    private List<String> typeOfResource = List.of();
 
     private String validationStatus;
     private Integer validationProcess;
@@ -58,6 +61,14 @@ public class SearchViewItem {
 
     public SearchViewItem(String pid) {
         this.pid = pid;
+    }
+
+    public List<String> getTypeOfResource() {
+        return typeOfResource;
+    }
+
+    public void setTypeOfResource(List<String> typeOfResource) {
+        this.typeOfResource = typeOfResource;
     }
 
     public String getOrganization() {

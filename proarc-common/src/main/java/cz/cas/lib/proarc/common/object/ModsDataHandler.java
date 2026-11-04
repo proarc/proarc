@@ -46,6 +46,7 @@ import cz.cas.lib.proarc.mods.RelatedItemDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
+import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
@@ -228,6 +229,7 @@ public class ModsDataHandler {
             //issue 540
             ModsDefinition titleMods = findEnclosingObject(NdkPlugin.MODEL_MONOGRAPHTITLE, objectHandler != null ? objectHandler.getParameterParent() : null, parentJob);
             if (titleMods != null) {
+                inheritTypeOfResource(defaultMods, titleMods.getTypeOfResource());
                 defaultMods.getTitleInfo().addAll(titleMods.getTitleInfo());
                 defaultMods.getName().addAll(titleMods.getName());
                 defaultMods.getOriginInfo().addAll(titleMods.getOriginInfo());
@@ -634,6 +636,28 @@ public class ModsDataHandler {
                     mods.getIdentifier().add(id);
                 }
             }
+        }
+    }
+
+    private static void inheritTypeOfResource(ModsDefinition mods, List<TypeOfResourceDefinition> resources) {
+        for (TypeOfResourceDefinition resource : resources) {
+            TypeOfResourceDefinition copy = new TypeOfResourceDefinition();
+            copy.setValue(resource.getValue());
+            copy.setLang(resource.getLang());
+            copy.setXmlLang(resource.getXmlLang());
+            copy.setScript(resource.getScript());
+            copy.setTransliteration(resource.getTransliteration());
+            copy.setAuthority(resource.getAuthority());
+            copy.setAuthorityURI(resource.getAuthorityURI());
+            copy.setValueURI(resource.getValueURI());
+            copy.setCollection(resource.getCollection());
+            copy.setManuscript(resource.getManuscript());
+            copy.setUsage(resource.getUsage());
+            copy.setDisplayLabel(resource.getDisplayLabel());
+            copy.setAltRepGroup(resource.getAltRepGroup());
+            copy.setID(resource.getID());
+            copy.setIDREF(resource.getIDREF());
+            mods.getTypeOfResource().add(copy);
         }
     }
 

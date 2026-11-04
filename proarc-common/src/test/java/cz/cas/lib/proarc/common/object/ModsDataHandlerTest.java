@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
@@ -29,6 +30,8 @@ import cz.cas.lib.proarc.mods.OriginInfoDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
+import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
+import cz.cas.lib.proarc.mods.Yes;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,12 +43,47 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ModsDataHandlerTest {
 
     @TempDir
     Path tempDir;
+
+    @Test
+    void multipartVolumeInheritsIndependentResourceTypes() throws Exception {
+        for (String value : List.of("text", "cartographic", "still image", "notated music")) {
+            ModsDefinition parent = new ModsDefinition();
+            TypeOfResourceDefinition resource = new TypeOfResourceDefinition();
+            resource.setValue(value);
+            resource.setManuscript(Yes.YES);
+            resource.setAuthority("local");
+            resource.setValueURI("https://example.org/resource");
+            parent.getTypeOfResource().add(resource);
+            TestModsDataHandler handler = createHandler();
+            handler.add(NdkPlugin.MODEL_MONOGRAPHTITLE, parent);
+
+            ModsDefinition child = handler.createDefaultMetadata("uuid:volume", NdkPlugin.MODEL_MONOGRAPHUNIT, null, null);
+            assertEquals(1, child.getTypeOfResource().size());
+            TypeOfResourceDefinition inherited = child.getTypeOfResource().get(0);
+            assertNotSame(resource, inherited);
+            assertEquals(value, inherited.getValue());
+            assertEquals(Yes.YES, inherited.getManuscript());
+            assertEquals("local", inherited.getAuthority());
+            assertEquals(resource.getValueURI(), inherited.getValueURI());
+            inherited.setValue("changed");
+            assertEquals(value, resource.getValue());
+        }
+    }
+
+    @Test
+    void multipartVolumeDoesNotInventMissingParentResourceType() throws Exception {
+        TestModsDataHandler handler = createHandler();
+        handler.add(NdkPlugin.MODEL_MONOGRAPHTITLE, new ModsDefinition());
+        assertTrue(handler.createDefaultMetadata("uuid:volume", NdkPlugin.MODEL_MONOGRAPHUNIT, null, null)
+                .getTypeOfResource().isEmpty());
+    }
 
     @Test
     public void prefersSongMetadataForTrack() throws Exception {

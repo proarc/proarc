@@ -7,6 +7,7 @@ import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.object.DigitalObjectStatusUtils;
 import cz.cas.lib.proarc.common.object.MetadataHandler;
+import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
@@ -21,6 +22,7 @@ import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguage;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
+import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.incad.kramerius.resourceindex.ProcessingIndexFeeder;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -83,6 +85,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         String descriptionStandard = getDescriptionStandatd(mods);
         String partNumber = getPartNumber(mods);
         String[] identifiers = getIdentifiersArray(mods);
+        List<String> resources = getTypeOfResources(model, mods);
 
         Boolean isLocked = relationEditor.isLocked();
 
@@ -92,7 +95,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
             addOrUpdateDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status,
                     ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, software, members,
                     pageIndex, pageType, pageNumber, pagePosition, genre, urnNbn, descriptionStandard, partNumber, identifiers,
-                    insertNewDocument);
+                    resources, insertNewDocument);
             if (commit) {
                 commit();
             }
@@ -103,7 +106,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
 
     private UpdateResponse addOrUpdateDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user,
                                                           String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, String software, List<String> members, String pageIndex,
-                                                          String pageType, String pageNumber, String pagePosition, String genre, String urnNbn, String descriptionStandatd, String partNumber, String[] identifiers, boolean insertNewDocument) throws SolrServerException, IOException {
+                                                          String pageType, String pageNumber, String pagePosition, String genre, String urnNbn, String descriptionStandatd, String partNumber, String[] identifiers, List<String> resources, boolean insertNewDocument) throws SolrServerException, IOException {
         SolrInputDocument sdoc = new SolrInputDocument();
         sdoc.addField(FIELD_SOURCE, pid);
         sdoc.addField(FIELD_PID, pid);
@@ -135,8 +138,21 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         sdoc.addField(FIELD_VALIDATION_PROCES, addOrUpdateParameter(0, insertNewDocument));
         sdoc.addField(FIELD_PART_NUMBER, addOrUpdateParameter(partNumber, insertNewDocument));
         sdoc.addField(FIELD_IDENTIFIRES, addOrUpdateParameter(identifiers, insertNewDocument));
+        sdoc.addField(FIELD_TYPE_OF_RESOURCE, addOrUpdateParameter(resources.isEmpty() ? null : resources, insertNewDocument));
 
         return feedDescriptionDocument(sdoc);
+    }
+
+    static List<String> getTypeOfResources(String model, ModsDefinition mods) {
+        if (!NdkPlugin.MODEL_MONOGRAPHTITLE.equals(model) && !NdkPlugin.MODEL_MONOGRAPHUNIT.equals(model)) {
+            return List.of();
+        }
+        return mods.getTypeOfResource().stream()
+                .map(TypeOfResourceDefinition::getValue)
+                .filter(value -> value != null && !value.isBlank())
+                .map(String::trim)
+                .distinct()
+                .toList();
     }
 
     private Object addOrUpdateParameter(Object value, boolean insertNewDocument) {

@@ -90,11 +90,11 @@ public class NdkMonographUnitMapper extends RdaNdkMapper {
             }
         }
         addNameWithEtal(mods);
-        //  mods/typeOfResource="text"
+        // Preserve the document type of multipart maps, graphics and sheet music.
         List<TypeOfResourceDefinition> typeOfResources = mods.getTypeOfResource();
         TypeOfResourceDefinition reqTypeOfResource = null;
         for (TypeOfResourceDefinition typeOfResource : typeOfResources) {
-            if ("text".equals(typeOfResource.getValue())) {
+            if (typeOfResource.getValue() != null && !typeOfResource.getValue().isBlank()) {
                 reqTypeOfResource = typeOfResource;
                 break;
             }

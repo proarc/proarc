@@ -176,7 +176,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
         ));
         models.add(new MetaModel(
                 MODEL_MONOGRAPHTITLE, true, null,
-                Arrays.asList(new ElementType("NDK Multipart Monograph", "en"), new ElementType("NDK Vícedílná monografie", "cs")),
+                Arrays.asList(new ElementType("NDK Multipart Document", "en"), new ElementType("NDK Vícesvazek", "cs")),
                 ModsConstants.NS,
                 MODEL_MONOGRAPHTITLE,
                 this,
@@ -186,7 +186,7 @@ public class NdkPlugin implements DigitalObjectPlugin, HasMetadataHandler<ModsDe
         ));
         models.add(new MetaModel(
                 MODEL_MONOGRAPHUNIT, null, null,
-                Arrays.asList(new ElementType("NDK Monograph Unit", "en"), new ElementType("NDK Svazek Vícedílné monografie", "cs")),
+                Arrays.asList(new ElementType("NDK Multipart Document Volume", "en"), new ElementType("NDK Svazek Vícesvazku", "cs")),
                 ModsConstants.NS,
                 MODEL_MONOGRAPHUNIT,
                 this,
