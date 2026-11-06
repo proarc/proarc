@@ -16,6 +16,7 @@ import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
+import cz.cas.lib.proarc.common.process.export.mets.Const;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
@@ -170,7 +171,7 @@ public class ChangeModels {
         handler.commit();
     }
 
-    private void fixMods(String pid, ModsDefinition mods, String parentPid) throws DigitalObjectException {
+    void fixMods(String pid, ModsDefinition mods, String parentPid) throws DigitalObjectException {
         if (NdkMapper.isK4Model(oldModel)) {
             fixModsFromK4(pid, mods, parentPid);
         } else if (NdkMapper.isNdkEModel(oldModel)) {
@@ -224,7 +225,13 @@ public class ChangeModels {
     private void fixModsFromBDM(String pid, ModsDefinition mods, String parentPid) throws DigitalObjectException {
         switch (newModel) {
             case NdkEbornPlugin.MODEL_EARTICLE:
-                // no metadata change needed
+                // Rename before the target mapper removes article genres, preserving their types.
+                for (GenreDefinition genre : mods.getGenre()) {
+                    if (Const.GENRE_ARTICLE.equals(genre.getValue())
+                            || Const.GENRE_EARTICLE_WRONG_SYNTAX.equals(genre.getValue())) {
+                        genre.setValue(Const.GENRE_EARTICLE);
+                    }
+                }
                 break;
             default:
                 throw new DigitalObjectException(pid, "ChangeModels:fixMods - Unsupported model.");
@@ -290,6 +297,29 @@ public class ChangeModels {
             case NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT:
                 fixPhysicalDescription(mods, "print", "electronic");
                 break;
+            case NdkEbornPlugin.MODEL_EARTICLE:
+                if (NdkPlugin.MODEL_ARTICLE.equals(oldModel)) {
+                    for (GenreDefinition genre : mods.getGenre()) {
+                        // Preserve the typed genre when the target mapper runs.
+                        if (Const.GENRE_ARTICLE.equals(genre.getValue())
+                                || Const.GENRE_EARTICLE_WRONG_SYNTAX.equals(genre.getValue())) {
+                            genre.setValue(Const.GENRE_EARTICLE);
+                        }
+                        String type = genre.getType();
+                        if (type != null && !type.isEmpty()) {
+                            genre.setType(switch (type) {
+                                case "annotation" -> "annotations";
+                                case "mainArticle" -> "main article";
+                                case "bibliographicalPortrait" -> "biographical portrait";
+                                case "tableOfContents" -> "table of content";
+                                case "afterword", "sheetMusic", "contributors", "summary", "study",
+                                        "technicalPlanScheme", "editorial", "conclusion", "otherNote" -> "unspecified";
+                                default -> type;
+                            });
+                        }
+                    }
+                }
+                break;
             case OldPrintPlugin.MODEL_CARTOGRAPHIC:
             case OldPrintPlugin.MODEL_CHAPTER:
             case OldPrintPlugin.MODEL_SUPPLEMENT:
@@ -297,7 +327,6 @@ public class ChangeModels {
             case OldPrintPlugin.MODEL_MONOGRAPHUNIT:
             case OldPrintPlugin.MODEL_GRAPHICS:
             case OldPrintPlugin.MODEL_SHEETMUSIC:
-            case NdkEbornPlugin.MODEL_EARTICLE:
                 // no metadata change needed
                 break;
             default:
@@ -327,8 +356,35 @@ public class ChangeModels {
                 fixPhysicalDescription(mods, "electronic", "print");
                 break;
             case NdkPlugin.MODEL_ARTICLE:
+                if (NdkEbornPlugin.MODEL_EARTICLE.equals(oldModel)) {
+                    for (GenreDefinition genre : mods.getGenre()) {
+                        if (Const.GENRE_EARTICLE.equals(genre.getValue())
+                                || Const.GENRE_EARTICLE_WRONG_SYNTAX.equals(genre.getValue())) {
+                            genre.setValue(Const.GENRE_ARTICLE);
+                        }
+                        String type = genre.getType();
+                        if (type != null && !type.isEmpty()) {
+                            genre.setType(switch (type) {
+                                case "annotations" -> "annotation";
+                                case "main article" -> "mainArticle";
+                                case "biographical portrait" -> "bibliographicalPortrait";
+                                case "table of content" -> "tableOfContents";
+                                case "cover", "colophon", "title page", "direktory", "peer-reviewed" -> "unspecified";
+                                default -> type;
+                            });
+                        }
+                    }
+                }
+                break;
             case BornDigitalModsPlugin.MODEL_ARTICLE:
-                // no metadata change needed
+                if (NdkEbornPlugin.MODEL_EARTICLE.equals(oldModel)) {
+                    for (GenreDefinition genre : mods.getGenre()) {
+                        if (Const.GENRE_EARTICLE.equals(genre.getValue())
+                                || Const.GENRE_EARTICLE_WRONG_SYNTAX.equals(genre.getValue())) {
+                            genre.setValue(Const.GENRE_ARTICLE);
+                        }
+                    }
+                }
                 break;
             case NdkEbornPlugin.MODEL_EMONOGRAPHVOLUME:
                 switch (oldModel) {

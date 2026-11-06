@@ -78,8 +78,8 @@ public class ModsRules {
     private static final Set<String> ARTICLE_GENRE_MAP = new HashSet<>(Arrays.asList("abstract", "annotation", "bibliography", "dedication", "afterword", "editorsNote", "mainArticle", "advertisement",
             "bibliographicalPortrait", "obituary", "sheetMusic", "tableOfContents", "preface", "contributors", "review", "index", "summary", "interview", "study", "technicalPlanScheme", "introduction",
             "editorial", "conclusion", "news", "otherNote", "unspecified"));
-//    private static final Set<String> E_ARTICLE_GENRE_TYPE = new HashSet<>(Arrays.asList("abstract", "annotations", "bibliography","dedication","editorsNote", "advertisement",
-//            "obituary", "preface", "review", "index", "interview", "introduction", "news", "unspecified", "cover", "colophon", "biographical portrait", "title page", "direktory", "table of content", "main article"));
+    private static final Set<String> E_ARTICLE_GENRE_TYPE = new HashSet<>(Arrays.asList("cover", "colophon", "obituary",  "biographical portrait", "interview", "annotations", "title page", "direktory", "news", "table of content",
+            "advertisement", "abstract", "introduction", "review", "dedication", "bibliography", "editorsNote", "preface", "main article", "index", "unspecified"));
     private static final Set<String> CHAPTER_GENRE_MAP = new HashSet<>(Arrays.asList("abstract", "annotation", "bibliography", "article", "dedication", "afterword", "editorsNote", "advertisement", "chapter", "bibliographicalPortrait", "obituary", "sheetMusic", "tableOfContents", "subchapter", "preface", "contributors", "review", "index", "summary", "interview", "study", "technicalPlanScheme", "introduction", "conclusion", "otherNote", "unspecified"));
 //    private static final Set<String> E_CHAPTER_GENRE_MAP = new HashSet<>(Arrays.asList("abstract", "bibliography", "article", "dedication", "editorsNote", "advertisement", "chapter",  "tableOfContents",  "preface", "review", "index", "introduction", "unspecified"));
 
@@ -194,7 +194,8 @@ public class ModsRules {
                 }
             }
         } else if (NdkPlugin.MODEL_CHAPTER.equals(modelId) || NdkEbornPlugin.MODEL_ECHAPTER.equals(modelId) || OldPrintPlugin.MODEL_CHAPTER.equals(modelId)
-                || NdkPlugin.MODEL_ARTICLE.equals(modelId) || NdkPlugin.MODEL_PICTURE.equals(modelId) || BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)) {
+                || NdkPlugin.MODEL_ARTICLE.equals(modelId) || NdkPlugin.MODEL_PICTURE.equals(modelId) || BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)
+                || NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
             for (GenreDefinition genre : mods.getGenre()) {
                 String genreType = genre.getType();
                 if (genreType != null && !genreType.isEmpty()) {
@@ -202,12 +203,16 @@ public class ModsRules {
                         if (!CHAPTER_GENRE_MAP.contains(genreType)) {
                             exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, modelId);
                         }
-                    } else if (NdkPlugin.MODEL_ARTICLE.equals(modelId) || NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
+                    } else if (NdkPlugin.MODEL_ARTICLE.equals(modelId)) {
                         if (!ARTICLE_GENRE_MAP.contains(genreType)) {
                             exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, modelId);
                         }
+                    } else if (NdkEbornPlugin.MODEL_EARTICLE.equals(modelId)) {
+                        if (!(E_ARTICLE_GENRE_TYPE.contains(genreType))) {
+                            exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, modelId);
+                        }
                     } else if (BornDigitalModsPlugin.MODEL_ARTICLE.equals(modelId)) {
-                        if (!(ARTICLE_GENRE_MAP.contains(genreType) || BdmArticleMapper.GENRE_PEER_REVIEWED_TYPE.equals(genreType))) {
+                        if (!(E_ARTICLE_GENRE_TYPE.contains(genreType) || BdmArticleMapper.GENRE_PEER_REVIEWED_TYPE.equals(genreType))) {
                             exception.addValidation("MODS rules", ERR_NDK_MODEL_GENRE_TYPE, false, genreType, modelId);
                         }
                     } else if (NdkPlugin.MODEL_PICTURE.equals(modelId)) {
