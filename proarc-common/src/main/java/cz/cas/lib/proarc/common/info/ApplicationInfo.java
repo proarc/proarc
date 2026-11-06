@@ -44,7 +44,7 @@ public class ApplicationInfo {
     String languageEnFile;
     Boolean languageEn;
     String error;
-    private StorageUsage.Snapshot storageUsage = new StorageUsage.Snapshot(null, null, null);
+    private StorageUsage.Snapshot storageUsage = new StorageUsage.Snapshot(null, null, null, null);
 
     public void initValues(AppConfiguration config, Boolean fullLoad) throws IOException {
         this.storageUsage = StorageUsage.getInstance().getSnapshot();
@@ -177,6 +177,10 @@ public class ApplicationInfo {
 
     public Long getObjectstoreSize() {
         return storageUsage.objectstoreSize();
+    }
+
+    public Long getUsersSize() {
+        return storageUsage.usersSize();
     }
 
     public String getStorageSizeCalculatedAt() {

@@ -16,13 +16,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** Cached logical file sizes of the local Akubra stores. */
+/** Cached logical file sizes of the local Akubra stores and user directories. */
 public final class StorageUsage implements AutoCloseable {
 
     private static final Logger LOG = Logger.getLogger(StorageUsage.class.getName());
     private static final StorageUsage INSTANCE = new StorageUsage();
 
-    private volatile Snapshot snapshot = new Snapshot(null, null, null);
+    private volatile Snapshot snapshot = new Snapshot(null, null, null, null);
     private ScheduledExecutorService executor;
 
     public static StorageUsage getInstance() {
@@ -33,7 +33,7 @@ public final class StorageUsage implements AutoCloseable {
         return snapshot;
     }
 
-    public synchronized void start(Path datastore, Path objectstore) {
+    public synchronized void start(Path datastore, Path objectstore, Path users) {
         close();
         executor = Executors.newSingleThreadScheduledExecutor(task -> {
             Thread thread = new Thread(task, "proarc-storage-usage");
@@ -41,12 +41,12 @@ public final class StorageUsage implements AutoCloseable {
             return thread;
         });
         ScheduledExecutorService scheduler = executor;
-        scheduler.execute(() -> refreshAndSchedule(scheduler, datastore, objectstore));
+        scheduler.execute(() -> refreshAndSchedule(scheduler, datastore, objectstore, users));
     }
 
-    private void refreshAndSchedule(ScheduledExecutorService scheduler, Path datastore, Path objectstore) {
+    private void refreshAndSchedule(ScheduledExecutorService scheduler, Path datastore, Path objectstore, Path users) {
         try {
-            refresh(datastore, objectstore);
+            refresh(datastore, objectstore, users);
         } catch (IOException | RuntimeException ex) {
             LOG.log(Level.WARNING, "Cannot refresh storage usage; retaining the last successful measurement", ex);
         } finally {
@@ -54,7 +54,7 @@ public final class StorageUsage implements AutoCloseable {
                 if (!scheduler.isShutdown()) {
                     // Recompute the next local midnight, including daylight saving changes.
                     long delay = untilNextMidnight(ZonedDateTime.now()).toMillis();
-                    scheduler.schedule(() -> refreshAndSchedule(scheduler, datastore, objectstore),
+                    scheduler.schedule(() -> refreshAndSchedule(scheduler, datastore, objectstore, users),
                             Math.max(0, delay), TimeUnit.MILLISECONDS);
                 }
             }
@@ -65,10 +65,11 @@ public final class StorageUsage implements AutoCloseable {
         return Duration.between(now, now.toLocalDate().plusDays(1).atStartOfDay(now.getZone()));
     }
 
-    void refresh(Path datastore, Path objectstore) throws IOException {
+    void refresh(Path datastore, Path objectstore, Path users) throws IOException {
         long datastoreSize = directorySize(datastore);
         long objectstoreSize = directorySize(objectstore);
-        snapshot = new Snapshot(datastoreSize, objectstoreSize, Instant.now().toString());
+        long usersSize = directorySize(users);
+        snapshot = new Snapshot(datastoreSize, objectstoreSize, usersSize, Instant.now().toString());
     }
 
     static long directorySize(Path directory) throws IOException {
@@ -111,6 +112,6 @@ public final class StorageUsage implements AutoCloseable {
         }
     }
 
-    public record Snapshot(Long datastoreSize, Long objectstoreSize, String calculatedAt) {
+    public record Snapshot(Long datastoreSize, Long objectstoreSize, Long usersSize, String calculatedAt) {
     }
 }

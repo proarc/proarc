@@ -45,6 +45,13 @@ public abstract class AnnotatedApplicationInfo extends ApplicationInfo {
         return super.getObjectstoreSize();
     }
 
+    @XmlElement(name = ApplicationResourceApi.USERS_SIZE)
+    @JsonProperty(ApplicationResourceApi.USERS_SIZE)
+    @Override
+    public Long getUsersSize() {
+        return super.getUsersSize();
+    }
+
     @XmlElement(name = ApplicationResourceApi.STORAGE_SIZE_CALCULATED_AT)
     @JsonProperty(ApplicationResourceApi.STORAGE_SIZE_CALCULATED_AT)
     @Override

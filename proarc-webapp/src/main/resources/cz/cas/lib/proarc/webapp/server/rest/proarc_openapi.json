@@ -12091,11 +12091,17 @@
             "nullable": true,
             "description": "Sum of regular file sizes in bytes in the configured Akubra object store, measured together with datastoreSize under the same rules."
           },
+          "usersSize": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Sum of regular file sizes in bytes under proarc.users.home, including all user subdirectories. Excludes symbolic links and filesystem overhead; directories outside this root are not included. Measured together with datastoreSize and objectstoreSize under the same rules."
+          },
           "storageSizeCalculatedAt": {
             "type": "string",
             "format": "date-time",
             "nullable": true,
-            "description": "UTC completion time of the last successful measurement of both stores. Null until a successful measurement; unchanged when a refresh fails."
+            "description": "UTC completion time of the last successful measurement of both stores and the user directory root. Null until a successful measurement; unchanged when a refresh fails."
           },
           "loginType": {
             "type": "string",

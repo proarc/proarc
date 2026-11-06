@@ -114,9 +114,14 @@ public final class ProarcInitializer {
         initWorkflow(config, daoFactory, UserUtil.getDefaultManger());
         initSchedulers(config);
         if (akubraConfiguration != null) {
-            StorageUsage.getInstance().start(
-                    new File(akubraConfiguration.getDatastreamStorePath()).toPath(),
-                    new File(akubraConfiguration.getObjectStorePath()).toPath());
+            try {
+                StorageUsage.getInstance().start(
+                        new File(akubraConfiguration.getDatastreamStorePath()).toPath(),
+                        new File(akubraConfiguration.getObjectStorePath()).toPath(),
+                        config.getDefaultUsersHome().toPath());
+            } catch (IOException ex) {
+                throw new IllegalStateException(ex);
+            }
         }
         asyncTask = executor.submit(new Callable<Void>() {
 

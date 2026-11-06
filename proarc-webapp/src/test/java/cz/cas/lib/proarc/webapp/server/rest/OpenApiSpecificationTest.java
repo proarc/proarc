@@ -173,7 +173,7 @@ class OpenApiSpecificationTest {
         assertTrue(applicationInfo.getJSONObject("properties").has("storage"));
         assertTrue(applicationInfo.getJSONObject("properties").has("database"));
         assertTrue(applicationInfo.getJSONObject("properties").has("configFile"));
-        for (String field : List.of("datastoreSize", "objectstoreSize")) {
+        for (String field : List.of("datastoreSize", "objectstoreSize", "usersSize")) {
             JSONObject size = applicationInfo.getJSONObject("properties").getJSONObject(field);
             assertEquals("integer", size.getString("type"));
             assertEquals("int64", size.getString("format"));
