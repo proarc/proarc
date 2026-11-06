@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "ProArc REST API",
-    "description": "OpenAPI dokumentace pro ProArc REST API v2. REST v1 je deprecated a neni zde dokumentovane.",
+    "description": "OpenAPI dokumentace pro ProArc REST API v2 a přihlašovací rozhraní. REST v1 je deprecated. Instalace používá právě jeden režim: proarc (lokální session) nebo keycloak (pouze bearer token). Mezi režimy není fallback. Swagger za běhu nabízí pouze zapnutý režim. Keycloak používá jednoho veřejného klienta s Code + PKCE, přesný whitelist keycloak.trustedIssuers, ověření podpisu RS256, issuer, azp, audience a platnosti, živou kontrolu userinfo při každém požadavku a realm roli proarc. Po prvním propojení podle e-mailu se účet určuje pouze podle issuer + sub. email_verified se nevyžaduje. Oprávnění spravuje ProArc. Refresh a společné SSO odhlášení provádí klient přímo přes Keycloak; tokeny ani hesla se neposílají v URL. Podrobnosti: installation/keycloak/README.md.",
     "version": "2"
   },
   "servers": [
@@ -17,6 +17,9 @@
     },
     {
       "cookieAuth": []
+    },
+    {
+      "bearerAuth": []
     }
   ],
   "tags": [
@@ -70,6 +73,14 @@
     },
     {
       "name": "Workflow"
+    },
+    {
+      "name": "Statistics",
+      "description": "Repository counts and historical audit statistics (AKUBRA storage only)."
+    },
+    {
+      "name": "Authentication",
+      "description": "Výběr režimu, lokální přihlášení a informace o přihlášeném uživateli."
     }
   ],
   "paths": {
@@ -89,6 +100,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -144,6 +164,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "Catalog search result. An empty entry array means that no records were found. Catalog failures use catalog.connection-failed, catalog.remote-error, catalog.transformation-failed, or catalog.search-failed error keys.",
             "content": {
@@ -188,6 +217,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -231,6 +269,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "Catalog search result. An empty entry array means that no records were found. Catalog failures use catalog.connection-failed, catalog.remote-error, catalog.transformation-failed, or catalog.search-failed error keys.",
             "content": {
@@ -258,6 +305,15 @@
         ],
         "operationId": "redirectToNewClient",
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -287,6 +343,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -322,6 +387,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -374,6 +448,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -426,6 +509,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -446,6 +538,15 @@
         ],
         "operationId": "alephExportState",
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -515,6 +616,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -556,6 +666,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -597,6 +716,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -648,6 +776,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -677,6 +814,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -743,6 +889,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -794,6 +949,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -868,6 +1032,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -930,6 +1103,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -965,6 +1147,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -994,6 +1185,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1082,6 +1282,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1263,6 +1472,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1333,6 +1551,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1417,6 +1644,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1458,6 +1694,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1501,6 +1746,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1531,6 +1785,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1570,6 +1833,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1647,6 +1919,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1687,6 +1968,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1738,6 +2028,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1778,6 +2077,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1822,6 +2130,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1884,6 +2201,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1904,6 +2230,15 @@
         ],
         "operationId": "indexObjects",
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1924,6 +2259,15 @@
         ],
         "operationId": "setParentsPid",
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1954,6 +2298,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -1983,6 +2336,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2003,6 +2365,15 @@
         ],
         "operationId": "connectionTest",
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2043,6 +2414,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2080,6 +2460,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2140,6 +2529,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2176,6 +2574,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2220,6 +2627,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2277,6 +2693,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2350,6 +2775,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2452,6 +2886,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2489,6 +2932,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2556,6 +3008,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2597,6 +3058,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2617,6 +3087,15 @@
         ],
         "operationId": "createPid",
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2654,6 +3133,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2686,6 +3174,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2730,6 +3227,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2772,6 +3278,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2817,6 +3332,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2854,6 +3378,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2888,6 +3421,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2928,6 +3470,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -2966,6 +3517,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3003,6 +3563,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3040,6 +3609,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3077,6 +3655,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3114,6 +3701,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3151,6 +3747,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3188,6 +3793,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3225,6 +3839,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3262,6 +3885,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3299,6 +3931,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3336,6 +3977,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3373,6 +4023,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3410,6 +4069,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3447,6 +4115,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3484,6 +4161,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3521,6 +4207,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3558,6 +4253,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3595,6 +4299,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3632,6 +4345,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3669,6 +4391,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3706,6 +4437,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3743,6 +4483,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3780,6 +4529,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3817,6 +4575,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3854,6 +4621,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3891,6 +4667,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3928,6 +4713,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -3965,6 +4759,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4002,6 +4805,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4039,6 +4851,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4076,6 +4897,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4113,6 +4943,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4150,6 +4989,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4187,6 +5035,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4224,6 +5081,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4261,6 +5127,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4298,6 +5173,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4335,6 +5219,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4372,6 +5265,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4409,6 +5311,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4446,6 +5357,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4483,6 +5403,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4520,6 +5449,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4557,6 +5495,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4594,6 +5541,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4631,6 +5587,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4668,6 +5633,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4705,6 +5679,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4746,6 +5729,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4783,6 +5775,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4820,6 +5821,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4857,6 +5867,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4894,6 +5913,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4931,6 +5959,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -4978,6 +6015,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5012,6 +6058,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5054,6 +6109,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5096,6 +6160,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5125,6 +6198,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5172,6 +6254,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5192,6 +6283,15 @@
         ],
         "operationId": "listModels",
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5240,6 +6340,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5278,6 +6387,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5318,6 +6436,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5362,6 +6489,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5424,6 +6560,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5491,6 +6636,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5569,6 +6723,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5631,6 +6794,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5668,6 +6840,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5706,6 +6887,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5744,6 +6934,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5781,6 +6980,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5824,6 +7032,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5861,6 +7078,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5894,6 +7120,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5937,6 +7172,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -5989,6 +7233,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6026,6 +7279,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6070,6 +7332,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6232,6 +7503,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6276,6 +7556,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6320,6 +7609,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6366,6 +7664,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6410,6 +7717,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6454,6 +7770,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6500,6 +7825,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6544,6 +7878,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6588,6 +7931,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6629,6 +7981,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6677,6 +8038,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6714,6 +8084,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6749,6 +8128,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6786,6 +8174,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6823,6 +8220,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6843,6 +8249,15 @@
         ],
         "operationId": "upgradeMods38",
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "Schedules an internal process that upgrades supported MODS records to version 3.8.",
             "content": {
@@ -6887,6 +8302,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6924,6 +8348,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6961,6 +8394,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -6995,6 +8437,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7032,6 +8483,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7076,6 +8536,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7120,6 +8589,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7161,6 +8639,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7202,6 +8689,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7246,6 +8742,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7296,6 +8801,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7333,6 +8847,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7365,6 +8888,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7394,6 +8926,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7436,6 +8977,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7487,6 +9037,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7538,6 +9097,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7567,6 +9135,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7587,6 +9164,15 @@
         ],
         "operationId": "getSoftwareSet",
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7616,6 +9202,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7646,6 +9241,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7697,6 +9301,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7707,7 +9320,8 @@
               }
             }
           }
-        }
+        },
+        "description": "\n\nAutentizace: whoAmI=true vrací místní profil a oprávnění přihlášeného uživatele. Klient je načítá po přihlášení; refresh tokenu nemění UI oprávnění. API kontroluje aktuální místní oprávnění na serveru. V Keycloak režimu se účet určuje přes issuer + sub, při prvním propojení přes jednoznačný e-mail bez podmínky email_verified."
       },
       "post": {
         "tags": [
@@ -7804,6 +9418,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7912,6 +9535,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7942,6 +9574,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7962,6 +9603,15 @@
         ],
         "operationId": "getUserSetting",
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -7994,6 +9644,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8014,6 +9673,15 @@
         ],
         "operationId": "getValueMaps",
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8034,6 +9702,15 @@
         ],
         "operationId": "getPeroOcrEngines",
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8054,6 +9731,15 @@
         ],
         "operationId": "getMetakatEngines",
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8086,6 +9772,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8332,6 +10027,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8379,6 +10083,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8442,6 +10155,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8497,6 +10219,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8526,6 +10257,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8596,6 +10336,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8623,6 +10372,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8666,6 +10424,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8721,6 +10488,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8757,6 +10533,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8786,6 +10571,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8822,6 +10616,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -8976,6 +10779,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -9011,6 +10823,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -9038,6 +10859,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -9077,6 +10907,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -9133,6 +10972,15 @@
           }
         },
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -9181,6 +11029,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "default response",
             "content": {
@@ -9225,6 +11082,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "ProArc response; inspect response.status and response.errors for application errors.",
             "content": {
@@ -9321,6 +11187,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "ProArc response; inspect response.status and response.errors for application errors.",
             "content": {
@@ -9355,6 +11230,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "ProArc response; inspect response.status and response.errors for application errors.",
             "content": {
@@ -9520,6 +11404,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "ProArc response; inspect response.status and response.errors for application errors.",
             "content": {
@@ -9564,6 +11457,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "ProArc response; inspect response.status and response.errors for application errors.",
             "content": {
@@ -9707,6 +11609,15 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "ProArc response; inspect response.status and response.errors for application errors.",
             "content": {
@@ -9729,6 +11640,15 @@
         "summary": "Schedule loggingCore metadata backfill",
         "description": "Requires system administrator permission and AKUBRA storage. Schedules an internal batch and immediately returns its batch id and message, not the completed backfill result. Fills missing model and organization from current objects and users. Missing or unknown users are normalized to UNKNOWN and their organization is cleared. Existing nonempty metadata is otherwise preserved. Progress is available through the internal batch workflow.",
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "ProArc response; inspect response.status and response.errors for application errors.",
             "content": {
@@ -9900,12 +11820,233 @@
           }
         ],
         "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
           "default": {
             "description": "ProArc response; inspect response.status and response.errors for application errors.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PackageExportStatisticsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/config": {
+      "get": {
+        "servers": [
+          {
+            "url": "..",
+            "description": "Kořen aplikace; mimo /rest/v2."
+          }
+        ],
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "operationId": "getAuthenticationConfig",
+        "summary": "Veřejná konfigurace autentizace",
+        "description": "Volejte před přihlášením. V režimu proarc neinicializujte Keycloak. V režimu keycloak použijte issuer/clientId pro Code + PKCE. Nevrací whitelist ani žádné přihlašovací údaje.",
+        "responses": {
+          "200": {
+            "description": "Právě zapnutý režim autentizace.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationConfig"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Jiná chyba serveru.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/isLogged": {
+      "get": {
+        "servers": [
+          {
+            "url": "..",
+            "description": "Kořen aplikace; mimo /rest/v2."
+          }
+        ],
+        "tags": [
+          "Authentication"
+        ],
+        "operationId": "getLoginState",
+        "summary": "Stav přihlášení",
+        "description": "V lokálním režimu kontroluje session a vrací logged/nologged a případně její zbývající čas. V Keycloak režimu vyžaduje platný bearer, kontroluje userinfo a místní účet a nevytváří HTTP session. Pro profil a oprávnění použijte GET /rest/v2/user?whoAmI=true.",
+        "responses": {
+          "200": {
+            "description": "Stav přihlášení.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginState"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
+          "default": {
+            "description": "Jiná chyba serveru.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/proarclogin": {
+      "post": {
+        "servers": [
+          {
+            "url": "..",
+            "description": "Kořen aplikace; mimo /rest/v2."
+          }
+        ],
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "operationId": "loginLocalUser",
+        "summary": "Lokální přihlášení",
+        "description": "Pouze v režimu proarc. Ověří místní jméno a heslo a nastaví session cookie. V režimu keycloak vrací 403 local_login_disabled bez ověřování hesla nebo volání jiného autentizátoru.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "j_username",
+                  "j_password"
+                ],
+                "properties": {
+                  "j_username": {
+                    "type": "string"
+                  },
+                  "j_password": {
+                    "type": "string",
+                    "format": "password",
+                    "writeOnly": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Úspěšné lokální přihlášení a session cookie.",
+            "headers": {
+              "Set-Cookie": {
+                "description": "JSESSIONID; cookie spravuje prohlížeč.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Lokální přihlášení je v režimu Keycloak vypnuté nebo lokální přihlášení selhalo; původní lokální varianta vrací HTML značku.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationError"
+                }
+              },
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Jiná chyba serveru.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "servers": [
+          {
+            "url": "..",
+            "description": "Kořen aplikace; mimo /rest/v2."
+          }
+        ],
+        "tags": [
+          "Authentication"
+        ],
+        "security": [],
+        "operationId": "logoutLocalUser",
+        "summary": "Odhlášení lokální session",
+        "description": "Pouze v režimu proarc. V režimu keycloak vrací 405 use_keycloak_logout. Pro společné odhlášení ProArcu a Krameria přesměrujte klienta na Keycloak RP-Initiated Logout s id_token_hint; toto API SSO relaci neukončuje.",
+        "responses": {
+          "204": {
+            "description": "Lokální session byla ukončena."
+          },
+          "405": {
+            "description": "Použijte společné odhlášení přes Keycloak.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Jiná chyba serveru.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -9919,13 +12060,19 @@
       "proarcLogin": {
         "type": "http",
         "scheme": "basic",
-        "description": "Enter ProArc username and password. Swagger UI uses these credentials to call POST ../proarclogin and stores the returned JSESSIONID cookie in the browser."
+        "description": "Pouze v režimu proarc. Swagger UI vymění místní jméno a heslo za session pomocí POST /proarclogin. Basic hlavička se neposílá na REST API. V Keycloak režimu je tato možnost vypnutá."
       },
       "cookieAuth": {
         "type": "apiKey",
         "in": "cookie",
         "name": "JSESSIONID",
-        "description": "Session cookie created by POST ../proarclogin with form fields j_username and j_password."
+        "description": "Lokální session cookie nastavená POST /proarclogin. V Keycloak režimu se k autentizaci nepoužívá."
+      },
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Pouze v režimu keycloak. Vložte přístupový token bez prefixu Bearer. Vydavatel musí přesně odpovídat whitelistu; token musí mít správné azp/audience, scope openid a realm roli proarc. API ověřuje živou relaci přes userinfo bez client secretu. ID tokeny a offline_access se nepřijímají. Session cookie nemůže bearer token nahradit."
       }
     },
     "schemas": {
@@ -9949,6 +12096,11 @@
             "format": "date-time",
             "nullable": true,
             "description": "UTC completion time of the last successful measurement of both stores. Null until a successful measurement; unchanged when a refresh fails."
+          },
+          "loginType": {
+            "type": "string",
+            "description": "Configured login method.",
+            "enum": ["proarc", "keycloak"]
           },
           "version": {
             "type": "string"
@@ -17619,6 +19771,154 @@
           }
         },
         "description": "ProArc JSON response envelope. On success, response.status is 0 and response.data contains one result object."
+      },
+      "AuthenticationError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "invalid_token",
+              "bearer_disabled",
+              "missing_realm_role",
+              "account_not_linked",
+              "identity_provider_unavailable",
+              "account_lookup_unavailable",
+              "local_login_disabled",
+              "use_keycloak_logout"
+            ]
+          }
+        }
+      },
+      "AuthenticationConfig": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "mode"
+            ],
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "proarc"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": [
+              "mode",
+              "issuer",
+              "clientId"
+            ],
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "keycloak"
+                ]
+              },
+              "issuer": {
+                "type": "string",
+                "format": "uri",
+                "description": "Hlavní issuer pro přihlášení webového klienta."
+              },
+              "clientId": {
+                "type": "string",
+                "description": "ID jediného veřejného klienta; žádný client secret."
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "LoginState": {
+        "type": "object",
+        "required": [
+          "state"
+        ],
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "logged",
+              "nologged"
+            ]
+          },
+          "login": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "keycloak"
+            ],
+            "description": "V Keycloak režimu; pole časů session se nevracejí."
+          },
+          "remaining": {
+            "type": "integer",
+            "description": "Zbývající čas lokální session v sekundách."
+          },
+          "maximum": {
+            "type": "integer",
+            "description": "Maximální čas lokální session v sekundách."
+          },
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "responses": {
+      "AuthenticationRequired": {
+        "description": "401: Chybějící, neplatný, expirovaný nebo neaktivní token; nedůvěryhodný issuer; chybný podpis, klient, audience nebo scope. V lokálním režimu nelze použít bearer jako náhradu session. Lokální přihlášení může místo JSON vrátit původní HTML značku.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AuthenticationError"
+            }
+          }
+        },
+        "headers": {
+          "WWW-Authenticate": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "Bearer realm=\"proarc\""
+          }
+        }
+      },
+      "AccessForbidden": {
+        "description": "403: Chybí realm role proarc, místní účet nelze jednoznačně propojit, nebo uživatel nemá místní oprávnění. Neopakujte refresh ani přihlášení ve smyčce.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AuthenticationError"
+            }
+          },
+          "text/html": {
+            "schema": {
+              "type": "string",
+              "description": "Původní HTML značka požadovaného lokálního přihlášení."
+            }
+          }
+        }
+      },
+      "AuthenticationUnavailable": {
+        "description": "503: Keycloak nebo místní úložiště účtů není dostupné. Požadavek je odmítnut bez fallbacku na jiný režim.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AuthenticationError"
+            }
+          }
+        }
       }
     }
   }

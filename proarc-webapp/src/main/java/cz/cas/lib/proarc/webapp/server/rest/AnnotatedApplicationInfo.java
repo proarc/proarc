@@ -94,6 +94,13 @@ public abstract class AnnotatedApplicationInfo extends ApplicationInfo {
         return super.getDatabase();
     }
 
+    @XmlElement(name = ApplicationResourceApi.LOGIN_TYPE)
+    @JsonProperty(ApplicationResourceApi.LOGIN_TYPE)
+    @Override
+    public String getLoginType() {
+        return super.getLoginType();
+    }
+
     @XmlElement(name = ApplicationResourceApi.STABLE_CONFIG_FILE)
     @JsonProperty(ApplicationResourceApi.STABLE_CONFIG_FILE)
     @Override

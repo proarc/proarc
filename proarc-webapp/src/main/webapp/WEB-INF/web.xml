@@ -34,6 +34,15 @@
 
     <!--  login servlet -->
     <servlet>
+        <servlet-name>authenticationConfig</servlet-name>
+        <servlet-class>cz.cas.lib.proarc.authentication.AuthenticationConfigServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>authenticationConfig</servlet-name>
+        <url-pattern>/auth/config</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>proarcLoginServlet</servlet-name>
         <servlet-class>cz.cas.lib.proarc.authentication.ProarcLoginServlet</servlet-class>
     </servlet>

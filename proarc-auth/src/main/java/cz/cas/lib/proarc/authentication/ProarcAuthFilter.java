@@ -16,7 +16,10 @@
  */
 package cz.cas.lib.proarc.authentication;
 
+import cz.cas.lib.proarc.authentication.keycloak.JWTUtils;
 import cz.cas.lib.proarc.authentication.utils.AuthUtils;
+import cz.cas.lib.proarc.common.user.UserProfile;
+import cz.cas.lib.proarc.common.user.UserUtil;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -27,6 +30,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -39,6 +45,7 @@ public class ProarcAuthFilter implements Filter {
     public static final Logger LOGGER = Logger.getLogger(ProarcAuthFilter.class.getName());
 
     public static final String SESSION_KEY = "user";
+    public static final String KEYCLOAK_CLAIMS = "proarc.keycloak.claims";
 
     @Override
     public void destroy() {
@@ -70,6 +77,17 @@ public class ProarcAuthFilter implements Filter {
         httpResp.setHeader("Pragma", "no-cache"); // HTTP 1.0
         httpResp.setDateHeader("Expires", 0); // Proxies.
 
+        if (Authenticators.getInstance().isKeycloak()) {
+            securedKeycloakContent(httpReq, httpResp, chain);
+            return;
+        }
+
+        // A bearer token is never an alternative to local session authentication.
+        if (httpReq.getHeader("Authorization") != null && isForbinddenResource(httpReq.getRequestURL().toString())) {
+            sendError(httpResp, HttpServletResponse.SC_UNAUTHORIZED, "bearer_disabled");
+            return;
+        }
+
         HttpSession session = httpReq.getSession();
         if (session != null) {
             ProarcPrincipal p = (ProarcPrincipal) session.getAttribute(SESSION_KEY);
@@ -94,6 +112,69 @@ public class ProarcAuthFilter implements Filter {
                 chain.doFilter(httpReq, httpResp);
             }
         }
+    }
+
+    private void securedKeycloakContent(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
+            throws IOException, ServletException {
+        String path = req.getRequestURI().substring(req.getContextPath().length());
+        String servletPath = req.getServletPath();
+        if (!("/rest".equals(servletPath) || "/isLogged".equals(servletPath)
+                || path.startsWith("/rest/") || path.equals("/rest") || path.equals("/isLogged"))) {
+            chain.doFilter(req, resp);
+            return;
+        }
+        List<String> headers = Collections.list(req.getHeaders("Authorization"));
+        String header = headers.size() == 1 ? headers.get(0) : null;
+        if (header == null || header.length() < 8 || !header.regionMatches(true, 0, "Bearer ", 0, 7)
+                || header.substring(7).isBlank() || header.substring(7).chars().anyMatch(Character::isWhitespace)) {
+            sendError(resp, HttpServletResponse.SC_UNAUTHORIZED, "invalid_token");
+            return;
+        }
+        Map<String, Object> claims;
+        try {
+            claims = Authenticators.getInstance().getKeycloak().getClaims(header.substring(7));
+        } catch (JWTUtils.InvalidTokenException e) {
+            sendError(resp, HttpServletResponse.SC_UNAUTHORIZED, "invalid_token");
+            return;
+        } catch (IOException e) {
+            // No fallback and no successful session-check cache during a Keycloak outage.
+            sendError(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, "identity_provider_unavailable");
+            return;
+        }
+        if (!JWTUtils.hasProarcRole(claims)) {
+            sendError(resp, HttpServletResponse.SC_FORBIDDEN, "missing_realm_role");
+            return;
+        }
+        UserProfile user;
+        try {
+            Object email = claims.get("email");
+            user = UserUtil.getDefaultManger().resolveKeycloakIdentity((String) claims.get("iss"),
+                    (String) claims.get("sub"), email instanceof String ? (String) email : null);
+        } catch (RuntimeException e) {
+            LOGGER.warning("Keycloak account lookup failed");
+            sendError(resp, HttpServletResponse.SC_SERVICE_UNAVAILABLE, "account_lookup_unavailable");
+            return;
+        }
+        if (user == null) {
+            sendError(resp, HttpServletResponse.SC_FORBIDDEN, "account_not_linked");
+            return;
+        }
+        ProarcPrincipal principal = new ProarcPrincipal(user.getUserName());
+        principal.associateUserProfile(user);
+        req.setAttribute(KEYCLOAK_CLAIMS, claims);
+        // Only request scope; never read, create or trust an HTTP session in this mode.
+        chain.doFilter(ProarcAuthenticatedHTTPRequest.newInstance(req, principal, principal.getName()), resp);
+    }
+
+    static void sendError(HttpServletResponse resp, int status, String error) throws IOException {
+        resp.setStatus(status);
+        resp.setContentType("application/json");
+        resp.setCharacterEncoding("UTF-8");
+        resp.setHeader("Cache-Control", "no-store");
+        if (status == HttpServletResponse.SC_UNAUTHORIZED) {
+            resp.setHeader("WWW-Authenticate", "Bearer realm=\"proarc\"");
+        }
+        resp.getWriter().write("{\"error\":\"" + error + "\"}");
     }
 
     private boolean isForbinddenResource(String reqUrl) {

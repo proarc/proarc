@@ -37,6 +37,7 @@ public class ApplicationResourceApi {
     public static final String DATASTORE_SIZE = "datastoreSize";
     public static final String OBJECTSTORE_SIZE = "objectstoreSize";
     public static final String STORAGE_SIZE_CALCULATED_AT = "storageSizeCalculatedAt";
+    public static final String LOGIN_TYPE = "loginType";
     public static final String RDFLOW_VERSION = "rdflowVersion";
     public static final String STABLE_CONFIG_FILE = "configFile";
     public static final String STABLE_CONFIG = "config";

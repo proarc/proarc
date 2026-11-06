@@ -26,6 +26,17 @@ public class ProArcIsLoggedServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (Authenticators.getInstance().isKeycloak()) {
+            // Authentication and the live session check have already run in ProarcAuthFilter.
+            JSONObject json = new JSONObject();
+            json.put("state", "logged");
+            json.put("login", req.getUserPrincipal().getName());
+            json.put("mode", Authenticators.TYPE_KEYCLOAK);
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
+            resp.getWriter().print(json);
+            return;
+        }
         int left = (int) Math.round(req.getSession().getMaxInactiveInterval() - (Instant.now().toEpochMilli() - req.getSession().getLastAccessedTime()) * .001);
 
         boolean expired = left < 0;
@@ -63,6 +74,9 @@ public class ProArcIsLoggedServlet extends HttpServlet {
     }
 
     public static void resetSession(HttpServletRequest request) {
+        if (Authenticators.getInstance().isKeycloak()) {
+            return;
+        }
         request.getSession().setMaxInactiveInterval(getMaxInterval());
     }
 

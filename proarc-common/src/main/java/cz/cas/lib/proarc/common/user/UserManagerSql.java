@@ -30,6 +30,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
@@ -125,6 +126,52 @@ final class UserManagerSql implements UserManager {
     }
 
     @Override
+    public UserProfile resolveKeycloakIdentity(String issuer, String subject, String email) {
+        if (issuer == null || issuer.isBlank() || issuer.length() > 2000
+                || subject == null || subject.isBlank() || subject.length() > 255) {
+            return null;
+        }
+        Transaction tx = daos.createTransaction();
+        UserDao users = daos.createUser();
+        users.setTransaction(tx);
+        try {
+            // Serializability also protects against linking the same identity to two different
+            // accounts in parallel, including requests handled by different API instances.
+            ((SqlTransaction) tx).getConnection().setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+            List<UserProfile> linked = users.find(null, null, subject, issuer, null);
+            UserProfile result = null;
+            if (linked.size() == 1) {
+                result = linked.get(0);
+            } else if (linked.isEmpty() && email != null && !email.isBlank()) {
+                String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+                List<UserProfile> candidates = users.find(null, null, null, null, null).stream()
+                        .filter(u -> u.getEmail() != null
+                                && normalizedEmail.equals(u.getEmail().trim().toLowerCase(Locale.ROOT)))
+                        .toList();
+                if (candidates.size() == 1) {
+                    UserProfile candidate = candidates.get(0);
+                    if (isBlank(candidate.getRemoteName()) && isBlank(candidate.getRemoteType())
+                            && users.linkIdentity(candidate.getId(), normalizedEmail, issuer, subject)) {
+                        result = users.find(candidate.getId());
+                    }
+                }
+            }
+            // Never re-link an existing identity by email, and never select an arbitrary duplicate.
+            tx.commit();
+            return filter(result);
+        } catch (SQLException | RuntimeException e) {
+            tx.rollback();
+            throw new IllegalStateException("Cannot resolve Keycloak account", e);
+        } finally {
+            tx.close();
+        }
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    @Override
     public List<UserProfile> findAll() {
         Transaction tx = daos.createTransaction();
         UserDao users = daos.createUser();
@@ -184,7 +231,13 @@ final class UserManagerSql implements UserManager {
         if (profile == null) {
             throw new NullPointerException();
         }
-        profile.validateAsNew();
+        boolean keycloak = isKeycloak();
+        if (keycloak) {
+            // Keep the identity unlinked until Keycloak supplies a verified email and subject.
+            profile.setUserPassword(null);
+            profile.setUserPasswordDigest(null);
+        }
+        profile.validateAsNew(!keycloak);
         File userHome = null;
         Transaction tx = daos.createTransaction();
         UserDao userDao = daos.createUser();
@@ -231,7 +284,7 @@ final class UserManagerSql implements UserManager {
         UserDao users = daos.createUser();
         users.setTransaction(tx);
         try {
-            if (profile.getUserPassword() != null) {
+            if (!isKeycloak() && profile.getUserPassword() != null) {
                 profile.setUserPasswordDigest(UserUtil.getDigist(profile.getUserPassword()));
             }
             users.update(profile);
@@ -398,6 +451,10 @@ final class UserManagerSql implements UserManager {
 
     private static Group createUserGroup(UserProfile user) {
         return Group.create(user.getUserName(), null);
+    }
+
+    private boolean isKeycloak() {
+        return "keycloak".equals(appConfig.getAuthenticators().getString("authenticators", "proarc").trim());
     }
 
     private static UserProfile filter(UserProfile user) {

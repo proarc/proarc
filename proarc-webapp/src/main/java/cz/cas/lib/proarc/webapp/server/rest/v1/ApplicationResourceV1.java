@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest.v1;
 
+import cz.cas.lib.proarc.authentication.Authenticators;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
@@ -75,6 +76,7 @@ public class ApplicationResourceV1 {
     ) throws IOException {
         ApplicationInfo version = new ApplicationInfo();
         version.initValues(appConfig, fullLoad);
+        version.setLoginType(Authenticators.getInstance().getLoginType());
         return new ProArcResponse<ApplicationInfo>(version);
     }
 
