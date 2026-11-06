@@ -43,6 +43,9 @@ public interface UserManager {
 
     UserProfile find(String remoteName, String remoteType);
 
+    /** Resolve issuer + subject, or atomically link one unlinked account by email. */
+    UserProfile resolveKeycloakIdentity(String issuer, String subject, String email);
+
     List<UserProfile> findAll();
 
     List<UserProfile> findMyOrganization(String organization);

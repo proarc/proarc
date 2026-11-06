@@ -16,11 +16,12 @@
  */
 package cz.cas.lib.proarc.authentication;
 
+import cz.cas.lib.proarc.authentication.keycloak.JWTUtils;
 import cz.cas.lib.proarc.authentication.proarc.ProArcAuthenticator;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.logging.Logger;
+import java.util.Map;
 import org.apache.commons.configuration2.Configuration;
 
 /**
@@ -35,11 +36,12 @@ public final class Authenticators {
      * The internal authenticator.
      */
     public static final String TYPE_PROARC = "proarc";
-
-    private static final Logger LOG = Logger.getLogger(Authenticators.class.getName());
+    public static final String TYPE_KEYCLOAK = "keycloak";
     private static Authenticators INSTANCE;
 
     private final Configuration conf;
+    private final String loginType;
+    private final JWTUtils keycloak;
 
     public static Authenticators getInstance() {
         if (INSTANCE == null) {
@@ -54,27 +56,50 @@ public final class Authenticators {
 
     public Authenticators(Configuration conf) {
         this.conf = conf;
+        List<Object> ids = conf.getList(PROPERTY_AUTHENTICATORS);
+        loginType = ids.isEmpty() ? TYPE_PROARC : ids.get(0).toString().trim();
+        if (ids.size() > 1 || !(TYPE_PROARC.equals(loginType) || TYPE_KEYCLOAK.equals(loginType))) {
+            throw new IllegalArgumentException("Configure exactly one authenticator: proarc or keycloak");
+        }
+        if (isKeycloak()) {
+            if (conf.getString("keycloak.clientId", "").isBlank()) {
+                throw new IllegalArgumentException("Missing keycloak.clientId (public browser client)");
+            }
+            keycloak = new JWTUtils(conf);
+        } else {
+            keycloak = null;
+        }
     }
 
     public List<Authenticator> getAuthenticators() {
-        List<Object> authenticatorIds = conf.getList(PROPERTY_AUTHENTICATORS);
-        LinkedHashSet<Object> ids = new LinkedHashSet<Object>(authenticatorIds);
-        // ensure the ProArc authenticator used as a last resort
-        ids.remove(TYPE_PROARC);
-        ids.add(TYPE_PROARC);
-        ArrayList<Authenticator> authenticators = new ArrayList<Authenticator>(ids.size());
-        for (Object id : ids) {
-            if (TYPE_PROARC.equals(id)) {
-                authenticators.add(new ProArcAuthenticator());
-            } else {
-                LOG.warning("Unknown authenticator: " + id);
-            }
-        }
-        return authenticators;
+        return isKeycloak() ? Collections.emptyList()
+                : Collections.singletonList(new ProArcAuthenticator());
     }
 
     public String getLoginType() {
-        return TYPE_PROARC;
+        return loginType;
+    }
+
+    public boolean isKeycloak() {
+        return TYPE_KEYCLOAK.equals(loginType);
+    }
+
+    public JWTUtils getKeycloak() {
+        if (!isKeycloak()) {
+            throw new IllegalStateException("Keycloak authentication is disabled");
+        }
+        return keycloak;
+    }
+
+    /** Browser login configuration only; issuer trust policy stays on the API. */
+    public Map<String, String> getPublicConfiguration() {
+        Map<String, String> result = new LinkedHashMap<>();
+        result.put("mode", loginType);
+        if (isKeycloak()) {
+            result.put("issuer", conf.getString("keycloak.issuer").trim());
+            result.put("clientId", conf.getString("keycloak.clientId").trim());
+        }
+        return result;
     }
 
 }

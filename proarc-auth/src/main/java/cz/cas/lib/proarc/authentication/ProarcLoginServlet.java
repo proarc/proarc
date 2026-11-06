@@ -40,6 +40,10 @@ public class ProarcLoginServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        if (Authenticators.getInstance().isKeycloak()) {
+            ProarcAuthFilter.sendError(resp, HttpServletResponse.SC_FORBIDDEN, "local_login_disabled");
+            return;
+        }
         String username = req.getParameter("j_username");
         String password = req.getParameter("j_password");
         String code = req.getParameter("j_code");
@@ -67,6 +71,10 @@ public class ProarcLoginServlet extends HttpServlet {
      */
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (Authenticators.getInstance().isKeycloak()) {
+            ProarcAuthFilter.sendError(resp, HttpServletResponse.SC_METHOD_NOT_ALLOWED, "use_keycloak_logout");
+            return;
+        }
         HttpSession session = req.getSession(false);
         if (session != null) {
             session.invalidate();

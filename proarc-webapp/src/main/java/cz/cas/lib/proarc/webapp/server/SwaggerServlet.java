@@ -1,5 +1,6 @@
 package cz.cas.lib.proarc.webapp.server;
 
+import cz.cas.lib.proarc.authentication.Authenticators;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -7,6 +8,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class SwaggerServlet extends HttpServlet {
 
@@ -35,8 +39,29 @@ public class SwaggerServlet extends HttpServlet {
         }
 
         response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         try (stream) {
-            stream.transferTo(response.getOutputStream());
+            JSONObject specification = new JSONObject(new String(stream.readAllBytes(), StandardCharsets.UTF_8));
+            response.getWriter().write(forAuthenticationMode(specification,
+                    Authenticators.getInstance().isKeycloak()).toString(2));
         }
+    }
+
+    /** Publish only authentication methods enabled by this installation. */
+    static JSONObject forAuthenticationMode(JSONObject specification, boolean keycloak) {
+        JSONObject schemes = specification.getJSONObject("components").getJSONObject("securitySchemes");
+        JSONArray security = new JSONArray();
+        if (keycloak) {
+            schemes.remove("proarcLogin");
+            schemes.remove("cookieAuth");
+            security.put(new JSONObject().put("bearerAuth", new JSONArray()));
+        } else {
+            schemes.remove("bearerAuth");
+            security.put(new JSONObject().put("proarcLogin", new JSONArray()));
+            security.put(new JSONObject().put("cookieAuth", new JSONArray()));
+        }
+        specification.put("security", security);
+        specification.put("x-proarc-authentication-mode", keycloak ? "keycloak" : "proarc");
+        return specification;
     }
 }

@@ -45,6 +45,7 @@ import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Integration tests.
@@ -124,6 +125,44 @@ public class UserManagerSqlTest {
     }
 
     @Test
+    public void keycloakCreatesPasswordlessUserAndLinksByEmail() {
+        configuration.getAuthenticators().setProperty("authenticators", "keycloak");
+        UserProfile user = UserProfile.create("keycloakuser", null, "Keycloak");
+        user.setEmail("new@example.org");
+        manager.add(user, Collections.emptyList(), "test", "add Keycloak user");
+
+        assertNotNull(manager.find(user.getId()));
+        assertNull(user.getUserPassword());
+        assertNull(user.getRemoteName());
+        assertNull(user.getRemoteType());
+        UserProfile linked = manager.resolveKeycloakIdentity("https://sso.example.org/realms/proarc", "new-subject", "new@example.org");
+        assertNotNull(linked);
+        assertEquals(user.getId(), linked.getId());
+    }
+
+    @Test
+    public void keycloakIgnoresSubmittedPasswordsOnCreateAndUpdate() {
+        configuration.getAuthenticators().setProperty("authenticators", "keycloak");
+        UserProfile user = UserProfile.create("keycloakpassword", "123456", "Keycloak");
+        manager.add(user, Collections.emptyList(), "test", "add Keycloak user");
+        assertNull(manager.authenticate("keycloakpassword", "123456"));
+
+        user.setUserPassword("654321");
+        manager.update(user, "test", "update Keycloak user");
+        assertNull(manager.authenticate("keycloakpassword", "654321"));
+    }
+
+    @Test
+    public void localUsersStillRequireValidPasswords() {
+        configuration.getAuthenticators().setProperty("authenticators", "proarc");
+        for (String password : Arrays.asList(null, "", "12345")) {
+            UserProfile user = UserProfile.create("localuser", password, "Local");
+            assertThrows(IllegalArgumentException.class,
+                    () -> manager.add(user, Collections.emptyList(), "test", "add local user"));
+        }
+    }
+
+    @Test
     public void testAddUser() {
         String userName = "datel";
         String passwd = "123456";
@@ -147,6 +186,77 @@ public class UserManagerSqlTest {
         // invalid authentication
         authenticate = manager.authenticate(userName, "invalid");
         assertNull(authenticate);
+    }
+
+    @Test
+    public void keycloakLinksResolvesAndRelinksAfterReset() {
+        UserProfile local = manager.find(1);
+        local.setEmail("Person@Example.org");
+        manager.update(local, "test", "prepare link");
+        UserProfile linked = manager.resolveKeycloakIdentity("https://issuer", "subject", "person@example.org");
+        assertNotNull(linked);
+        assertEquals(local.getId(), linked.getId());
+        assertEquals("subject", manager.find(1).getRemoteName());
+        assertEquals("https://issuer", manager.find(1).getRemoteType());
+        assertNotNull(manager.resolveKeycloakIdentity("https://issuer", "subject", null));
+        assertNull(manager.resolveKeycloakIdentity("https://issuer", "other", "person@example.org"));
+        linked.setRemoteName("");
+        linked.setRemoteType("");
+        manager.update(linked, "test", "reset link");
+        assertNotNull(manager.resolveKeycloakIdentity("https://issuer", "other", "person@example.org"));
+    }
+
+    @Test
+    public void keycloakRefusesDuplicateEmailsAndPartialIdentity() {
+        UserProfile first = manager.find(1);
+        first.setEmail("same@example.org");
+        manager.update(first, "test", "email");
+        UserProfile second = manager.find(2);
+        second.setEmail("SAME@example.org");
+        manager.update(second, "test", "duplicate email");
+        assertNull(manager.resolveKeycloakIdentity("https://issuer", "subject", "same@example.org"));
+        second.setEmail("different@example.org");
+        manager.update(second, "test", "remove duplicate");
+        first.setRemoteType("https://issuer");
+        manager.update(first, "test", "partial identity");
+        assertNull(manager.resolveKeycloakIdentity("https://issuer", "subject", "same@example.org"));
+    }
+
+    @Test
+    public void concurrentKeycloakLinksCannotAssignOneIdentityToTwoAccounts() throws Exception {
+        UserProfile first = manager.find(1);
+        first.setEmail("first@example.org");
+        manager.update(first, "test", "email");
+        UserProfile second = manager.find(2);
+        second.setEmail("second@example.org");
+        manager.update(second, "test", "email");
+        java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+        try (java.util.concurrent.ExecutorService executor = java.util.concurrent.Executors.newFixedThreadPool(2)) {
+            java.util.concurrent.Callable<UserProfile> linkFirst = () -> concurrentLink(start, "first@example.org");
+            java.util.concurrent.Callable<UserProfile> linkSecond = () -> concurrentLink(start, "second@example.org");
+            java.util.concurrent.Future<UserProfile> a = executor.submit(linkFirst);
+            java.util.concurrent.Future<UserProfile> b = executor.submit(linkSecond);
+            start.countDown();
+            UserProfile resultA = a.get(10, java.util.concurrent.TimeUnit.SECONDS);
+            UserProfile resultB = b.get(10, java.util.concurrent.TimeUnit.SECONDS);
+            org.junit.jupiter.api.Assertions.assertTrue(resultA != null || resultB != null);
+            if (resultA != null && resultB != null) {
+                assertEquals(resultA.getId(), resultB.getId());
+            }
+        }
+        long linked = manager.findAll().stream().filter(u -> "subject".equals(u.getRemoteName())
+                && "https://issuer".equals(u.getRemoteType())).count();
+        assertEquals(1, linked);
+    }
+
+    private UserProfile concurrentLink(java.util.concurrent.CountDownLatch start, String email) throws Exception {
+        start.await();
+        try {
+            return manager.resolveKeycloakIdentity("https://issuer", "subject", email);
+        } catch (IllegalStateException conflict) {
+            // PostgreSQL may abort a competing serializable transaction. Never authenticate it.
+            return null;
+        }
     }
 
     @Test

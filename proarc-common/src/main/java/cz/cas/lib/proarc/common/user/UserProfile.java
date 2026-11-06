@@ -523,11 +523,15 @@ public class UserProfile {
     }
 
     void validateAsNew() {
+        validateAsNew(true);
+    }
+
+    void validateAsNew(boolean localPasswordRequired) {
         if (userName == null || !UserUtil.isValidUserName(userName)) {
             throw new IllegalArgumentException("Invalid user name: " + userName);
         }
 
-        if (remoteName == null) {
+        if (localPasswordRequired && remoteName == null) {
             if (userPassword == null || userPassword.length() < 6) {
                 throw new IllegalArgumentException("Invalid password");
             }

@@ -34,5 +34,8 @@ public interface UserDao extends Dao {
 
     void update(UserProfile user) throws ConcurrentModificationException;
 
+    /** Compare-and-set an empty identity, without changing permissions or other user data. */
+    boolean linkIdentity(int userId, String email, String issuer, String subject);
+
     void delete(Integer userId);
 }

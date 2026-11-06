@@ -21,6 +21,8 @@ import cz.cas.lib.proarc.common.dao.UserDao;
 import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.UserTable;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collection;
@@ -121,6 +123,25 @@ public class EmpireUserDao extends EmpireDao implements UserDao {
             return null;
         } finally {
             r.close();
+        }
+    }
+
+    @Override
+    public boolean linkIdentity(int userId, String email, String issuer, String subject) {
+        // The surrounding transaction is serializable; the conditional update also prevents
+        // overwriting a concurrent administrator edit or a competing identity link.
+        String sql = "UPDATE PROARC_USERS SET REMOTE_TYPE=?, REMOTE_NAME=?, TIMESTAMP=CURRENT_TIMESTAMP"
+                + " WHERE USERID=? AND LOWER(TRIM(EMAIL))=?"
+                + " AND (REMOTE_TYPE IS NULL OR TRIM(REMOTE_TYPE)='')"
+                + " AND (REMOTE_NAME IS NULL OR TRIM(REMOTE_NAME)='')";
+        try (PreparedStatement statement = getConnection().prepareStatement(sql)) {
+            statement.setString(1, issuer);
+            statement.setString(2, subject);
+            statement.setInt(3, userId);
+            statement.setString(4, email);
+            return statement.executeUpdate() == 1;
+        } catch (SQLException e) {
+            throw new IllegalStateException("Cannot link external identity", e);
         }
     }
 

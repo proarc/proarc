@@ -34,6 +34,7 @@ public class ApplicationInfo {
     String rdflowVersion;
     String storage;
     String database;
+    String loginType;
     String configFile;
     Boolean config;
     String languageCsFile;
@@ -180,6 +181,14 @@ public class ApplicationInfo {
 
     public String getStorageSizeCalculatedAt() {
         return storageUsage.calculatedAt();
+    }
+
+    public String getLoginType() {
+        return loginType;
+    }
+
+    public void setLoginType(String loginType) {
+        this.loginType = loginType;
     }
 
     public String getConfigFile() {

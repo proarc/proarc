@@ -121,8 +121,8 @@ class OpenApiSpecificationTest {
         assertEquals("../rest/v2", spec.getJSONArray("servers").getJSONObject(0).getString("url"));
 
         JSONObject paths = spec.getJSONObject("paths");
-        assertEquals(176, paths.length());
-        assertEquals(213, countOperations(paths));
+        assertEquals(179, paths.length());
+        assertEquals(217, countOperations(paths));
         assertTrue(paths.has("/authorities"));
         assertTrue(paths.has("/bibliographies/query"));
         assertTrue(paths.has("/device"));
@@ -447,7 +447,7 @@ class OpenApiSpecificationTest {
         JSONObject schemas = loadSpec()
                 .getJSONObject("components")
                 .getJSONObject("schemas");
-        assertEquals(249, schemas.length());
+        assertEquals(252, schemas.length());
 
         JSONObject response = schemas.getJSONObject("response");
         JSONObject properties = response.getJSONObject("properties");
@@ -564,7 +564,8 @@ class OpenApiSpecificationTest {
 
     @Test
     void allDocumentedEndpointsHaveOperationsAndResponses() throws Exception {
-        JSONObject paths = loadSpec().getJSONObject("paths");
+        JSONObject spec = loadSpec();
+        JSONObject paths = spec.getJSONObject("paths");
         Set<String> operationIds = new HashSet<>();
         int operationCount = 0;
         int responseCount = 0;
@@ -597,10 +598,18 @@ class OpenApiSpecificationTest {
                 for (String responseStatus : responses.keySet()) {
                     String responseName = operationName + " response " + responseStatus;
                     JSONObject response = responses.getJSONObject(responseStatus);
+                    if (response.has("$ref")) {
+                        String name = response.getString("$ref").substring("#/components/responses/".length());
+                        response = spec.getJSONObject("components").getJSONObject("responses").getJSONObject(name);
+                    }
                     responseCount++;
 
                     assertTrue(response.has("description"), responseName);
                     assertFalse(response.getString("description").isBlank(), responseName);
+                    if ("204".equals(responseStatus)) {
+                        assertFalse(response.has("content"), responseName);
+                        continue;
+                    }
                     assertTrue(response.has("content"), responseName);
 
                     JSONObject content = response.getJSONObject("content");
@@ -619,8 +628,29 @@ class OpenApiSpecificationTest {
             assertTrue(pathOperationCount > 0, path);
         }
 
-        assertEquals(213, operationCount);
-        assertEquals(213, responseCount);
+        assertEquals(217, operationCount);
+        assertTrue(responseCount > operationCount);
+    }
+
+    @Test
+    void documentsAuthenticationBootstrapBearerErrorsAndLocalLoginSeparately() throws Exception {
+        JSONObject spec = loadSpec();
+        JSONObject paths = spec.getJSONObject("paths");
+        JSONObject config = paths.getJSONObject("/auth/config").getJSONObject("get");
+        assertTrue(config.getJSONArray("security").isEmpty());
+        assertEquals("..", config.getJSONArray("servers").getJSONObject(0).getString("url"));
+        assertEquals("http", spec.getJSONObject("components").getJSONObject("securitySchemes")
+                .getJSONObject("bearerAuth").getString("type"));
+        assertEquals("bearer", spec.getJSONObject("components").getJSONObject("securitySchemes")
+                .getJSONObject("bearerAuth").getString("scheme"));
+        JSONObject user = paths.getJSONObject("/user").getJSONObject("get");
+        for (String status : List.of("401", "403", "503")) {
+            assertTrue(user.getJSONObject("responses").has(status));
+        }
+        assertTrue(paths.getJSONObject("/proarclogin").getJSONObject("post").getJSONObject("responses").has("403"));
+        assertTrue(paths.getJSONObject("/proarclogin").getJSONObject("delete").getJSONObject("responses").has("405"));
+        assertFalse(spec.getJSONObject("components").getJSONObject("schemas")
+                .getJSONObject("AuthenticationConfig").toString().contains("clientSecret"));
     }
 
     @Test
