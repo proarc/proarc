@@ -21,11 +21,61 @@ import javax.xml.transform.stream.StreamSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class MapperUtilsTest {
+
+    @ParameterizedTest
+    @CsvSource({
+        "20260603074411.0, 2026-06-03T07:44:11.000",
+        "20260603074411.1, 2026-06-03T07:44:11.100",
+        "20260603074411.123, 2026-06-03T07:44:11.123",
+        "20260603074411., 2026-06-03T07:44:11.000",
+        "20260603074411, 2026-06-03T07:44:11.000",
+        "20260603T074411.0, 2026-06-03T07:44:11.000",
+        "20260603T074411.1, 2026-06-03T07:44:11.100",
+        "20260603T074411, 20260603T074411",
+        "2026-06-03T07:44:11.000+02:00, 2026-06-03T07:44:11.000+02:00",
+        "2026-06-03T07:44:11Z, 2026-06-03T07:44:11Z",
+        "20260230074411.0, 20260230074411.0"
+    })
+    public void testFillRecordInfoNormalizesCatalogTimestamps(String value, String expected) {
+        ModsDefinition mods = new ModsDefinition();
+        RecordInfoDefinition recordInfo = new RecordInfoDefinition();
+        DateDefinition creationDate = new DateDefinition();
+        creationDate.setEncoding("iso8601");
+        creationDate.setValue(value);
+        recordInfo.getRecordCreationDate().add(creationDate);
+        DateDefinition changeDate = new DateDefinition();
+        changeDate.setEncoding("iso8601");
+        changeDate.setValue(value);
+        recordInfo.getRecordChangeDate().add(changeDate);
+        mods.getRecordInfo().add(recordInfo);
+
+        MapperUtils.fillRecordInfo(mods, NdkMetadataHandler.OPERATION_NEW);
+
+        assertEquals(expected, recordInfo.getRecordCreationDate().get(0).getValue());
+        assertEquals(expected, recordInfo.getRecordChangeDate().get(0).getValue());
+        assertEquals("iso8601", recordInfo.getRecordChangeDate().get(0).getEncoding());
+    }
+
+    @Test
+    public void testFillRecordInfoNormalizesImportedMarcTimestamp() throws Exception {
+        String marc = "<record xmlns=\"http://www.loc.gov/MARC21/slim\">"
+                + "<leader>00000nam a2200000 a 4500</leader>"
+                + "<controlfield tag=\"005\">20260603074411.0</controlfield>"
+                + "</record>";
+        ModsDefinition mods = ModsUtils.unmarshalModsType(new Transformers(null).transform(
+                new StreamSource(new StringReader(marc)), Transformers.Format.MarcxmlAsMods3));
+
+        MapperUtils.fillRecordInfo(mods, NdkMetadataHandler.OPERATION_NEW);
+
+        assertEquals("2026-06-03T07:44:11.000",
+                mods.getRecordInfo().get(0).getRecordChangeDate().get(0).getValue());
+    }
 
     @Test
     public void testFillRecordInfoWithMarcDate() {

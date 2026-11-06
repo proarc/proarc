@@ -50,10 +50,14 @@ import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.ResolverStyle;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * The mapping helper.
@@ -216,6 +220,7 @@ public final class MapperUtils {
         DateDefinition creationDate = null;
         for (DateDefinition date : recordCreationDates) {
             if ("iso8601".equals(date.getEncoding())) {
+                date.setValue(normalizeRecordDate(date.getValue()));
                 creationDate = date;
             } else if ("marc".equals(date.getEncoding())) {
                 String value = parseMarcDate(date.getValue());
@@ -244,6 +249,7 @@ public final class MapperUtils {
         if (NdkMetadataHandler.OPERATION_NEW.equals(operation)) {
             for (DateDefinition date : recordChangeDates) {
                 if ("iso8601".equals(date.getEncoding())) {
+                    date.setValue(normalizeRecordDate(date.getValue()));
                     changeDate = date;
                 } else if ("marc".equals(date.getEncoding())) {
                     String value = parseMarcDate(date.getValue());
@@ -276,6 +282,29 @@ public final class MapperUtils {
             note.setValue(recordInfo.getRecordOrigin().get(0).getValue());
             recordInfo.getRecordInfoNote().add(note);
             recordInfo.getRecordOrigin().get(0).setValue("machine generated");
+        }
+    }
+
+    /**
+     * Normalizes MARC 005 timestamps mislabeled as ISO 8601
+     */
+    private static String normalizeRecordDate(String value) {
+        if (value == null || !value.matches(
+                "[0-9]{14}(\\.[0-9]{0,3})?|[0-9]{8}T[0-9]{6}\\.[0-9]{0,3}")) {
+            return value;
+        }
+        DateTimeFormatter marcTimestamp = new DateTimeFormatterBuilder()
+                .appendPattern("uuuuMMddHHmmss")
+                .optionalStart()
+                .appendFraction(ChronoField.NANO_OF_SECOND, 0, 3, true)
+                .optionalEnd()
+                .toFormatter(Locale.ROOT)
+                .withResolverStyle(ResolverStyle.STRICT);
+        try {
+            LocalDateTime dateTime = LocalDateTime.parse(value.replace("T", ""), marcTimestamp);
+            return dateTime.format(DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSS"));
+        } catch (DateTimeException ex) {
+            return value;
         }
     }
 
