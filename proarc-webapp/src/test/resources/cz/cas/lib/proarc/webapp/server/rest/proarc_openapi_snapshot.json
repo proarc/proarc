@@ -9932,6 +9932,24 @@
       "ApplicationInfo": {
         "type": "object",
         "properties": {
+          "datastoreSize": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Sum of regular file sizes in bytes in the configured Akubra datastream store; excludes symbolic links and filesystem overhead. Refreshed in the background after startup and at server-local midnight. Null until the first successful measurement or for non-Akubra storage. On failure the last successful snapshot is retained."
+          },
+          "objectstoreSize": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Sum of regular file sizes in bytes in the configured Akubra object store, measured together with datastoreSize under the same rules."
+          },
+          "storageSizeCalculatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "UTC completion time of the last successful measurement of both stores. Null until a successful measurement; unchanged when a refresh fails."
+          },
           "version": {
             "type": "string"
           },

@@ -31,6 +31,27 @@ import jakarta.xml.bind.annotation.XmlElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class AnnotatedApplicationInfo extends ApplicationInfo {
 
+    @XmlElement(name = ApplicationResourceApi.DATASTORE_SIZE)
+    @JsonProperty(ApplicationResourceApi.DATASTORE_SIZE)
+    @Override
+    public Long getDatastoreSize() {
+        return super.getDatastoreSize();
+    }
+
+    @XmlElement(name = ApplicationResourceApi.OBJECTSTORE_SIZE)
+    @JsonProperty(ApplicationResourceApi.OBJECTSTORE_SIZE)
+    @Override
+    public Long getObjectstoreSize() {
+        return super.getObjectstoreSize();
+    }
+
+    @XmlElement(name = ApplicationResourceApi.STORAGE_SIZE_CALCULATED_AT)
+    @JsonProperty(ApplicationResourceApi.STORAGE_SIZE_CALCULATED_AT)
+    @Override
+    public String getStorageSizeCalculatedAt() {
+        return super.getStorageSizeCalculatedAt();
+    }
+
     @XmlElement(name = ApplicationResourceApi.VERSION)
     @JsonProperty(ApplicationResourceApi.VERSION)
     @Override

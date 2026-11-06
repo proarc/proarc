@@ -25,6 +25,7 @@ import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireConfiguration;
 import cz.cas.lib.proarc.common.dao.empiredb.EmpireDaoFactory;
 import cz.cas.lib.proarc.common.jobs.JobHandler;
+import cz.cas.lib.proarc.common.info.StorageUsage;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.process.BatchManager;
@@ -112,6 +113,11 @@ public final class ProarcInitializer {
         Authenticators.setInstance(new Authenticators(config.getAuthenticators()));
         initWorkflow(config, daoFactory, UserUtil.getDefaultManger());
         initSchedulers(config);
+        if (akubraConfiguration != null) {
+            StorageUsage.getInstance().start(
+                    new File(akubraConfiguration.getDatastreamStorePath()).toPath(),
+                    new File(akubraConfiguration.getObjectStorePath()).toPath());
+        }
         asyncTask = executor.submit(new Callable<Void>() {
 
             @Override
@@ -127,6 +133,7 @@ public final class ProarcInitializer {
      * Releases referenced resources.
      */
     public void destroy() {
+        StorageUsage.getInstance().close();
 //        LOG.info("Destroing " + AppConfiguration.FULL_VERSION);
 //        HazelcastServerNode hazelcastServerNode = new HazelcastServerNode();
 //        hazelcastServerNode.contextDestroyed(null);

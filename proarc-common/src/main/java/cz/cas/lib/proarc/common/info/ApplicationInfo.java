@@ -43,8 +43,10 @@ public class ApplicationInfo {
     String languageEnFile;
     Boolean languageEn;
     String error;
+    private StorageUsage.Snapshot storageUsage = new StorageUsage.Snapshot(null, null, null);
 
     public void initValues(AppConfiguration config, Boolean fullLoad) throws IOException {
+        this.storageUsage = StorageUsage.getInstance().getSnapshot();
         this.database = "PostgreSQL";
         this.version = config.getNdkExportOptions().getVersion();
         this.timestamp = config.getNdkExportOptions().getTimestamp();
@@ -166,6 +168,18 @@ public class ApplicationInfo {
 
     public String getDatabase() {
         return database;
+    }
+
+    public Long getDatastoreSize() {
+        return storageUsage.datastoreSize();
+    }
+
+    public Long getObjectstoreSize() {
+        return storageUsage.objectstoreSize();
+    }
+
+    public String getStorageSizeCalculatedAt() {
+        return storageUsage.calculatedAt();
     }
 
     public String getConfigFile() {
