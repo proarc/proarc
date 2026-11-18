@@ -8,7 +8,7 @@
     <groupId>cz.cas.lib.proarc</groupId>
     <artifactId>proarc</artifactId>
     <packaging>pom</packaging>
-    <version>5.1.5-SNAPSHOT</version>
+    <version>${revision}</version>
     <name>ProArc</name>
     <url>${proarc.wiki}</url>
 
@@ -43,7 +43,10 @@
     </modules>
 
     <properties>
-        <proarc.version>${project.version}</proarc.version>
+        <!-- Change the application version here for all modules. -->
+        <revision>5.1.6-DEV</revision>
+
+        <proarc.version>${revision}</proarc.version>
         <proarc.wiki>https://github.com/proarc/proarc/wiki</proarc.wiki>
 
         <!-- App settings -->
@@ -568,6 +571,32 @@
     <build>
 
         <plugins>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.8.0</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
