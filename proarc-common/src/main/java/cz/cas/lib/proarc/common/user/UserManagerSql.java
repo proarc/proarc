@@ -206,8 +206,10 @@ final class UserManagerSql implements UserManager {
         Transaction tx = daos.createTransaction();
         UserDao userDao = daos.createUser();
         GroupDao groupDao = daos.createUserGroup();
+        UserSettingDao userSettingDao = daos.createUserSettingDao();
         userDao.setTransaction(tx);
         groupDao.setTransaction(tx);
+        userSettingDao.setTransaction(tx);
         try {
             List<Group> userGroups = findUserGroups(userId);
             for (Group userGroup : userGroups) {
@@ -216,6 +218,7 @@ final class UserManagerSql implements UserManager {
                 }
             }
 
+            userSettingDao.deleteByUserId(userId);
             userDao.delete(userId);
             tx.commit();
         } catch (Throwable ex) {

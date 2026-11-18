@@ -32,5 +32,7 @@ public interface UserSettingDao extends Dao {
 
     List<UserSetting> findByUserId(int userId);
 
+    void deleteByUserId(int userId);
+
     void update(UserSetting userSetting) throws ConcurrentModificationException;
 }
