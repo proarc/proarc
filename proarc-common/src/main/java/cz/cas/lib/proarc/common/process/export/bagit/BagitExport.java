@@ -21,9 +21,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -164,8 +164,15 @@ public class BagitExport {
         StringBuilder checksumBuilder = new StringBuilder();
         for (File file : bagitFolder.listFiles()) {
 
-            byte[] bytes = Files.readAllBytes(Paths.get(file.getPath()));
-            byte[] hash = MessageDigest.getInstance("MD5").digest(bytes);
+            MessageDigest digest = MessageDigest.getInstance("MD5");
+            try (InputStream input = Files.newInputStream(file.toPath())) {
+                byte[] buffer = new byte[64 * 1024];
+                int bytesRead;
+                while ((bytesRead = input.read(buffer)) != -1) {
+                    digest.update(buffer, 0, bytesRead);
+                }
+            }
+            byte[] hash = digest.digest();
             String hashValue = DatatypeConverter.printHexBinary(hash);
 
             checksumBuilder.append("MD5").append(" ").append(hashValue.toLowerCase());
