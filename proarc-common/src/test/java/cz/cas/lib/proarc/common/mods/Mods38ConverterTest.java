@@ -59,7 +59,7 @@ public class Mods38ConverterTest {
 
     @Test
     public void rejectsUnsupportedVersion() {
-        ModsDefinition mods = mods("3.5", null);
+        ModsDefinition mods = mods("3.7", null);
         assertThrows(ConversionException.class,
                 () -> Mods38Converter.convertAndValidate(mods, "model:ndkpage"));
     }

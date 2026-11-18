@@ -365,14 +365,14 @@ public class ModsDataHandler {
 
     private void inheritOriginInfoExceptDateIssued(ModsDefinition defaultMods, List<OriginInfoDefinition> originInfo) {
         for (OriginInfoDefinition oi : originInfo) {
-            if (!ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION.equals(oi.getEventType())) {
+            if (oi.getEventType() != null
+                    && !ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION.equals(oi.getEventType())) {
                 continue;
             }
             OriginInfoDefinition newOi = new OriginInfoDefinition();
             newOi.getPlace().addAll(oi.getPlace());
             newOi.getEdition().addAll(oi.getEdition());
             newOi.getAgent().addAll(oi.getAgent());
-            newOi.setEventType(oi.getEventType());
             defaultMods.getOriginInfo().add(newOi);
         }
     }

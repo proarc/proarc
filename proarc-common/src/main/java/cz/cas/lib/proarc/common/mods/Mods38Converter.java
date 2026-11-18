@@ -31,7 +31,7 @@ import javax.xml.validation.Validator;
 /** Converts the supported legacy MODS records to MODS 3.8. */
 public final class Mods38Converter {
 
-    private static final Set<String> SOURCE_VERSIONS = new HashSet<>(Arrays.asList("3.4", "3.6"));
+    private static final Set<String> SOURCE_VERSIONS = new HashSet<>(Arrays.asList("3.4", "3.5", "3.6"));
     private static final Set<String> EVENT_TYPES = new HashSet<>(Arrays.asList(
             ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PUBLICATION,
             ModsConstants.VALUE_ORIGININFO_EVENTTYPE_PRODUCTION,

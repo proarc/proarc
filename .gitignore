@@ -1,4 +1,5 @@
 target/
+.flattened-pom.xml
 
 # NetBeans
 nbactions.xml

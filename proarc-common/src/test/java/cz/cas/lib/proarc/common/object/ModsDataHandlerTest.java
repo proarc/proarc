@@ -20,20 +20,25 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
 import cz.cas.lib.proarc.common.object.ndk.NdkAudioPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkClippingPlugin;
+import cz.cas.lib.proarc.common.object.ndk.NdkEbornPlugin;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.workflow.model.Job;
+import cz.cas.lib.proarc.mods.DateDefinition;
 import cz.cas.lib.proarc.mods.IdentifierDefinition;
 import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.NameDefinition;
 import cz.cas.lib.proarc.mods.OriginInfoDefinition;
+import cz.cas.lib.proarc.mods.PlaceDefinition;
 import cz.cas.lib.proarc.mods.RecordInfoDefinition;
 import cz.cas.lib.proarc.mods.StringPlusLanguagePlusAuthority;
+import cz.cas.lib.proarc.mods.StringPlusLanguagePlusSupplied;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import cz.cas.lib.proarc.mods.TypeOfResourceDefinition;
 import cz.cas.lib.proarc.mods.Yes;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -42,8 +47,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ModsDataHandlerTest {
@@ -176,6 +181,44 @@ public class ModsDataHandlerTest {
 
         assertSame(title, directory.getTitleInfo().get(0));
         assertEquals(List.of(NdkClippingPlugin.MODEL_CLIPPING_COLLECTION), handler.getSearchedModels());
+    }
+
+    @Test
+    public void periodicalIssueInheritsPublicationMetadataWithOrWithoutEventType() throws Exception {
+        for (String[] models : List.of(
+                new String[]{NdkPlugin.MODEL_PERIODICAL, NdkPlugin.MODEL_PERIODICALISSUE},
+                new String[]{NdkEbornPlugin.MODEL_EPERIODICAL, NdkEbornPlugin.MODEL_EPERIODICALISSUE})) {
+            for (String eventType : Arrays.asList(null, "publication")) {
+                ModsDefinition parent = new ModsDefinition();
+                OriginInfoDefinition origin = new OriginInfoDefinition();
+                PlaceDefinition place = new PlaceDefinition();
+                StringPlusLanguagePlusSupplied edition = new StringPlusLanguagePlusSupplied();
+                NameDefinition agent = new NameDefinition();
+                origin.getPlace().add(place);
+                origin.getEdition().add(edition);
+                origin.getAgent().add(agent);
+                DateDefinition date = new DateDefinition();
+                date.setValue("2026");
+                origin.getDateIssued().add(date);
+                parent.getOriginInfo().add(origin);
+                OriginInfoDefinition manufacture = new OriginInfoDefinition();
+                manufacture.setEventType("manufacture");
+                parent.getOriginInfo().add(manufacture);
+                TestModsDataHandler handler = createHandler();
+                handler.add(models[0], parent);
+                ModsDefinition child = handler.createDefaultMetadata(
+                        "uuid:issue", models[1], null, new Job().addModel(models[0]));
+
+                assertEquals(1, child.getOriginInfo().size());
+                OriginInfoDefinition inherited = child.getOriginInfo().get(0);
+                assertNotSame(origin, inherited);
+                assertSame(place, inherited.getPlace().get(0));
+                assertSame(edition, inherited.getEdition().get(0));
+                assertSame(agent, inherited.getAgent().get(0));
+                assertTrue(inherited.getDateIssued().isEmpty());
+                assertEquals("2026", origin.getDateIssued().get(0).getValue());
+            }
+        }
     }
 
     private TestModsDataHandler createHandler() throws Exception {

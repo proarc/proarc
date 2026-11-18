@@ -85,6 +85,13 @@ public final class EmpireUserSettingDao extends EmpireDao implements UserSetting
     }
 
     @Override
+    public void deleteByUserId(int userId) {
+        DBCommand cmd = db.createCommand();
+        cmd.where(table.userId.is(userId));
+        db.executeDelete(table, cmd, getConnection());
+    }
+
+    @Override
     public List<UserSetting> findByUserId(int userId) {
         BeanResult<UserSetting> beans = new BeanResult<>(UserSetting.class, table);
         DBCommand cmd = beans.getCommand();
