@@ -1,15 +1,15 @@
-package cz.cas.lib.proarc.common.process.export.bagit;
+package cz.cas.lib.proarc.common.process.external.bagit;
 
 import cz.cas.lib.proarc.common.process.external.ExternalProcess;
 import java.io.File;
 import java.util.List;
 import org.apache.commons.configuration2.Configuration;
 
-public class BagitProcess extends ExternalProcess {
+public class BagitExternalProcess extends ExternalProcess {
 
     private File exportFolder;
 
-    public BagitProcess(Configuration conf, File exportFolder) {
+    public BagitExternalProcess(Configuration conf, File exportFolder) {
         super(conf);
         this.exportFolder = exportFolder;
     }
