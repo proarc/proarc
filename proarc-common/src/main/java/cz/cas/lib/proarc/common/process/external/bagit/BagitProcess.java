@@ -29,15 +29,39 @@ public final class BagitProcess {
         this.user = user;
     }
 
+    public Batch plan(Batch source) throws IOException {
+        requireOwnedFinished(source);
+        if (!EXPORTS.contains(source.getProfileId())) throw new IOException("Source must be an NDK, archive or FOXML export");
+        if (source.getFolder() == null) throw new IOException("Zdrojová složka není určena.");
+        Path directory = Path.of(source.getFolder());
+        if (!Files.isDirectory(directory)) throw new MissingSourceDirectoryException(directory);
+        BatchParams params = new BatchParams(source.getParamsAsObject().getPids());
+        params.setSourceBatchId(source.getId());
+        return manager.add(params.getPids().get(0), user, Batch.EXTERNAL_BAGIT, Batch.State.EXTERNAL_PLANNED,
+                source.isNightOnly(), source.getPriority(), params);
+    }
+
+    /** Plans optional packaging after a completed export, retaining the automatic upload options. */
+    public Batch planAfterExport(Batch source) throws IOException {
+        BatchParams params = source.getParamsAsObject();
+        if (params.getNextBatchId() != null || !EXPORTS.contains(source.getProfileId())
+                || !(Boolean.TRUE.equals(params.isBagit()) || Boolean.TRUE.equals(params.isLtpCesnet()))
+                || (params.getKrameriusInstanceId() != null && !params.getKrameriusInstanceId().isEmpty()
+                    && !"local".equals(params.getKrameriusInstanceId()))) return null;
+        Batch next = plan(source);
+        BatchParams nextParams = next.getParamsAsObject();
+        nextParams.setLtpCesnet(params.isLtpCesnet());
+        nextParams.setConfirmCesnetUpload(params.getConfirmCesnetUpload());
+        save(next, nextParams);
+        params.setNextBatchId(next.getId());
+        params.setLtpCesnetToken(null);
+        save(source, params);
+        return next;
+    }
+
     public Batch run(Batch batch, BatchParams params) throws Exception {
         Batch source = manager.get(params.getSourceBatchId());
-        if (source == null || !Objects.equals(user.getId(), source.getUserId())) {
-            throw new IOException("Source batch not found or access denied");
-        }
-        if (source.getParamsAsObject() == null) throw new IOException("Source batch has no parameters");
-        if (source.getState() != Batch.State.EXPORT_DONE && source.getState() != Batch.State.EXPORT_WARNING) {
-            throw new IOException("Source batch must be completed");
-        }
+        requireOwnedFinished(source);
         if (!EXPORTS.contains(source.getProfileId())) throw new IOException("Invalid BagIt source profile");
         Path sourceRoot = Path.of(source.getFolder()).toAbsolutePath().normalize();
         String sourceName = sourceRoot.getFileName().toString();
@@ -167,6 +191,19 @@ public final class BagitProcess {
             if (!Files.isRegularFile(checksumFile(archive))) {
                 throw new IOException("BagIt checksum file no longer exists: " + checksumFile(archive));
             }
+        }
+    }
+
+    private void requireOwned(Batch source) throws IOException {
+        if (source == null || !Objects.equals(user.getId(), source.getUserId())) throw new IOException("Source batch not found or access denied");
+        if (source.getParamsAsObject() == null) throw new IOException("Source batch has no parameters");
+    }
+
+    private void requireOwnedFinished(Batch source) throws IOException {
+        requireOwned(source);
+        boolean finished = source.getState() == Batch.State.EXPORT_DONE || source.getState() == Batch.State.EXPORT_WARNING;
+        if (!finished) {
+            throw new IOException("Source batch must be completed");
         }
     }
 
