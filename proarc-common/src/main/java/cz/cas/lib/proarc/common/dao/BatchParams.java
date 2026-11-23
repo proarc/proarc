@@ -41,6 +41,16 @@ public class BatchParams {
     private String notBefore;
     private String notAfter;
     private Boolean generatePageType;
+    private Integer sourceBatchId;
+    private Integer nextBatchId;
+    private List<String> bagitArchives;
+    private List<String> completedPackageSources;
+    private Boolean bagitComplete;
+    private List<String> completedUploads;
+    private Boolean confirmCesnetUpload;
+    private String cesnetOperationId;
+    private Integer cesnetCredentialOwnerId;
+    private List<String> rawScanFolders;
 
     public BatchParams() {
     }
@@ -64,7 +74,7 @@ public class BatchParams {
         this.krameriusImportInstanceId = krameriusImportInstanceId;
     }
 
-    public BatchParams(List<String> pids, String typeOfPackage, Boolean ignoreMissingUrnNbn, Boolean bagit, String noTifAvailableMessage, String additionalInfoMessage, Boolean extendedArchivePackage) {
+    public BatchParams(List<String> pids, String typeOfPackage, Boolean ignoreMissingUrnNbn, Boolean bagit, String noTifAvailableMessage, String additionalInfoMessage, Boolean extendedArchivePackage, Boolean ltpCesnet) {
         this.pids = pids;
         this.typeOfPackage = typeOfPackage;
         this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
@@ -72,15 +82,15 @@ public class BatchParams {
         this.noTifAvailableMessage = noTifAvailableMessage;
         this.additionalInfoMessage = additionalInfoMessage;
         this.extendedArchivePackage = extendedArchivePackage;
+        this.ltpCesnet = ltpCesnet;
     }
 
-    public BatchParams(List<String> pids, String typeOfPackage, Boolean ignoreMissingUrnNbn, Boolean bagit, Boolean ltpCesnet, String ltpCesnetToken, String krameriusInstanceId, String policy, String license) {
+    public BatchParams(List<String> pids, String typeOfPackage, Boolean ignoreMissingUrnNbn, Boolean bagit, Boolean ltpCesnet, String krameriusInstanceId, String policy, String license) {
         this.pids = pids;
         this.typeOfPackage = typeOfPackage;
         this.ignoreMissingUrnNbn = ignoreMissingUrnNbn;
         this.bagit = bagit;
         this.ltpCesnet = ltpCesnet;
-        this.ltpCesnetToken = ltpCesnetToken;
         this.krameriusInstanceId = krameriusInstanceId;
         this.policy = policy;
         this.license = license;
@@ -378,5 +388,81 @@ public class BatchParams {
 
     public void setCatalogId(String catalogId) {
         this.catalogId = catalogId;
+    }
+
+    @XmlElement(name = "sourceBatchId")
+    public Integer getSourceBatchId() {
+        return sourceBatchId;
+    }
+
+    public void setSourceBatchId(Integer sourceBatchId) {
+        this.sourceBatchId = sourceBatchId;
+    }
+
+    @XmlElement(name = "nextBatchId")
+    public Integer getNextBatchId() {
+        return nextBatchId;
+    }
+
+    public void setNextBatchId(Integer nextBatchId) {
+        this.nextBatchId = nextBatchId;
+    }
+
+    @XmlElement(name = "bagitArchives")
+    public List<String> getBagitArchives() {
+        return bagitArchives;
+    }
+
+    public void setBagitArchives(List<String> bagitArchives) {
+        this.bagitArchives = bagitArchives;
+    }
+
+    @XmlElement(name = "completedPackageSources")
+    public List<String> getCompletedPackageSources() {
+        return completedPackageSources;
+    }
+
+    public void setCompletedPackageSources(List<String> completedPackageSources) {
+        this.completedPackageSources = completedPackageSources;
+    }
+
+    @XmlElement(name = "bagitComplete")
+    public Boolean getBagitComplete() {
+        return bagitComplete;
+    }
+
+    public void setBagitComplete(Boolean bagitComplete) {
+        this.bagitComplete = bagitComplete;
+    }
+
+    @XmlElement(name = "completedUploads")
+    public List<String> getCompletedUploads() {
+        return completedUploads;
+    }
+
+    public void setCompletedUploads(List<String> completedUploads) {
+        this.completedUploads = completedUploads;
+    }
+
+    @XmlElement(name = "confirmCesnetUpload")
+    public Boolean getConfirmCesnetUpload() { return confirmCesnetUpload; }
+    public void setConfirmCesnetUpload(Boolean value) { confirmCesnetUpload = value; }
+
+    @XmlElement(name = "cesnetOperationId")
+    public String getCesnetOperationId() { return cesnetOperationId; }
+    public void setCesnetOperationId(String value) { cesnetOperationId = value; }
+
+    /** ProArc user supplying temporary credentials, never the token itself. */
+    @XmlElement(name = "cesnetCredentialOwnerId")
+    public Integer getCesnetCredentialOwnerId() { return cesnetCredentialOwnerId; }
+    public void setCesnetCredentialOwnerId(Integer value) { cesnetCredentialOwnerId = value; }
+
+    @XmlElement(name = "rawScanFolders")
+    public List<String> getRawScanFolders() {
+        return rawScanFolders;
+    }
+
+    public void setRawScanFolders(List<String> rawScanFolders) {
+        this.rawScanFolders = rawScanFolders;
     }
 }

@@ -288,7 +288,20 @@ public class BatchManager {
             return "";
         }
         StringBuilder sb = new StringBuilder();
-        if (profileId.startsWith("exportProfile") || profileId.startsWith("uploadProfile")) {
+        if (params.getSourceBatchId() != null) {
+            sb.append("Source batch: ").append(params.getSourceBatchId()).append("\n");
+        }
+        if (params.getNextBatchId() != null) {
+            sb.append("Next batch: ").append(params.getNextBatchId()).append("\n");
+        }
+        if (params.getBagitArchives() != null) {
+            sb.append("BagIt archives: ").append(params.getBagitArchives()).append("\n");
+        }
+        if (params.getCompletedUploads() != null) {
+            sb.append("Uploaded archives: ").append(params.getCompletedUploads()).append("\n");
+        }
+        if (profileId.startsWith("exportProfile") || profileId.startsWith("uploadProfile")
+                || Batch.EXTERNAL_BAGIT.equals(profileId) || Batch.EXTERNAL_CESNET.equals(profileId)) {
             if (params.getTypeOfPackage() != null && !params.getTypeOfPackage().isEmpty()) {
                 sb.append("Typ exportu: ").append(params.getTypeOfPackage()).append("\n");
             }
@@ -559,6 +572,17 @@ public class BatchManager {
             tx.close();
         }
 
+    }
+
+    public List<Batch> findWaitingCesnetBatches() {
+        BatchDao batchDao = daos.createBatch();
+        Transaction tx = daos.createTransaction();
+        batchDao.setTransaction(tx);
+        try {
+            return batchDao.findWaitingCesnetBatches();
+        } finally {
+            tx.close();
+        }
     }
 
     public List<Batch> findBatch(String pid, String processProfile, State state) {

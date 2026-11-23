@@ -1,3 +1,17 @@
+### Create BagIt from an existing completed export (response exportId is the BagIt batch)
+POST {{proarcUrl}}/rest/v2/export/bagit
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded
+
+sourceBatchId={{exportBatchId}}
+
+### Upload retained BagIt; reuse this request with the failed upload batch ID to retry using configured credentials
+POST {{proarcUrl}}/rest/v2/export/cesnet
+Accept: application/json
+Content-Type: application/x-www-form-urlencoded
+
+sourceBatchId={{bagitOrFailedUploadBatchId}}
+
 ### LOGIN
 POST {{proarcUrl}}/proarclogin
 Accept: application/json
@@ -466,7 +480,7 @@ POST {{proarcUrl}}/rest/v2/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-pid=uuid:4d696c27-9253-41a6-bb24-9c0b6fdde49b&ltpCesnet=true&ltpCesnetToken=0c291bf25d646a50757188da518e74d13322ed48e4fb0cc2bc8df0332f32b0f3
+pid=uuid:4d696c27-9253-41a6-bb24-9c0b6fdde49b&ltpCesnet=true
 
 ###
 POST {{proarcUrl}}/rest/v2/object/unlockObject
@@ -488,7 +502,7 @@ POST {{proarcUrl}}/rest/v2/export/ndk
 Accept: application/json
 Content-Type: application/x-www-form-urlencoded; charset=UTF-8
 
-pid=uuid:0d8c130c-a170-4ca7-a20b-c4b8870cea5d&ltpCesnet=true&ltpCesnetToken=0c291bf25d646a50757188da518e74d13322ed48e4fb0cc2bc8df0332f32b0f3
+pid=uuid:0d8c130c-a170-4ca7-a20b-c4b8870cea5d&ltpCesnet=true
 
 
 select id, "CREATE", state from proarc_batch where folder = 'uuid:ed2ae08a-2333-4acb-80e2-c2722171ac9e';

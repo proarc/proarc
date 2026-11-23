@@ -154,6 +154,28 @@ public class EmpireBatchDaoTest {
     }
 
     @Test
+    public void waitingForTokenIsPersistedAndExcludedFromAutomaticStartupAndRunningQueues() throws Exception {
+        support.cleanInsert(support.getConnection(tx), database(
+                support.loadFlatXmlDataStream(getClass(), "user.xml"),
+                support.loadFlatXmlDataStream(getClass(), "batch.xml")));
+        tx.commit();
+        Batch batch = dao.find(1);
+        batch.setProfileId(Batch.EXTERNAL_CESNET);
+        batch.setState(State.WAITING_FOR_TOKEN);
+        batch.setUpdated(new Timestamp(System.currentTimeMillis()));
+        dao.update(batch);
+        tx.commit();
+        assertEquals(State.WAITING_FOR_TOKEN, dao.find(1).getState());
+        assertEquals(List.of(1), dao.findWaitingCesnetBatches().stream().map(Batch::getId).toList());
+        assertTrue(dao.findWaitingInternalExternalBatches().stream().noneMatch(b -> b.getId() == 1));
+        assertTrue(dao.findIntenalExternalRunningBatches().stream().noneMatch(b -> b.getId() == 1));
+        batch.setState(State.STOPPED);
+        dao.update(batch);
+        tx.commit();
+        assertTrue(dao.findWaitingCesnetBatches().isEmpty());
+    }
+
+    @Test
     public void testUpdateConcurrently() throws Exception {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(getClass(), "user.xml"),

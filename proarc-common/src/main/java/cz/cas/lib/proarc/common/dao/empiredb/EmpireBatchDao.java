@@ -163,7 +163,9 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     @Override
     public List<Batch> findWaitingInternalBatches() {
         BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
-        result.getCommand().where(table.state.is(State.INTERNAL_PLANNED));
+        result.getCommand().where(table.state.is(State.INTERNAL_PLANNED).or(
+                table.state.is(State.EXTERNAL_PLANNED).and(
+                        table.profileId.is(Batch.EXTERNAL_BAGIT).or(table.profileId.is(Batch.EXTERNAL_CESNET)))));
         result.fetch(getConnection());
         return Collections.unmodifiableList(result);
     }
@@ -171,7 +173,19 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     @Override
     public List<Batch> findIntenalRunningBatches() {
         BeanResult<Batch> result = new BeanResult<Batch>(Batch.class, table);
-        result.getCommand().where(table.state.is(State.INTERNAL_RUNNING));
+        result.getCommand().where(table.state.is(State.INTERNAL_RUNNING).or(
+                table.state.is(State.EXTERNAL_RUNNING).and(
+                        table.profileId.is(Batch.EXTERNAL_BAGIT).or(table.profileId.is(Batch.EXTERNAL_CESNET)))));
+        result.fetch(getConnection());
+        return Collections.unmodifiableList(result);
+    }
+
+    @Override
+    public List<Batch> findWaitingCesnetBatches() {
+        BeanResult<Batch> result = new BeanResult<>(Batch.class, table);
+        result.getCommand().where(table.state.is(State.WAITING_FOR_TOKEN));
+        result.getCommand().where(table.profileId.is(Batch.EXTERNAL_CESNET));
+        result.getCommand().orderBy(table.create, true);
         result.fetch(getConnection());
         return Collections.unmodifiableList(result);
     }
