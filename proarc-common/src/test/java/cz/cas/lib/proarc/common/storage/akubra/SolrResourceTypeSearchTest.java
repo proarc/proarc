@@ -22,6 +22,22 @@ class SolrResourceTypeSearchTest {
     @Mocked SolrClient client;
     @Mocked QueryResponse response;
 
+    @Test
+    void ltpFiltersAreEscapedProviderQualifiedAndSharedByRowsAndCounts() throws Exception {
+        SolrSearchView search = search();
+        String malicious = "42\" OR *:*";
+        search.setPreservationFilter("cesnet:STORED", malicious);
+        search.findAdvancedSearchItems(true, null, null, null, null, null, null, null, null, "modified", "desc", 0, 100, null);
+        search.findAdvancedSearchCount(true, null, null, null, null, null, null, null, null, null);
+        new Verifications() {{
+            List<SolrQuery> queries = new ArrayList<>();
+            client.query(withCapture(queries)); times = 2;
+            assertArrayEquals(queries.get(0).getFilterQueries(), queries.get(1).getFilterQueries());
+            assertTrue(Arrays.asList(queries.get(0).getFilterQueries()).contains(
+                    "ltpProviderId:\"" + ClientUtils.escapeQueryChars("cesnet:" + malicious) + "\""));
+        }};
+    }
+
     private SolrSearchView search() throws Exception {
         SolrDocumentList documents = new SolrDocumentList();
         documents.setNumFound(250);
@@ -30,6 +46,17 @@ class SolrResourceTypeSearchTest {
             response.getResults(); result = documents;
         }};
         return new SolrSearchView(null, client);
+    }
+
+    @Test
+    void unqualifiedLtpIdSearchUsesSingleCurrentIdField() throws Exception {
+        SolrSearchView search = search();
+        search.setPreservationFilter(null, " 23 ");
+        search.findAdvancedSearchItems(true, null, null, null, null, null, null, null, null, "modified", "desc", 0, 100, null);
+        new Verifications() {{
+            SolrQuery query; client.query(query = withCapture()); times = 1;
+            assertTrue(Arrays.asList(query.getFilterQueries()).contains("ltpId:\"23\""));
+        }};
     }
 
     @Test

@@ -95,7 +95,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
             addOrUpdateDescriptionDocument(pid, model, owner, label, state, created, modified, organization, user, status,
                     ndkExport, krameriusExport, archiveExport, crossrefExport, isLocked, device, software, members,
                     pageIndex, pageType, pageNumber, pagePosition, genre, urnNbn, descriptionStandard, partNumber, identifiers,
-                    resources, insertNewDocument);
+                    resources, insertNewDocument, relationEditor.getArchivInfo());
             if (commit) {
                 commit();
             }
@@ -106,7 +106,8 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
 
     private UpdateResponse addOrUpdateDescriptionDocument(String pid, String model, String owner, String label, String state, String created, String modified, String organization, String user,
                                                           String status, String ndkExport, String krameriusExport, String archiveExport, String crossrefExport, Boolean isLocked, String device, String software, List<String> members, String pageIndex,
-                                                          String pageType, String pageNumber, String pagePosition, String genre, String urnNbn, String descriptionStandatd, String partNumber, String[] identifiers, List<String> resources, boolean insertNewDocument) throws SolrServerException, IOException {
+                                                          String pageType, String pageNumber, String pagePosition, String genre, String urnNbn, String descriptionStandatd, String partNumber, String[] identifiers, List<String> resources, boolean insertNewDocument,
+                                                          cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo archivInfo) throws SolrServerException, IOException {
         SolrInputDocument sdoc = new SolrInputDocument();
         sdoc.addField(FIELD_SOURCE, pid);
         sdoc.addField(FIELD_PID, pid);
@@ -140,6 +141,7 @@ public class SolrObjectFeeder extends ProcessingIndexFeeder {
         sdoc.addField(FIELD_IDENTIFIRES, addOrUpdateParameter(identifiers, insertNewDocument));
         sdoc.addField(FIELD_TYPE_OF_RESOURCE, addOrUpdateParameter(resources.isEmpty() ? null : resources, insertNewDocument));
 
+        cz.cas.lib.proarc.common.externalApp.ltp.PreservationIndex.addFields(sdoc, archivInfo, insertNewDocument);
         return feedDescriptionDocument(sdoc);
     }
 

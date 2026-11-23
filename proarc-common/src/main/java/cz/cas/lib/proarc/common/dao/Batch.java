@@ -65,6 +65,8 @@ public class Batch {
     public static final String EXTERNAL_PERO = "externalProfile.pero";
     public static final String EXTERNAL_BAGIT = "externalProfile.bagit";
     public static final String EXTERNAL_CESNET = "externalProfile.cesnet";
+    public static final String EXTERNAL_CESNET_CHECK = "externalProfile.cesnetCheck";
+    public static final String EXTERNAL_CESNET_CATALOG = "externalProfile.cesnetCatalog";
     public static final String EXTERNAL_PDFA = "externalProfile.pdfa";
     public static final String EXTERNAL_THUMBNAIL = "externalProfile.thumbnail";
 
@@ -77,7 +79,7 @@ public class Batch {
         UPLOADING, UPLOAD_FAILED, UPLOAD_WARNING, UPLOAD_DONE,
         INTERNAL_RUNNING, INTERNAL_PLANNED, INTERNAL_FAILED, INTERNAL_WARNING, INTERNAL_DONE,
         EXTERNAL_RUNNING, EXTERNAL_PLANNED, EXTERNAL_FAILED, EXTERNAL_DONE, EXTERNAL_EDITING,
-        STOPPED, WAITING_FOR_TOKEN
+        STOPPED, WAITING_CESNET_TOKEN
     }
 
     private Integer id;

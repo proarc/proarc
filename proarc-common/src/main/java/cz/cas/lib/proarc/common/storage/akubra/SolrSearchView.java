@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.common.storage.akubra;
 
 import cz.cas.lib.proarc.common.device.DeviceRepository;
+import cz.cas.lib.proarc.common.externalApp.ltp.PreservationIndex;
 import cz.cas.lib.proarc.common.object.model.MetaModelUtils;
 import cz.cas.lib.proarc.common.object.ndk.NdkPlugin;
 import cz.cas.lib.proarc.common.object.oldprint.OldPrintPlugin;
@@ -79,6 +80,13 @@ public class SolrSearchView extends SearchView {
     private final AkubraStorage storage;
     private final SolrClient solrClient;
     private boolean allowDevicesAndSoftware;
+    private String ltpProviderState;
+    private String ltpPackageId;
+
+    @Override public void setPreservationFilter(String providerState, String packageId) {
+        ltpProviderState = providerState;
+        ltpPackageId = packageId;
+    }
 
     @Override
     public Map<String, Long> countObjectsByModel(String organization, boolean active) throws IOException {
@@ -632,6 +640,19 @@ public class SolrSearchView extends SearchView {
 
     private List<String> defaultFilterQuery() {
         List<String> defaultFilterQuery = new ArrayList<>();
+        if (ltpProviderState != null && !ltpProviderState.isBlank()) {
+            defaultFilterQuery.add(PreservationIndex.STATES + ":\"" + ClientUtils.escapeQueryChars(ltpProviderState.trim()) + "\"");
+        }
+        if (ltpPackageId != null && !ltpPackageId.isBlank()) {
+            String id = ltpPackageId.trim();
+            boolean qualified = id.matches("[A-Za-z][A-Za-z0-9_-]*:.*");
+            if (!qualified && ltpProviderState != null && ltpProviderState.contains(":")) {
+                id = ltpProviderState.substring(0, ltpProviderState.indexOf(':')) + ":" + id;
+                qualified = true;
+            }
+            defaultFilterQuery.add((qualified ? PreservationIndex.PROVIDER_ID : PreservationIndex.ID)
+                    + ":\"" + ClientUtils.escapeQueryChars(id) + "\"");
+        }
         if (!allowDevicesAndSoftware) {
             defaultFilterQuery.add("-" + FIELD_MODEL + ":\"" + ClientUtils.escapeQueryChars(DeviceRepository.METAMODEL_ID) + "\"");
             defaultFilterQuery.add("-" + FIELD_MODEL + ":\"" + ClientUtils.escapeQueryChars(DeviceRepository.METAMODEL_AUDIODEVICE_ID) + "\"");

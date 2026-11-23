@@ -16,6 +16,8 @@
  */
 package cz.cas.lib.proarc.common.storage.relation;
 
+import cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo;
+import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAnyElement;
@@ -33,6 +35,27 @@ import org.w3c.dom.Element;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 public class RdfDescription {
+
+    @XmlElement(name = "archivInfo", namespace = Relations.PROARC_RELS_NS)
+    private ArchivInfo archivInfo;
+
+    // Read older RELS-EXT records, but always write the current name.
+    @XmlElement(name = "preservation", namespace = Relations.PROARC_RELS_NS)
+    private ArchivInfo preservation;
+
+    private void afterUnmarshal(Unmarshaller unmarshaller, Object parent) {
+        if (archivInfo == null) archivInfo = preservation;
+        preservation = null;
+    }
+
+    /** The current LTP package; replacing it does not retain older submissions. */
+    public ArchivInfo getArchivInfo() {
+        return archivInfo;
+    }
+
+    public void setArchivInfo(ArchivInfo archivInfo) {
+        this.archivInfo = archivInfo;
+    }
 
     @XmlElement(namespace = Relations.PROARC_RELS_NS)
     private RdfRelation organization;

@@ -240,6 +240,12 @@ import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermissio
 @Path(URL_API_VERSION_1 + "/" + DigitalObjectResourceApi.PATH)
 public class DigitalObjectResourceV1 {
 
+    /** Provider-qualified state, e.g. cesnet:STORED; injected per REST request. */
+    @QueryParam("ltpState")
+    protected String searchLtpState;
+    @QueryParam("ltpId")
+    protected String searchLtpId;
+
     private static final Logger LOG = Logger.getLogger(DigitalObjectResourceV1.class.getName());
 
     private final AppConfiguration appConfig;
@@ -561,6 +567,7 @@ public class DigitalObjectResourceV1 {
         } else {
             throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
         }
+        search.setPreservationFilter(searchLtpState, searchLtpId);
         String organization = user.hasAllObjectsFunction() ? null : user.getOrganization();
 
         List<SearchViewItem> items;

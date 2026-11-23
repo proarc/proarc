@@ -609,6 +609,11 @@
                   "nightOnly": {
                     "type": "boolean",
                     "default": false
+                  },
+                  "ltpCesnetToken": {
+                    "type": "string",
+                    "writeOnly": true,
+                    "description": "CESNET application token. Optional when a validated token is already cached for the current ProArc user and API destination. Kept only in server memory for at most eight hours from entry; reuse does not extend expiry. Never stored in batch parameters or returned to clients."
                   }
                 }
               }
@@ -635,7 +640,8 @@
               }
             }
           }
-        }
+        },
+        "description": " When ltpCesnet=true, a user may request export, BagIt packaging and CESNET upload without providing a token or having CESNET access. If a token is explicitly supplied, it is validated and remembered per user. Export and packaging run without cached credentials. Missing, expired or rejected credentials at upload time put the CESNET batch into WAITING_CESNET_TOKEN and retain archives and completed-upload checkpoints. An authorized operator can release all waiting uploads via POST /export/cesnet/resume using one token; neither export nor BagIt is repeated. Tokens are never stored with batches."
       }
     },
     "/export/cejsh": {
@@ -977,6 +983,7 @@
           "Export"
         ],
         "operationId": "newNdkExport",
+        "description": "When ltpCesnet=true, previously uploaded package units require confirmation before any export batch is scheduled. The response data[0] has confirmationRequired=true and warnings with pid, packageId, state and message. Repeat with confirmCesnetUpload=true after user consent to create an independent package and replace the tracked LTP submission. Consent is persisted through export, BagIt packaging and upload. When ltpCesnet=true, a user may request export, BagIt packaging and CESNET upload without providing a token or having CESNET access. If a token is explicitly supplied, it is validated and remembered per user. Export and packaging run without cached credentials. Missing, expired or rejected credentials at upload time put the CESNET batch into WAITING_CESNET_TOKEN and retain archives and completed-upload checkpoints. An authorized operator can release all waiting uploads via POST /export/cesnet/resume using one token; neither export nor BagIt is repeated. Tokens are never stored with batches.",
         "requestBody": {
           "content": {
             "*/*": {
@@ -1005,7 +1012,14 @@
                     "default": false
                   },
                   "ltpCesnetToken": {
-                    "type": "string"
+                    "type": "string",
+                    "writeOnly": true,
+                    "description": "CESNET application token. Optional when a validated token is already cached for the current ProArc user and API destination. Kept only in server memory for at most eight hours from entry; reuse does not extend expiry. Never stored in batch parameters or returned to clients."
+                  },
+                  "confirmCesnetUpload": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "User consent to replace the tracked LTP submission with a new independent package."
                   },
                   "krameriusInstance": {
                     "type": "string"
@@ -1114,6 +1128,275 @@
           },
           "default": {
             "description": "default response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/export/bagit": {
+      "post": {
+        "tags": ["Export"],
+        "operationId": "createBagit",
+        "description": "Schedule an externalProfile.bagit batch (EXTERNAL_PLANNED/RUNNING/DONE/FAILED) from a completed NDK, archive or FOXML export owned by the current user. The source export is deleted only after all BagIt ZIPs and checksum files are completed and recorded; failed packaging retains the source. Completed ZIPs are retained for repeatable upload. The response contains the new batch ID. Existing isBagit/ltpCesnet options automatically chain separate batches; each stage has its own state.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": ["sourceBatchId"],
+                "properties": {
+                  "sourceBatchId": {"type": "integer", "format": "int32", "minimum": 1}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {"$ref": "#/components/responses/AuthenticationRequired"},
+          "403": {"$ref": "#/components/responses/AccessForbidden"},
+          "503": {"$ref": "#/components/responses/AuthenticationUnavailable"},
+          "default": {
+            "description": "Scheduled stage, confirmation required (no stage scheduled), or validation error",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/response"}}}
+          }
+        }
+      }
+    },
+    "/export/cesnet/check": {
+      "post": {
+        "tags": ["Export"],
+        "operationId": "checkCesnet",
+        "description": "Schedule a new externalProfile.cesnetCheck process and return its exportId; status and errors are stored in its process log. Requires allObjectsFunction; importToCatalogFunction is not required for the check. Validate an optional supplied CESNET application token or reuse the current user's cached token. Catalog configuration is optional. Stored packages with a catalogId are passed to a separate externalProfile.cesnetCatalog process, which requires importToCatalogFunction and keeps its own log. Packages without catalogId finish without catalog writes. Individual failures do not stop other packages; the check process is marked failed if any checks fail.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ltpCesnetToken": {
+                    "type": "string",
+                    "writeOnly": true,
+                    "description": "Optional application token to validate and cache for the current user. Omit to reuse the cached token. Never returned or stored with objects."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "default": {"description": "ProArc response; data[0].exportId identifies the new check process.", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/response"}}}},
+          "401": {"$ref": "#/components/responses/AuthenticationRequired"},
+          "403": {"$ref": "#/components/responses/AccessForbidden"}
+        }
+      }
+    },
+    "/export/cesnet/resume": {
+      "post": {
+        "tags": [
+          "Export"
+        ],
+        "operationId": "resumeCesnet",
+        "description": "Validate one supplied or cached CESNET application token and release all currently WAITING_CESNET_TOKEN CESNET batches, including batches owned by other users. Requires both allObjectsFunction and importToCatalogFunction, catalog-write permission is required for queue resume even though CESNET reconciliation only requires allObjectsFunction. Permission and token are checked before any batch changes. Preserve original batch owners, source archives, operation IDs, upload confirmation and completed-upload checkpoints; persist only the credential owner ID, never the token. Already planned/running/completed/stopped/failed batches are not released. Concurrent or repeated resume requests do not enqueue the same waiting batch twice. Missing, expired or rejected credentials during the resumed upload return it to WAITING_CESNET_TOKEN. Exports and BagIt packaging are not repeated. A restart forgets credentials but retains waiting batches. data[0] contains resumedBatchIds (integer array) and failures (array of batchId/message); enqueue failures remain waiting. A newly prepared batch which starts waiting after this call requires another explicit resume.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ltpCesnetToken": {
+                    "type": "string",
+                    "writeOnly": true,
+                    "description": "Application token to validate and cache for the current queue operator. Omit to reuse that operator's cached token. Never stored with batches or returned."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
+          "default": {
+            "description": "Token status only; credentials are never returned. Errors use the standard ProArc error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/export/cesnet/token": {
+      "get": {
+        "tags": [
+          "Export"
+        ],
+        "operationId": "cesnetTokenStatus",
+        "description": "Read local CESNET token status for the authenticated user. data[0] contains present (boolean) and expiresAt (UTC ISO-8601 string or null). This does not contact CESNET. Credentials are never returned.",
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
+          "default": {
+            "description": "Token status only; credentials are never returned. Errors use the standard ProArc error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Export"
+        ],
+        "operationId": "validateCesnetToken",
+        "description": "Validate a supplied or remembered token with CESNET GET /auth/account/. Remember a new valid token in server memory for at most eight hours per user and API destination. Reusing it does not extend expiry. Restart, explicit reset, expiry or an API HTTP 401 makes a new token necessary. HTTP 403 and connectivity/server errors do not evict a saved token. data[0] contains present and expiresAt; errors use the standard ProArc error response. This does not schedule an export. This endpoint does not release waiting uploads; use POST /export/cesnet/resume for that explicit action.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ltpCesnetToken": {
+                    "type": "string",
+                    "writeOnly": true,
+                    "description": "CESNET application token. Optional when a validated token is already cached for the current ProArc user and API destination. Kept only in server memory for at most eight hours from entry; reuse does not extend expiry. Never stored in batch parameters or returned to clients."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
+          "default": {
+            "description": "Token status only; credentials are never returned. Errors use the standard ProArc error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Export"
+        ],
+        "operationId": "forgetCesnetToken",
+        "description": "Forget the authenticated user's cached token for the configured CESNET API. Subsequent authenticated requests, including requests from already opened upload clients, require a token again. This does not revoke the token at CESNET. Returns present=false and expiresAt=null.",
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
+          "default": {
+            "description": "Token status only; credentials are never returned. Errors use the standard ProArc error response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/export/cesnet": {
+      "post": {
+        "tags": [
+          "Export"
+        ],
+        "operationId": "uploadCesnet",
+        "description": "Schedule an externalProfile.cesnet batch (EXTERNAL_PLANNED/RUNNING/DONE/FAILED) to upload retained ZIP archives. sourceBatchId is a completed BagIt batch or a previous failed/stopped CESNET upload owned by the current user. An explicitly supplied application token is validated with GET /auth/account/ and remembered per user for at most eight hours. A token may be omitted. At upload time missing, expired or rejected credentials place the batch in WAITING_CESNET_TOKEN, preserving archives, operation ID and completed-upload checkpoints. POST /export/cesnet/resume releases waiting uploads; do not submit an already waiting CESNET batch again through this endpoint. An authorized queue operator may supply credentials on behalf of other batch owners. HTTP 401 evicts the token; HTTP 403, network and server errors preserve it and remain ordinary upload failures; export and packaging are not repeated. Confirmed uploads from the previous attempt are skipped. ZIPs remain available after success or failure. Interrupted registrations are reconciled using a persisted operation ID. Repeated uploads require explicit confirmation, including packages already stored and validated or uploaded and awaiting validation. Without confirmCesnetUpload=true the response data[0] has confirmationRequired=true and warnings (pid, packageId, state, message), no exportId, and no batch is created. After user consent, repeat the request with confirmCesnetUpload=true to create a new independent package (never a new version), replacing the tracked LTP ID and validation/catalog state. Only the current package is checked and synchronized to the catalog. Each new upload has its own operation ID; retries retain the original operation ID. A completed CESNET batch can also be submitted again as a fresh upload. Successful transfer is distinct from confirmed storage and integrity validation.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "sourceBatchId"
+                ],
+                "properties": {
+                  "sourceBatchId": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1
+                  },
+                  "ltpCesnetToken": {
+                    "type": "string",
+                    "writeOnly": true,
+                    "description": "CESNET application token. Optional when a validated token is already cached for the current ProArc user and API destination. Kept only in server memory for at most eight hours from entry; reuse does not extend expiry. Never stored in batch parameters or returned to clients."
+                  },
+                  "confirmCesnetUpload": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "User consent to upload a new independent package and replace the current tracked LTP submission."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "$ref": "#/components/responses/AuthenticationRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccessForbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/AuthenticationUnavailable"
+          },
+          "default": {
+            "description": "Scheduled stage, confirmation required (no stage scheduled), or validation error",
             "content": {
               "application/json": {
                 "schema": {
@@ -7361,6 +7644,8 @@
         ],
         "operationId": "search",
         "parameters": [
+            {"name": "ltpState", "in": "query", "description": "Current provider-qualified preservation state, e.g. cesnet:UPLOADED or cesnet:STORED.", "schema": {"type": "string"}},
+            {"name": "ltpId", "in": "query", "description": "CESNET package ID, including retained historical versions.", "schema": {"type": "string"}},
           {
             "name": "owner",
             "in": "query",
@@ -12076,6 +12361,19 @@
       }
     },
     "schemas": {
+      "ArchivInfo": {
+        "type": "object",
+        "description": "Latest archive submission persisted as archivInfo in RELS-EXT. Replaced on a new upload; no history, credentials or signed upload URLs.",
+        "properties": {
+          "provider": {"type": "string"}, "endpoint": {"type": "string"}, "group": {"type": "string"},
+          "operationId": {"type": "string"}, "packageId": {"type": "string"}, "previousPackageId": {"type": "string"},
+          "version": {"type": "integer", "format": "int32"},
+          "state": {"type": "string", "enum": ["REGISTERING", "UPLOADING", "UPLOADED", "STORED", "FAILED"]},
+          "integrityStatus": {"type": "string"}, "uploadStatus": {"type": "string"},
+          "submittedAt": {"type": "string"}, "storedAt": {"type": "string"}, "catalogId": {"type": "string"},
+          "catalogState": {"type": "string", "enum": ["PENDING", "DONE"]}
+        }
+      },
       "ApplicationInfo": {
         "type": "object",
         "properties": {
@@ -16802,6 +17100,7 @@
       "SearchViewItem": {
         "type": "object",
         "properties": {
+          "archivInfo": {"$ref": "#/components/schemas/ArchivInfo"},
           "pid": {
             "type": "string"
           },
@@ -17100,6 +17399,7 @@
       "AtmItem": {
         "type": "object",
         "properties": {
+          "archivInfo": {"$ref": "#/components/schemas/ArchivInfo"},
           "pid": {
             "type": "string"
           },

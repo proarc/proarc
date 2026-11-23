@@ -108,6 +108,7 @@ public final class AppConfiguration {
     public static final String EXPORT_LTP_CESNET_GROUP_TOKEN = "export.ltpCesnet.groupToken";
     public static final String EXPORT_LTP_CESNET_SCRIPT_PATH = "export.ltpCesnet.scriptPath";
     public static final String EXPORT_BAGIT_SCRIPT_PATH = "export.bagit.scriptPath";
+    public static final String EXPORT_BAGIT_MODE = "export.bagit.mode";
     public static final String CATALOG_UPDATE_MODELS = "catalog.update.models";
 
     public static final String BATCH_SCHEDULER_START = "batch.scheduler.startTime";
@@ -209,12 +210,25 @@ public final class AppConfiguration {
         return config.getString(EXPORT_LTP_CESNET_GROUP_TOKEN);
     }
 
+    public Configuration getLtpCesnetConfiguration() {
+        return config.subset("export.ltpCesnet");
+    }
+
     public String getLtpCesnetScriptPath() {
         return config.getString(EXPORT_LTP_CESNET_SCRIPT_PATH);
     }
 
     public String getBagitScriptPath() {
         return config.getString(EXPORT_BAGIT_SCRIPT_PATH);
+    }
+
+    public String getBagitMode() {
+        String mode = config.getString(EXPORT_BAGIT_MODE);
+        if (mode != null) {
+            return mode.trim();
+        }
+        String scriptPath = getBagitScriptPath();
+        return scriptPath == null || scriptPath.isBlank() ? "java" : "script";
     }
 
     public String getBatchSchedulerStartTime() {

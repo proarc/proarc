@@ -22,12 +22,13 @@ import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.process.export.ExportDispatcher;
-import cz.cas.lib.proarc.common.process.external.bagit.BagitProcess;
 import cz.cas.lib.proarc.common.process.external.PdfaProcess;
 import cz.cas.lib.proarc.common.process.external.PeroProcess;
 import cz.cas.lib.proarc.common.process.external.ThumbnailPdfProcess;
-import cz.cas.lib.proarc.common.process.external.cesnet.CesnetProcess;
+import cz.cas.lib.proarc.common.process.external.bagit.BagitProcess;
 import cz.cas.lib.proarc.common.process.external.bagit.MissingSourceDirectoryException;
+import cz.cas.lib.proarc.common.process.external.cesnet.CesnetCheckProcess;
+import cz.cas.lib.proarc.common.process.external.cesnet.CesnetProcess;
 import cz.cas.lib.proarc.common.process.internal.CatalogUpdateProcess;
 import cz.cas.lib.proarc.common.process.internal.DeleteProcess;
 import cz.cas.lib.proarc.common.process.internal.LoggingMetadataBackfillProcess;
@@ -167,6 +168,14 @@ public final class InternalExternalProcess implements Runnable {
                 case Batch.EXTERNAL_CESNET:
                     batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
                     return cesnetProcess(batch, params);
+                case Batch.EXTERNAL_CESNET_CHECK:
+                    batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
+                    return new CesnetCheckProcess(config, akubraConfiguration, batchManager, user, params.getPids()).run(batch,
+                            next -> InternalExternalDispatcher.getDefault().addInternalExternalProcess(prepare(config,
+                                    akubraConfiguration, next, batchManager, user, options.getLog(), options.getLocale())));
+                case Batch.EXTERNAL_CESNET_CATALOG:
+                    batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
+                    return new CesnetCheckProcess(config, akubraConfiguration, batchManager, user).updateCatalog(batch);
                 case Batch.EXTERNAL_PERO:
                     batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
                     return peroProcess(batch, params);
@@ -242,10 +251,13 @@ public final class InternalExternalProcess implements Runnable {
             try {
                 Batch next = new CesnetProcess(config, batchManager, user).planAfterBagit(result);
                 if (next != null) {
-                    InternalExternalDispatcher.getDefault().addInternalExternalProcess(prepare(config, akubraConfiguration,
-                            next, batchManager, user, options.getLog(), options.getLocale()));
+                    if (next.getState() == Batch.State.EXTERNAL_PLANNED) {
+                        InternalExternalDispatcher.getDefault().addInternalExternalProcess(prepare(config, akubraConfiguration,
+                                next, batchManager, user, options.getLog(), options.getLocale()));
+                    }
                     result.setLog((result.getLog() == null ? "" : result.getLog() + "\n")
-                            + "Next process: " + next.getProfileId() + ", batch " + next.getId());
+                            + "Next process: " + next.getProfileId() + ", batch " + next.getId()
+                            + (next.getState() == Batch.State.EXTERNAL_FAILED ? "; " + next.getLog() : ""));
                     batchManager.update(result);
                 }
             } catch (Exception ex) {

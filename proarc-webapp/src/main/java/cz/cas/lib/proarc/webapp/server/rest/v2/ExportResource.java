@@ -167,9 +167,10 @@ public class ExportResource extends ExportResourceV1 {
     @POST
     @Path("cesnet/check")
     @Produces(MediaType.APPLICATION_JSON)
-    public ProArcResponse<Integer> checkCesnet() {
+    public ProArcResponse<ExportResult> checkCesnet(
+            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token) {
         try {
-            return super.checkCesnet();
+            return super.checkCesnet(token);
         } catch (Exception ex) { return ProArcResponse.asError(ex); }
     }
 

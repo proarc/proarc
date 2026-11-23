@@ -292,6 +292,7 @@ public final class DigitalObjectResourceApi {
     public static final String ATM_ITEM_ORGANIZATION = "organization";
     public static final String ATM_ITEM_USER = "userProcessor";
     public static final String ATM_ITEM_DONATOR = "donator";
+    public static final String ATM_ITEM_ARCHIV_INFO = "archivInfo";
     public static final String ATM_ITEM_ARCHIVAL_COPIES = "archivalCopies";
     public static final String ATM_ITEM_FILENAME = "filename";
     public static final String ATM_ITEM_MODEL = DIGITALOBJECT_MODEL;

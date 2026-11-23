@@ -183,7 +183,7 @@ public class EmpireBatchDao extends EmpireDao implements BatchDao {
     @Override
     public List<Batch> findWaitingCesnetBatches() {
         BeanResult<Batch> result = new BeanResult<>(Batch.class, table);
-        result.getCommand().where(table.state.is(State.WAITING_FOR_TOKEN));
+        result.getCommand().where(table.state.is(State.WAITING_CESNET_TOKEN));
         result.getCommand().where(table.profileId.is(Batch.EXTERNAL_CESNET));
         result.getCommand().orderBy(table.create, true);
         result.fetch(getConnection());

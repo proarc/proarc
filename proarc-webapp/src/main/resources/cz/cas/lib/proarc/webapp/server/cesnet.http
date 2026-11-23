@@ -1,61 +1,75 @@
-### GET ACOUNT INFO
+### Public API documentation: https://ltp.cesnet.cz/api/
+### Set ltpCesnetToken, ltpCesnetGroup and ltpCesnetId in a private HTTP client environment.
+### Obtain an application token in the logged-in CESNET GUI. ProArc does not use Basic authentication.
+### ProArc reads export.ltpCesnet.apiUrl/groupToken/catalogId from proarc.cfg.
 
+### ProArc: validate and remember a token for the current user for at most eight hours
+POST {{proarcUrl}}/rest/v2/export/cesnet/token
+Content-Type: application/x-www-form-urlencoded
+
+ltpCesnetToken={{ltpCesnetToken}}
+
+### ProArc: local status (present, expiresAt); never returns the token
+GET {{proarcUrl}}/rest/v2/export/cesnet/token
+
+### ProArc: forget the current user's token; this does not revoke it at CESNET
+DELETE {{proarcUrl}}/rest/v2/export/cesnet/token
+
+### Account and group membership
 GET https://ltp.cesnet.cz/api/auth/account/
-Content-Type: application/json
-Authorization: Token 62f5841ceb26db4b991f3d740b0cd45cafbe92b7e13486ce84e57de390626ec6
+Authorization: Token {{ltpCesnetToken}}
 
-### GET ALL TOKENS
+### List packages
+GET https://ltp.cesnet.cz/api/v2/archive/?group={{ltpCesnetGroup}}&limit=100
+Authorization: Token {{ltpCesnetToken}}
 
-GET https://ltp.cesnet.cz/api/auth/token/
-Content-Type: application/json
-Authorization: Token 62f5841ceb26db4b991f3d740b0cd45cafbe92b7e13486ce84e57de390626
+### Read upload and integrity statuses (both must succeed before catalog update)
+GET https://ltp.cesnet.cz/api/v2/archive/{{ltpCesnetId}}/?group={{ltpCesnetGroup}}
+Authorization: Token {{ltpCesnetToken}}
 
-### CREATE NEW TOKEN
+### List versions; use the returned version ID for download
+GET https://ltp.cesnet.cz/api/v2/archive/versions/{{ltpCesnetId}}/?group={{ltpCesnetGroup}}
+Authorization: Token {{ltpCesnetToken}}
 
-POST https://ltp.cesnet.cz/api/auth/token/create/
-Content-Type: application/json
-Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
+### Prepare/download a version; repeat after HTTP 204 until HTTP 200 returns its S3 URL
+GET https://ltp.cesnet.cz/api/v2/archive/{{ltpCesnetId}}/download/?group={{ltpCesnetGroup}}
+Authorization: Token {{ltpCesnetToken}}
 
-{
-  "app_name": "LS-test-from-cmd",
-  "scope": {},
-  "extra_data": {}
-}
+### ProArc: upload retained BagIt ZIPs (omit ltpCesnetToken to reuse the remembered token)
+POST {{proarcUrl}}/rest/v2/export/cesnet
+Content-Type: application/x-www-form-urlencoded
 
-### Returned token 2f79689d88bce52304086e599ac9b26b869be9c257383efcc1d869e553c56482
+sourceBatchId={{bagitBatchId}}&ltpCesnetToken={{ltpCesnetToken}}
 
-### GET STATUS
+### ProArc: start an NDK export with automatic BagIt and CESNET upload
+### No CESNET credentials are required for export/packaging. Upload will wait for a token.
+POST {{proarcUrl}}/rest/v2/export/ndk
+Content-Type: application/x-www-form-urlencoded
 
-GET https://ltp.cesnet.cz/api/status/
-Content-Type: application/json
-Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
+pid={{proarcPid}}&ltpCesnet=true
 
-### GET ALL PACKAGE
+### ProArc: validate one token and release ALL waiting CESNET uploads, preserving original batch owners
+### Requires allObjectsFunction AND importToCatalogFunction.
+### Returns data[0].resumedBatchIds and data[0].failures. Omit the token to reuse this operator's cached token.
+POST {{proarcUrl}}/rest/v2/export/cesnet/resume
+Content-Type: application/x-www-form-urlencoded
 
-GET https://ltp.cesnet.cz/api/v2/archive/?group=nm_LTP&limit=10
-Content-Type: application/json
-Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
+ltpCesnetToken={{ltpCesnetToken}}
 
-### CREATE NEW PACKAGE
+### If response.data[0].confirmationRequired=true, display response.data[0].warnings[].message and request user consent.
+### On cancellation, send no further request. On consent, create a new independent package:
+POST {{proarcUrl}}/rest/v2/export/cesnet
+Content-Type: application/x-www-form-urlencoded
 
-POST https://ltp.cesnet.cz/api/v2/archive/
-Content-Type: application/json
-Authorization: Token df5586976a16146e59194708f54908d37cde49ae158f2a4a971be179d3c6faaa
+sourceBatchId={{bagitBatchId}}&confirmCesnetUpload=true
 
-{
-  "group": "b4fb0ae9980949228b285a6ef770b4ba",
-  "name": "PACKAGE",
-  "user_metadata": {}
-}
+### ProArc: schedule a check process (allObjectsFunction); optional catalog writes use a separate process requiring importToCatalogFunction.
+### Omit ltpCesnetToken to reuse the current user's cached token. Returns data[0].exportId; see process logs.
+### catalogId is optional; packages submitted without it are never written to a catalog.
+POST {{proarcUrl}}/rest/v2/export/cesnet/check
+Content-Type: application/x-www-form-urlencoded
 
-###
+ltpCesnetToken={{ltpCesnetToken}}
 
-
-
-
-
-
-
-
-
-
+### ProArc: find current CESNET states; ltpRecords tracks the current package ID
+GET {{proarcUrl}}/rest/v2/object/search?type=ADVANCED&ltpState=cesnet:STORED

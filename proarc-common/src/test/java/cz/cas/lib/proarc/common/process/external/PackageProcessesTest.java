@@ -11,6 +11,7 @@ import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.InternalExternalProcess;
+import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
@@ -56,6 +57,42 @@ class PackageProcessesTest {
         Batch upload = uploadProcess().plan(result, "fresh");
         assertEquals("externalProfile.cesnet", upload.getProfileId());
         assertEquals(Batch.State.EXTERNAL_PLANNED, upload.getState());
+    }
+
+    @Test
+    void externalRunnerSchedulesCesnetAfterBagitAndWaitsForMissingToken() throws Exception {
+        Batch source = export();
+        BatchParams params = source.getParamsAsObject();
+        params.setLtpCesnet(true);
+        params.setConfirmCesnetUpload(true);
+        source.setParamsFromObject(params);
+        Batch bagit = new BagitProcess(config, manager, user).planAfterExport(source);
+        InternalExternalDispatcher previous = InternalExternalDispatcher.getDefault();
+        InternalExternalDispatcher dispatcher = new InternalExternalDispatcher();
+        dispatcher.init();
+        InternalExternalDispatcher.setDefault(dispatcher);
+        try {
+            Batch result = InternalExternalProcess.prepare(config, null, bagit, manager, user,
+                    "test", java.util.Locale.ROOT).start();
+            dispatcher.stop(5, java.util.concurrent.TimeUnit.SECONDS);
+
+            assertEquals(Batch.State.EXTERNAL_DONE, result.getState());
+            Integer nextId = result.getParamsAsObject().getNextBatchId();
+            assertNotNull(nextId);
+            Batch upload = manager.get(nextId);
+            assertEquals(Batch.EXTERNAL_CESNET, upload.getProfileId());
+            assertEquals(bagit.getId(), upload.getParamsAsObject().getSourceBatchId());
+            assertEquals(Batch.State.WAITING_CESNET_TOKEN, upload.getState());
+            assertTrue(result.getLog().contains("Next process: " + Batch.EXTERNAL_CESNET + ", batch " + nextId));
+            assertEquals(bagit.getParamsAsObject().getBagitArchives(), upload.getParamsAsObject().getBagitArchives());
+            assertFalse(Files.exists(Path.of(source.getFolder())));
+            for (String archive : upload.getParamsAsObject().getBagitArchives()) {
+                assertTrue(Files.isRegularFile(Path.of(archive)));
+            }
+        } finally {
+            dispatcher.stop(5, java.util.concurrent.TimeUnit.SECONDS);
+            InternalExternalDispatcher.setDefault(previous);
+        }
     }
 
     @Test
@@ -370,6 +407,51 @@ class PackageProcessesTest {
     }
 
     @Test
+    void automaticRepeatRetainsCesnetBatchForConfirmedRetryWithoutRepeatingExport() throws Exception {
+        Batch source = export();
+        BatchParams params = source.getParamsAsObject();
+        params.setLtpCesnet(true);
+        source.setParamsFromObject(params);
+        BagitProcess packaging = new BagitProcess(config, manager, user);
+        Batch bagit = packaging.planAfterExport(source);
+        packaging.run(bagit, bagit.getParamsAsObject());
+        List<String> archives = bagit.getParamsAsObject().getBagitArchives();
+        var existing = new cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo();
+        existing.setPackageId("12");
+        existing.setState(cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo.State.STORED);
+        List<String> uploaded = new ArrayList<>();
+        CesnetProcess cesnet = new CesnetProcess(config, manager, user,
+                (file, operation, pid, confirmed, credentialOwnerId) -> {
+                    assertTrue(confirmed);
+                    uploaded.add(file.toString());
+                }, pid -> existing);
+
+        Batch blocked = cesnet.planAfterBagit(bagit);
+        assertEquals(Batch.State.EXTERNAL_FAILED, blocked.getState());
+        assertEquals(Batch.EXTERNAL_CESNET, blocked.getProfileId());
+        assertEquals(bagit.getId(), blocked.getParamsAsObject().getSourceBatchId());
+        assertEquals(archives, blocked.getParamsAsObject().getBagitArchives());
+        assertEquals(Boolean.FALSE, blocked.getParamsAsObject().getConfirmCesnetUpload());
+        assertEquals(blocked.getId(), bagit.getParamsAsObject().getNextBatchId());
+        assertEquals(bagit.getFolder(), blocked.getFolder());
+        assertTrue(blocked.getLog().contains("requires confirmation"));
+        assertTrue(blocked.getLog().contains("uuid:a"));
+        assertTrue(blocked.getLog().contains("uuid:b"));
+        assertNull(cesnet.planAfterBagit(bagit));
+        assertTrue(uploaded.isEmpty());
+        assertThrows(CesnetProcess.ConfirmationRequiredException.class, () -> cesnet.plan(blocked, null));
+
+        Batch retry = cesnet.plan(blocked, null, true);
+        assertEquals(blocked.getParamsAsObject().getCesnetOperationId(), retry.getParamsAsObject().getCesnetOperationId());
+        cesnet.run(retry, retry.getParamsAsObject());
+        assertEquals(Batch.State.EXTERNAL_DONE, retry.getState());
+        assertEquals(archives, uploaded);
+        assertEquals(Batch.State.EXTERNAL_DONE, bagit.getState());
+        assertFalse(Files.exists(Path.of(source.getFolder())));
+        for (String archive : archives) assertTrue(Files.isRegularFile(Path.of(archive)));
+    }
+
+    @Test
     void repeatRequiresConfirmationBeforeSchedulingAndUsesNewOperations() throws Exception {
         Batch source = export();
         BagitProcess packaging = new BagitProcess(config, manager, user);
@@ -446,15 +528,15 @@ class PackageProcessesTest {
         assertNotNull(upload);
         assertEquals(upload.getId(), bagit.getParamsAsObject().getNextBatchId());
         Batch result = InternalExternalProcess.prepare(config, null, upload, manager, user, "test", java.util.Locale.ROOT).start();
-        assertEquals(Batch.State.WAITING_FOR_TOKEN, result.getState());
+        assertEquals(Batch.State.WAITING_CESNET_TOKEN, result.getState());
         assertEquals(Batch.State.EXTERNAL_DONE, bagit.getState());
         assertEquals(Batch.State.EXPORT_DONE, source.getState());
         assertTrue(result.getLog().contains("Čeká na token CESNET"));
         assertNull(result.getParamsAsObject().getLtpCesnetToken());
         for (String archive : params.getBagitArchives()) assertTrue(Files.exists(Path.of(archive)));
         BatchUtils.finishedInternalExternalRunningBatch(manager, config);
-        assertEquals(Batch.State.WAITING_FOR_TOKEN, result.getState());
-        assertEquals(Batch.State.WAITING_FOR_TOKEN,
+        assertEquals(Batch.State.WAITING_CESNET_TOKEN, result.getState());
+        assertEquals(Batch.State.WAITING_CESNET_TOKEN,
                 InternalExternalProcess.prepare(config, null, upload, manager, user, "test", java.util.Locale.ROOT).start().getState());
         assertNull(production.planAfterBagit(bagit));
     }
@@ -473,6 +555,29 @@ class PackageProcessesTest {
         assertTrue(Files.exists(Path.of(source.getFolder()).resolve("a/scan.tif")));
         assertEquals(Batch.State.EXPORT_DONE, source.getState());
         assertFalse(manager.states.contains(Batch.State.INTERNAL_FAILED));
+    }
+
+    @Test
+    void urnNamedArchiveUsesObjectPidForBothPlanningAndUpload() throws Exception {
+        String objectPid = "uuid:91e24ccc-4292-49a4-9674-95192edef5ee";
+        Path folder = Files.createDirectory(temp.resolve("bagit_91e24ccc-4292-49a4-9674-95192edef5ee"));
+        Path archive = Files.writeString(folder.resolve("archive_aba007-000k1w.zip"), "archive");
+        BatchParams params = new BatchParams(List.of(objectPid));
+        params.setBagitArchives(List.of(archive.toString()));
+        Batch bagit = manager.add(objectPid, user, Batch.EXTERNAL_BAGIT, Batch.State.EXTERNAL_DONE,
+                false, Batch.PRIORITY_MEDIUM, params);
+        bagit.setFolder(folder.toString());
+        List<String> read = new ArrayList<>();
+        List<String> uploaded = new ArrayList<>();
+        CesnetProcess cesnet = new CesnetProcess(config, manager, user,
+                (file, operation, pid, confirmed, credentialOwnerId) -> uploaded.add(pid),
+                pid -> { read.add(pid); return null; });
+
+        Batch upload = cesnet.plan(bagit, null);
+        cesnet.run(upload, upload.getParamsAsObject());
+
+        assertEquals(List.of(objectPid), read);
+        assertEquals(List.of(objectPid), uploaded);
     }
 
     private CesnetProcess uploadProcess() {

@@ -633,7 +633,14 @@ public class ImportResourceV1 {
             ExportProcess.cancelPlannedBatch(batch, importManager, appConfig, akubraConfiguration);
             BatchView batchView = importManager.viewBatch(batch.getId());
             return new ProArcResponse<BatchView>(batchView);
-        } else if (Batch.State.INTERNAL_PLANNED.equals(batch.getState())) {
+        } else if (Batch.State.EXTERNAL_RUNNING.equals(batch.getState())
+                && batch.hasExternalProfile()) {
+            if (!isBatchOwner(batch)) return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+            InternalExternalProcess.stopExternalBatch(batch, importManager, appConfig, akubraConfiguration);
+            return new ProArcResponse<>(importManager.viewBatch(batch.getId()));
+        } else if (Batch.State.INTERNAL_PLANNED.equals(batch.getState())
+                || ((Batch.State.EXTERNAL_PLANNED.equals(batch.getState()) || Batch.State.WAITING_CESNET_TOKEN.equals(batch.getState()))
+                    && batch.hasExternalProfile())) {
             if (!(isBatchOwner(batch))) {
                 LOG.info("User " + user + " (id:" + user.getId() + ") - cannot stop batch");
                 return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));

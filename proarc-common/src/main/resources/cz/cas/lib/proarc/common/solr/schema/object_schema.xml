@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- This schema is designed for Solr 9.x -->
-<schema name="searchCore" version="8.0">
-    <!-- log: pridani pole typeOfResource -->
+<schema name="searchCore" version="9.0">
+    <!-- log: Current LTP package, provider state and reconciliation queue -->
 
 
     <uniqueKey>pid</uniqueKey>
@@ -65,6 +65,12 @@
     <field name="_text_" type="text_cz" multiValued="true" indexed="true" stored="false" docValues="false"/>
     <field name="_version_" type="plong" indexed="false" stored="false"/>
     <field name="archiveExport" type="string"/>
+    <!-- Only the current LTP package is stored and searchable; package ID and provider/state are single-valued. -->
+    <field name="ltpRecords" type="string" indexed="false" stored="true" docValues="false"/>
+    <field name="ltpProviderId" type="string" multiValued="false" indexed="true" stored="true"/>
+    <field name="ltpId" type="string" multiValued="false" indexed="true" stored="true"/>
+    <field name="ltpProviderState" type="string" multiValued="false" indexed="true" stored="true"/>
+    <field name="ltpPending" type="boolean" indexed="true" stored="true"/>
     <field name="created" type="pdate"/>
     <field name="crossrefExport" type="string"/>
     <field name="device" type="text_general" docValues="false"/>

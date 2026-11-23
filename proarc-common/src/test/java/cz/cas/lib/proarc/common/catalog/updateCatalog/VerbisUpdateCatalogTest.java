@@ -33,6 +33,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class VerbisUpdateCatalogTest {
 
     @Test
+    public void ltpUpdateMatchesOnlyLtpIdAndStoresPackageId() {
+        JSONObject json = new JSONObject(VerbisUpdateCatalog.createLtpUpdateRecordJson(createCatalogConfiguration(), "123456", "42"));
+        JSONObject field = json.getJSONArray("value").getJSONObject(0);
+        assertEquals("ltpId", field.getJSONArray("reusing").getJSONObject(0).getJSONObject("havingField").getString("value"));
+        JSONArray subfields = field.getJSONObject("set").getJSONArray("value");
+        assertReusedSubfield(subfields.getJSONObject(0), "D.856.x", "ltpId");
+        assertReusedSubfield(subfields.getJSONObject(1), "D.856.y", "42");
+        assertReusedSubfield(subfields.getJSONObject(2), "D.856.d", "uloženo v LTP");
+        assertTrue(!json.toString().contains("proarcId"));
+    }
+
+    @Test
     public void createUpdateRecordJsonReusesNewSubfields() {
         CatalogConfiguration catalog = createCatalogConfiguration();
 

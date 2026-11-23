@@ -23,6 +23,69 @@ class OpenApiSpecificationTest {
     private static final Set<String> HTTP_METHODS = Set.of("get", "post", "put", "delete", "patch");
 
     @Test
+    void manualCesnetCheckAcceptsOptionalTokenWithoutCatalogPermission() throws Exception {
+        JSONObject operation = loadSpec().getJSONObject("paths").getJSONObject("/export/cesnet/check")
+                .getJSONObject("post");
+        assertTrue(operation.getString("description").contains("Requires allObjectsFunction"));
+        assertTrue(operation.getString("description").contains("importToCatalogFunction is not required"));
+        assertTrue(operation.getString("description").contains("externalProfile.cesnetCheck"));
+        assertTrue(operation.getString("description").contains("externalProfile.cesnetCatalog"));
+        assertTrue(operation.getString("description").contains("Catalog configuration is optional"));
+        assertTrue(operation.getJSONObject("responses").getJSONObject("default").getString("description").contains("exportId"));
+        JSONObject body = operation.getJSONObject("requestBody");
+        assertFalse(body.getBoolean("required"));
+        JSONObject form = body.getJSONObject("content").getJSONObject("application/x-www-form-urlencoded")
+                .getJSONObject("schema");
+        assertFalse(form.has("required"));
+        assertTrue(form.getJSONObject("properties").getJSONObject("ltpCesnetToken").getBoolean("writeOnly"));
+        var method = cz.cas.lib.proarc.webapp.server.rest.v2.ExportResource.class
+                .getMethod("checkCesnet", String.class);
+        assertEquals("cesnet/check", method.getAnnotation(jakarta.ws.rs.Path.class).value());
+        assertEquals("ltpCesnetToken", method.getParameters()[0].getAnnotation(jakarta.ws.rs.FormParam.class).value());
+    }
+
+    @Test
+    void cesnetQueueDocumentsPreparationWithoutTokenAndPrivilegedBulkResume() throws Exception {
+        JSONObject paths = loadSpec().getJSONObject("paths");
+        JSONObject resume = paths.getJSONObject("/export/cesnet/resume").getJSONObject("post");
+        assertEquals("resumeCesnet", resume.getString("operationId"));
+        assertTrue(resume.getString("description").contains("WAITING_CESNET_TOKEN"));
+        assertTrue(resume.getString("description").contains("allObjectsFunction"));
+        assertTrue(resume.getString("description").contains("importToCatalogFunction"));
+        assertTrue(resume.getString("description").contains("original batch owners"));
+        var token = resume.getJSONObject("requestBody").getJSONObject("content")
+                .getJSONObject("application/x-www-form-urlencoded").getJSONObject("schema")
+                .getJSONObject("properties").getJSONObject("ltpCesnetToken");
+        assertTrue(token.getBoolean("writeOnly"));
+        for (String export : List.of("/export/ndk", "/export/archive")) {
+            assertTrue(paths.getJSONObject(export).getJSONObject("post").getString("description")
+                    .contains("without providing a token"));
+        }
+    }
+
+    @Test
+    void separateExportStagesDocumentRetainedArtifactsAndFreshTokenRetry() throws Exception {
+        JSONObject paths = loadSpec().getJSONObject("paths");
+        JSONObject bagit = paths.getJSONObject("/export/bagit").getJSONObject("post");
+        JSONObject cesnet = paths.getJSONObject("/export/cesnet").getJSONObject("post");
+        assertEquals("createBagit", bagit.getString("operationId"));
+        assertEquals("uploadCesnet", cesnet.getString("operationId"));
+        JSONObject form = cesnet.getJSONObject("requestBody").getJSONObject("content")
+                .getJSONObject("application/x-www-form-urlencoded").getJSONObject("schema");
+        assertEquals(Set.of("sourceBatchId"),
+                new HashSet<>(form.getJSONArray("required").toList()));
+        assertTrue(form.getJSONObject("properties").getJSONObject("ltpCesnetToken").getBoolean("writeOnly"));
+        assertFalse(form.getJSONObject("properties").getJSONObject("confirmCesnetUpload").getBoolean("default"));
+        assertTrue(cesnet.getString("description").contains("confirmationRequired=true"));
+        assertTrue(cesnet.getString("description").contains("never a new version"));
+        assertTrue(cesnet.getString("description").contains("not repeated"));
+        assertTrue(bagit.getString("description").contains("externalProfile.bagit"));
+        assertTrue(cesnet.getString("description").contains("externalProfile.cesnet"));
+        assertDefaultJsonResponse(bagit, "#/components/schemas/response");
+        assertDefaultJsonResponse(cesnet, "#/components/schemas/response");
+    }
+
+    @Test
     void statisticsParametersMatchResourceDefaultsAndPagination() throws Exception {
         JSONObject paths = loadSpec().getJSONObject("paths");
         for (var method : cz.cas.lib.proarc.webapp.server.rest.v1.StatisticsResourceV1.class.getMethods()) {
@@ -121,8 +184,8 @@ class OpenApiSpecificationTest {
         assertEquals("../rest/v2", spec.getJSONArray("servers").getJSONObject(0).getString("url"));
 
         JSONObject paths = spec.getJSONObject("paths");
-        assertEquals(179, paths.length());
-        assertEquals(217, countOperations(paths));
+        assertEquals(184, paths.length());
+        assertEquals(224, countOperations(paths));
         assertTrue(paths.has("/authorities"));
         assertTrue(paths.has("/bibliographies/query"));
         assertTrue(paths.has("/device"));
@@ -447,7 +510,7 @@ class OpenApiSpecificationTest {
         JSONObject schemas = loadSpec()
                 .getJSONObject("components")
                 .getJSONObject("schemas");
-        assertEquals(252, schemas.length());
+        assertEquals(253, schemas.length());
 
         JSONObject response = schemas.getJSONObject("response");
         JSONObject properties = response.getJSONObject("properties");
@@ -628,7 +691,7 @@ class OpenApiSpecificationTest {
             assertTrue(pathOperationCount > 0, path);
         }
 
-        assertEquals(217, operationCount);
+        assertEquals(224, operationCount);
         assertTrue(responseCount > operationCount);
     }
 

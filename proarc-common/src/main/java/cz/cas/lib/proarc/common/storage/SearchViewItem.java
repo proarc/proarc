@@ -1,8 +1,14 @@
 package cz.cas.lib.proarc.common.storage;
 
+import cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo;
 import java.util.List;
 
 public class SearchViewItem {
+
+    private ArchivInfo archivInfo;
+
+    public ArchivInfo getArchivInfo() { return archivInfo; }
+    public void setArchivInfo(ArchivInfo archivInfo) { this.archivInfo = archivInfo; }
 
     private String pid;
     private String model;
