@@ -28,6 +28,9 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.process.AuditLog;
 import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
+import cz.cas.lib.proarc.common.process.InternalExternalProcess;
+import cz.cas.lib.proarc.common.process.external.bagit.BagitProcess;
 import cz.cas.lib.proarc.common.process.WorkWindow;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveOldPrintProducer;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveProducer;
@@ -184,6 +187,21 @@ public final class ExportProcess implements Runnable {
                 case Batch.EXPORT_KWIS -> kwisExport(batch, params);
                 default -> finishedExportWithError(batchManager, batch, batch.getFolder(), new Exception("Unknown export profile."));
             };
+            if (result != null && result.getState() == Batch.State.EXPORT_DONE) {
+                try {
+                    Batch next = new BagitProcess(config, batchManager, user).planAfterExport(result);
+                    if (next != null) {
+                        InternalExternalDispatcher.getDefault().addInternalExternalProcess(InternalExternalProcess.prepare(config, akubraConfiguration,
+                                next, batchManager, user, exportOptions.getLog(), exportOptions.getLocale()));
+                        result.setLog((result.getLog() == null ? "" : result.getLog() + "\n")
+                                + "Next process: " + next.getProfileId() + ", batch " + next.getId());
+                        batchManager.update(result);
+                    }
+                } catch (Exception ex) {
+                    result = BatchUtils.finishedExportWithWarning(batchManager, result, result.getFolder(),
+                            "Export completed; BagIt process could not be scheduled: " + ex.getMessage());
+                }
+            }
             if (result != null && (result.getState() == Batch.State.EXPORT_DONE
                     || result.getState() == Batch.State.EXPORT_WARNING)) {
                 try {
@@ -243,7 +261,7 @@ public final class ExportProcess implements Runnable {
 
         LOG.log(Level.INFO, batch.toString(), "has been stopped!");
         String targetPath = batch.getFolder();
-        if (targetPath != null && !targetPath.startsWith("uuid")) {
+        if (!batch.hasExternalProfile() && targetPath != null && !targetPath.startsWith("uuid")) {
             File targetFolder = new File(targetPath);
             if (targetFolder.exists()) {
                 MetsUtils.deleteFolder(targetFolder);

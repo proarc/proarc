@@ -368,7 +368,7 @@ public final class InternalExternalProcess implements Runnable {
     }
 
     public static void resumeAll(BatchManager ibm, InternalExternalDispatcher dispatcher, AppConfiguration config, AkubraConfiguration akubraConfiguration) {
-        List<Batch> batches2schedule = ibm.findWaitingInternalBatches();
+        List<Batch> batches2schedule = ibm.findWaitingInternalExternalBatches();
         for (Batch batch : batches2schedule) {
             try {
                 InternalExternalProcess resume = InternalExternalProcess.resume(batch, ibm, config, akubraConfiguration);

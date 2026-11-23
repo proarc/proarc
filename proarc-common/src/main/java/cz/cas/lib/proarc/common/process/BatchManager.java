@@ -551,23 +551,23 @@ public class BatchManager {
 
     }
 
-    public List<Batch> findWaitingInternalBatches() {
+    public List<Batch> findWaitingInternalExternalBatches() {
         BatchDao batchDao = daos.createBatch();
         Transaction tx = daos.createTransaction();
         batchDao.setTransaction(tx);
         try {
-            return batchDao.findWaitingInternalBatches();
+            return batchDao.findWaitingInternalExternalBatches();
         } finally {
             tx.close();
         }
     }
 
-    public List<Batch> findInternalRunningBatches() {
+    public List<Batch> findInternalExternalRunningBatches() {
         BatchDao batchDao = daos.createBatch();
         Transaction tx = daos.createTransaction();
         batchDao.setTransaction(tx);
         try {
-            return batchDao.findIntenalRunningBatches();
+            return batchDao.findIntenalExternalRunningBatches();
         } finally {
             tx.close();
         }

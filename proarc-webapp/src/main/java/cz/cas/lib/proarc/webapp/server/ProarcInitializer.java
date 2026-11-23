@@ -261,7 +261,7 @@ public final class ProarcInitializer {
     private void finishedInternalRunningBatch(AppConfiguration config, DaoFactory daoFactory) {
         BatchManager.setInstance(config, daoFactory);
         BatchManager ibm = BatchManager.getInstance();
-        BatchUtils.finishedInternalRunningBatch(ibm, config);
+        BatchUtils.finishedInternalExternalRunningBatch(ibm, config);
     }
 
     private void initWorkflow(AppConfiguration config, DaoFactory daoFactory, UserManager users) {

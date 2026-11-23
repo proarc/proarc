@@ -246,6 +246,10 @@ public class Batch {
         this.updated = updated;
     }
 
+    public boolean hasExternalProfile() {
+        return profileId != null && profileId.startsWith("externalProfile.");
+    }
+
     public String getParams() {
         return this.params;
     }

@@ -59,7 +59,7 @@ public interface BatchDao extends Dao {
     List<Batch> findUploadingBatches();
 
 
-    List<Batch> findWaitingInternalBatches();
+    List<Batch> findWaitingInternalExternalBatches();
 
     List<Batch> findWaitingCesnetBatches();
 
