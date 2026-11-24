@@ -52,7 +52,7 @@ class BagitExportTest {
         Path root = Files.createDirectory(temp.resolve("export"));
         Files.writeString(root.resolve("original"), "keep");
         IOException error = assertThrows(IOException.class, () -> new Bagit(config, root.toFile()).bagit());
-        assertTrue(error.getMessage().contains("script"));
+        assertTrue(error.getMessage().contains(script.toString()));
         assertEquals("keep", Files.readString(root.resolve("original")));
         AppConfiguration javaConfig = configuration(Map.of(AppConfiguration.EXPORT_BAGIT_MODE, "java",
                 AppConfiguration.EXPORT_BAGIT_SCRIPT_PATH, script.toString()));

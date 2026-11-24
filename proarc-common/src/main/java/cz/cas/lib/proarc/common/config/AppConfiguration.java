@@ -123,7 +123,7 @@ public final class AppConfiguration {
     /**
      * read only configuration
      */
-    private final Configuration config;
+    private final CombinedConfiguration config;
     private final Map<ConfigurationProfile, Configuration> profileConfigCache =
             new HashMap<ConfigurationProfile, Configuration>();
     private final Profiles profiles;
@@ -223,12 +223,18 @@ public final class AppConfiguration {
     }
 
     public String getBagitMode() {
-        String mode = config.getString(EXPORT_BAGIT_MODE);
-        if (mode != null) {
-            return mode.trim();
+        Configuration userConfig = config.getConfiguration("user");
+        if (userConfig != null && userConfig.containsKey(EXPORT_BAGIT_MODE)) {
+            return config.getString(EXPORT_BAGIT_MODE).trim();
         }
-        String scriptPath = getBagitScriptPath();
-        return scriptPath == null || scriptPath.isBlank() ? "java" : "script";
+        // Preserve legacy script selection only for an explicitly configured path.
+        if (userConfig != null && userConfig.containsKey(EXPORT_BAGIT_SCRIPT_PATH)) {
+            String scriptPath = getBagitScriptPath();
+            if (scriptPath != null && !scriptPath.isBlank()) {
+                return "script";
+            }
+        }
+        return config.getString(EXPORT_BAGIT_MODE, "java").trim();
     }
 
     public String getBatchSchedulerStartTime() {
@@ -375,12 +381,12 @@ public final class AppConfiguration {
         return config;
     }
 
-    private Configuration init() throws IOException {
+    private CombinedConfiguration init() throws IOException {
         this.configHome = initConfigFolder(environment.get(PROPERTY_USER_HOME), environment.get(PROPERTY_APP_HOME));
         return buildConfiguration(new File(configHome, CONFIG_FILE_NAME));
     }
 
-    private Configuration buildConfiguration(File cfgFile) {
+    private CombinedConfiguration buildConfiguration(File cfgFile) {
         CombinedConfiguration cc = new CombinedConfiguration();
         buildConfiguration(cc, cfgFile);
         return cc;
@@ -409,7 +415,7 @@ public final class AppConfiguration {
             trigger.start();
 
             PropertiesConfiguration userConfig = builder.getConfiguration();
-            cc.addConfiguration(userConfig);
+            cc.addConfiguration(userConfig, "user");
 
             try {
                 // bundled default configurations

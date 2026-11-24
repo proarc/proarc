@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import org.apache.commons.configuration2.CombinedConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -80,6 +81,17 @@ public class AppConfigurationTest {
 
     @AfterEach
     public void tearDown() {
+    }
+
+    @Test
+    public void testDefaultBagitScriptPathDoesNotSelectScriptMode() throws Exception {
+        AppConfiguration config = factory.create(createEnvironment());
+        CombinedConfiguration combined = (CombinedConfiguration) config.getConfiguration();
+        Configuration defaults = combined.getConfiguration(combined.getNumberOfConfigurations() - 1);
+        defaults.setProperty(AppConfiguration.EXPORT_BAGIT_SCRIPT_PATH, "default-bagit.sh");
+
+        assertEquals("default-bagit.sh", config.getBagitScriptPath());
+        assertEquals("java", config.getBagitMode());
     }
 
     @Test
