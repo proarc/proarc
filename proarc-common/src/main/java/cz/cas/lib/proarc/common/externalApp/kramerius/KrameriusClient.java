@@ -32,6 +32,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -352,13 +353,13 @@ public final class KrameriusClient extends HttpAbstractClient {
         return null;
     }
 
-    private void addCommonHeaders(org.apache.http.client.methods.HttpRequestBase request) {
+    private void addCommonHeaders(HttpRequestBase request) {
         request.setHeader("Keep-Alive", "timeout=600, max=1000");
         request.setHeader("Connection", "Keep-Alive, Upgrade");
         request.setHeader("Accept-Language", "cs,en;q=0.9,de;q=0.8,cs-CZ;q=0.7,sk;q=0.6");
     }
 
-    private void addBearerToken(org.apache.http.client.methods.HttpRequestBase request, String token) {
+    private void addBearerToken(HttpRequestBase request, String token) {
         if (!isBlank(token)) {
             request.setHeader("Authorization", "Bearer " + token);
         }

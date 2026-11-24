@@ -30,15 +30,17 @@ import java.util.logging.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -144,8 +146,8 @@ public class VerbisUpdateCatalog extends UpdateCatalog {
 
         String encode = Base64.getEncoder().encodeToString((client_id + ":" + client_secret).getBytes(StandardCharsets.UTF_8));
 
-        try (org.apache.http.impl.client.CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(
-                org.apache.http.client.config.RequestConfig.custom().setConnectTimeout(30000).setSocketTimeout(60000).build()).build()) {
+        try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(
+                RequestConfig.custom().setConnectTimeout(30000).setSocketTimeout(60000).build()).build()) {
         HttpPost httpPost = new HttpPost(catalogConfig.getCatalogAuthorizationUrl());
         httpPost.setHeader(new BasicHeader("Content-Type", "application/x-www-form-urlencoded"));
         httpPost.setHeader(new BasicHeader("Authorization", String.format("Basic %s", encode)));
@@ -193,8 +195,8 @@ public class VerbisUpdateCatalog extends UpdateCatalog {
     private boolean updateRecord(CatalogConfiguration bCatalog, String catalogToken, String field001, String uuid, boolean ltp) throws IOException {
         validateValues(catalogToken, field001, uuid);
 
-        try (org.apache.http.impl.client.CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(
-                org.apache.http.client.config.RequestConfig.custom().setConnectTimeout(30000).setSocketTimeout(60000).build()).build()) {
+        try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(
+                RequestConfig.custom().setConnectTimeout(30000).setSocketTimeout(60000).build()).build()) {
         HttpPost httpPost = new HttpPost(bCatalog.getCatalogUpdateUrl());
         httpPost.setHeader(new BasicHeader("Authorization", String.format("Bearer %s", catalogToken)));
         httpPost.setHeader(new BasicHeader("Content-Type", "application/json; charset=UTF-8"));
@@ -227,14 +229,14 @@ public class VerbisUpdateCatalog extends UpdateCatalog {
         String app = field + "." + catalog.getUpdateSubfieldApp();
         String object = field + "." + catalog.getUpdateSubfieldObject();
         String status = field + "." + catalog.getUpdateSubfieldDigitalized();
-        org.json.JSONArray subfields = new org.json.JSONArray();
+        JSONArray subfields = new JSONArray();
         for (String[] item : new String[][]{{app, marker}, {object, packageId}, {status, description}}) {
-            subfields.put(new JSONObject().put("reusing", new org.json.JSONArray().put(new JSONObject().put("type", item[0])))
+            subfields.put(new JSONObject().put("reusing", new JSONArray().put(new JSONObject().put("type", item[0])))
                     .put("set", new JSONObject().put("type", item[0]).put("value", item[1])));
         }
-        return new JSONObject().put("reusing", new org.json.JSONArray().put(new JSONObject().put("id", "f1:" + field001)))
-                .put("value", new org.json.JSONArray().put(new JSONObject()
-                        .put("reusing", new org.json.JSONArray().put(new JSONObject().put("type", field)
+        return new JSONObject().put("reusing", new JSONArray().put(new JSONObject().put("id", "f1:" + field001)))
+                .put("value", new JSONArray().put(new JSONObject()
+                        .put("reusing", new JSONArray().put(new JSONObject().put("type", field)
                                 .put("havingField", new JSONObject().put("type", app).put("value", marker))))
                         .put("set", new JSONObject().put("type", field).put("value", subfields)))).toString();
     }

@@ -51,13 +51,13 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.rmi.server.RemoteObject;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.io.IOUtils;
 
 import static cz.cas.lib.proarc.common.device.DeviceRepository.getMixDescriptionEditor;
 import static cz.cas.lib.proarc.common.storage.BinaryEditor.NDK_ARCHIVAL_ID;
@@ -254,7 +254,7 @@ public class DefaultDisseminationHandler implements DisseminationHandler {
         File inFile = File.createTempFile(String.valueOf(new Timestamp(System.currentTimeMillis())), ".jp2");
 
         OutputStream out = new FileOutputStream(inFile);
-        org.apache.commons.io.IOUtils.copy(entity, out);
+        IOUtils.copy(entity, out);
         out.close();
 
         byte[] bFile = convertToBrowserCompatible(inFile, dsId);

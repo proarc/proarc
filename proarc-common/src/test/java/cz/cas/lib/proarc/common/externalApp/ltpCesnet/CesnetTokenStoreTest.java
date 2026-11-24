@@ -31,11 +31,16 @@ import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.commons.configuration2.BaseConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CesnetTokenStoreTest {
     @TempDir Path temp;
@@ -140,7 +145,7 @@ class CesnetTokenStoreTest {
 
     @Test void cleanupAndShutdownDiscardCredentialsAndDestinationIsPartOfCacheKey() throws Exception {
         store.validate(config, 7, "secret");
-        var otherDestination = new org.apache.commons.configuration2.BaseConfiguration();
+        var otherDestination = new BaseConfiguration();
         otherDestination.copy(config.getLtpCesnetConfiguration());
         otherDestination.setProperty("apiUrl", "http://127.0.0.1:1/api");
         assertThrows(CesnetTokenException.class, () -> store.open(config, 7, otherDestination));

@@ -23,6 +23,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -36,10 +37,10 @@ import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BA
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_BATCH_NO_BATCH_V5;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_PLANNED;
-import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
-import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_ACCEPTED;
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_CREATED;
+import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 final class K5Importer extends AbstractKrameriusImporter {
@@ -69,7 +70,7 @@ final class K5Importer extends AbstractKrameriusImporter {
     ) throws JSONException, IOException, InterruptedException {
         ImportRequest importRequest = createImportRequest(exportFolder, updateExisting, exportType, policy);
         try (CloseableHttpClient client = HttpClients.custom()
-                .setDefaultRequestConfig(org.apache.http.client.config.RequestConfig.custom()
+                .setDefaultRequestConfig(RequestConfig.custom()
                         .setConnectTimeout(CONNECT_TIMEOUT_MILLIS)
                         .build())
                 .build()) {

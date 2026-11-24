@@ -20,26 +20,27 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
+import cz.cas.lib.proarc.common.externalApp.ltp.PreservationIndex;
+import cz.cas.lib.proarc.common.externalApp.ltp.PreservationService;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
 import cz.cas.lib.proarc.common.process.InternalExternalProcess;
+import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfigurationFactory;
 import cz.cas.lib.proarc.common.user.UserUtil;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
-import org.apache.solr.client.solrj.util.ClientUtils;
-import cz.cas.lib.proarc.common.externalApp.ltp.PreservationIndex;
-import cz.cas.lib.proarc.common.externalApp.ltp.PreservationService;
-import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
-import java.io.IOException;
 import java.util.logging.Logger;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocumentList;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
@@ -145,7 +146,7 @@ public class PreservationCheckJob implements Job, ProArcJob {
                 cursor = next;
             }
             return count;
-        } catch (org.apache.solr.client.solrj.SolrServerException ex) {
+        } catch (SolrServerException ex) {
             throw new IOException("Nelze vyhledat nedokončené archivace LTP", ex);
         }
     }

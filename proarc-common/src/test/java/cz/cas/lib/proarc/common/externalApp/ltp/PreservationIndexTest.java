@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.externalApp.ltp;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.storage.relation.Rdf;
 import cz.cas.lib.proarc.common.storage.relation.Relations;
 import java.io.StringReader;
@@ -24,7 +25,11 @@ import java.util.List;
 import javax.xml.transform.stream.StreamSource;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PreservationIndexTest {
     @Test void onlyUnfinishedStorageIsPendingRegardlessOfCatalogState() throws Exception {
@@ -70,7 +75,7 @@ class PreservationIndexTest {
         current.setPackageId("23"); current.setState(ArchivInfo.State.STORED);
         current.setCatalogState(ArchivInfo.CatalogState.DONE);
         SolrInputDocument doc = new SolrInputDocument();
-        PreservationIndex.addFields(doc, PreservationIndex.read(new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(List.of(old, current))), true);
+        PreservationIndex.addFields(doc, PreservationIndex.read(new ObjectMapper().writeValueAsString(List.of(old, current))), true);
         assertEquals(false, doc.getFieldValue(PreservationIndex.PENDING));
         assertEquals("cesnet:STORED", doc.getFieldValue(PreservationIndex.STATES));
         assertEquals("23", doc.getFieldValue(PreservationIndex.ID));

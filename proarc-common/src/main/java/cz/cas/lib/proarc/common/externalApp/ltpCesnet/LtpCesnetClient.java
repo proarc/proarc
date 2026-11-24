@@ -16,8 +16,8 @@
  */
 package cz.cas.lib.proarc.common.externalApp.ltpCesnet;
 
-import cz.cas.lib.proarc.common.externalApp.ltp.PreservationProvider;
 import cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo;
+import cz.cas.lib.proarc.common.externalApp.ltp.PreservationProvider;
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -27,6 +27,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -255,7 +256,7 @@ public final class LtpCesnetClient implements PreservationProvider {
         interrupted();
         try (CloseableHttpResponse response = client.execute(request)) {
             int status = response.getStatusLine().getStatusCode();
-            org.apache.http.Header authorization = request.getFirstHeader(HttpHeaders.AUTHORIZATION);
+            Header authorization = request.getFirstHeader(HttpHeaders.AUTHORIZATION);
             if (status == 401 && authorization != null && authorization.getValue().startsWith("Token ")) {
                 credentials.rejected(authorization.getValue().substring("Token ".length()));
                 throw new CesnetTokenException(CesnetTokenException.Reason.REJECTED);
