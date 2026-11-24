@@ -20,14 +20,17 @@ import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
+import cz.cas.lib.proarc.common.externalApp.ltpCesnet.FolderUploadRepository;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetUploader;
 import cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenException;
 import cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo;
 import cz.cas.lib.proarc.common.externalApp.ltp.PreservationService;
+import cz.cas.lib.proarc.common.process.external.bagit.ImportFolderSource;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,9 +49,20 @@ public final class CesnetProcess {
     @FunctionalInterface public interface TokenValidator { void validate(String token) throws IOException; }
 
     public CesnetProcess(AppConfiguration config, BatchManager manager, UserProfile user) {
-        this(config, manager, user, (archive, operationId, pid, confirmed, credentialOwnerId) ->
-                new CesnetUploader(config, credentialOwnerId).upload(archive, operationId, pid, confirmed),
-                pid -> PreservationService.cesnet(config).archivInfo(pid),
+        this(config, manager, user, (archive, operationId, pid, confirmed, credentialOwnerId) -> {
+                    CesnetUploader uploader = new CesnetUploader(config, credentialOwnerId);
+                    if (pid.startsWith("file:")) {
+                        Path folder = ImportFolderSource.validate(
+                                user, Path.of(URI.create(pid)));
+                        uploader.uploadFolder(archive, operationId, folder, confirmed);
+                    } else {
+                        uploader.upload(archive, operationId, pid, confirmed);
+                    }
+                },
+                pid -> pid.startsWith("file:")
+                        ? new FolderUploadRepository(
+                                Path.of(URI.create(pid)), null).read(pid)
+                        : PreservationService.cesnet(config).archivInfo(pid),
                 token -> cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.getInstance()
                         .validate(config, user.getId(), token));
     }
@@ -96,6 +110,11 @@ public final class CesnetProcess {
         public List<UploadWarning> getWarnings() { return warnings; }
     }
 
+    public static UploadWarning folderWarning(String folder, ArchivInfo record) {
+        return new UploadWarning(folder, record.getPackageId(), record.getState(),
+                "Složka již má záznam nahrání do CESNETu. Chcete vytvořit nový balíček? Historie bude zachována.");
+    }
+
     public Batch plan(Batch source, String token) throws IOException {
         return plan(source, token, false);
     }
@@ -137,12 +156,13 @@ public final class CesnetProcess {
                 String operation = operation(operationId, new File(archive));
                 ArchivInfo record = reader.read(pid);
                 if (record != null && !operation.equals(record.getOperationId())) {
-                    warnings.add(warning(pid, record));
+                    warnings.add(previous.getImportFolder() != null ? folderWarning(pid, record) : warning(pid, record));
                 }
             }
             if (!warnings.isEmpty() && !retainUnconfirmed) throw new ConfirmationRequiredException(warnings);
         }
         BatchParams params = new BatchParams(source.getParamsAsObject().getPids());
+        params.setImportFolder(source.getParamsAsObject().getImportFolder());
         params.setSourceBatchId(source.getId());
         params.setBagitArchives(new ArrayList<>(archives));
         params.setCompletedUploads(completed);
@@ -237,6 +257,9 @@ public final class CesnetProcess {
     }
 
     static String packagePid(File archive, Batch source) throws IOException {
+        if (source.getParamsAsObject().getImportFolder() != null) {
+            return Path.of(source.getParamsAsObject().getImportFolder()).toUri().toString();
+        }
         // NDK package names can be URN:NBN suffixes rather than object UUIDs.
         // A single archive for a single PID has an explicit identity in the source batch.
         String name = archive.getName();

@@ -17,6 +17,8 @@
 package cz.cas.lib.proarc.common.externalApp.ltpCesnet;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo;
+import cz.cas.lib.proarc.common.externalApp.ltp.PreservationService;
 import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
 import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
 import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
@@ -33,6 +35,7 @@ import cz.cas.lib.proarc.mods.ModsDefinition;
 import cz.cas.lib.proarc.mods.TitleInfoDefinition;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -83,6 +86,22 @@ public final class CesnetUploader {
             return false;
         }
         return true;
+    }
+
+    /** Folder uploads use the same resumable protocol, with local history instead of RELS-EXT. */
+    public void uploadFolder(File archive, String operationId, Path folder, boolean confirmed) throws IOException {
+        var options = appConfiguration.getLtpCesnetConfiguration();
+        var record = new ArchivInfo();
+        record.setProvider(LtpCesnetClient.ID);
+        record.setEndpoint(options.getString("apiUrl", "https://ltp.cesnet.cz/api").replaceAll("/+$", ""));
+        record.setGroup(options.getString("groupToken"));
+        record.setCredentialOwnerId(credentialOwnerId);
+        record.setOperationId(operationId);
+        JSONObject metadata = new JSONObject().put("name", folder.getFileName().toString())
+                .put("user_metadata", new JSONObject().put("folder", folder.getFileName().toString()));
+        PreservationService.cesnet(appConfiguration, credentialOwnerId,
+                new FolderUploadRepository(folder, archive.toPath()))
+                .submit(folder.toUri().toString(), archive, metadata, record, confirmed);
     }
 
     private String toPid(String folderName) {

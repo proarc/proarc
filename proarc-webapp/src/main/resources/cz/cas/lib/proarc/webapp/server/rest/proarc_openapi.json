@@ -1499,6 +1499,38 @@
         }
       }
     },
+    "/import/cesnet": {
+      "post": {
+        "tags": ["Import"],
+        "operationId": "uploadFoldersCesnet",
+        "description": "Requires export.ltpCesnet.enable=true and prepare-batch permission. Submit repeated folderPath fields relative to the current user's import root. Each distinct selected folder creates an independent BagIt batch followed by a CESNET batch; errors and confirmationRequired are returned per folder without cancelling other folders. The selected folder including all descendants forms one package. Source payloads are copied and retained. cesnet-upload.json and its temporary files are excluded from bags. Upload checkpoints and a credential-free history are written atomically to cesnet-upload.json in the source folder, including archive SHA-256, remote ID and timestamps. Existing history requires confirmCesnetUpload=true. Missing/expired/rejected tokens use the existing WAITING_CESNET_TOKEN queue and export/cesnet/resume; no repackaging is needed. Temporary archives are removed only after successful upload and history persistence. Import-folder listings expose actions=[bagit_upload_cesnet] when the action is available. Inspect data per folder even when the envelope status is successful.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": ["folderPath"],
+                "properties": {
+                  "folderPath": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+                  "confirmCesnetUpload": {"type": "boolean", "default": false},
+                  "ltpCesnetToken": {"type": "string", "writeOnly": true},
+                  "priority": {"type": "string", "default": "medium"},
+                  "nightOnly": {"type": "boolean", "default": false}
+                }
+              },
+              "encoding": {"folderPath": {"style": "form", "explode": true}}
+            }
+          }
+        },
+        "responses": {
+          "default": {
+            "description": "Per-folder scheduling results in response.data; batchId identifies the initial BagIt process and its nextBatchId links the CESNET process.",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/response"}}}
+          }
+        }
+      }
+    },
     "/import/batch": {
       "delete": {
         "tags": [
@@ -18393,6 +18425,11 @@
           "path": {
             "type": "string"
           },
+          "actions": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Contains bagit_upload_cesnet when export.ltpCesnet.enable=true and the current user may prepare batches."
+          },
           "states": {
             "type": "array",
             "items": {
@@ -18402,6 +18439,16 @@
         },
         "xml": {
           "name": "folder"
+        }
+      },
+      "ImportCesnetResult": {
+        "type": "object",
+        "properties": {
+          "folderPath": {"type": "string"},
+          "batchId": {"type": "integer", "format": "int32", "nullable": true},
+          "error": {"type": "string", "nullable": true},
+          "confirmationRequired": {"type": "boolean"},
+          "warnings": {"type": "array", "items": {"type": "object", "properties": {"pid": {"type": "string"}, "packageId": {"type": "string", "nullable": true}, "state": {"type": "string"}, "message": {"type": "string"}}}}
         }
       },
       "ImportResult": {

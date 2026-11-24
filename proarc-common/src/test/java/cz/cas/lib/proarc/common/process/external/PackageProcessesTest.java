@@ -1,6 +1,25 @@
+/*
+ * Copyright (C) 2026 Lukas Sykora
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package cz.cas.lib.proarc.common.process.external;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo;
+import cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenException;
+import cz.cas.lib.proarc.common.externalApp.ltpCesnet.FolderUploadRepository;
 import cz.cas.lib.proarc.common.process.external.bagit.BagitProcess;
 import cz.cas.lib.proarc.common.process.external.cesnet.CesnetProcess;
 import cz.cas.lib.proarc.common.process.external.bagit.MissingSourceDirectoryException;
@@ -12,6 +31,7 @@ import cz.cas.lib.proarc.common.dao.DaoFactory;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.InternalExternalProcess;
 import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
+import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
@@ -19,8 +39,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -616,6 +639,111 @@ class PackageProcessesTest {
                 false, Batch.PRIORITY_MEDIUM, new BatchParams(List.of("uuid:test")));
         source.setFolder(root.toString());
         return source;
+    }
+
+    private void configureFolderUploads(boolean enabled) throws Exception {
+        Files.writeString(config.getConfigHome().toPath().resolve(AppConfiguration.CONFIG_FILE_NAME),
+                "export.ltpCesnet.enable=" + enabled + "\n");
+        config = AppConfigurationFactory.getInstance().create(new HashMap<>(Map.of(
+                AppConfiguration.PROPERTY_APP_HOME, config.getConfigHome().toString())));
+    }
+    private Path importFolder(String name) throws Exception {
+        Path root = Path.of(user.getImportFolder());
+        Files.createDirectories(root);
+        Path folder = Files.createDirectory(root.resolve(name));
+        Files.writeString(folder.resolve("scan.tif"), "original payload");
+        configureFolderUploads(true);
+        return folder;
+    }
+
+    @Test
+    void importFoldersHaveIndependentJobsAndKeepTheirPayloads() throws Exception {
+        configureFolderUploads(true);
+        var process = new BagitProcess(config, manager, user);
+        List<Integer> jobs = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            Path folder = importFolder("folder-" + i);
+            Batch batch = process.planImportFolder("folder-" + i, false, false, Batch.PRIORITY_MEDIUM);
+            jobs.add(batch.getId());
+            assertEquals(folder.toRealPath().toString(), batch.getParamsAsObject().getImportFolder());
+        }
+        assertEquals(20, new HashSet<>(jobs).size());
+        Batch bagit = manager.get(jobs.get(0));
+        process.run(bagit, bagit.getParamsAsObject());
+        assertEquals("original payload", Files.readString(Path.of(user.getImportFolder()).resolve("folder-0/scan.tif")));
+        Batch upload = uploadProcess().planAfterBagit(bagit);
+        assertNotNull(upload.getParamsAsObject().getImportFolder());
+        List<String> identities = new ArrayList<>();
+        var cesnet = new CesnetProcess(config, manager, user,
+                (file, operation, pid, confirmed, owner) -> identities.add(pid), pid -> null);
+        cesnet.run(upload, upload.getParamsAsObject());
+        assertEquals(List.of(Path.of(user.getImportFolder()).resolve("folder-0").toRealPath().toUri().toString()), identities);
+        assertEquals(Batch.State.EXTERNAL_DONE, upload.getState());
+        assertTrue(Files.exists(Path.of(user.getImportFolder()).resolve("folder-0/scan.tif")));
+        assertEquals(Batch.State.EXTERNAL_PLANNED, manager.get(jobs.get(1)).getState());
+        Files.delete(Path.of(user.getImportFolder()).resolve("folder-1/scan.tif"));
+        Files.delete(Path.of(user.getImportFolder()).resolve("folder-1"));
+        Batch missing = manager.get(jobs.get(1));
+        assertThrows(IOException.class, () -> process.run(missing, missing.getParamsAsObject()));
+        Batch independent = manager.get(jobs.get(2));
+        process.run(independent, independent.getParamsAsObject());
+        assertEquals(Batch.State.EXTERNAL_DONE, independent.getState());
+        assertTrue(Files.exists(Path.of(user.getImportFolder()).resolve("folder-2/scan.tif")));
+    }
+
+    @Test
+    void folderPackagingExcludesHistoriesAndTokenWaitRetainsTheArchive() throws Exception {
+        Path folder = importFolder("nested");
+        Files.writeString(folder.resolve("cesnet-upload.json"), "{\"schemaVersion\":1,\"uploads\":[]}");
+        Files.writeString(folder.resolve(".cesnet-upload-interrupted.json"), "temporary history");
+        assertEquals(List.of(folder.resolve("scan.tif").toFile()),
+                new ImportFileScanner().findDigitalContent(folder.toFile()));
+        Files.writeString(Files.createDirectory(folder.resolve("child")).resolve("file.txt"), "child payload");
+        var process = new BagitProcess(config, manager, user);
+        Batch bagit = process.planImportFolder("nested", false, false, Batch.PRIORITY_MEDIUM);
+        process.run(bagit, bagit.getParamsAsObject());
+        Path archive = Path.of(bagit.getParamsAsObject().getBagitArchives().get(0));
+        try (var zip = new ZipFile(archive.toFile())) {
+            var names = zip.stream().map(ZipEntry::getName).toList();
+            assertTrue(names.stream().anyMatch(n -> n.endsWith("/data/child/file.txt")));
+            assertFalse(names.stream().anyMatch(n -> n.endsWith("cesnet-upload.json")));
+        }
+        var cesnet = new CesnetProcess(config, manager, user, (file, operation, pid, confirmed, owner) -> {
+            throw new CesnetTokenException(
+                    CesnetTokenException.Reason.MISSING);
+        }, pid -> null);
+        Batch upload = cesnet.planAfterBagit(bagit);
+        cesnet.run(upload, upload.getParamsAsObject());
+        assertEquals(Batch.State.WAITING_CESNET_TOKEN, upload.getState());
+        assertTrue(Files.exists(archive));
+        assertTrue(Files.exists(folder.resolve("scan.tif")));
+        // Resume uses the packaged snapshot; it must not recopy changed source data.
+        Files.writeString(folder.resolve("scan.tif"), "changed after packaging");
+        var resumed = new CesnetProcess(config, manager, user,
+                (file, operation, pid, confirmed, owner) -> assertEquals(archive.toFile(), file), pid -> null);
+        resumed.run(upload, upload.getParamsAsObject());
+        assertEquals(Batch.State.EXTERNAL_DONE, upload.getState());
+        assertFalse(Files.exists(archive));
+    }
+
+    @Test
+    void folderUploadRequiresFeatureFlagAndConfirmsExistingHistory() throws Exception {
+        Path folder = importFolder("repeat");
+        configureFolderUploads(false);
+        var disabled = new BagitProcess(config, manager, user);
+        assertThrows(IOException.class, () -> disabled.planImportFolder("repeat", false, false, Batch.PRIORITY_MEDIUM));
+        configureFolderUploads(true);
+        var process = new BagitProcess(config, manager, user);
+        var record = new ArchivInfo();
+        record.setOperationId("old-operation");
+        record.setPackageId("123");
+        record.setState(ArchivInfo.State.UPLOADED);
+        new FolderUploadRepository(folder, null).save("folder", record);
+        assertThrows(CesnetProcess.ConfirmationRequiredException.class,
+                () -> process.planImportFolder("repeat", false, false, Batch.PRIORITY_MEDIUM));
+        assertNotNull(process.planImportFolder("repeat", true, false, Batch.PRIORITY_MEDIUM));
+        assertThrows(IOException.class, () -> process.planImportFolder("../outside", true, false, Batch.PRIORITY_MEDIUM));
+        assertThrows(IOException.class, () -> process.planImportFolder(".", true, false, Batch.PRIORITY_MEDIUM));
     }
 
     private static class MemoryManager extends BatchManager {

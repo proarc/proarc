@@ -1,15 +1,34 @@
+/*
+ * Copyright (C) 2026 Lukas Sykora
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package cz.cas.lib.proarc.common.process.external.bagit;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.dao.Batch;
 import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
+import cz.cas.lib.proarc.common.externalApp.ltpCesnet.FolderUploadRepository;
 import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.external.cesnet.CesnetProcess;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -41,6 +60,25 @@ public final class BagitProcess {
                 source.isNightOnly(), source.getPriority(), params);
     }
 
+    public Batch planImportFolder(String relativePath, boolean confirmed, boolean nightOnly, String priority) throws IOException {
+        if (!config.isLtpCesnetExportEnabled()) {
+            throw new IOException("Nahrávání do CESNETu není povoleno.");
+        }
+        Path folder = ImportFolderSource.resolve(user, relativePath);
+        var record = new FolderUploadRepository(folder, null)
+                .read(folder.toUri().toString());
+        if (record != null && !confirmed) {
+            throw new CesnetProcess.ConfirmationRequiredException(
+                    List.of(CesnetProcess.folderWarning(relativePath, record)));
+        }
+        BatchParams params = new BatchParams(List.of(folder.toUri().toString()));
+        params.setImportFolder(folder.toString());
+        params.setLtpCesnet(true);
+        params.setConfirmCesnetUpload(confirmed);
+        return manager.add(relativePath, user, Batch.EXTERNAL_BAGIT, Batch.State.EXTERNAL_PLANNED,
+                nightOnly, priority, params);
+    }
+
     /** Plans optional packaging after a completed export, retaining the automatic upload options. */
     public Batch planAfterExport(Batch source) throws IOException {
         BatchParams params = source.getParamsAsObject();
@@ -60,6 +98,9 @@ public final class BagitProcess {
     }
 
     public Batch run(Batch batch, BatchParams params) throws Exception {
+        if (params.getImportFolder() != null) {
+            return runImportFolder(batch, params);
+        }
         Batch source = manager.get(params.getSourceBatchId());
         requireOwnedFinished(source);
         if (!EXPORTS.contains(source.getProfileId())) throw new IOException("Neplatný profil zdrojové dávky pro BagIt");
@@ -108,6 +149,59 @@ public final class BagitProcess {
         requireActive(batch);
         return BatchUtils.finishedSuccessfully(manager, batch, batch.getFolder(),
                 "Vytvoření balíčku BagIt bylo dokončeno. Zdrojový export byl smazán. Archivy byly zachovány pro nahrání do CESNETu.", Batch.State.EXTERNAL_DONE);
+    }
+
+    private Batch runImportFolder(Batch batch, BatchParams params) throws Exception {
+        Path source = ImportFolderSource.validate(user, Path.of(params.getImportFolder()));
+        if (!Objects.equals(batch.getUserId(), user.getId())) {
+            throw new IOException("Přístup odepřen.");
+        }
+        Path destination = config.getConfigHome().toPath().resolve("temp/ltpCesnet").toAbsolutePath().normalize();
+        Files.createDirectories(destination);
+        if (destination.toRealPath().startsWith(source)) {
+            throw new IOException("Dočasná složka je uvnitř zdroje.");
+        }
+        Path output = destination.resolve("bagit_import_" + batch.getId());
+        Files.createDirectories(output);
+        Path actualOutput = output.toRealPath();
+        if (actualOutput.startsWith(source) || source.startsWith(actualOutput)) {
+            throw new IOException("Dočasná a zdrojová složka se nesmí překrývat.");
+        }
+        batch.setFolder(output.toString());
+        save(batch, params);
+        if (!Boolean.TRUE.equals(params.getBagitComplete())) {
+            Path work = output.resolve("work");
+            if (Files.exists(work)) {
+                FileUtils.deleteDirectory(work.toFile());
+            }
+            Path copy = work.resolve(source.getFileName());
+            requireActive(batch);
+            ImportFolderSource.copy(source, copy);
+            Bagit bag = new Bagit(config, copy.toFile());
+            bag.prepare();
+            bag.bagit();
+            bag.zip();
+            bag.moveToBagitFolder();
+            bag.createMd5File();
+            bag.moveToSpecifiedDirectories(null);
+            requireActive(batch);
+            Path archive = bag.getDestinationFile().toPath();
+            Path stable = output.resolve(archive.getFileName());
+            Path sums = checksumFile(archive.toString());
+            Files.move(archive, stable, StandardCopyOption.REPLACE_EXISTING);
+            Files.move(sums, output.resolve(sums.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+            params.setBagitArchives(List.of(stable.toString()));
+            params.setBagitComplete(true);
+            save(batch, params);
+        }
+        requireCompleteArchives(list(params.getBagitArchives()));
+        requireActive(batch);
+        Path work = output.resolve("work");
+        if (Files.exists(work)) {
+            FileUtils.deleteDirectory(work.toFile());
+        }
+        return BatchUtils.finishedSuccessfully(manager, batch, output.toString(),
+                "BagIt importní složky byl vytvořen. Zdrojová složka byla zachována.", Batch.State.EXTERNAL_DONE);
     }
 
     private void createArchives(Batch batch, BatchParams params, Batch source, Path sourceRoot, Path output) throws Exception {

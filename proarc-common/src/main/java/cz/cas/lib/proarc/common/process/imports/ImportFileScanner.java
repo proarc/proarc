@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.common.process.imports;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.ConfigurationProfile;
+import cz.cas.lib.proarc.common.externalApp.ltpCesnet.FolderUploadRepository;
 import cz.cas.lib.proarc.common.process.imports.FileSet.FileEntry;
 import java.io.File;
 import java.io.FileFilter;
@@ -51,6 +52,7 @@ public final class ImportFileScanner {
      */
     private static final Set<String> EXCLUDE_FILENAMES = new HashSet<String>(Arrays.asList(
             IMPORT_STATE_FILENAME,
+            FolderUploadRepository.FILE_NAME,
             ImportProcess.TMP_DIR_NAME,
             "Thumbs.db"
     ));
@@ -125,7 +127,8 @@ public final class ImportFileScanner {
         File[] files = folder.listFiles();
         List<File> contents = new ArrayList<File>(files.length);
         for (File file : files) {
-            if (file.isFile() && file.canRead() && !EXCLUDE_FILENAMES.contains(file.getName())) {
+            if (file.isFile() && file.canRead() && !EXCLUDE_FILENAMES.contains(file.getName())
+                    && !file.getName().startsWith(FolderUploadRepository.TEMP_PREFIX)) {
                 contents.add(file);
             }
         }

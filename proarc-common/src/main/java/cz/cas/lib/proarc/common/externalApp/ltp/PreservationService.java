@@ -61,7 +61,11 @@ public final class PreservationService {
     }
 
     public static PreservationService cesnet(AppConfiguration config, Integer credentialOwnerId) {
-        return new PreservationService(new ObjectRepository(), record -> {
+        return cesnet(config, credentialOwnerId, new ObjectRepository());
+    }
+
+    public static PreservationService cesnet(AppConfiguration config, Integer credentialOwnerId, Repository repository) {
+        return new PreservationService(repository, record -> {
             if (!LtpCesnetClient.ID.equals(record.getProvider())) throw new IOException("Nepodporovaný poskytovatel LTP");
             // Old submissions retain their destination even if the current upload configuration changes.
             org.apache.commons.configuration2.BaseConfiguration options = new org.apache.commons.configuration2.BaseConfiguration();

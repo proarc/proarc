@@ -1,5 +1,15 @@
 ### Public API documentation: https://ltp.cesnet.cz/api/
 ### Set ltpCesnetToken, ltpCesnetGroup and ltpCesnetId in a private HTTP client environment.
+### Import folders: one independent BagIt -> CESNET chain per selected folder.
+### Requires export.ltpCesnet.enable=true. Paths are relative to the current user's import root.
+### Inspect each data item for batchId, error or confirmationRequired.
+### Repeat ONLY folders requiring confirmation with confirmCesnetUpload=true after consent.
+### Source payloads remain in place; cesnet-upload.json contains history and is excluded from bags.
+POST {{proarcUrl}}/rest/v2/import/cesnet
+Content-Type: application/x-www-form-urlencoded
+
+folderPath=parent/first/&folderPath=parent/second/
+
 ### Obtain an application token in the logged-in CESNET GUI. ProArc does not use Basic authentication.
 ### ProArc reads export.ltpCesnet.apiUrl/groupToken/catalogId from proarc.cfg.
 

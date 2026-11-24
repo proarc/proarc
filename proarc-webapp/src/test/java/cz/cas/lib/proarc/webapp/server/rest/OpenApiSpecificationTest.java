@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2026 Lukas Sykora
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import java.io.InputStream;
@@ -211,8 +227,8 @@ class OpenApiSpecificationTest {
         assertEquals("../rest/v2", spec.getJSONArray("servers").getJSONObject(0).getString("url"));
 
         JSONObject paths = spec.getJSONObject("paths");
-        assertEquals(184, paths.length());
-        assertEquals(224, countOperations(paths));
+        assertEquals(185, paths.length());
+        assertEquals(225, countOperations(paths));
         assertTrue(paths.has("/authorities"));
         assertTrue(paths.has("/bibliographies/query"));
         assertTrue(paths.has("/device"));
@@ -537,7 +553,7 @@ class OpenApiSpecificationTest {
         JSONObject schemas = loadSpec()
                 .getJSONObject("components")
                 .getJSONObject("schemas");
-        assertEquals(253, schemas.length());
+        assertEquals(254, schemas.length());
 
         JSONObject response = schemas.getJSONObject("response");
         JSONObject properties = response.getJSONObject("properties");
@@ -718,7 +734,7 @@ class OpenApiSpecificationTest {
             assertTrue(pathOperationCount > 0, path);
         }
 
-        assertEquals(224, operationCount);
+        assertEquals(225, operationCount);
         assertTrue(responseCount > operationCount);
     }
 

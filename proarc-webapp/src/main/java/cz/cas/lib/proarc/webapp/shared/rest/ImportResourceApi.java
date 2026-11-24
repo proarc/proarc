@@ -21,6 +21,8 @@ package cz.cas.lib.proarc.webapp.shared.rest;
  * @author Jan Pokorsky
  */
 public final class ImportResourceApi {
+    public static final String CESNET_PATH = "cesnet";
+    public static final String CESNET_ACTION = "bagit_upload_cesnet";
 
     // resource /import
     public static final String PATH = "import";
