@@ -27,10 +27,10 @@ final class BagitJava {
     void create(Path folder) throws IOException {
         Path root = folder.toAbsolutePath().normalize();
         if (!Files.isDirectory(root, LinkOption.NOFOLLOW_LINKS)) {
-            throw new IOException("BagIt export folder is not a directory: " + root);
+            throw new IOException("Složka exportu BagIt není adresář: " + root);
         }
         if (Files.exists(root.resolve("bagit.txt"), LinkOption.NOFOLLOW_LINKS)) {
-            throw new IOException("Export already contains bagit.txt: " + root);
+            throw new IOException("Export již obsahuje bagit.txt: " + root);
         }
         // Validate before changing the export. Links and special files are not portable payloads.
         List<Path> payload = new ArrayList<>();
@@ -38,7 +38,7 @@ final class BagitJava {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 if (!attrs.isRegularFile()) {
-                    throw new IOException("Unsupported BagIt payload file (link or special file): " + file);
+                    throw new IOException("Nepodporovaný datový soubor BagIt (odkaz nebo speciální soubor): " + file);
                 }
                 payload.add(file);
                 return FileVisitResult.CONTINUE;
@@ -82,7 +82,7 @@ final class BagitJava {
                 }
                 cleanup(staging);
             } catch (IOException recovery) {
-                ex.addSuppressed(new IOException("BagIt recovery failed; retained files in " + staging, recovery));
+                ex.addSuppressed(new IOException("Obnovení po chybě BagIt selhalo; soubory byly zachovány v " + staging, recovery));
             }
             throw ex;
         }
@@ -133,7 +133,7 @@ final class BagitJava {
         try {
             digest = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException ex) {
-            throw new IOException("MD5 is unavailable", ex);
+            throw new IOException("MD5 není k dispozici", ex);
         }
         long bytes = 0;
         byte[] buffer = new byte[64 * 1024];
@@ -141,7 +141,7 @@ final class BagitJava {
             int count;
             while ((count = input.read(buffer)) != -1) {
                 if (Thread.currentThread().isInterrupted()) {
-                    throw new java.io.InterruptedIOException("BagIt creation interrupted");
+                    throw new java.io.InterruptedIOException("Vytváření balíčku BagIt bylo přerušeno");
                 }
                 digest.update(buffer, 0, count);
                 bytes += count;

@@ -72,7 +72,7 @@ public final class CesnetTokenStore {
     }
 
     private Key key(AppConfiguration config, Integer userId, Configuration options) throws IOException {
-        if (userId == null) throw new IOException("Missing CESNET credential owner");
+        if (userId == null) throw new IOException("Chybí vlastník přístupových údajů CESNET");
         return new Key(config.getConfigHome().getAbsoluteFile().toPath().normalize().toString(),
                 options.getString("apiUrl", "https://ltp.cesnet.cz/api").replaceAll("/+$", ""), userId);
     }

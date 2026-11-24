@@ -75,7 +75,7 @@ public final class CesnetCheckProcess {
 
     public Batch plan() throws IOException {
         if (user == null || !user.hasAllObjectsFunction())
-            throw new IOException("Access denied: allObjectsFunction required");
+            throw new IOException("Přístup odepřen: je vyžadováno oprávnění allObjectsFunction");
         return manager.add("CESNET check", user, Batch.EXTERNAL_CESNET_CHECK, Batch.State.EXTERNAL_PLANNED,
                 false, Batch.PRIORITY_MEDIUM, new BatchParams(List.of()));
     }
@@ -83,24 +83,24 @@ public final class CesnetCheckProcess {
     public Batch run(Batch batch, CesnetQueue.Submitter submitter) {
         List<String> catalogPids = new ArrayList<>();
         boolean[] failed = {false};
-        batch.setLog("CESNET check started.");
+        batch.setLog("Kontrola archivace v CESNETu byla zahájena.");
         manager.update(batch);
         try {
             requireActive(batch);
             List<String> pids = batch.getParamsAsObject().getPids();
             if (user == null || (!user.hasAllObjectsFunction() && (pids == null || pids.isEmpty()))) {
-                throw new IOException("Access denied: allObjectsFunction required");
+                throw new IOException("Přístup odepřen: je vyžadováno oprávnění allObjectsFunction");
             }
             validator.validate(null);
             int count = checker.check(message -> {
-                if (message.startsWith("ERROR:")) failed[0] = true;
+                if (message.startsWith("CHYBA:")) failed[0] = true;
                 append(batch, message);
             }, catalogPids::add);
             requireActive(batch);
-            append(batch, "CESNET check completed: " + count + " objects checked.");
+            append(batch, "Kontrola archivace v CESNETu byla dokončena. Počet zkontrolovaných objektů: " + count + ".");
         } catch (Exception ex) {
             failed[0] = true;
-            append(batch, "ERROR: " + ex.getMessage());
+            append(batch, "CHYBA: " + ex.getMessage());
         }
         try {
             requireActive(batch);
@@ -112,7 +112,7 @@ public final class CesnetCheckProcess {
                 BatchParams checkParams = batch.getParamsAsObject();
                 checkParams.setNextBatchId(next.getId());
                 batch.setParamsFromObject(checkParams);
-                append(batch, "Catalog update process: " + next.getId());
+                append(batch, "Proces aktualizace katalogu: " + next.getId());
                 try {
                     submitter.enqueue(next);
                 } catch (Exception ex) {
@@ -122,32 +122,32 @@ public final class CesnetCheckProcess {
             }
         } catch (Exception ex) {
             failed[0] = true;
-            append(batch, "ERROR: Cannot schedule catalog update: " + ex.getMessage());
+            append(batch, "CHYBA: Aktualizaci katalogu se nepodařilo naplánovat: " + ex.getMessage());
         }
         return finish(batch, failed[0]);
     }
 
     public Batch updateCatalog(Batch batch) {
-        batch.setLog("CESNET catalog update started.");
+        batch.setLog("Aktualizace katalogu podle archivace v CESNETu byla zahájena.");
         manager.update(batch);
         boolean failed = false;
         try {
             if (user == null || !user.hasImportToCatalogFunction()) {
-                throw new IOException("Access denied: importToCatalogFunction required");
+                throw new IOException("Přístup odepřen: je vyžadováno oprávnění importToCatalogFunction");
             }
             for (String pid : batch.getParamsAsObject().getPids()) {
                 requireActive(batch);
                 try {
                     catalogUpdater.update(pid);
-                    append(batch, pid + ": catalog synchronization completed.");
+                    append(batch, pid + ": synchronizace katalogu byla dokončena.");
                 } catch (Exception ex) {
                     failed = true;
-                    append(batch, "ERROR: " + pid + ": " + ex.getMessage());
+                    append(batch, "CHYBA: " + pid + ": " + ex.getMessage());
                 }
             }
         } catch (Exception ex) {
             failed = true;
-            append(batch, "ERROR: " + ex.getMessage());
+            append(batch, "CHYBA: " + ex.getMessage());
         }
         return finish(batch, failed);
     }
@@ -155,7 +155,7 @@ public final class CesnetCheckProcess {
     private void requireActive(Batch batch) throws InterruptedIOException {
         Batch current = manager.get(batch.getId());
         if (Thread.currentThread().isInterrupted() || (current != null && current.getState() == Batch.State.STOPPED)) {
-            throw new InterruptedIOException("CESNET process stopped");
+            throw new InterruptedIOException("Proces CESNET byl zastaven");
         }
     }
 

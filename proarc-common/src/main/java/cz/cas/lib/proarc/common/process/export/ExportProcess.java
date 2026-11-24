@@ -194,12 +194,12 @@ public final class ExportProcess implements Runnable {
                         InternalExternalDispatcher.getDefault().addInternalExternalProcess(InternalExternalProcess.prepare(config, akubraConfiguration,
                                 next, batchManager, user, exportOptions.getLog(), exportOptions.getLocale()));
                         result.setLog((result.getLog() == null ? "" : result.getLog() + "\n")
-                                + "Next process: " + next.getProfileId() + ", batch " + next.getId());
+                                + "Navazující proces: " + next.getProfileId() + ", dávka " + next.getId());
                         batchManager.update(result);
                     }
                 } catch (Exception ex) {
                     result = BatchUtils.finishedExportWithWarning(batchManager, result, result.getFolder(),
-                            "Export completed; BagIt process could not be scheduled: " + ex.getMessage());
+                            "Export byl dokončen; vytvoření balíčku BagIt se nepodařilo naplánovat: " + ex.getMessage());
                 }
             }
             if (result != null && (result.getState() == Batch.State.EXPORT_DONE

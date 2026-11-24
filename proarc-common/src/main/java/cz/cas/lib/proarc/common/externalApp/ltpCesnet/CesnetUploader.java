@@ -59,7 +59,7 @@ public final class CesnetUploader {
             CesnetTokenStore.getInstance().validate(appConfiguration, credentialOwnerId, null);
             String metadata = createMetadataJson(archive.getName(), pid);
             if (!isValid(metadata)) {
-                throw new IOException("Invalid json:" + metadata);
+                throw new IOException("Neplatný JSON:" + metadata);
             }
             var options = appConfiguration.getLtpCesnetConfiguration();
             var record = new cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo();
@@ -72,7 +72,7 @@ public final class CesnetUploader {
             cz.cas.lib.proarc.common.externalApp.ltp.PreservationService.cesnet(appConfiguration, credentialOwnerId)
                     .submit(pid, archive, new JSONObject(metadata), record, confirmed);
         } else {
-            throw new IOException("CESNET archive does not exist: " + archive);
+            throw new IOException("Archiv pro CESNET neexistuje: " + archive);
         }
     }
 

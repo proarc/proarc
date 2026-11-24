@@ -256,13 +256,13 @@ public final class InternalExternalProcess implements Runnable {
                                 next, batchManager, user, options.getLog(), options.getLocale()));
                     }
                     result.setLog((result.getLog() == null ? "" : result.getLog() + "\n")
-                            + "Next process: " + next.getProfileId() + ", batch " + next.getId()
+                            + "Navazující proces: " + next.getProfileId() + ", dávka " + next.getId()
                             + (next.getState() == Batch.State.EXTERNAL_FAILED ? "; " + next.getLog() : ""));
                     batchManager.update(result);
                 }
             } catch (Exception ex) {
                 result.setLog((result.getLog() == null ? "" : result.getLog() + "\n")
-                        + "Process completed; CESNET upload could not be scheduled: " + ex.getMessage());
+                        + "Proces byl dokončen; nahrávání do CESNETu se nepodařilo naplánovat: " + ex.getMessage());
                 batchManager.update(result);
             }
         }

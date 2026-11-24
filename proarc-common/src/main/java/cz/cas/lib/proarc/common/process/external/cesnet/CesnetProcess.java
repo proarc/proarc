@@ -28,11 +28,14 @@ import cz.cas.lib.proarc.common.externalApp.ltp.PreservationService;
 import cz.cas.lib.proarc.common.user.UserProfile;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-/** Plans and resumes CESNET uploads while retaining completed local archives. */
+/** Plans and resumes CESNET uploads, retaining local archives until the entire upload succeeds. */
 public final class CesnetProcess {
     private final BatchManager manager;
     private final UserProfile user;
@@ -87,7 +90,7 @@ public final class CesnetProcess {
     public static final class ConfirmationRequiredException extends IOException {
         private final List<UploadWarning> warnings;
         public ConfirmationRequiredException(List<UploadWarning> warnings) {
-            super("CESNET upload requires confirmation");
+            super("Nahrání do CESNETu vyžaduje potvrzení");
             this.warnings = List.copyOf(warnings);
         }
         public List<UploadWarning> getWarnings() { return warnings; }
@@ -109,7 +112,7 @@ public final class CesnetProcess {
         if (Batch.EXTERNAL_CESNET.equals(source.getProfileId())) {
             if (source.getState() == Batch.State.EXTERNAL_RUNNING || source.getState() == Batch.State.EXTERNAL_PLANNED
                     || source.getState() == Batch.State.WAITING_CESNET_TOKEN) {
-                throw new IOException("CESNET upload is already running, planned or waiting for a token; use cesnet/resume for waiting uploads");
+                throw new IOException("Nahrávání do CESNETu již probíhá, je naplánováno nebo čeká na token; pro čekající nahrávání použijte cesnet/resume");
             }
             if (source.getState() != Batch.State.EXTERNAL_DONE) {
                 completed.addAll(list(previous.getCompletedUploads()));
@@ -121,9 +124,9 @@ public final class CesnetProcess {
             source = manager.get(previous.getSourceBatchId());
         }
         requireOwnedFinished(source);
-        if (!Batch.EXTERNAL_BAGIT.equals(source.getProfileId())) throw new IOException("Source must be a completed BagIt batch");
+        if (!Batch.EXTERNAL_BAGIT.equals(source.getProfileId())) throw new IOException("Zdrojem musí být dokončená dávka BagIt");
         List<String> archives = list(source.getParamsAsObject().getBagitArchives());
-        requireArchives(archives);
+        requirePendingArchives(archives, completed);
         // Preparing an archive does not require CESNET access. Credentials are checked at upload time.
         if (token != null && !token.isBlank()) tokenValidator.validate(token);
         List<UploadWarning> warnings = new ArrayList<>();
@@ -148,9 +151,11 @@ public final class CesnetProcess {
         Batch batch = manager.add(params.getPids().get(0), user, Batch.EXTERNAL_CESNET,
                 warnings.isEmpty() ? Batch.State.EXTERNAL_PLANNED : Batch.State.EXTERNAL_FAILED,
                 false, source.getPriority(), params);
+        batch.setFolder(source.getFolder());
+        save(batch, params);
         if (!warnings.isEmpty()) {
-            StringBuilder log = new StringBuilder("CESNET upload requires confirmation. "
-                    + "Retry this CESNET batch with confirmCesnetUpload=true. Local archives retained.");
+            StringBuilder log = new StringBuilder("Nahrání do CESNETu vyžaduje potvrzení. "
+                    + "Spusťte tuto dávku CESNET znovu s parametrem confirmCesnetUpload=true. Místní archivy byly zachovány.");
             for (UploadWarning warning : warnings) {
                 log.append('\n').append(warning.pid()).append(": ").append(warning.message());
             }
@@ -174,10 +179,10 @@ public final class CesnetProcess {
     public Batch run(Batch batch, BatchParams params) throws Exception {
         Batch source = manager.get(params.getSourceBatchId());
         requireOwnedFinished(source);
-        if (!Batch.EXTERNAL_BAGIT.equals(source.getProfileId())) throw new IOException("Invalid CESNET source profile");
+        if (!Batch.EXTERNAL_BAGIT.equals(source.getProfileId())) throw new IOException("Neplatný profil zdrojové dávky pro CESNET");
         List<String> archives = list(params.getBagitArchives());
-        requireArchives(archives);
-        if (!list(source.getParamsAsObject().getBagitArchives()).containsAll(archives)) throw new IOException("Archive does not belong to source batch");
+        requirePendingArchives(archives, list(params.getCompletedUploads()));
+        if (!list(source.getParamsAsObject().getBagitArchives()).containsAll(archives)) throw new IOException("Archiv nepatří do zdrojové dávky");
         List<String> completed = new ArrayList<>(list(params.getCompletedUploads()));
         batch.setFolder(source.getFolder());
         save(batch, params);
@@ -208,15 +213,34 @@ public final class CesnetProcess {
             save(batch, params);
         }
         requireActive(batch);
+        deleteUploadedArchives(archives, batch.getFolder());
         return BatchUtils.finishedSuccessfully(manager, batch, batch.getFolder(),
-                "CESNET upload completed. Local archives retained.", Batch.State.EXTERNAL_DONE);
+                "Nahrávání do CESNETu bylo dokončeno. Místní archivy byly smazány.", Batch.State.EXTERNAL_DONE);
+    }
+
+    private static void deleteUploadedArchives(List<String> archives, String folder) throws IOException {
+        java.util.Set<Path> directories = new java.util.HashSet<>();
+        for (String archive : archives) {
+            Path zip = Path.of(archive);
+            Files.deleteIfExists(zip);
+            Files.deleteIfExists(zip.resolveSibling(zip.getFileName().toString().replaceFirst("\\.zip$", ".sums")));
+            directories.add(zip.toAbsolutePath().getParent());
+        }
+        if (folder != null) directories.add(Path.of(folder).toAbsolutePath());
+        for (Path directory : directories) {
+            try {
+                Files.deleteIfExists(directory);
+            } catch (DirectoryNotEmptyException ex) {
+                // Older batches may use a shared export directory. Keep unrelated files.
+            }
+        }
     }
 
     static String packagePid(File archive, Batch source) throws IOException {
         // NDK package names can be URN:NBN suffixes rather than object UUIDs.
         // A single archive for a single PID has an explicit identity in the source batch.
         String name = archive.getName();
-        if (!name.startsWith("archive_") || !name.endsWith(".zip")) throw new IOException("Cannot identify BagIt package PID");
+        if (!name.startsWith("archive_") || !name.endsWith(".zip")) throw new IOException("Nelze určit PID balíčku BagIt");
         String uuid = name.substring("archive_".length(), name.length() - ".zip".length());
         if (source.getParamsAsObject().getBagitArchives().size() == 1
                 && source.getParamsAsObject().getPids().size() == 1) {
@@ -240,31 +264,31 @@ public final class CesnetProcess {
     private void requireActive(Batch batch) throws IOException {
         Batch latest = manager.get(batch.getId());
         if (Thread.currentThread().isInterrupted() || (latest != null && latest.getState() == Batch.State.STOPPED)) {
-            throw new java.io.InterruptedIOException("CESNET process stopped");
+            throw new java.io.InterruptedIOException("Proces CESNET byl zastaven");
         }
     }
 
     private void requireOwned(Batch source) throws IOException {
-        if (source == null || !Objects.equals(user.getId(), source.getUserId())) throw new IOException("Source batch not found or access denied");
-        if (source.getParamsAsObject() == null) throw new IOException("Source batch has no parameters");
+        if (source == null || !Objects.equals(user.getId(), source.getUserId())) throw new IOException("Zdrojová dávka nebyla nalezena nebo byl odepřen přístup");
+        if (source.getParamsAsObject() == null) throw new IOException("Zdrojová dávka nemá parametry");
     }
 
     private void requireOwnedFinished(Batch source) throws IOException {
         requireOwned(source);
         boolean finished = source.getState() == Batch.State.EXTERNAL_DONE;
         if (!finished) {
-            throw new IOException("Source batch must be completed");
+            throw new IOException("Zdrojová dávka musí být dokončena");
         }
     }
 
-    private static void requireArchives(List<String> archives) throws IOException {
-        if (archives.isEmpty()) throw new IOException("Source batch has no BagIt archives");
-        requireArchivesIfPresent(archives);
+    private static void requirePendingArchives(List<String> archives, List<String> completed) throws IOException {
+        if (archives.isEmpty()) throw new IOException("Zdrojová dávka neobsahuje archivy BagIt");
+        requireArchivesIfPresent(archives.stream().filter(archive -> !completed.contains(archive)).toList());
     }
 
     private static void requireArchivesIfPresent(List<String> archives) throws IOException {
         for (String archive : archives) {
-            if (!new File(archive).isFile()) throw new IOException("BagIt archive no longer exists: " + archive);
+            if (!new File(archive).isFile()) throw new IOException("Archiv BagIt již neexistuje: " + archive);
         }
     }
 

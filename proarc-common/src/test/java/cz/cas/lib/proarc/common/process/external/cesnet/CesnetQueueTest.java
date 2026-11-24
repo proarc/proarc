@@ -158,8 +158,9 @@ class CesnetQueueTest {
         assertEquals(List.of(second.toString()), uploaded);
         assertEquals(operation, batch.getParamsAsObject().getCesnetOperationId());
         assertEquals(1, batch.getUserId());
-        assertTrue(Files.exists(first));
-        assertTrue(Files.exists(second));
+        assertFalse(Files.exists(first));
+        assertFalse(Files.exists(second));
+        assertTrue(Files.exists(temp.resolve("proarc.cfg")));
     }
 
     @Test void everyTokenFailureReturnsToWaitingButOtherIoErrorsStillFailNormally() throws Exception {

@@ -124,13 +124,20 @@ public class PreservationCheckJob implements Job, ProArcJob {
                     try {
                         service.check(pid, config.getLtpCesnetConfiguration().getString("catalogId"));
                         var record = service.archivInfo(pid);
-                        log.accept(pid + ": " + (record == null ? "No LTP record" : record.getState())
+                        log.accept(pid + ": " + (record == null ? "Bez záznamu LTP" : switch (record.getState()) {
+                            case REGISTERING -> "Probíhá registrace";
+                            case UPLOADING -> "Probíhá nahrávání";
+                            case UPLOADED -> "Nahráno, čeká na validaci";
+                            case STORED -> "Archivováno a zvalidováno";
+                            case FAILED -> "Archivace selhala";
+                            case null -> "Neznámý stav archivace";
+                        })
                                 + (record != null && (record.getCatalogId() == null || record.getCatalogId().isBlank())
-                                ? "; catalog update disabled (no catalog configured)" : ""));
+                                ? "; aktualizace katalogu je vypnuta (katalog není nakonfigurován)" : ""));
                         if (PreservationService.needsCatalogUpdate(record)) catalogCandidate.accept(pid);
                         count++;
                     } catch (Exception ex) {
-                        log.accept("ERROR: LTP check failed for " + pid + ": " + ex.getMessage());
+                        log.accept("CHYBA: Kontrola LTP selhala pro " + pid + ": " + ex.getMessage());
                     }
                 }
                 String next = response.getNextCursorMark();
@@ -139,7 +146,7 @@ public class PreservationCheckJob implements Job, ProArcJob {
             }
             return count;
         } catch (org.apache.solr.client.solrj.SolrServerException ex) {
-            throw new IOException("Cannot find pending LTP submissions", ex);
+            throw new IOException("Nelze vyhledat nedokončené archivace LTP", ex);
         }
     }
 

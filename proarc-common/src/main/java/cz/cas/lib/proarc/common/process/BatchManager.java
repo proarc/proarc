@@ -288,17 +288,17 @@ public class BatchManager {
             return "";
         }
         StringBuilder sb = new StringBuilder();
-        if (params.getSourceBatchId() != null) {
-            sb.append("Source batch: ").append(params.getSourceBatchId()).append("\n");
-        }
-        if (params.getNextBatchId() != null) {
-            sb.append("Next batch: ").append(params.getNextBatchId()).append("\n");
-        }
+//        if (params.getSourceBatchId() != null) {
+//            sb.append("Zdrojová dávka: ").append(params.getSourceBatchId()).append("\n");
+//        }
+//        if (params.getNextBatchId() != null) {
+//            sb.append("Navazující dávka: ").append(params.getNextBatchId()).append("\n");
+//        }
         if (params.getBagitArchives() != null) {
-            sb.append("BagIt archives: ").append(params.getBagitArchives()).append("\n");
+            sb.append("Archivy BagIt: ").append(params.getBagitArchives()).append("\n");
         }
         if (params.getCompletedUploads() != null) {
-            sb.append("Uploaded archives: ").append(params.getCompletedUploads()).append("\n");
+            sb.append("Nahrané archivy: ").append(params.getCompletedUploads()).append("\n");
         }
         if (profileId.startsWith("exportProfile") || profileId.startsWith("uploadProfile")
                 || Batch.EXTERNAL_BAGIT.equals(profileId) || Batch.EXTERNAL_CESNET.equals(profileId)) {

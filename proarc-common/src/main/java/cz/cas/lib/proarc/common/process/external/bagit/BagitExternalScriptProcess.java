@@ -31,10 +31,10 @@ public class BagitExternalScriptProcess {
 
     public void run() throws IOException {
         if (exportFolder == null) {
-            throw new IllegalStateException("Unknown export folder :" + exportFolder);
+            throw new IllegalStateException("Neznámá složka exportu: " + exportFolder);
         }
         if (!exportFolder.exists()) {
-            throw new IllegalStateException(exportFolder.getAbsolutePath() + "does not exists.");
+            throw new IllegalStateException(exportFolder.getAbsolutePath() + " neexistuje.");
         }
         BagitExternalProcess bagitExternalProcess = new BagitExternalProcess(conf, exportFolder);
         List<String> bagitCommand = bagitExternalProcess.buildCmdLine(conf);

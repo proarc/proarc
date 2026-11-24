@@ -62,7 +62,7 @@ public final class PreservationService {
 
     public static PreservationService cesnet(AppConfiguration config, Integer credentialOwnerId) {
         return new PreservationService(new ObjectRepository(), record -> {
-            if (!LtpCesnetClient.ID.equals(record.getProvider())) throw new IOException("Unsupported LTP provider");
+            if (!LtpCesnetClient.ID.equals(record.getProvider())) throw new IOException("Nepodporovaný poskytovatel LTP");
             // Old submissions retain their destination even if the current upload configuration changes.
             org.apache.commons.configuration2.BaseConfiguration options = new org.apache.commons.configuration2.BaseConfiguration();
             options.copy(config.getLtpCesnetConfiguration());
@@ -74,14 +74,14 @@ public final class PreservationService {
             if (record.getCatalogId() == null || record.getCatalogId().isBlank()) return;
             CatalogConfiguration target = config.getCatalogs().findConfiguration(record.getCatalogId());
             if (target == null || !VerbisUpdateCatalog.ID.equals(target.getCatalogUpdateType())) {
-                throw new IOException("LTP catalog update requires a configured Verbis catalog");
+                throw new IOException("Aktualizace katalogu pro LTP vyžaduje nakonfigurovaný katalog Verbis");
             }
             try {
                 String field001 = UpdateCatalog.getObjectField001(pid);
-                if (field001 == null || field001.isBlank()) throw new IOException("Missing catalog record identifier (001)");
+                if (field001 == null || field001.isBlank()) throw new IOException("Chybí identifikátor katalogového záznamu (001)");
                 new VerbisUpdateCatalog(config, null).processLtp(target, field001, record.getPackageId());
             } catch (cz.cas.lib.proarc.common.storage.DigitalObjectException ex) {
-                throw new IOException("Cannot read catalog identifier for " + pid, ex);
+                throw new IOException("Nelze načíst identifikátor katalogu pro " + pid, ex);
             }
         });
     }
@@ -108,7 +108,7 @@ public final class PreservationService {
                 return;
             }
             if (current == null) {
-                if (record != null && !confirmed) throw new IOException("LTP upload requires confirmation for " + pid);
+                if (record != null && !confirmed) throw new IOException("Nahrání do LTP vyžaduje potvrzení pro " + pid);
                 current = request;
                 current.setPreviousPackageId(null);
                 current.setSubmittedAt(Instant.now().toString());
@@ -210,19 +210,19 @@ public final class PreservationService {
                 versions.put(pid, editor.getLastModified());
                 return editor.getArchivInfo();
             }
-            catch (Exception ex) { throw new IOException("Cannot read LTP records for " + pid, ex); }
+            catch (Exception ex) { throw new IOException("Nelze načíst záznamy LTP pro " + pid, ex); }
         }
         @Override public void save(String pid, ArchivInfo record) throws IOException {
             try {
                 ProArcObject object = DigitalObjectManager.getDefault().find(pid, null);
                 RelationEditor editor = new RelationEditor(object);
                 long timestamp = editor.getLastModified();
-                if (!Objects.equals(versions.get(pid), timestamp)) throw new IOException("Object changed during LTP processing; retry " + pid);
+                if (!Objects.equals(versions.get(pid), timestamp)) throw new IOException("Objekt se během zpracování LTP změnil; opakujte zpracování pro " + pid);
                 editor.setArchivInfo(record);
                 editor.write(timestamp, "LTP archivInfo status");
                 object.flush();
                 versions.put(pid, new RelationEditor(DigitalObjectManager.getDefault().find(pid, null)).getLastModified());
-            } catch (Exception ex) { throw new IOException("Cannot save/index LTP records for " + pid, ex); }
+            } catch (Exception ex) { throw new IOException("Nelze uložit nebo indexovat záznamy LTP pro " + pid, ex); }
         }
     }
 }

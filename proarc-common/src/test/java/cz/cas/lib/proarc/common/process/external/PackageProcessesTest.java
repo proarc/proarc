@@ -83,7 +83,7 @@ class PackageProcessesTest {
             assertEquals(Batch.EXTERNAL_CESNET, upload.getProfileId());
             assertEquals(bagit.getId(), upload.getParamsAsObject().getSourceBatchId());
             assertEquals(Batch.State.WAITING_CESNET_TOKEN, upload.getState());
-            assertTrue(result.getLog().contains("Next process: " + Batch.EXTERNAL_CESNET + ", batch " + nextId));
+            assertTrue(result.getLog().contains("Navazující proces: " + Batch.EXTERNAL_CESNET + ", dávka " + nextId));
             assertEquals(bagit.getParamsAsObject().getBagitArchives(), upload.getParamsAsObject().getBagitArchives());
             assertFalse(Files.exists(Path.of(source.getFolder())));
             for (String archive : upload.getParamsAsObject().getBagitArchives()) {
@@ -153,10 +153,6 @@ class PackageProcessesTest {
         BatchUtils.finishedExternalWithError(manager, failed, failed.getFolder(), error);
         assertEquals(List.of(archives.get(0)), failed.getParamsAsObject().getCompletedUploads());
         assertNull(failed.getParamsAsObject().getLtpCesnetToken());
-        var modificationTimes = archives.stream().map(file -> {
-            try { return Files.getLastModifiedTime(Path.of(file)); } catch (IOException ex) { throw new RuntimeException(ex); }
-        }).toList();
-
         Batch retry = uploading.plan(failed, "fresh");
         assertNotEquals(failed.getId(), retry.getId());
         uploading.run(retry, retry.getParamsAsObject());
@@ -164,9 +160,8 @@ class PackageProcessesTest {
         assertEquals(List.of(archives.get(0), archives.get(1), archives.get(1)), calls);
         assertEquals(Batch.State.EXTERNAL_DONE, retry.getState());
         assertNull(retry.getParamsAsObject().getLtpCesnetToken());
-        for (int i = 0; i < archives.size(); i++) {
-            assertEquals(modificationTimes.get(i), Files.getLastModifiedTime(Path.of(archives.get(i))));
-        }
+        for (String archive : archives) assertFalse(Files.exists(Path.of(archive)));
+        assertFalse(Files.exists(Path.of(bagit.getFolder())));
         assertFalse(Files.exists(Path.of(source.getFolder())));
         assertEquals(archives, bagit.getParamsAsObject().getBagitArchives());
     }
@@ -282,7 +277,7 @@ class PackageProcessesTest {
     }
 
     @Test
-    void cleanupRetryChecksZipAndSumsAndDoesNotRebuildCompletedPackages() throws Exception {
+    void destinationInsideSourceIsRejectedBeforePackaging() throws Exception {
         Batch source = export();
         Path root = Path.of(source.getFolder());
         // A misconfigured destination inside the source must never be deleted with it.
@@ -295,40 +290,13 @@ class PackageProcessesTest {
         Batch bagit = packaging.plan(source);
         assertThrows(IOException.class, () -> packaging.run(bagit, bagit.getParamsAsObject()));
         assertTrue(Files.exists(root.resolve("a/scan.tif")));
-        assertEquals(Boolean.TRUE, bagit.getParamsAsObject().getBagitComplete());
-        List<String> archives = bagit.getParamsAsObject().getBagitArchives();
-        assertEquals(2, archives.size());
-        Path checksum = Path.of(archives.get(0).replaceFirst("\\.zip$", ".sums"));
-        String contents = Files.readString(checksum);
-        Files.delete(checksum);
-        assertThrows(IOException.class, () -> packaging.run(bagit, bagit.getParamsAsObject()));
         assertTrue(Files.exists(root.resolve("b/scan.tif")));
-        Files.writeString(checksum, contents);
-
-        Path safeDestination = Files.createDirectory(temp.resolve("completed-bags"));
-        List<String> relocated = new ArrayList<>();
-        for (String archive : archives) {
-            Path zip = Path.of(archive);
-            Path sums = Path.of(archive.replaceFirst("\\.zip$", ".sums"));
-            relocated.add(Files.move(zip, safeDestination.resolve(zip.getFileName())).toString());
-            Files.move(sums, safeDestination.resolve(sums.getFileName()));
-        }
-        BatchParams params = bagit.getParamsAsObject();
-        params.setBagitArchives(relocated);
-        bagit.setParamsFromObject(params);
-        packaging.run(bagit, bagit.getParamsAsObject());
-        assertFalse(Files.exists(root));
-        assertEquals(relocated, bagit.getParamsAsObject().getBagitArchives());
-        // Also covers a restart after source deletion but before the final DONE state was persisted.
-        bagit.setState(Batch.State.EXTERNAL_PLANNED);
-        InternalExternalProcess.prepare(config, null, bagit, manager, user,
-                "retry", java.util.Locale.ROOT).start();
-        assertEquals(Batch.State.EXTERNAL_DONE, bagit.getState());
-        assertNotNull(uploading.plan(bagit, "fresh"));
+        assertNull(bagit.getParamsAsObject().getBagitComplete());
+        assertThrows(IOException.class, () -> packaging.run(bagit, bagit.getParamsAsObject()));
     }
 
     @Test
-    void usesSiblingBagitFolderWithoutIntermediateFoldersAndReplacesExistingDestination() throws Exception {
+    void usesDedicatedFallbackFolderAndPreservesPreviousExports() throws Exception {
         Batch source = export();
         Path original = Path.of(source.getFolder());
         Path archive = original.resolveSibling("archive_1234");
@@ -342,8 +310,9 @@ class PackageProcessesTest {
         Files.writeString(Files.createDirectory(expected.resolve("old-content")).resolve("old.sums"), "old");
 
         packaging.run(bagit, bagit.getParamsAsObject());
-        assertFalse(Files.exists(existing));
-        assertFalse(Files.exists(expected.resolve("old-content")));
+        assertTrue(Files.exists(existing));
+        assertTrue(Files.exists(expected.resolve("old-content")));
+        expected = config.getConfigHome().toPath().resolve("temp/ltpCesnet/bagit_" + bagit.getId() + "_1234");
         assertEquals(expected.toString(), bagit.getFolder());
         assertFalse(Files.exists(archive));
         assertFalse(Files.exists(Path.of(user.getExportFolder()).resolve("stages")));
@@ -383,7 +352,8 @@ class PackageProcessesTest {
         Batch bagit = packaging.plan(source);
         packaging.run(bagit, bagit.getParamsAsObject());
         for (String archive : bagit.getParamsAsObject().getBagitArchives()) {
-            assertEquals(destination, Path.of(archive).getParent());
+            assertEquals(destination, Path.of(archive).getParent().getParent());
+            assertEquals(Path.of(bagit.getFolder()), Path.of(archive).getParent());
             assertTrue(Files.isRegularFile(Path.of(archive)));
             assertTrue(Files.isRegularFile(Path.of(archive.replaceFirst("\\.zip$", ".sums"))));
         }
@@ -434,7 +404,7 @@ class PackageProcessesTest {
         assertEquals(Boolean.FALSE, blocked.getParamsAsObject().getConfirmCesnetUpload());
         assertEquals(blocked.getId(), bagit.getParamsAsObject().getNextBatchId());
         assertEquals(bagit.getFolder(), blocked.getFolder());
-        assertTrue(blocked.getLog().contains("requires confirmation"));
+        assertTrue(blocked.getLog().contains("vyžaduje potvrzení"));
         assertTrue(blocked.getLog().contains("uuid:a"));
         assertTrue(blocked.getLog().contains("uuid:b"));
         assertNull(cesnet.planAfterBagit(bagit));
@@ -448,11 +418,11 @@ class PackageProcessesTest {
         assertEquals(archives, uploaded);
         assertEquals(Batch.State.EXTERNAL_DONE, bagit.getState());
         assertFalse(Files.exists(Path.of(source.getFolder())));
-        for (String archive : archives) assertTrue(Files.isRegularFile(Path.of(archive)));
+        for (String archive : archives) assertFalse(Files.exists(Path.of(archive)));
     }
 
     @Test
-    void repeatRequiresConfirmationBeforeSchedulingAndUsesNewOperations() throws Exception {
+    void repeatRequiresConfirmationAndSuccessfulUploadRequiresNewExportForFurtherUploads() throws Exception {
         Batch source = export();
         BagitProcess packaging = new BagitProcess(config, manager, user);
         Batch bagit = packaging.plan(source);
@@ -481,14 +451,9 @@ class PackageProcessesTest {
         }
         Batch first = cesnet.plan(bagit, null, true);
         cesnet.run(first, first.getParamsAsObject());
-        // A finished CESNET batch can also be explicitly submitted again.
-        Batch repeated = cesnet.plan(first, null, true);
-        assertTrue(repeated.getParamsAsObject().getCompletedUploads() == null
-                || repeated.getParamsAsObject().getCompletedUploads().isEmpty());
-        cesnet.run(repeated, repeated.getParamsAsObject());
-        assertEquals(4, operations.size());
-        assertNotEquals(operations.get(0), operations.get(2));
-        assertNotEquals(first.getParamsAsObject().getCesnetOperationId(), repeated.getParamsAsObject().getCesnetOperationId());
+        // Successful upload removes local packages; another upload requires a new export.
+        assertThrows(IOException.class, () -> cesnet.plan(first, null, true));
+        assertEquals(2, operations.size());
     }
 
     @Test
@@ -583,6 +548,63 @@ class PackageProcessesTest {
     private CesnetProcess uploadProcess() {
         return new CesnetProcess(config, manager, user,
                 (file, operation, pid, confirmed, credentialOwnerId) -> { }, pid -> null);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
+    void waitingUploadPersistsDestinationAndSuccessfulResumeCleansOnlyItsBatch(boolean configured) throws Exception {
+        Path destination = configured ? temp.resolve("bagit-destination")
+                : config.getConfigHome().toPath().resolve("temp/ltpCesnet");
+        if (configured) {
+            Files.writeString(config.getConfigHome().toPath().resolve(AppConfiguration.CONFIG_FILE_NAME),
+                    "export.bagit.path=" + destination.toString().replace('\\', '/') + "\n");
+            config = AppConfigurationFactory.getInstance().create(new HashMap<>(
+                    Map.of(AppConfiguration.PROPERTY_APP_HOME, config.getConfigHome().toString())));
+        }
+        BagitProcess packaging = new BagitProcess(config, manager, user);
+        Batch bagit = packaging.plan(export());
+        packaging.run(bagit, bagit.getParamsAsObject());
+        Path folder = Path.of(bagit.getFolder());
+        assertEquals(destination, folder.getParent());
+        Path unrelated = Files.writeString(destination.resolve("other-batch.zip"), "keep");
+        CesnetProcess waiting = new CesnetProcess(config, manager, user,
+                (file, operation, pid, confirmed, owner) -> {
+                    throw new cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenException(
+                            cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenException.Reason.REJECTED);
+                }, pid -> null);
+        Batch upload = waiting.plan(bagit, null);
+        assertEquals(bagit.getFolder(), upload.getFolder());
+        waiting.run(upload, upload.getParamsAsObject());
+        assertEquals(Batch.State.WAITING_CESNET_TOKEN, upload.getState());
+        for (String archive : upload.getParamsAsObject().getBagitArchives()) {
+            assertEquals(folder, Path.of(archive).getParent());
+            assertTrue(Files.isRegularFile(Path.of(archive)));
+            assertTrue(Files.isRegularFile(Path.of(archive.replaceFirst("\\.zip$", ".sums"))));
+        }
+        uploadProcess().run(upload, upload.getParamsAsObject());
+        assertEquals(Batch.State.EXTERNAL_DONE, upload.getState());
+        assertFalse(Files.exists(folder));
+        assertEquals("keep", Files.readString(unrelated));
+    }
+
+    @Test
+    void retryAfterInterruptedCleanupDoesNotUploadCompletedArchivesAgain() throws Exception {
+        BagitProcess packaging = new BagitProcess(config, manager, user);
+        Batch bagit = packaging.plan(export());
+        packaging.run(bagit, bagit.getParamsAsObject());
+        CesnetProcess uploading = uploadProcess();
+        Batch upload = uploading.plan(bagit, null);
+        BatchParams params = upload.getParamsAsObject();
+        params.setCompletedUploads(params.getBagitArchives());
+        upload.setParamsFromObject(params);
+        upload.setState(Batch.State.EXTERNAL_FAILED);
+        Files.delete(Path.of(params.getBagitArchives().get(0)));
+        CesnetProcess cleanup = new CesnetProcess(config, manager, user,
+                (file, operation, pid, confirmed, owner) -> fail("Already uploaded"), pid -> null);
+        Batch retry = cleanup.plan(upload, null);
+        cleanup.run(retry, retry.getParamsAsObject());
+        assertEquals(Batch.State.EXTERNAL_DONE, retry.getState());
+        assertFalse(Files.exists(Path.of(bagit.getFolder())));
     }
 
     private Batch export() throws IOException {

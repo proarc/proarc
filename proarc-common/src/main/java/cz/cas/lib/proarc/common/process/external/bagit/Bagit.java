@@ -46,14 +46,14 @@ public class Bagit {
             case "script":
                 String scriptPath = appConfiguration.getBagitScriptPath();
                 if (scriptPath == null || scriptPath.isBlank() || !new File(scriptPath).isFile()) {
-                    throw new IOException("BagIt script does not exist: " + scriptPath);
+                    throw new IOException("Skript BagIt neexistuje: " + scriptPath);
                 }
                 File script = new File(scriptPath);
                 runBagitExternalProcess(script);
                 break;
             default:
-                throw new IOException("Unsupported export.bagit.mode: " + appConfiguration.getBagitMode()
-                        + " (expected java, external or script)");
+                throw new IOException("Nepodporovaná hodnota export.bagit.mode: " + appConfiguration.getBagitMode()
+                        + " (očekává se java, external nebo script)");
         }
     }
 
@@ -132,16 +132,16 @@ public class Bagit {
         if (bagitFolder.exists()) {
             MetsUtils.deleteFolder(bagitFolder);
             if (bagitFolder.exists()) {
-                throw new IOException("Impossible to delete previous export " + bagitFolder.getAbsolutePath());
+                throw new IOException("Nelze smazat předchozí export " + bagitFolder.getAbsolutePath());
             }
         }
         if (!bagitFolder.mkdir()) {
-            throw new IOException("Impossible to create folder " + bagitFolder.getName());
+            throw new IOException("Nelze vytvořit složku " + bagitFolder.getName());
         }
 
         File zipFolder = new File(exportFolder.getAbsolutePath() + ".zip");
         if (!zipFolder.exists()) {
-            throw new IOException("Zip file doesn´t exists.");
+            throw new IOException("Soubor ZIP neexistuje.");
         } else {
             FileUtils.moveFile(zipFolder, new File(bagitFolder, zipFolder.getName()));
         }
@@ -149,7 +149,7 @@ public class Bagit {
 
     public void createMd5File() throws IOException, NoSuchAlgorithmException {
         if (!bagitFolder.exists()) {
-            throw new IOException("Bagit folder doesn´t exists " + bagitFolder.getName());
+            throw new IOException("Složka BagIt neexistuje: " + bagitFolder.getName());
         }
         StringBuilder checksumBuilder = new StringBuilder();
         for (File file : bagitFolder.listFiles()) {
@@ -265,10 +265,10 @@ public class Bagit {
         if (process != null) {
             process.run();
             if (!process.isOk(exportFolder)) {
-                throw new IOException("Processing external Bagit failed. \n" + process.getFullOutput());
+                throw new IOException("Zpracování externího BagItu selhalo. \n" + process.getFullOutput());
             }
         } else {
-            throw new IOException("Processing external Bagit failed - process is null.");
+            throw new IOException("Zpracování externího BagItu selhalo – proces není k dispozici.");
         }
     }
 
@@ -281,10 +281,10 @@ public class Bagit {
         if (process != null) {
             process.run();
             if (!process.isOk()) {
-                throw new IOException("Processing Bagit failed. \n" + process.getFullOutput());
+                throw new IOException("Zpracování BagItu selhalo. \n" + process.getFullOutput());
             }
         } else {
-            throw new IOException("Processing Bagit failed - process is null.");
+            throw new IOException("Zpracování BagItu selhalo – proces není k dispozici.");
         }
     }
 }

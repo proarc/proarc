@@ -31,7 +31,7 @@ public final class BagitProcess {
 
     public Batch plan(Batch source) throws IOException {
         requireOwnedFinished(source);
-        if (!EXPORTS.contains(source.getProfileId())) throw new IOException("Source must be an NDK, archive or FOXML export");
+        if (!EXPORTS.contains(source.getProfileId())) throw new IOException("Zdrojem musí být export NDK, archivní export nebo export FOXML");
         if (source.getFolder() == null) throw new IOException("Zdrojová složka není určena.");
         Path directory = Path.of(source.getFolder());
         if (!Files.isDirectory(directory)) throw new MissingSourceDirectoryException(directory);
@@ -62,24 +62,25 @@ public final class BagitProcess {
     public Batch run(Batch batch, BatchParams params) throws Exception {
         Batch source = manager.get(params.getSourceBatchId());
         requireOwnedFinished(source);
-        if (!EXPORTS.contains(source.getProfileId())) throw new IOException("Invalid BagIt source profile");
+        if (!EXPORTS.contains(source.getProfileId())) throw new IOException("Neplatný profil zdrojové dávky pro BagIt");
         Path sourceRoot = Path.of(source.getFolder()).toAbsolutePath().normalize();
         String sourceName = sourceRoot.getFileName().toString();
         String packageName = sourceName.startsWith("archive_") ? sourceName.substring("archive_".length()) : sourceName;
-        Path output = sourceRoot.resolveSibling("bagit_" + packageName);
-        if (Files.exists(output, java.nio.file.LinkOption.NOFOLLOW_LINKS) && !output.toString().equals(batch.getFolder())) {
-            requireActive(batch);
-            requireSourceDirectory(sourceRoot);
-            if (Files.isSymbolicLink(output)) {
-                Files.delete(output);
-            } else {
-                Path target = output.toRealPath();
-                Path resolvedSource = sourceRoot.toRealPath();
-                if (!target.getParent().equals(sourceRoot.getParent().toRealPath())
-                        || !target.getFileName().equals(output.getFileName()) || resolvedSource.startsWith(target)) {
-                    throw new IOException("Refusing to replace an unsafe BagIt destination: " + target);
-                }
-                FileUtils.deleteDirectory(target.toFile());
+        String configuredPath = Batch.EXPORT_KRAMERIUS.equals(source.getProfileId())
+                ? config.getBagitFoxmlExportPath() : config.getBagitExportPath();
+        if (configuredPath == null || configuredPath.isBlank()) configuredPath = config.getBagitExportPath();
+        Path destination = configuredPath == null || configuredPath.isBlank()
+                ? config.getConfigHome().toPath().resolve("temp/ltpCesnet") : Path.of(configuredPath);
+        // Each batch owns a separate directory, even when object/package names are identical.
+        Path output = batch.getFolder() == null || params.getPids().contains(batch.getFolder())
+                ? destination.resolve("bagit_" + batch.getId() + "_" + packageName).toAbsolutePath().normalize()
+                : Path.of(batch.getFolder()).toAbsolutePath().normalize();
+        if (Files.isDirectory(sourceRoot)) {
+            // Resolve existing parents too, so a configured symlink cannot hide nesting.
+            Path existing = output;
+            while (!Files.exists(existing)) existing = existing.getParent();
+            if (output.startsWith(sourceRoot) || existing.toRealPath().startsWith(sourceRoot.toRealPath())) {
+                throw new IOException("Cílová složka BagIt je uvnitř zdrojového exportu: " + output);
             }
         }
         Files.createDirectories(output);
@@ -102,11 +103,11 @@ public final class BagitProcess {
             }
         } catch (IOException ex) {
             return BatchUtils.finishedSuccessfully(manager, batch, batch.getFolder(),
-                    "BagIt completed; source export deleted; raw scan cleanup failed: " + ex.getMessage(), Batch.State.EXTERNAL_DONE);
+                    "Vytvoření balíčku BagIt bylo dokončeno; zdrojový export byl smazán; smazání původních skenů selhalo: " + ex.getMessage(), Batch.State.EXTERNAL_DONE);
         }
         requireActive(batch);
         return BatchUtils.finishedSuccessfully(manager, batch, batch.getFolder(),
-                "BagIt completed. Source export deleted. Archives retained for CESNET upload.", Batch.State.EXTERNAL_DONE);
+                "Vytvoření balíčku BagIt bylo dokončeno. Zdrojový export byl smazán. Archivy byly zachovány pro nahrání do CESNETu.", Batch.State.EXTERNAL_DONE);
     }
 
     private void createArchives(Batch batch, BatchParams params, Batch source, Path sourceRoot, Path output) throws Exception {
@@ -120,7 +121,7 @@ public final class BagitProcess {
                 packages = children.filter(Files::isDirectory).sorted().toList();
             }
         }
-        if (packages.isEmpty()) throw new IOException("Source export contains no packages");
+        if (packages.isEmpty()) throw new IOException("Zdrojový export neobsahuje žádné balíčky");
         List<String> completed = new ArrayList<>(list(params.getCompletedPackageSources()));
         List<String> archives = new ArrayList<>(list(params.getBagitArchives()));
         requireArchivesIfPresent(archives);
@@ -139,10 +140,9 @@ public final class BagitProcess {
             export.moveToBagitFolder();
             export.createMd5File();
             requireActive(batch);
-            // Existing configured destination folders remain supported.
-            export.moveToSpecifiedDirectories(foxml ? config.getBagitFoxmlExportPath() : config.getBagitExportPath());
+            export.moveToSpecifiedDirectories(null);
             File archive = export.getDestinationFile();
-            if (archive == null || !archive.isFile()) throw new IOException("BagIt archive was not created");
+            if (archive == null || !archive.isFile()) throw new IOException("Archiv BagIt nebyl vytvořen");
             Path stable = output.resolve(archive.getName());
             Path sums = archive.toPath().resolveSibling(archive.getName().replaceFirst("\\.zip$", ".sums"));
             // Local output is durable even when work is cleared for the next package or retry.
@@ -163,14 +163,14 @@ public final class BagitProcess {
 
     private void deleteSourceExport(Path sourceRoot, Path output, List<String> archives) throws IOException {
         if (!Files.exists(sourceRoot, java.nio.file.LinkOption.NOFOLLOW_LINKS)) return;
-        if (Files.isSymbolicLink(sourceRoot)) throw new IOException("Refusing to delete a linked source export: " + sourceRoot);
+        if (Files.isSymbolicLink(sourceRoot)) throw new IOException("Nelze smazat zdrojový export tvořený symbolickým odkazem: " + sourceRoot);
         Path target = sourceRoot.toRealPath();
         if (target.getParent() == null || output.toRealPath().startsWith(target)) {
-            throw new IOException("Source export contains the BagIt working directory: " + target);
+            throw new IOException("Zdrojový export obsahuje pracovní složku BagIt: " + target);
         }
         for (String archive : archives) {
             if (Path.of(archive).toRealPath().startsWith(target) || checksumFile(archive).toRealPath().startsWith(target)) {
-                throw new IOException("Source export contains a completed BagIt archive: " + target);
+                throw new IOException("Zdrojový export obsahuje dokončený archiv BagIt: " + target);
             }
         }
         FileUtils.deleteDirectory(target.toFile());
@@ -189,21 +189,21 @@ public final class BagitProcess {
         requireArchives(archives);
         for (String archive : archives) {
             if (!Files.isRegularFile(checksumFile(archive))) {
-                throw new IOException("BagIt checksum file no longer exists: " + checksumFile(archive));
+                throw new IOException("Soubor s kontrolním součtem BagIt již neexistuje: " + checksumFile(archive));
             }
         }
     }
 
     private void requireOwned(Batch source) throws IOException {
-        if (source == null || !Objects.equals(user.getId(), source.getUserId())) throw new IOException("Source batch not found or access denied");
-        if (source.getParamsAsObject() == null) throw new IOException("Source batch has no parameters");
+        if (source == null || !Objects.equals(user.getId(), source.getUserId())) throw new IOException("Zdrojová dávka nebyla nalezena nebo byl odepřen přístup");
+        if (source.getParamsAsObject() == null) throw new IOException("Zdrojová dávka nemá parametry");
     }
 
     private void requireOwnedFinished(Batch source) throws IOException {
         requireOwned(source);
         boolean finished = source.getState() == Batch.State.EXPORT_DONE || source.getState() == Batch.State.EXPORT_WARNING;
         if (!finished) {
-            throw new IOException("Source batch must be completed");
+            throw new IOException("Zdrojová dávka musí být dokončena");
         }
     }
 
@@ -217,18 +217,18 @@ public final class BagitProcess {
     private void requireActive(Batch batch) throws IOException {
         Batch latest = manager.get(batch.getId());
         if (Thread.currentThread().isInterrupted() || (latest != null && latest.getState() == Batch.State.STOPPED)) {
-            throw new java.io.InterruptedIOException("BagIt process stopped");
+            throw new java.io.InterruptedIOException("Proces BagIt byl zastaven");
         }
     }
 
     private static void requireArchives(List<String> archives) throws IOException {
-        if (archives.isEmpty()) throw new IOException("Source batch has no BagIt archives");
+        if (archives.isEmpty()) throw new IOException("Zdrojová dávka neobsahuje archivy BagIt");
         requireArchivesIfPresent(archives);
     }
 
     private static void requireArchivesIfPresent(List<String> archives) throws IOException {
         for (String archive : archives) {
-            if (!new File(archive).isFile()) throw new IOException("BagIt archive no longer exists: " + archive);
+            if (!new File(archive).isFile()) throw new IOException("Archiv BagIt již neexistuje: " + archive);
         }
     }
 

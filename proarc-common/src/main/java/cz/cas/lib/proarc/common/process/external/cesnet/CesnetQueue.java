@@ -52,7 +52,7 @@ public final class CesnetQueue {
     }
 
     public Result resume(UserProfile operator, String token, Submitter submitter) throws IOException {
-        if (!mayResume(operator)) throw new IOException("Access denied: CESNET queue operator permission required");
+        if (!mayResume(operator)) throw new IOException("Přístup odepřen: je vyžadováno oprávnění ke správě fronty CESNET");
         // Validate once before changing any batch; neither a bad token nor a network failure releases work.
         validator.validate(token);
         List<Integer> resumed = new ArrayList<>();
@@ -64,7 +64,7 @@ public final class CesnetQueue {
                         || batch.getState() != Batch.State.WAITING_CESNET_TOKEN) continue;
                 BatchParams params = batch.getParamsAsObject();
                 if (params == null) {
-                    failures.add(new Failure(batch.getId(), "CESNET batch has no parameters"));
+                    failures.add(new Failure(batch.getId(), "Dávka CESNET nemá parametry"));
                     continue;
                 }
                 Integer previousCredentialOwner = params.getCesnetCredentialOwnerId();
@@ -74,7 +74,7 @@ public final class CesnetQueue {
                     batch.setParamsFromObject(params);
                     batch.setState(Batch.State.EXTERNAL_PLANNED);
                     batch.setUpdated(new Timestamp(System.currentTimeMillis()));
-                    batch.setLog("CESNET upload released by user " + operator.getId());
+                    batch.setLog("Nahrávání do CESNETu uvolnil uživatel " + operator.getId());
                     manager.update(batch);
                     claimed = true;
                     submitter.enqueue(batch);
@@ -87,11 +87,11 @@ public final class CesnetQueue {
                         currentParams.setCesnetCredentialOwnerId(previousCredentialOwner);
                         current.setParamsFromObject(currentParams);
                         current.setState(Batch.State.WAITING_CESNET_TOKEN);
-                        current.setLog("Čeká na token CESNET. Upload se nepodařilo zařadit do fronty.");
+                        current.setLog("Čeká na token CESNET. Nahrávání se nepodařilo zařadit do fronty.");
                         manager.update(current);
                     }
                     // Do not expose callback exception text, which may contain request data.
-                    failures.add(new Failure(batch.getId(), "CESNET upload could not be scheduled; retry resume"));
+                    failures.add(new Failure(batch.getId(), "Nahrávání do CESNETu se nepodařilo naplánovat; opakujte obnovení"));
                 }
             }
         }

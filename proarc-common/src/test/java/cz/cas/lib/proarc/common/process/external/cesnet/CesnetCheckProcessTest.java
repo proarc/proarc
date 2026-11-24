@@ -62,7 +62,7 @@ class CesnetCheckProcessTest {
     @Test
     void checkWithoutCatalogPermissionHasItsOwnBatchAndLogAndDoesNotScheduleCatalog() throws Exception {
         CesnetCheckProcess process = process((log, candidate) -> {
-            log.accept("uuid:one: STORED; catalog update disabled (no catalog configured)");
+            log.accept("uuid:one: STORED; aktualizace katalogu je vypnuta (katalog není nakonfigurován)");
             return 1;
         }, pid -> fail("Unexpected catalog write"));
         Batch batch = process.plan();
@@ -71,7 +71,7 @@ class CesnetCheckProcessTest {
         process.run(batch, next -> fail("Unexpected catalog process"));
         assertEquals(Batch.State.EXTERNAL_DONE, batch.getState());
         assertTrue(batch.getLog().contains("uuid:one: STORED"));
-        assertTrue(batch.getLog().contains("1 objects checked"));
+        assertTrue(batch.getLog().contains("Počet zkontrolovaných objektů: 1"));
         assertEquals(1, manager.batches.size());
     }
 
@@ -88,7 +88,7 @@ class CesnetCheckProcessTest {
         user.setAllObjectsFunction(false);
         process.run(batch, next -> fail("Unexpected catalog process"));
         assertEquals(Batch.State.EXTERNAL_FAILED, batch.getState());
-        assertTrue(batch.getLog().contains("Access denied: allObjectsFunction required"));
+        assertTrue(batch.getLog().contains("Přístup odepřen: je vyžadováno oprávnění allObjectsFunction"));
     }
 
     @Test
@@ -109,7 +109,7 @@ class CesnetCheckProcessTest {
         assertEquals(check.getId(), catalog.getParamsAsObject().getSourceBatchId());
         process.updateCatalog(catalog);
         assertEquals(Batch.State.EXTERNAL_FAILED, catalog.getState());
-        assertTrue(catalog.getLog().contains("importToCatalogFunction required"));
+        assertTrue(catalog.getLog().contains("je vyžadováno oprávnění importToCatalogFunction"));
         assertTrue(written.isEmpty());
         assertEquals(Batch.State.EXTERNAL_DONE, check.getState());
         user.setImportToCatalogFunction(true);
@@ -122,7 +122,7 @@ class CesnetCheckProcessTest {
     void packageAndFatalErrorsRetainEarlierLogsInFailedProcess() throws Exception {
         CesnetCheckProcess process = process((log, candidate) -> {
             log.accept("uuid:one: STORED");
-            log.accept("ERROR: uuid:two: unavailable");
+            log.accept("CHYBA: uuid:two: unavailable");
             throw new IOException("Solr unavailable");
         }, pid -> fail("Unexpected catalog write"));
         Batch batch = process.plan();
@@ -170,7 +170,7 @@ class CesnetCheckProcessTest {
         assertEquals(Batch.State.EXTERNAL_FAILED, catalog.getState());
         assertEquals(List.of("uuid:good"), written);
         assertTrue(catalog.getLog().contains("uuid:bad: Catalog offline"));
-        assertTrue(catalog.getLog().contains("uuid:good: catalog synchronization completed"));
+        assertTrue(catalog.getLog().contains("uuid:good: synchronizace katalogu byla dokončena"));
     }
 
     @Test

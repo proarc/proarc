@@ -375,13 +375,14 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_LTP_CESNET) boolean ltpCesnet,
+            @DefaultValue("false") @FormParam(ExportResourceApi.CONFIRM_CESNET_UPLOAD) boolean confirmCesnetUpload,
             @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String ltpCesnetToken
     ) {
         if (pids.isEmpty()) {
             return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.ARCHIVE_PID_PARAM));
         }
         try {
-            return super.newArchive(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, noTifAvailableMessage, additionalInfoMessage, extendedArchivePackage, deleteRawScans, priority, isNightOnly, ltpCesnet, ltpCesnetToken);
+            return super.newArchive(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, noTifAvailableMessage, additionalInfoMessage, extendedArchivePackage, deleteRawScans, priority, isNightOnly, ltpCesnet, confirmCesnetUpload, ltpCesnetToken);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);

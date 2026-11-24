@@ -470,21 +470,7 @@ public class ExportResourceV1 {
         if (ltpCesnet && ltpCesnetToken != null && !ltpCesnetToken.isBlank()) cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.getInstance()
                 .validate(appConfig, user.getId(), ltpCesnetToken);
         if (ltpCesnet && !confirmCesnetUpload) {
-            var service = cz.cas.lib.proarc.common.externalApp.ltp.PreservationService.cesnet(appConfig);
-            var export = new cz.cas.lib.proarc.common.process.export.mets.NdkExport(appConfig, akubraConfiguration);
-            Set<String> packages = new java.util.LinkedHashSet<>(pids);
-            for (String pid : pids) {
-                // Match the actual export units when a title or volume contains several packages.
-                var context = export.buildContext(pid, null);
-                packages.addAll(cz.cas.lib.proarc.common.process.export.mets.MetsUtils.findPSPPIDs(pid, context, true));
-            }
-            var warnings = new ArrayList<cz.cas.lib.proarc.common.process.external.cesnet.CesnetProcess.UploadWarning>();
-            for (String pid : packages) {
-                var record = service.archivInfo(pid);
-                if (record != null) {
-                    warnings.add(cz.cas.lib.proarc.common.process.external.cesnet.CesnetProcess.warning(pid, record));
-                }
-            }
+            var warnings = cesnetUploadWarnings(pids);
             if (!warnings.isEmpty()) {
                 return new ProArcResponse<>(ExportResult.confirmationRequired(warnings));
             }
@@ -518,6 +504,25 @@ public class ExportResourceV1 {
         }
         ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
         return new ProArcResponse<ExportResult>(result);
+    }
+
+    private List<CesnetProcess.UploadWarning> cesnetUploadWarnings(List<String> pids) throws Exception {
+        var service = cz.cas.lib.proarc.common.externalApp.ltp.PreservationService.cesnet(appConfig);
+        var export = new cz.cas.lib.proarc.common.process.export.mets.NdkExport(appConfig, akubraConfiguration);
+        Set<String> packages = new java.util.LinkedHashSet<>(pids);
+        for (String pid : pids) {
+            // Match the actual export units when a title or volume contains several packages.
+            var context = export.buildContext(pid, null);
+            packages.addAll(cz.cas.lib.proarc.common.process.export.mets.MetsUtils.findPSPPIDs(pid, context, true));
+        }
+        var warnings = new ArrayList<CesnetProcess.UploadWarning>();
+        for (String pid : packages) {
+            var record = service.archivInfo(pid);
+            if (record != null) {
+                warnings.add(CesnetProcess.warning(pid, record));
+            }
+        }
+        return warnings;
     }
 
     private List<String> normalizeCollections(List<String> collections) {
@@ -634,6 +639,7 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
             @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_LTP_CESNET) boolean ltpCesnet,
+            @DefaultValue("false") @FormParam(ExportResourceApi.CONFIRM_CESNET_UPLOAD) boolean confirmCesnetUpload,
             @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String ltpCesnetToken
             ) throws Exception {
 
@@ -643,6 +649,13 @@ public class ExportResourceV1 {
 
         if (ltpCesnet && ltpCesnetToken != null && !ltpCesnetToken.isBlank()) cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.getInstance()
                 .validate(appConfig, user.getId(), ltpCesnetToken);
+
+        if (ltpCesnet && !confirmCesnetUpload) {
+            var warnings = cesnetUploadWarnings(pids);
+            if (!warnings.isEmpty()) {
+                return new ProArcResponse<>(ExportResult.confirmationRequired(warnings));
+            }
+        }
 
         try {
             if (appConfig.isUrnNbnRequired()) {
@@ -659,6 +672,7 @@ public class ExportResourceV1 {
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
             BatchParams params = new BatchParams(Collections.singletonList(pid), typeOfPackage, ignoreMissingUrnNbn, isBagit, noTifAvailableMessage, additionalInfoMessage, extendedArchivePackage, ltpCesnet);
+            params.setConfirmCesnetUpload(confirmCesnetUpload);
             params.setDeleteRawScans(deleteRawScans);
             Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_ARCHIVE, isNightOnly, priority, params);
 

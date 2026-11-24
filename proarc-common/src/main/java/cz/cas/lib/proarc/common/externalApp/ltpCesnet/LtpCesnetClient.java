@@ -77,7 +77,7 @@ public final class LtpCesnetClient implements PreservationProvider {
     private String token() throws IOException {
         String token = credentials.get();
         if (token == null || token.isBlank()) throw new CesnetTokenException(CesnetTokenException.Reason.MISSING);
-        if (token.chars().anyMatch(Character::isWhitespace)) throw new IOException("Invalid CESNET token format");
+        if (token.chars().anyMatch(Character::isWhitespace)) throw new IOException("Neplatný formát tokenu CESNET");
         return token;
     }
 
@@ -93,7 +93,7 @@ public final class LtpCesnetClient implements PreservationProvider {
     }
 
     private String groupQuery() throws IOException {
-        if (group == null || group.isBlank()) throw new IOException("Missing export.ltpCesnet.groupToken");
+        if (group == null || group.isBlank()) throw new IOException("Chybí nastavení export.ltpCesnet.groupToken");
         return "group=" + URLEncoder.encode(group, StandardCharsets.UTF_8);
     }
 
@@ -106,7 +106,7 @@ public final class LtpCesnetClient implements PreservationProvider {
     @Override
     public RemotePackage submit(File archive, JSONObject metadata, ArchivInfo submission,
                                 RegistrationListener listener) throws IOException {
-        if (!archive.isFile() || archive.length() == 0) throw new IOException("Missing or empty CESNET archive");
+        if (!archive.isFile() || archive.length() == 0) throw new IOException("Archiv pro CESNET chybí nebo je prázdný");
         JSONObject data = new JSONObject(metadata.toString());
         JSONObject userMetadata = data.optJSONObject("user_metadata");
         if (userMetadata == null) userMetadata = new JSONObject();
@@ -122,7 +122,7 @@ public final class LtpCesnetClient implements PreservationProvider {
             if (existing.state() == ArchivInfo.State.STORED
                     || existing.state() == ArchivInfo.State.UPLOADED) return existing;
             if (existing.state() == ArchivInfo.State.FAILED) {
-                throw new IOException("CESNET package failed validation or upload; a new export is required");
+                throw new IOException("Validace nebo nahrání balíčku do CESNETu selhalo; je nutný nový export");
             }
             HttpPost resume = new HttpPost(endpoint + "/v2/archive/" + id(existing.id()) + "/create_multipart/");
             resume.setEntity(json(data));
@@ -135,7 +135,7 @@ public final class LtpCesnetClient implements PreservationProvider {
             String packageId = session.optString("id", "");
             if (packageId.isBlank()) {
                 existing = findOperation(submission.getOperationId());
-                if (existing == null) throw new IOException("CESNET registration returned no recoverable package ID");
+                if (existing == null) throw new IOException("Registrace v CESNETu nevrátila ID balíčku, které by umožnilo obnovení");
             } else {
                 existing = new RemotePackage(id(packageId), session.has("version") ? session.getInt("version") : null,
                         ArchivInfo.State.UPLOADING, null, null);
@@ -146,7 +146,7 @@ public final class LtpCesnetClient implements PreservationProvider {
         upload(archive, session);
         RemotePackage completed = findOperation(submission.getOperationId());
         if (completed == null) completed = check(existing.id());
-        if (completed.state() == ArchivInfo.State.FAILED) throw new IOException("CESNET rejected the uploaded archive");
+        if (completed.state() == ArchivInfo.State.FAILED) throw new IOException("CESNET odmítl nahraný archiv");
         return completed;
     }
 
@@ -169,10 +169,10 @@ public final class LtpCesnetClient implements PreservationProvider {
     private void upload(File archive, JSONObject session) throws IOException {
         long chunkSize = session.getLong("chunk_size");
         // Bound memory independently of total archive size; honor the server's multipart boundaries.
-        if (chunkSize <= 0 || chunkSize > 256L * 1024 * 1024) throw new IOException("Unsupported CESNET chunk size");
+        if (chunkSize <= 0 || chunkSize > 256L * 1024 * 1024) throw new IOException("Nepodporovaná velikost části pro nahrávání do CESNETu");
         JSONArray urls = session.getJSONArray("parts_url");
         long count = (archive.length() + chunkSize - 1) / chunkSize;
-        if (count != urls.length()) throw new IOException("Incomplete CESNET multipart registration");
+        if (count != urls.length()) throw new IOException("Neúplná registrace vícedílného nahrávání do CESNETu");
         JSONArray parts = new JSONArray();
         try (RandomAccessFile input = new RandomAccessFile(archive, "r")) {
             for (int part = 0; part < count; part++) {
@@ -188,7 +188,7 @@ public final class LtpCesnetClient implements PreservationProvider {
                     try (CloseableHttpResponse response = client.execute(put)) {
                         int status = response.getStatusLine().getStatusCode();
                         if (status < 200 || status >= 300 || response.getFirstHeader("ETag") == null) {
-                            throw new IOException("CESNET S3 part " + (part + 1) + " failed (HTTP " + status + ")");
+                            throw new IOException("Část nahrávání do CESNET S3 " + (part + 1) + " selhala (HTTP " + status + ")");
                         }
                         parts.put(new JSONObject().put("PartNumber", part + 1)
                                 .put("ETag", response.getFirstHeader("ETag").getValue().replace("\"", "")));
@@ -232,7 +232,7 @@ public final class LtpCesnetClient implements PreservationProvider {
     }
 
     private static String id(String id) throws IOException {
-        if (id == null || !id.matches("[0-9]+")) throw new IOException("Invalid CESNET package ID");
+        if (id == null || !id.matches("[0-9]+")) throw new IOException("Neplatné ID balíčku CESNET");
         return id;
     }
 
@@ -241,14 +241,14 @@ public final class LtpCesnetClient implements PreservationProvider {
             Object value = new JSONTokener(response).nextValue();
             if (value instanceof String string) value = new JSONTokener(string).nextValue();
             if (value instanceof JSONObject object) return object;
-        } catch (RuntimeException ex) { throw new IOException("Invalid CESNET JSON response"); }
-        throw new IOException("Expected a CESNET JSON object");
+        } catch (RuntimeException ex) { throw new IOException("Neplatná odpověď CESNET ve formátu JSON"); }
+        throw new IOException("Očekává se objekt JSON z CESNETu");
     }
 
     private static StringEntity json(JSONObject value) { return new StringEntity(value.toString(), ContentType.APPLICATION_JSON); }
 
     private static void interrupted() throws InterruptedIOException {
-        if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("CESNET transfer interrupted");
+        if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Přenos do CESNETu byl přerušen");
     }
 
     private String execute(HttpRequestBase request, int... expected) throws IOException {
@@ -264,12 +264,12 @@ public final class LtpCesnetClient implements PreservationProvider {
                 return response.getEntity() == null ? "" : EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
             }
             // Error bodies and signed URLs can contain credentials; never include them in persisted batch errors.
-            throw new IOException("CESNET " + request.getMethod() + " failed (HTTP " + status + ")");
+            throw new IOException("Požadavek CESNET " + request.getMethod() + " selhal (HTTP " + status + ")");
         } catch (CesnetTokenException ex) {
             throw ex;
         } catch (IOException ex) {
-            throw new IOException("CESNET " + request.getMethod() + " failed; check connectivity and API configuration"
-                    + (ex.getMessage() != null && ex.getMessage().startsWith("CESNET ") ? ": " + ex.getMessage() : ""));
+            throw new IOException("Požadavek CESNET " + request.getMethod() + " selhal; zkontrolujte připojení a konfiguraci API"
+                    + (ex.getMessage() != null && ex.getMessage().startsWith("Požadavek CESNET ") ? ": " + ex.getMessage() : ""));
         }
     }
 

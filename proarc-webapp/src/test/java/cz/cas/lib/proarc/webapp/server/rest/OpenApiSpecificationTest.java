@@ -23,6 +23,33 @@ class OpenApiSpecificationTest {
     private static final Set<String> HTTP_METHODS = Set.of("get", "post", "put", "delete", "patch");
 
     @Test
+    void archiveExportAcceptsAndDocumentsCesnetUploadConfirmation() throws Exception {
+        JSONObject operation = loadSpec().getJSONObject("paths").getJSONObject("/export/archive")
+                .getJSONObject("post");
+        JSONObject properties = operation.getJSONObject("requestBody").getJSONObject("content")
+                .getJSONObject("*/*").getJSONObject("schema").getJSONObject("properties");
+        assertFalse(properties.getJSONObject("ltpCesnet").getBoolean("default"));
+        assertFalse(properties.getJSONObject("confirmCesnetUpload").getBoolean("default"));
+        assertTrue(operation.getString("description").contains("confirmationRequired=true"));
+        assertTrue(operation.getString("description").contains("before any export batch is scheduled"));
+        assertTrue(operation.getString("description").contains("Consent is persisted"));
+        for (Class<?> resource : List.of(
+                cz.cas.lib.proarc.webapp.server.rest.v1.ExportResourceV1.class,
+                cz.cas.lib.proarc.webapp.server.rest.v2.ExportResource.class)) {
+            var method = java.util.Arrays.stream(resource.getDeclaredMethods())
+                    .filter(candidate -> candidate.getName().equals("newArchive"))
+                    .findFirst().orElseThrow();
+            var confirmation = java.util.Arrays.stream(method.getParameters())
+                    .filter(parameter -> parameter.isAnnotationPresent(jakarta.ws.rs.FormParam.class))
+                    .filter(parameter -> "confirmCesnetUpload".equals(
+                            parameter.getAnnotation(jakarta.ws.rs.FormParam.class).value()))
+                    .findFirst().orElseThrow();
+            assertEquals(boolean.class, confirmation.getType());
+            assertEquals("false", confirmation.getAnnotation(jakarta.ws.rs.DefaultValue.class).value());
+        }
+    }
+
+    @Test
     void manualCesnetCheckAcceptsOptionalTokenWithoutCatalogPermission() throws Exception {
         JSONObject operation = loadSpec().getJSONObject("paths").getJSONObject("/export/cesnet/check")
                 .getJSONObject("post");

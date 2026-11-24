@@ -17,10 +17,10 @@ public class BagitExternalProcess extends ExternalProcess {
     @Override
     public void run() {
         if (exportFolder == null) {
-            throw new IllegalStateException("Unknown export folder :" + exportFolder);
+            throw new IllegalStateException("Neznámá složka exportu: " + exportFolder);
         }
         if (!exportFolder.exists()) {
-            throw new IllegalStateException(exportFolder.getAbsolutePath() + "does not exists.");
+            throw new IllegalStateException(exportFolder.getAbsolutePath() + " neexistuje.");
         }
         super.run();
     }

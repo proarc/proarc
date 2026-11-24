@@ -610,6 +610,15 @@
                     "type": "boolean",
                     "default": false
                   },
+                  "ltpCesnet": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "confirmCesnetUpload": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Confirm a fresh upload of previously uploaded package units after user consent."
+                  },
                   "ltpCesnetToken": {
                     "type": "string",
                     "writeOnly": true,
@@ -641,7 +650,7 @@
             }
           }
         },
-        "description": " When ltpCesnet=true, a user may request export, BagIt packaging and CESNET upload without providing a token or having CESNET access. If a token is explicitly supplied, it is validated and remembered per user. Export and packaging run without cached credentials. Missing, expired or rejected credentials at upload time put the CESNET batch into WAITING_CESNET_TOKEN and retain archives and completed-upload checkpoints. An authorized operator can release all waiting uploads via POST /export/cesnet/resume using one token; neither export nor BagIt is repeated. Tokens are never stored with batches."
+        "description": "When ltpCesnet=true, previously uploaded package units require confirmation before any export batch is scheduled. The response data[0] has confirmationRequired=true and warnings with pid, packageId, state and message. Repeat with confirmCesnetUpload=true after user consent to create an independent package and replace the tracked LTP submission. Consent is persisted through export, BagIt packaging and upload. When ltpCesnet=true, a user may request export, BagIt packaging and CESNET upload without providing a token or having CESNET access. If a token is explicitly supplied, it is validated and remembered per user. Export and packaging run without cached credentials. Missing, expired or rejected credentials at upload time put the CESNET batch into WAITING_CESNET_TOKEN and retain archives and completed-upload checkpoints. An authorized operator can release all waiting uploads via POST /export/cesnet/resume using one token; neither export nor BagIt is repeated. Tokens are never stored with batches."
       }
     },
     "/export/cejsh": {
