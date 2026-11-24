@@ -79,22 +79,26 @@ public final class BagitProcess {
                 nightOnly, priority, params);
     }
 
-    /** Plans optional packaging after a completed export, retaining the automatic upload options. */
-    public Batch planAfterExport(Batch source) throws IOException {
+    /** Whether the export includes BagIt packaging. */
+    public static boolean isRequested(Batch source) {
         BatchParams params = source.getParamsAsObject();
-        if (params.getNextBatchId() != null || !EXPORTS.contains(source.getProfileId())
-                || !(Boolean.TRUE.equals(params.isBagit()) || Boolean.TRUE.equals(params.isLtpCesnet()))
-                || (params.getKrameriusInstanceId() != null && !params.getKrameriusInstanceId().isEmpty()
-                    && !"local".equals(params.getKrameriusInstanceId()))) return null;
-        Batch next = plan(source);
-        BatchParams nextParams = next.getParamsAsObject();
-        nextParams.setLtpCesnet(params.isLtpCesnet());
-        nextParams.setConfirmCesnetUpload(params.getConfirmCesnetUpload());
-        save(next, nextParams);
-        params.setNextBatchId(next.getId());
+        return params != null && EXPORTS.contains(source.getProfileId())
+                && (Boolean.TRUE.equals(params.isBagit()) || Boolean.TRUE.equals(params.isLtpCesnet()))
+                && (params.getKrameriusInstanceId() == null || params.getKrameriusInstanceId().isEmpty()
+                    || "local".equals(params.getKrameriusInstanceId()));
+    }
+
+    /** Packages the completed export without creating another batch. */
+    public Batch runInExport(Batch batch) throws Exception {
+        requireOwned(batch);
+        if (!isRequested(batch)) throw new IOException("Export nepožaduje BagIt");
+        BatchParams params = batch.getParamsAsObject();
         params.setLtpCesnetToken(null);
-        save(source, params);
-        return next;
+        if (params.getBagitSourceFolder() == null) {
+            params.setBagitSourceFolder(batch.getFolder());
+            save(batch, params);
+        }
+        return runExport(batch, params, batch, Path.of(params.getBagitSourceFolder()).toAbsolutePath().normalize(), true);
     }
 
     public Batch run(Batch batch, BatchParams params) throws Exception {
@@ -105,6 +109,10 @@ public final class BagitProcess {
         requireOwnedFinished(source);
         if (!EXPORTS.contains(source.getProfileId())) throw new IOException("Neplatný profil zdrojové dávky pro BagIt");
         Path sourceRoot = Path.of(source.getFolder()).toAbsolutePath().normalize();
+        return runExport(batch, params, source, sourceRoot, false);
+    }
+
+    private Batch runExport(Batch batch, BatchParams params, Batch source, Path sourceRoot, boolean inline) throws Exception {
         String sourceName = sourceRoot.getFileName().toString();
         String packageName = sourceName.startsWith("archive_") ? sourceName.substring("archive_".length()) : sourceName;
         String configuredPath = Batch.EXPORT_KRAMERIUS.equals(source.getProfileId())
@@ -114,6 +122,7 @@ public final class BagitProcess {
                 ? config.getConfigHome().toPath().resolve("temp/ltpCesnet") : Path.of(configuredPath);
         // Each batch owns a separate directory, even when object/package names are identical.
         Path output = batch.getFolder() == null || params.getPids().contains(batch.getFolder())
+                || (inline && sourceRoot.equals(Path.of(batch.getFolder()).toAbsolutePath().normalize()))
                 ? destination.resolve("bagit_" + batch.getId() + "_" + packageName).toAbsolutePath().normalize()
                 : Path.of(batch.getFolder()).toAbsolutePath().normalize();
         if (Files.isDirectory(sourceRoot)) {
@@ -144,11 +153,11 @@ public final class BagitProcess {
             }
         } catch (IOException ex) {
             return BatchUtils.finishedSuccessfully(manager, batch, batch.getFolder(),
-                    "Vytvoření balíčku BagIt bylo dokončeno; zdrojový export byl smazán; smazání původních skenů selhalo: " + ex.getMessage(), Batch.State.EXTERNAL_DONE);
+                    "Vytvoření balíčku BagIt bylo dokončeno; zdrojový export byl smazán; smazání původních skenů selhalo: " + ex.getMessage(), inline ? Batch.State.EXPORT_WARNING : Batch.State.EXTERNAL_DONE);
         }
         requireActive(batch);
         return BatchUtils.finishedSuccessfully(manager, batch, batch.getFolder(),
-                "Vytvoření balíčku BagIt bylo dokončeno. Zdrojový export byl smazán. Archivy byly zachovány pro nahrání do CESNETu.", Batch.State.EXTERNAL_DONE);
+                "Vytvoření balíčku BagIt bylo dokončeno. Zdrojový export byl smazán. Archivy byly zachovány pro nahrání do CESNETu.", inline ? Batch.State.EXPORT_DONE : Batch.State.EXTERNAL_DONE);
     }
 
     private Batch runImportFolder(Batch batch, BatchParams params) throws Exception {

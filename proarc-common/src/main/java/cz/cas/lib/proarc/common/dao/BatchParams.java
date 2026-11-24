@@ -62,6 +62,7 @@ public class BatchParams {
     private List<String> bagitArchives;
     private List<String> completedPackageSources;
     private Boolean bagitComplete;
+    private String bagitSourceFolder;
     private List<String> completedUploads;
     private Boolean confirmCesnetUpload;
     private String cesnetOperationId;
@@ -460,6 +461,16 @@ public class BatchParams {
 
     public void setBagitComplete(Boolean bagitComplete) {
         this.bagitComplete = bagitComplete;
+    }
+
+    /** Export output retained while packaging runs in the same batch. */
+    @XmlElement(name = "bagitSourceFolder")
+    public String getBagitSourceFolder() {
+        return bagitSourceFolder;
+    }
+
+    public void setBagitSourceFolder(String bagitSourceFolder) {
+        this.bagitSourceFolder = bagitSourceFolder;
     }
 
     @XmlElement(name = "completedUploads")

@@ -143,7 +143,7 @@ public final class CesnetProcess {
             source = manager.get(previous.getSourceBatchId());
         }
         requireOwnedFinished(source);
-        if (!Batch.EXTERNAL_BAGIT.equals(source.getProfileId())) throw new IOException("Zdrojem musí být dokončená dávka BagIt");
+        if (!isBagitSource(source)) throw new IOException("Zdrojem musí být dokončená dávka obsahující BagIt");
         List<String> archives = list(source.getParamsAsObject().getBagitArchives());
         requirePendingArchives(archives, completed);
         // Preparing an archive does not require CESNET access. Credentials are checked at upload time.
@@ -187,7 +187,7 @@ public final class CesnetProcess {
     /** Plans the optional upload once BagIt has completed. */
     public Batch planAfterBagit(Batch source) throws IOException {
         BatchParams params = source.getParamsAsObject();
-        if (params.getNextBatchId() != null || !Batch.EXTERNAL_BAGIT.equals(source.getProfileId())
+        if (params.getNextBatchId() != null || !isBagitSource(source)
                 || !Boolean.TRUE.equals(params.isLtpCesnet())) return null;
         Batch next = plan(source, null, Boolean.TRUE.equals(params.getConfirmCesnetUpload()), true);
         params.setNextBatchId(next.getId());
@@ -199,7 +199,7 @@ public final class CesnetProcess {
     public Batch run(Batch batch, BatchParams params) throws Exception {
         Batch source = manager.get(params.getSourceBatchId());
         requireOwnedFinished(source);
-        if (!Batch.EXTERNAL_BAGIT.equals(source.getProfileId())) throw new IOException("Neplatný profil zdrojové dávky pro CESNET");
+        if (!isBagitSource(source)) throw new IOException("Neplatný profil zdrojové dávky pro CESNET");
         List<String> archives = list(params.getBagitArchives());
         requirePendingArchives(archives, list(params.getCompletedUploads()));
         if (!list(source.getParamsAsObject().getBagitArchives()).containsAll(archives)) throw new IOException("Archiv nepatří do zdrojové dávky");
@@ -296,9 +296,17 @@ public final class CesnetProcess {
         if (source.getParamsAsObject() == null) throw new IOException("Zdrojová dávka nemá parametry");
     }
 
+    private static boolean isBagitSource(Batch source) {
+        return Batch.EXTERNAL_BAGIT.equals(source.getProfileId())
+                || ((Batch.EXPORT_NDK.equals(source.getProfileId()) || Batch.EXPORT_ARCHIVE.equals(source.getProfileId())
+                    || Batch.EXPORT_KRAMERIUS.equals(source.getProfileId()))
+                    && Boolean.TRUE.equals(source.getParamsAsObject().getBagitComplete()));
+    }
+
     private void requireOwnedFinished(Batch source) throws IOException {
         requireOwned(source);
-        boolean finished = source.getState() == Batch.State.EXTERNAL_DONE;
+        boolean finished = source.getState() == Batch.State.EXTERNAL_DONE
+                || source.getState() == Batch.State.EXPORT_DONE || source.getState() == Batch.State.EXPORT_WARNING;
         if (!finished) {
             throw new IOException("Zdrojová dávka musí být dokončena");
         }

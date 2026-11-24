@@ -89,7 +89,11 @@ class PackageProcessesTest {
         params.setLtpCesnet(true);
         params.setConfirmCesnetUpload(true);
         source.setParamsFromObject(params);
-        Batch bagit = new BagitProcess(config, manager, user).planAfterExport(source);
+        Batch bagit = new BagitProcess(config, manager, user).plan(source);
+        BatchParams bagitParams = bagit.getParamsAsObject();
+        bagitParams.setLtpCesnet(true);
+        bagitParams.setConfirmCesnetUpload(true);
+        bagit.setParamsFromObject(bagitParams);
         InternalExternalDispatcher previous = InternalExternalDispatcher.getDefault();
         InternalExternalDispatcher dispatcher = new InternalExternalDispatcher();
         dispatcher.init();
@@ -190,7 +194,7 @@ class PackageProcessesTest {
     }
 
     @Test
-    void automaticChainHasSeparatePersistentBatchesAndDoesNotRepeatPackaging() throws Exception {
+    void exportIncludesPackagingInSameBatchAndDoesNotRepeatIt() throws Exception {
         Batch source = export();
         BatchParams params = source.getParamsAsObject();
         params.setBagit(true);
@@ -200,14 +204,17 @@ class PackageProcessesTest {
         source.setParamsFromObject(params);
         BagitProcess packaging = new BagitProcess(config, manager, user);
         CesnetProcess uploading = uploadProcess();
-        Batch bagit = packaging.planAfterExport(source);
-        assertEquals(Batch.EXTERNAL_BAGIT, bagit.getProfileId());
-        assertEquals(source.getId(), bagit.getParamsAsObject().getSourceBatchId());
-        assertEquals(bagit.getId(), source.getParamsAsObject().getNextBatchId());
-        assertNull(packaging.planAfterExport(source));
-        packaging.run(bagit, bagit.getParamsAsObject());
+        source.setState(Batch.State.EXPORTING);
+        Path original = Path.of(source.getFolder());
+        Batch bagit = packaging.runInExport(source);
+        assertSame(source, bagit);
+        assertEquals(1, manager.batches.size());
+        assertEquals(Batch.EXPORT_ARCHIVE, bagit.getProfileId());
+        assertEquals(Batch.State.EXPORT_DONE, bagit.getState());
+        assertFalse(Files.exists(original));
+        assertNull(bagit.getParamsAsObject().getNextBatchId());
         List<String> archives = bagit.getParamsAsObject().getBagitArchives();
-        packaging.run(bagit, bagit.getParamsAsObject());
+        packaging.runInExport(bagit);
         assertEquals(archives, bagit.getParamsAsObject().getBagitArchives());
         Batch upload = uploading.planAfterBagit(bagit);
         assertEquals(Batch.EXTERNAL_CESNET, upload.getProfileId());
@@ -222,22 +229,29 @@ class PackageProcessesTest {
     @Test
     void failedPackagingRetainsSourceScansAndCompletedArchivesForRetry() throws Exception {
         Batch source = export();
+        Path sourceRoot = Path.of(source.getFolder());
         Path scans = Files.createDirectory(temp.resolve("raw"));
         Files.writeString(scans.resolve("scan"), "raw");
         BatchParams sourceParams = source.getParamsAsObject();
+        sourceParams.setBagit(true);
         sourceParams.setRawScanFolders(List.of(scans.toString()));
         source.setParamsFromObject(sourceParams);
         Path invalid = Files.writeString(Path.of(source.getFolder(), "b/bagit.txt"), "already bagged");
         BagitProcess packaging = new BagitProcess(config, manager, user);
-        Batch bagit = packaging.plan(source);
-        assertThrows(IOException.class, () -> packaging.run(bagit, bagit.getParamsAsObject()));
+        source.setState(Batch.State.EXPORTING);
+        Batch bagit = source;
+        assertThrows(IOException.class, () -> packaging.runInExport(bagit));
+        assertEquals(Batch.State.EXPORTING, bagit.getState());
+        assertEquals(1, manager.batches.size());
         List<String> completed = bagit.getParamsAsObject().getBagitArchives();
         assertEquals(1, completed.size());
         var modified = Files.getLastModifiedTime(Path.of(completed.get(0)));
         assertTrue(Files.exists(scans.resolve("scan")));
-        assertTrue(Files.exists(Path.of(source.getFolder(), "a/scan.tif")));
+        assertTrue(Files.exists(sourceRoot.resolve("a/scan.tif")));
         Files.delete(invalid);
-        packaging.run(bagit, bagit.getParamsAsObject());
+        packaging.runInExport(bagit);
+        assertEquals(Batch.State.EXPORT_DONE, bagit.getState());
+        assertFalse(Files.exists(sourceRoot));
         assertEquals(2, bagit.getParamsAsObject().getBagitArchives().size());
         assertEquals(modified, Files.getLastModifiedTime(Path.of(completed.get(0))));
         assertFalse(Files.exists(scans));
@@ -272,10 +286,9 @@ class PackageProcessesTest {
         source.setParamsFromObject(params);
         BagitProcess packaging = new BagitProcess(config, manager, user);
         CesnetProcess uploading = uploadProcess();
-        Batch bagit = packaging.planAfterExport(source);
-        packaging.run(bagit, bagit.getParamsAsObject());
+        Batch bagit = packaging.runInExport(source);
         assertNotNull(uploading.planAfterBagit(bagit));
-        assertEquals(Batch.State.EXTERNAL_DONE, bagit.getState());
+        assertEquals(Batch.State.EXPORT_DONE, bagit.getState());
         assertNotNull(uploading.plan(bagit, "new-token"));
     }
 
@@ -406,8 +419,7 @@ class PackageProcessesTest {
         params.setLtpCesnet(true);
         source.setParamsFromObject(params);
         BagitProcess packaging = new BagitProcess(config, manager, user);
-        Batch bagit = packaging.planAfterExport(source);
-        packaging.run(bagit, bagit.getParamsAsObject());
+        Batch bagit = packaging.runInExport(source);
         List<String> archives = bagit.getParamsAsObject().getBagitArchives();
         var existing = new cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo();
         existing.setPackageId("12");
@@ -439,7 +451,7 @@ class PackageProcessesTest {
         cesnet.run(retry, retry.getParamsAsObject());
         assertEquals(Batch.State.EXTERNAL_DONE, retry.getState());
         assertEquals(archives, uploaded);
-        assertEquals(Batch.State.EXTERNAL_DONE, bagit.getState());
+        assertEquals(Batch.State.EXPORT_DONE, bagit.getState());
         assertFalse(Files.exists(Path.of(source.getFolder())));
         for (String archive : archives) assertFalse(Files.exists(Path.of(archive)));
     }
