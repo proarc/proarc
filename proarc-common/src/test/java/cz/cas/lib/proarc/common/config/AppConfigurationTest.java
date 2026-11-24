@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -81,6 +82,29 @@ public class AppConfigurationTest {
 
     @AfterEach
     public void tearDown() {
+    }
+
+    @Test
+    public void testLtpCesnetExportDisabledByDefault() throws Exception {
+        assertFalse(factory.create(createEnvironment()).isLtpCesnetExportEnabled());
+    }
+
+    @Test
+    public void testLtpCesnetExportCanBeEnabled() throws Exception {
+        Properties props = new Properties();
+        props.setProperty(AppConfiguration.EXPORT_LTP_CESNET_ENABLE, "true");
+        createConfigFile(props, proarcCfg);
+
+        assertTrue(factory.create(createEnvironment()).isLtpCesnetExportEnabled());
+    }
+
+    @Test
+    public void testLtpCesnetExportCanBeExplicitlyDisabled() throws Exception {
+        Properties props = new Properties();
+        props.setProperty(AppConfiguration.EXPORT_LTP_CESNET_ENABLE, "false");
+        createConfigFile(props, proarcCfg);
+
+        assertFalse(factory.create(createEnvironment()).isLtpCesnetExportEnabled());
     }
 
     @Test

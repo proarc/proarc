@@ -153,7 +153,7 @@ public class ExportResourceV1 {
             throw RestException.plainBadRequest(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, modelId);
         }
 
-        AcceptedExports ae = new AcceptedExports(modelId);
+        AcceptedExports ae = new AcceptedExports(modelId, appConfig.isLtpCesnetExportEnabled());
         List<String> validExportItems = ae.getList();
 
         return new ProArcResponse<List<String>>(validExportItems);

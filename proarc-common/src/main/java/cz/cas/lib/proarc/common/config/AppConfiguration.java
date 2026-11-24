@@ -105,6 +105,7 @@ public final class AppConfiguration {
     public static final String EXPORT_BAGIT_PATH = "export.bagit.path";
     public static final String EXPORT_BAGIT_FOXML_PATH = "export.bagitFoxml.path";
     public static final String EXPORT_LTP_CESNET_POST_PROCESSOR = "export.ltp_cesnet_post_processor.processor";
+    public static final String EXPORT_LTP_CESNET_ENABLE = "export.ltpCesnet.enable";
     public static final String EXPORT_LTP_CESNET_GROUP_TOKEN = "export.ltpCesnet.groupToken";
     public static final String EXPORT_LTP_CESNET_SCRIPT_PATH = "export.ltpCesnet.scriptPath";
     public static final String EXPORT_BAGIT_SCRIPT_PATH = "export.bagit.scriptPath";
@@ -212,6 +213,10 @@ public final class AppConfiguration {
 
     public Configuration getLtpCesnetConfiguration() {
         return config.subset("export.ltpCesnet");
+    }
+
+    public boolean isLtpCesnetExportEnabled() {
+        return config.getBoolean(EXPORT_LTP_CESNET_ENABLE, false);
     }
 
     public String getLtpCesnetScriptPath() {
