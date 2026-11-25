@@ -51,7 +51,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -203,10 +205,22 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
     }
 
     static List<IMetsElement> getPeriodicalElementsToExport(IMetsElement metsElement) {
-        List<IMetsElement> elements = new ArrayList<>();
-        elements.add(metsElement);
-        elements.addAll(metsElement.getChildren());
-        return elements;
+        Map<String, IMetsElement> elements = new LinkedHashMap<>();
+        collectPeriodicalFiles(metsElement, elements);
+        return new ArrayList<>(elements.values());
+    }
+
+    private static void collectPeriodicalFiles(IMetsElement element, Map<String, IMetsElement> elements) {
+        if (hasRawDatastream(element)) {
+            elements.putIfAbsent(element.getOriginalPid(), element);
+        }
+        for (IMetsElement child : element.getChildren()) {
+            collectPeriodicalFiles(child, elements);
+        }
+    }
+
+    private static boolean hasRawDatastream(IMetsElement element) {
+        return FoxmlUtils.findDatastream(element.getSourceObject(), "RAW") != null;
     }
 
     private void generateTechMetadata(IMetsElement metsElement, Integer index) throws MetsExportException {
@@ -258,7 +272,7 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
         }
     }
 
-    private void prepareFileType(IMetsElement metsElement) throws MetsExportException {
+    void prepareFileType(IMetsElement metsElement) throws MetsExportException {
         try {
             DatastreamType rawDS = FoxmlUtils.findDatastream(metsElement.getSourceObject(), "RAW");
             if (rawDS != null) {
@@ -319,10 +333,6 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
                 fileType.getFLocat().add(fLocat);
 
                 fileGrpMap.get(Const.OC_GRP_ID).getFile().add(fileType);
-            } else {
-                for (IMetsElement childrenElement : metsElement.getChildren()) {
-                    prepareFileType(childrenElement);
-                }
             }
         } catch (Exception ex) {
             throw new MetsExportException(metsElement.getOriginalPid(), "Error while getting file datastreams for " + metsElement.getOriginalPid(), false, ex);
@@ -660,14 +670,23 @@ public class SipElementVisitor extends MetsElementVisitor implements IMetsElemen
                     DivType divIssue = new DivType();
                     copyDiv(divIssue, divOriginalIssue, true, false);
                     divVolume.getDiv().add(divIssue);
-                    createDivDocument(docId++, divIssue, metsElement);
-                    for (int i = 0; i < divOriginalIssue.getDiv().size(); i++) {
-                        DivType divOriginalChild = divOriginalIssue.getDiv().get(i);
-                        IMetsElement childElement = metsElement.getChildren().get(i);
+                    if (hasRawDatastream(metsElement)) {
+                        createDivDocument(docId++, divIssue, metsElement);
+                    }
+                    for (DivType divOriginalChild : divOriginalIssue.getDiv()) {
+                        // The logical map may group supplements before articles, regardless of child order.
+                        IMetsElement childElement = metsElement.getChildren().stream()
+                                .filter(child -> child.getModsMetsElement() != null
+                                        && divOriginalChild.getDMDID().contains(child.getModsMetsElement()))
+                                .findFirst()
+                                .orElseThrow(() -> new IllegalStateException(
+                                        "No object found for periodical DIV " + divOriginalChild.getID()));
                         DivType divChild = new DivType();
                         copyDiv(divChild, divOriginalChild, true, false);
                         divIssue.getDiv().add(divChild);
-                        createDivDocument(docId++, divChild, childElement);
+                        if (hasRawDatastream(childElement)) {
+                            createDivDocument(docId++, divChild, childElement);
+                        }
                     }
                 }
             }

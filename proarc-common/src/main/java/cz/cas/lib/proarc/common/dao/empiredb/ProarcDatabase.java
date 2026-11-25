@@ -53,7 +53,7 @@ public class ProarcDatabase extends DBDatabase {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
     /** the schema version */
-    public static final int VERSION = 21;
+    public static final int VERSION = 22;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -180,7 +180,7 @@ public class ProarcDatabase extends DBDatabase {
             log = addColumn("LOG", DataType.CLOB, 0, false);
             profileId = addColumn("PROFILE_ID", DataType.TEXT, 2000, false);
             priority = addColumn("PRIORITY", DataType.TEXT, 50, false);
-            params = addColumn("PARAMS", DataType.TEXT, 10000, false);
+            params = addColumn("PARAMS", DataType.CLOB, 0, false);
             itemUpdated = addColumn("ITEM_UPDATED", DataType.DATETIME, 0, false);
             itemUpdated.setBeanPropertyName("itemUpdated");
             updated = addColumn("UPDATED", DataType.DATETIME, 0, false);
@@ -689,7 +689,7 @@ public class ProarcDatabase extends DBDatabase {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
                 LOG.log(Level.INFO, "Upgrading ProArc schema from version " + schemaVersion + ".");
-                schemaVersion = ProarcDatabaseV20.upgradeToVersion21(
+                schemaVersion = ProarcDatabaseV21.upgradeToVersion22(
                         schemaVersion, this, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);
