@@ -1266,6 +1266,7 @@ public class FileReader {
             Node data = (Node) mdSecType.getMdWrap().getXmlData().getAny().get(0);
             if ("MODS".equalsIgnoreCase(type)) {
                 ModsDefinition mods = ModsUtils.unmarshalModsType(new DOMSource(data));
+                ModsUtils.completeImportedVersion(mods, mdSecType.getMdWrap().getMDTYPEVERSION());
                 if (modsMap.put(id, mods) != null) {
                     LOG.severe("Duplicate MODS records: " + id);
                     throw new IllegalArgumentException("Duplicate Mods records: " + id);
