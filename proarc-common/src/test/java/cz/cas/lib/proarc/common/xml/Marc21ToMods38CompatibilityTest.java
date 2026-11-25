@@ -150,6 +150,75 @@ class Marc21ToMods38CompatibilityTest {
         assertEquals(role, xpath(mods, xpath));
     }
 
+    @TestFactory
+    Stream<DynamicTest> stripsTrailingCatalogPunctuationFromTitles() {
+        String[][] values = {
+            {"Masaryk a demokracie :", "Masaryk a demokracie"},
+            {"Title /", "Title"}, {"Title ;", "Title"},
+            {"Title .:,;/   ", "Title"}, {"Title. ;", "Title"},
+            {"Title   ", "Title"}, {"Title", "Title"},
+            {"Title: text, with  spaces /", "Title: text, with  spaces"},
+            {"Title? /", "Title?"},
+            {"Author J.", "Author J."}, {"Author J. / ", "Author J."},
+            {"J.", "J."}, {"J.K. ;", "J.K."},
+            {"Title...", "Title..."}, {"Title... / ", "Title..."},
+            {"", ""}, {" .:,;/ ", ""}
+        };
+        return IntStream.range(0, values.length).mapToObj(i ->
+                DynamicTest.dynamicTest("catalog title punctuation " + i, () -> {
+                    String fields = field("245", "1", "0",
+                            sub("a", values[i][0]), sub("b", values[i][0]));
+                    String mods = transform(mods38Template, aCase("title punctuation", fields, "").marc);
+                    assertEquals(values[i][1], xpath(mods, "string(/m:mods/m:titleInfo/m:title)"));
+                    assertEquals(values[i][1], xpath(mods, "string(/m:mods/m:titleInfo/m:subTitle)"));
+                }));
+    }
+
+    @Test
+    void preservesNonSortAndInternalWhitespaceWhenStrippingCatalogPunctuation() throws Exception {
+        String fields = field("245", "1", "4",
+                sub("a", "The Title  with spaces :"), sub("b", "Subtitle /"));
+        String mods = transform(mods38Template, aCase("nonSort punctuation", fields, "").marc);
+        // The stylesheet includes literal line breaks inside nonSort with xml:space="preserve".
+        String nonSort = xpath(mods, "string(/m:mods/m:titleInfo/m:nonSort)");
+        assertEquals("The ", nonSort.replace("\r", "").replace("\n", ""));
+        assertEquals("preserve", xpath(mods, "string(/m:mods/m:titleInfo/m:nonSort/@xml:space)"));
+        assertEquals("Title  with spaces", xpath(mods, "string(/m:mods/m:titleInfo/m:title)"));
+        assertEquals("Subtitle", xpath(mods, "string(/m:mods/m:titleInfo/m:subTitle)"));
+    }
+
+    @Test
+    void respectsCustomPunctuationAndPreservesInitialsAndEllipses() throws Exception {
+        URL stylesheet = Marc21ToMods38CompatibilityTest.class.getResource("/xml/MARC21slim2MODS3.xsl");
+        String harness = "<xsl:stylesheet version=\"2.0\""
+                + " xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\""
+                + " xmlns:local=\"http://www.loc.org/namespace\">"
+                + "<xsl:import href=\"" + stylesheet.toExternalForm() + "\"/>"
+                + "<xsl:output method=\"text\"/>"
+                + "<xsl:param name=\"value\"/><xsl:param name=\"punctuation\"/>"
+                + "<xsl:template match=\"/\">"
+                + "<xsl:value-of select=\"local:stripPunctuation($value, $punctuation)\"/>"
+                + "</xsl:template></xsl:stylesheet>";
+        Templates templates = new TransformerFactoryImpl().newTemplates(new StreamSource(new StringReader(harness)));
+        String[][] cases = {
+            {"Title. / ; ", ",:;/ ", "Title."},
+            {"Author J. / ", ".:,;/ ", "Author J."},
+            {"J. ;", ".:,;/ ", "J."},
+            {"Title... / ", ".:,;/ ", "Title..."},
+            {"Title]]", "]", "Title"},
+            {"Title : / ", "", "Title"},
+            {"", "", ""}, {" .:,;/ ", "", ""}
+        };
+        for (String[] testCase : cases) {
+            Transformer transformer = templates.newTransformer();
+            transformer.setParameter("value", testCase[0]);
+            transformer.setParameter("punctuation", testCase[1]);
+            ByteArrayOutputStream output = new ByteArrayOutputStream();
+            transformer.transform(new StreamSource(new StringReader("<record/>")), new StreamResult(output));
+            assertEquals(testCase[2], output.toString("UTF-8"), "Input: " + testCase[0]);
+        }
+    }
+
     private static List<CompatibilityCase> cases() {
         List<CompatibilityCase> result = new ArrayList<>();
         IntStream.range(0, 10).forEach(i -> {
@@ -262,6 +331,9 @@ class Marc21ToMods38CompatibilityTest {
     private static final class ModsNamespaceContext implements NamespaceContext {
         @Override
         public String getNamespaceURI(String prefix) {
+            if (XMLConstants.XML_NS_PREFIX.equals(prefix)) {
+                return XMLConstants.XML_NS_URI;
+            }
             return "m".equals(prefix) ? MODS_NS : XMLConstants.NULL_NS_URI;
         }
 

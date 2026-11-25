@@ -5,6 +5,7 @@
 		Maintenance note: For each revision, change the content of <recordInfo><recordOrigin> to reflect the new revision number.
 	    MARC21slim2MODS3-8_XSLT2-0
 
+        Revision ProArc 2.79.05 - recursively strip catalog punctuation while preserving initials and ellipses
         Revision ProArc 2.79.04 - stahovani 260 a 264 ind1 = 2/3 pro dateOther type=intervening/latest
         Revision ProArc 2.79.03 - mapovani 996$3 a 996$c do location/shelfLocator a carove kody 996$b a 980$b
         Revision ProArc 2.79.02 - stahovani valueURI pro subject elementy
@@ -130,47 +131,13 @@
 	 -->
     <!--  Local functions  -->
     <!--
-		Strips punctuation from the last character of a field.
+		Strips trailing catalog punctuation, preserving initials and ellipses.
 		To extend add any additional punctuation to the punctuation variable
 		$str: string to be analyzed
 	 -->
     <xsl:function name="local:stripPunctuation">
         <xsl:param name="str"/>
-        <xsl:variable name="punctuation">.:,;/ </xsl:variable>
-        <!--  isolates end of string  -->
-        <xsl:variable name="strEnd">
-            <xsl:value-of select="substring($str,(string-length($str)))"/>
-        </xsl:variable>
-        <!--  isolates last three characters in string tests for initials  -->
-        <xsl:variable name="initialTest">
-            <xsl:variable name="lastChars" select="substring($str,(string-length($str)) - 2)"/>
-            <xsl:choose>
-                <xsl:when test="matches($lastChars,'^([.][A-Z][.])')">true</xsl:when>
-                <xsl:when test="matches($lastChars,'^([ ][A-Z][.])')">true</xsl:when>
-                <xsl:when test="matches($lastChars,'^([.][.][.])')">true</xsl:when>
-                <xsl:otherwise>false</xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>
-        <xsl:choose>
-            <xsl:when test="contains($punctuation,$strEnd)">
-                <xsl:choose>
-                    <!--  if ends with initials or ellipse then leave, otherwise remove ending punctuation  -->
-                    <xsl:when test="$initialTest = 'true'">
-                        <xsl:value-of select="$str"/>
-                    </xsl:when>
-                    <!--  if ends with multiple punctiation  -->
-                    <xsl:when test="matches(substring($str,(string-length($str))-3),'([.:,;/][ ][.:,;/])')">
-                        <xsl:value-of select="substring($str,1,string-length($str)-3)"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="substring($str,1,string-length($str)-1)"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="$str"/>
-            </xsl:otherwise>
-        </xsl:choose>
+        <xsl:value-of select="local:stripPunctuation($str, '')"/>
     </xsl:function>
     <!--
 		Strips punctuation from the last character of a field, this version accepts two parameters:
@@ -191,25 +158,14 @@
         <xsl:variable name="strEnd">
             <xsl:value-of select="substring($str,(string-length($str)))"/>
         </xsl:variable>
-        <xsl:variable name="initialTest">
-            <xsl:variable name="lastChars" select="substring($str,(string-length($str)) - 1)"/>
-            <xsl:choose>
-                <xsl:when test="matches($lastChars,'^([.][A-Z][.])')">true</xsl:when>
-                <xsl:when test="matches($lastChars,'^([ ][A-Z][.])')">true</xsl:when>
-                <xsl:when test="matches($lastChars,'^([.][.][.])')">true</xsl:when>
-                <xsl:otherwise>false</xsl:otherwise>
-            </xsl:choose>
-        </xsl:variable>
         <xsl:choose>
+            <xsl:when test="string-length($str) = 0"/>
+            <!-- Recheck after each removal: an initial or ellipsis may precede catalog punctuation. -->
+            <xsl:when test="matches($str, '(^|[. ])[A-Z][.]$|[.][.][.]$')">
+                <xsl:value-of select="$str"/>
+            </xsl:when>
             <xsl:when test="contains($punctuation,$strEnd)">
-                <xsl:choose>
-                    <xsl:when test="$initialTest = 'true'">
-                        <xsl:value-of select="$str"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="substring($str,1,string-length($str)-1)"/>
-                    </xsl:otherwise>
-                </xsl:choose>
+                <xsl:value-of select="local:stripPunctuation(substring($str,1,string-length($str)-1), $pcodes)"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="$str"/>
@@ -518,7 +474,7 @@
                         <xsl:apply-templates/>
                     </recordIdentifier>
                 </xsl:for-each>
-                <recordOrigin>Converted from MARCXML to MODS version 3.8 using MARC21slim_MODS3-8_XSL2-0.xsl (ProArc Revision 2.79.03 2026/11/03)</recordOrigin>
+                <recordOrigin>Converted from MARCXML to MODS version 3.8 using MARC21slim_MODS3-8_XSL2-0.xsl (ProArc Revision 2.79.05 2026/11/25)</recordOrigin>
                 <xsl:for-each select="marc:datafield[@tag='040']/marc:subfield[@code='b']">
                     <languageOfCataloging>
                         <languageTerm authority="iso639-2b" type="code">
