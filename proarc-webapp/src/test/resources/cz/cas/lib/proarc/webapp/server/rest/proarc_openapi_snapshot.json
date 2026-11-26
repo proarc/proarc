@@ -76,7 +76,7 @@
     },
     {
       "name": "Statistics",
-      "description": "Repository counts and historical audit statistics (AKUBRA storage only)."
+      "description": "Repository counts and historical audit statistics (AKUBRA storage only), plus server disk usage and cached directory sizes."
     },
     {
       "name": "Authentication",
@@ -11051,6 +11051,52 @@
         }
       }
     },
+    "/statistics/server-usage": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "operationId": "getServerUsage",
+        "summary": "Read current server disk usage",
+        "description": "Reads the latest atomically published collector file and returns cached directory sizes in response.data[0]. Does not scan disks or directories. Collector errors are reported in error (missing or invalid), with actual null; disk measurement errors are reported per disk with null sizes. storageUsage has its own calculatedAt timestamp and remains available independently. Also available under REST v1.",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "ProArc response containing one result object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerUsageCurrentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/statistics/server-usage/history": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "operationId": "getServerUsageHistory",
+        "summary": "Read daily server disk usage history",
+        "description": "Reads daily collector samples in response.data[0], sorted by date ascending. Missing or unreadable/invalid files return an empty samples array and error missing or invalid inside a successful ProArc response. Missing dates and failed disk measurements are not replaced with zero values. History contains filesystem usage, not historical directory sizes. Also available under REST v1.",
+        "parameters": [],
+        "responses": {
+          "default": {
+            "description": "ProArc response containing one result object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerUsageHistoryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/statistics/models": {
       "get": {
         "tags": [
@@ -19725,6 +19771,259 @@
             "maximum": 500
           }
         }
+      },
+      "ServerUsageDisk": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable disk identifier, unique within a sample. Use to join historical series."
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name at measurement time."
+          },
+          "path": {
+            "type": "string",
+            "description": "Measured filesystem path on the collector host."
+          },
+          "totalBytes": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Filesystem capacity in bytes; null on disk measurement failure.",
+            "minimum": 0
+          },
+          "usedBytes": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Used filesystem space in bytes; null on disk measurement failure.",
+            "minimum": 0
+          },
+          "freeBytes": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Space available to the collector user in bytes; may be negative on Unix. Reserved blocks mean usedBytes + freeBytes need not equal totalBytes. Null on disk measurement failure."
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "Null for a successful disk measurement; otherwise a collector error message and all three sizes are null. Other disks remain available."
+          }
+        }
+      },
+      "ServerUsageSample": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+              1
+            ]
+          },
+          "measuredAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Collector measurement timestamp with UTC offset."
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "Calendar date in the collector local time zone."
+          },
+          "disks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServerUsageDisk"
+            }
+          }
+        }
+      },
+      "StorageUsageSnapshot": {
+        "type": "object",
+        "description": "Last successfully calculated directory sizes, independent of collector measurements. Sizes and timestamp are null before the first successful calculation.",
+        "properties": {
+          "datastoreSize": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Datastore directory size in bytes."
+          },
+          "objectstoreSize": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Objectstore directory size in bytes."
+          },
+          "usersSize": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "Users directory size in bytes."
+          },
+          "calculatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp of the directory size calculation."
+          }
+        }
+      },
+      "ServerUsageCurrent": {
+        "type": "object",
+        "properties": {
+          "actual": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ServerUsageSample"
+              }
+            ],
+            "nullable": true,
+            "description": "Latest collector sample; null when the collector file is missing or invalid."
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "missing",
+              "invalid",
+              null
+            ],
+            "description": "Null on success; missing when the collector file does not exist; invalid when it is unreadable or malformed. Reported inside a successful ProArc response."
+          },
+          "storageUsage": {
+            "$ref": "#/components/schemas/StorageUsageSnapshot"
+          }
+        }
+      },
+      "ServerUsageHistory": {
+        "type": "object",
+        "properties": {
+          "samples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServerUsageSample"
+            },
+            "description": "Daily samples ordered by date ascending, with one sample per date. Empty when the collector file is missing or invalid. Missing days are not filled."
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "missing",
+              "invalid",
+              null
+            ],
+            "description": "Null on success; missing when the collector file does not exist; invalid when it is unreadable or malformed. Reported inside a successful ProArc response."
+          }
+        }
+      },
+      "ServerUsageCurrentResponse": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ServerUsageCurrent"
+                },
+                "maxItems": 1
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "description": "ProArc JSON response envelope. On success, response.status is 0 and response.data contains one result object."
+      },
+      "ServerUsageHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ServerUsageHistory"
+                },
+                "maxItems": 1
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "description": "ProArc JSON response envelope. On success, response.status is 0 and response.data contains one result object."
       },
       "PackageExportStatisticsResponse": {
         "type": "object",

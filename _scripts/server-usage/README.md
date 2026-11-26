@@ -3,7 +3,7 @@
 `server_usage.sh` měří kapacitu a obsazenost 1–N pojmenovaných souborových systémů
 na Linuxu. Vyžaduje Bash 4.4+, `jq`, GNU coreutils (`df`, `date` atd.) a `flock`
 z util-linux. Na Debianu/Ubuntu lze nástroje doplnit příkazem
-`sudo apt-get install bash jq coreutils util-linux`.
+  `sudo apt-get install bash jq coreutils util-linux`.
 
 Pro Windows je k dispozici `server_usage.ps1`. Vyžaduje Windows PowerShell 5.1
 nebo PowerShell 7 na Windows, bez dalších balíčků. Používá Windows API
