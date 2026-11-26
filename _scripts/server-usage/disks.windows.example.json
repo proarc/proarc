@@ -1,0 +1,14 @@
+{
+  "disks": [
+    {
+      "id": "system",
+      "name": "Systémový disk",
+      "path": "C:\\"
+    },
+    {
+      "id": "work",
+      "name": "Pracovní disk",
+      "path": "H:\\"
+    }
+  ]
+}
