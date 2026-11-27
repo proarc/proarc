@@ -105,9 +105,11 @@ public final class AppConfiguration {
     public static final String EXPORT_BAGIT_PATH = "export.bagit.path";
     public static final String EXPORT_BAGIT_FOXML_PATH = "export.bagitFoxml.path";
     public static final String EXPORT_LTP_CESNET_POST_PROCESSOR = "export.ltp_cesnet_post_processor.processor";
+    public static final String EXPORT_LTP_CESNET_ENABLE = "export.ltpCesnet.enable";
     public static final String EXPORT_LTP_CESNET_GROUP_TOKEN = "export.ltpCesnet.groupToken";
     public static final String EXPORT_LTP_CESNET_SCRIPT_PATH = "export.ltpCesnet.scriptPath";
     public static final String EXPORT_BAGIT_SCRIPT_PATH = "export.bagit.scriptPath";
+    public static final String EXPORT_BAGIT_MODE = "export.bagit.mode";
     public static final String CATALOG_UPDATE_MODELS = "catalog.update.models";
 
     public static final String BATCH_SCHEDULER_START = "batch.scheduler.startTime";
@@ -122,7 +124,7 @@ public final class AppConfiguration {
     /**
      * read only configuration
      */
-    private final Configuration config;
+    private final CombinedConfiguration config;
     private final Map<ConfigurationProfile, Configuration> profileConfigCache =
             new HashMap<ConfigurationProfile, Configuration>();
     private final Profiles profiles;
@@ -209,12 +211,35 @@ public final class AppConfiguration {
         return config.getString(EXPORT_LTP_CESNET_GROUP_TOKEN);
     }
 
+    public Configuration getLtpCesnetConfiguration() {
+        return config.subset("export.ltpCesnet");
+    }
+
+    public boolean isLtpCesnetExportEnabled() {
+        return config.getBoolean(EXPORT_LTP_CESNET_ENABLE, false);
+    }
+
     public String getLtpCesnetScriptPath() {
         return config.getString(EXPORT_LTP_CESNET_SCRIPT_PATH);
     }
 
     public String getBagitScriptPath() {
         return config.getString(EXPORT_BAGIT_SCRIPT_PATH);
+    }
+
+    public String getBagitMode() {
+        Configuration userConfig = config.getConfiguration("user");
+        if (userConfig != null && userConfig.containsKey(EXPORT_BAGIT_MODE)) {
+            return config.getString(EXPORT_BAGIT_MODE).trim();
+        }
+        // Preserve legacy script selection only for an explicitly configured path.
+        if (userConfig != null && userConfig.containsKey(EXPORT_BAGIT_SCRIPT_PATH)) {
+            String scriptPath = getBagitScriptPath();
+            if (scriptPath != null && !scriptPath.isBlank()) {
+                return "script";
+            }
+        }
+        return config.getString(EXPORT_BAGIT_MODE, "java").trim();
     }
 
     public String getBatchSchedulerStartTime() {
@@ -375,12 +400,12 @@ public final class AppConfiguration {
         return config;
     }
 
-    private Configuration init() throws IOException {
+    private CombinedConfiguration init() throws IOException {
         this.configHome = initConfigFolder(environment.get(PROPERTY_USER_HOME), environment.get(PROPERTY_APP_HOME));
         return buildConfiguration(new File(configHome, CONFIG_FILE_NAME));
     }
 
-    private Configuration buildConfiguration(File cfgFile) {
+    private CombinedConfiguration buildConfiguration(File cfgFile) {
         CombinedConfiguration cc = new CombinedConfiguration();
         buildConfiguration(cc, cfgFile);
         return cc;
@@ -409,7 +434,7 @@ public final class AppConfiguration {
             trigger.start();
 
             PropertiesConfiguration userConfig = builder.getConfiguration();
-            cc.addConfiguration(userConfig);
+            cc.addConfiguration(userConfig, "user");
 
             try {
                 // bundled default configurations

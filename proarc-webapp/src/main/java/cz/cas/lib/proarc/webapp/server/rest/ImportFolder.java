@@ -24,6 +24,9 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.List;
+
+import static java.util.Collections.emptyList;
+
 /**
  *
  * @author Jan Pokorsky
@@ -44,7 +47,17 @@ public class ImportFolder {
     @XmlElement(name = "states")
     @JsonProperty("states")
     private List<ProfileStates> states;
+    @XmlElement(name = "actions")
+    @JsonProperty("actions")
+    private List<String> actions = emptyList();
 
+    public List<String> getActions() {
+        return actions;
+    }
+
+    public void setActions(List<String> actions) {
+        this.actions = actions;
+    }
 
     public ImportFolder(String name, String state, String parent, String path, List<ProfileStates> states) {
         this.name = name;

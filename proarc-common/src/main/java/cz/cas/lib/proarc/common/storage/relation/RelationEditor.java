@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.common.storage.relation;
 
+import cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
 import cz.cas.lib.proarc.common.storage.FoxmlUtils;
 import cz.cas.lib.proarc.common.storage.ProArcObject;
@@ -61,6 +62,15 @@ public final class RelationEditor {
 
     public long getLastModified() throws DigitalObjectException {
         return editor.getLastModified();
+    }
+
+    /** The last archive submission, or null when the object has not been submitted. */
+    public ArchivInfo getArchivInfo() throws DigitalObjectException {
+        return getRdf().getDescription().getArchivInfo();
+    }
+
+    public void setArchivInfo(ArchivInfo record) throws DigitalObjectException {
+        getRdf().getDescription().setArchivInfo(record);
     }
 
     /**

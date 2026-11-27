@@ -21,15 +21,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.cas.lib.proarc.common.storage.akubra.SolrExportStatistics;
 import java.time.LocalDate;
 import java.util.List;
-import org.apache.solr.client.solrj.SolrRequest;
-import org.apache.solr.common.util.NamedList;
 import org.apache.solr.client.solrj.SolrClient;
-
-
+import org.apache.solr.client.solrj.SolrRequest;
+import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.util.NamedList;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ExportStatisticResponseTest {
 
@@ -56,9 +57,9 @@ class ExportStatisticResponseTest {
 
     @Test
     void serializesHistoricalOptionsAsOneResponseObject() throws Exception {
-        org.apache.solr.client.solrj.response.FacetField model = new org.apache.solr.client.solrj.response.FacetField("model");
+        FacetField model = new org.apache.solr.client.solrj.response.FacetField("model");
         model.add("model:page", 1); model.add("device:scanner", 1);
-        org.apache.solr.client.solrj.response.FacetField software = new org.apache.solr.client.solrj.response.FacetField("software");
+        FacetField software = new org.apache.solr.client.solrj.response.FacetField("software");
         software.add("software:deleted", 1);
         NamedList<Object> facets = new NamedList<>();
         NamedList<Object> models = new NamedList<>(); models.add("model:page", 1); models.add("device:scanner", 1);

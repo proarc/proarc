@@ -1,30 +1,14 @@
-package cz.cas.lib.proarc.common.process.export.bagit;
+package cz.cas.lib.proarc.common.process.external.bagit;
 
 import cz.cas.lib.proarc.common.config.AppConfiguration;
-import cz.cas.lib.proarc.common.mods.ModsStreamEditor;
-import cz.cas.lib.proarc.common.mods.custom.ModsConstants;
-import cz.cas.lib.proarc.common.mods.ndk.NdkMapper;
-import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
-import cz.cas.lib.proarc.common.object.DigitalObjectManager;
-import cz.cas.lib.proarc.common.object.MetadataHandler;
-import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
+import cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetUploader;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
 import cz.cas.lib.proarc.common.storage.DigitalObjectException;
-import cz.cas.lib.proarc.common.storage.FoxmlUtils;
-import cz.cas.lib.proarc.common.storage.ProArcObject;
-import cz.cas.lib.proarc.common.storage.XmlStreamEditor;
-import cz.cas.lib.proarc.mods.IdentifierDefinition;
-import cz.cas.lib.proarc.mods.ModsDefinition;
-import cz.cas.lib.proarc.mods.TitleInfoDefinition;
-import jakarta.xml.bind.DatatypeConverter;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
 import java.nio.file.Files;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.logging.Logger;
@@ -35,35 +19,41 @@ import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
 import org.apache.commons.io.FileUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 
-public class BagitExport {
+public class Bagit {
 
     private File exportFolder;
     private File bagitFolder;
     private File destinationFolder;
     private final AppConfiguration appConfiguration;
 
-    private static final Logger LOG = Logger.getLogger(BagitExport.class.getName());
+    private static final Logger LOG = Logger.getLogger(Bagit.class.getName());
 
-    public BagitExport(AppConfiguration appConfiguration, File exportFolder) {
+    public Bagit(AppConfiguration appConfiguration, File exportFolder) {
         this.appConfiguration = appConfiguration;
         this.exportFolder = exportFolder;
     }
 
 
     public void bagit() throws IOException {
-        String scriptPath = appConfiguration.getBagitScriptPath();
-        if (scriptPath == null || scriptPath.isEmpty()) {
-            runBagitJavaProcess();
-        } else {
-            File script = new File(scriptPath);
-            if (script == null || !script.exists()) {
+        switch (appConfiguration.getBagitMode()) {
+            case "java":
                 runBagitJavaProcess();
-            } else {
+                break;
+            case "external":
+                runBagitCommandProcess();
+                break;
+            case "script":
+                String scriptPath = appConfiguration.getBagitScriptPath();
+                if (scriptPath == null || scriptPath.isBlank() || !new File(scriptPath).isFile()) {
+                    throw new IOException("Skript BagIt neexistuje: " + scriptPath);
+                }
+                File script = new File(scriptPath);
                 runBagitExternalProcess(script);
-            }
+                break;
+            default:
+                throw new IOException("Nepodporovaná hodnota export.bagit.mode: " + appConfiguration.getBagitMode()
+                        + " (očekává se java, external nebo script)");
         }
     }
 
@@ -142,16 +132,16 @@ public class BagitExport {
         if (bagitFolder.exists()) {
             MetsUtils.deleteFolder(bagitFolder);
             if (bagitFolder.exists()) {
-                throw new IOException("Impossible to delete previous export " + bagitFolder.getAbsolutePath());
+                throw new IOException("Nelze smazat předchozí export " + bagitFolder.getAbsolutePath());
             }
         }
         if (!bagitFolder.mkdir()) {
-            throw new IOException("Impossible to create folder " + bagitFolder.getName());
+            throw new IOException("Nelze vytvořit složku " + bagitFolder.getName());
         }
 
         File zipFolder = new File(exportFolder.getAbsolutePath() + ".zip");
         if (!zipFolder.exists()) {
-            throw new IOException("Zip file doesn´t exists.");
+            throw new IOException("Soubor ZIP neexistuje.");
         } else {
             FileUtils.moveFile(zipFolder, new File(bagitFolder, zipFolder.getName()));
         }
@@ -159,23 +149,12 @@ public class BagitExport {
 
     public void createMd5File() throws IOException, NoSuchAlgorithmException {
         if (!bagitFolder.exists()) {
-            throw new IOException("Bagit folder doesn´t exists " + bagitFolder.getName());
+            throw new IOException("Složka BagIt neexistuje: " + bagitFolder.getName());
         }
         StringBuilder checksumBuilder = new StringBuilder();
         for (File file : bagitFolder.listFiles()) {
 
-            MessageDigest digest = MessageDigest.getInstance("MD5");
-            try (InputStream input = Files.newInputStream(file.toPath())) {
-                byte[] buffer = new byte[64 * 1024];
-                int bytesRead;
-                while ((bytesRead = input.read(buffer)) != -1) {
-                    digest.update(buffer, 0, bytesRead);
-                }
-            }
-            byte[] hash = digest.digest();
-            String hashValue = DatatypeConverter.printHexBinary(hash);
-
-            checksumBuilder.append("MD5").append(" ").append(hashValue.toLowerCase());
+            checksumBuilder.append("MD5").append(" ").append(BagitJava.md5(file.toPath()));
         }
         File checksumFile = new File(bagitFolder, exportFolder.getName() + ".sums");
         BufferedWriter writer = null;
@@ -215,7 +194,10 @@ public class BagitExport {
     }
 
     public void moveToSpecifiedDirectories() throws IOException {
-        String bagitExportPath = appConfiguration.getBagitExportPath();
+        moveToSpecifiedDirectories(appConfiguration.getBagitExportPath());
+    }
+
+    public void moveToSpecifiedDirectories(String bagitExportPath) throws IOException {
         if (bagitExportPath == null || bagitExportPath.isEmpty()) {
             for (File newFile : bagitFolder.listFiles()) {
                 if (newFile.getName().endsWith(".zip")) {
@@ -262,136 +244,47 @@ public class BagitExport {
         }
     }
 
+    public File getDestinationFile() {
+        return destinationFolder;
+    }
+
+    public void uploadToLtpCesnet(File archive, String ltpCesnetToken, String pid) throws IOException, DigitalObjectException, InterruptedException {
+        this.destinationFolder = archive;
+        uploadToLtpCesnet(ltpCesnetToken, pid);
+    }
+
     public void uploadToLtpCesnet(String ltpCesnetToken, String pid) throws IOException, DigitalObjectException, InterruptedException {
-        if (destinationFolder != null && destinationFolder.exists()) {
-            String metadata = createMetadataJson(destinationFolder.getName(), pid);
-            if (!isValid(metadata)) {
-                throw new IOException("Invalid json:" + metadata);
-            }
-            LtpCesnetProcess process = new LtpCesnetProcess(appConfiguration.getLtpCesnetExportPostProcessor(), ltpCesnetToken, appConfiguration.getLtpCesnetGroupToken(), appConfiguration.getLtpCesnetScriptPath(), destinationFolder, metadata);
-
-            if (process != null) {
-                process.run();
-                Thread.sleep(60000);
-
-//                if (!process.isOk()) {
-//                    throw new IOException("Processing Ltp Cesnet upload failed. \n" + process.getFullOutput());
-//                }
-            }
-        } else {
-            LOG.severe("Error in getting destination folder");
-        }
-    }
-
-    private boolean isValid(String json) {
-        try {
-            new JSONObject(json);
-        } catch (JSONException ex) {
-            return false;
-        }
-        return true;
-    }
-
-    private String toPid(String folderName) {
-        return folderName;
-    }
-
-    private String createMetadataJson(String folderName, String pid) throws DigitalObjectException {
-        DigitalObjectManager dom = DigitalObjectManager.getDefault();
-        ProArcObject fo = dom.find(pid, null);
-        DigitalObjectHandler handler = new DigitalObjectHandler(fo, MetaModelRepository.getInstance());
-        NdkMapper.Context context = new NdkMapper.Context(handler);
-        XmlStreamEditor xml = fo.getEditor(FoxmlUtils.inlineProfile(
-                MetadataHandler.DESCRIPTION_DATASTREAM_ID, ModsConstants.NS,
-                MetadataHandler.DESCRIPTION_DATASTREAM_LABEL));
-        ModsStreamEditor modsStreamEditor = new ModsStreamEditor(xml, fo);
-        ModsDefinition mods = modsStreamEditor.read();
-
-
-        String urnNbn = getUrnNbn(mods);
-        String title = getTitle(mods);
-
-        return createJson(pid, folderName, urnNbn, title);
-    }
-
-    private String getTitle(ModsDefinition mods) {
-        StringBuilder builder = new StringBuilder();
-        for (TitleInfoDefinition titleInfo : mods.getTitleInfo()) {
-            if (titleInfo.getTitle().size() > 0) {
-                builder.append(titleInfo.getTitle().get(0).getValue());
-            }
-            if (titleInfo.getSubTitle().size() > 0) {
-                builder.append(": ");
-                builder.append(titleInfo.getSubTitle().get(0).getValue());
-            }
-            if (titleInfo.getPartName().size() > 0) {
-                builder.append(" - ");
-                builder.append(titleInfo.getPartName().get(0).getValue());
-            }
-            if (titleInfo.getPartNumber().size() > 0) {
-                builder.append(" / ");
-                builder.append(titleInfo.getPartNumber().get(0).getValue());
-            }
-        }
-        return builder.toString();
-    }
-
-    private String getUrnNbn(ModsDefinition mods) {
-        for (IdentifierDefinition identifier : mods.getIdentifier()) {
-            if ("urnnbn".equals(identifier.getType()) && identifier.getInvalid() == null) {
-                return identifier.getValue();
-            }
-        }
-        return null;
-    }
-
-    private String createJson(String pid, String folderName, String urnNbn, String title) {
-        StringWriter writer = new StringWriter();
-        writer.append("{\"name\":\"").append(pid).append("\"");
-        if ((folderName != null && !folderName.isEmpty()) || (urnNbn != null && !urnNbn.isEmpty()) || (title != null && !title.isEmpty())) {
-            writer.append(", \"user_metadata\":{");
-            if (folderName != null && !folderName.isEmpty()) {
-                writer.append("\"folder\":\"").append(folderName).append("\"");
-                if ((urnNbn != null && !urnNbn.isEmpty()) || (title != null && !title.isEmpty())) {
-                    writer.append(", ");
-                }
-            }
-            if (urnNbn != null && !urnNbn.isEmpty()) {
-                writer.append("\"urn:nbn\":\"").append(urnNbn).append("\"");
-                if ((title != null && !title.isEmpty())) {
-                    writer.append(", ");
-                }
-            }
-            if (title != null && !title.isEmpty()) {
-                writer.append("\"title\":\"").append(title.replaceAll("\"", "\\\\\"").replaceAll("\'", "\\\\\'")).append("\"");
-            }
-            writer.append("}");
-        }
-        writer.append("}");
-        return writer.toString();
+        String operation = java.util.UUID.nameUUIDFromBytes((destinationFolder.getAbsolutePath() + ":"
+                + destinationFolder.length() + ":" + destinationFolder.lastModified())
+                .getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
+        new CesnetUploader(appConfiguration).upload(destinationFolder, operation, pid);
     }
 
     private void runBagitExternalProcess(File script) throws IOException {
-        BagitExternalProcess process = new BagitExternalProcess(appConfiguration.getBagitExportPostProcessor(), script, exportFolder);
+        BagitExternalScriptProcess process = new BagitExternalScriptProcess(appConfiguration.getBagitExportPostProcessor(), script, exportFolder);
         if (process != null) {
             process.run();
             if (!process.isOk(exportFolder)) {
-                throw new IOException("Processing external Bagit failed. \n" + process.getFullOutput());
+                throw new IOException("Zpracování externího BagItu selhalo. \n" + process.getFullOutput());
             }
         } else {
-            throw new IOException("Processing external Bagit failed - process is null.");
+            throw new IOException("Zpracování externího BagItu selhalo – proces není k dispozici.");
         }
     }
 
     private void runBagitJavaProcess() throws IOException {
-        BagitProcess process = new BagitProcess(appConfiguration.getBagitExportPostProcessor(), exportFolder);
+        new BagitJava().create(exportFolder.toPath());
+    }
+
+    private void runBagitCommandProcess() throws IOException {
+        BagitExternalProcess process = new BagitExternalProcess(appConfiguration.getBagitExportPostProcessor(), exportFolder);
         if (process != null) {
             process.run();
             if (!process.isOk()) {
-                throw new IOException("Processing Bagit failed. \n" + process.getFullOutput());
+                throw new IOException("Zpracování BagItu selhalo. \n" + process.getFullOutput());
             }
         } else {
-            throw new IOException("Processing Bagit failed - process is null.");
+            throw new IOException("Zpracování BagItu selhalo – proces není k dispozici.");
         }
     }
 }

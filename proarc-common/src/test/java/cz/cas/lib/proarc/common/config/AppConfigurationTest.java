@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import org.apache.commons.configuration2.CombinedConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -36,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -80,6 +82,40 @@ public class AppConfigurationTest {
 
     @AfterEach
     public void tearDown() {
+    }
+
+    @Test
+    public void testLtpCesnetExportDisabledByDefault() throws Exception {
+        assertFalse(factory.create(createEnvironment()).isLtpCesnetExportEnabled());
+    }
+
+    @Test
+    public void testLtpCesnetExportCanBeEnabled() throws Exception {
+        Properties props = new Properties();
+        props.setProperty(AppConfiguration.EXPORT_LTP_CESNET_ENABLE, "true");
+        createConfigFile(props, proarcCfg);
+
+        assertTrue(factory.create(createEnvironment()).isLtpCesnetExportEnabled());
+    }
+
+    @Test
+    public void testLtpCesnetExportCanBeExplicitlyDisabled() throws Exception {
+        Properties props = new Properties();
+        props.setProperty(AppConfiguration.EXPORT_LTP_CESNET_ENABLE, "false");
+        createConfigFile(props, proarcCfg);
+
+        assertFalse(factory.create(createEnvironment()).isLtpCesnetExportEnabled());
+    }
+
+    @Test
+    public void testDefaultBagitScriptPathDoesNotSelectScriptMode() throws Exception {
+        AppConfiguration config = factory.create(createEnvironment());
+        CombinedConfiguration combined = (CombinedConfiguration) config.getConfiguration();
+        Configuration defaults = combined.getConfiguration(combined.getNumberOfConfigurations() - 1);
+        defaults.setProperty(AppConfiguration.EXPORT_BAGIT_SCRIPT_PATH, "default-bagit.sh");
+
+        assertEquals("default-bagit.sh", config.getBagitScriptPath());
+        assertEquals("java", config.getBagitMode());
     }
 
     @Test

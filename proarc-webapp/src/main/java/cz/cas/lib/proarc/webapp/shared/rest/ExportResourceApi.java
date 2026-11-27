@@ -30,6 +30,9 @@ public final class ExportResourceApi {
 
     public static final String REEXPORT_PATH = "reexport";
     public static final String BATCH_ID = "id";
+    public static final String BAGIT_PATH = "bagit";
+    public static final String CESNET_PATH = "cesnet";
+    public static final String SOURCE_BATCH_ID = "sourceBatchId";
 
     public static final String VALID_EXPORTS_PATH = "validExports";
     public static final String VALUD_EXPORTS_MODEL_PARAM = "model";
@@ -96,6 +99,7 @@ public final class ExportResourceApi {
 
     public static final String EXPORT_LTP_CESNET = "ltpCesnet";
     public static final String EXPORT_LTP_CESNET_TOKEN = "ltpCesnetToken";
+    public static final String CONFIRM_CESNET_UPLOAD = "confirmCesnetUpload";
 
     public static final String NDK_PACKAGE = "package";
     public enum Package {SIP, PSP, STT, CHRONICLE};

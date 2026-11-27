@@ -26,6 +26,7 @@ import cz.cas.lib.proarc.webapp.shared.rest.ExportResourceApi;
 import cz.cas.lib.proarc.webapp.shared.rest.ImportResourceApi;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -135,6 +136,83 @@ public class ExportResource extends ExportResourceV1 {
     }
 
     @POST
+    @Path(ExportResourceApi.BAGIT_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<ExportResult> createBagit(
+            @FormParam(ExportResourceApi.SOURCE_BATCH_ID) Integer sourceBatchId) {
+        try {
+            return super.createBagit(sourceBatchId);
+        } catch (Exception ex) {
+            if (ex instanceof cz.cas.lib.proarc.common.process.external.bagit.MissingSourceDirectoryException) {
+                return ProArcResponse.asError(ex.getMessage());
+            }
+            return ProArcResponse.asError(ex);
+        }
+    }
+
+    @POST
+    @Path(ExportResourceApi.CESNET_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<ExportResult> uploadCesnet(
+            @FormParam(ExportResourceApi.SOURCE_BATCH_ID) Integer sourceBatchId,
+            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token,
+            @DefaultValue("false") @FormParam(ExportResourceApi.CONFIRM_CESNET_UPLOAD) boolean confirmed) {
+        try {
+            return super.uploadCesnet(sourceBatchId, token, confirmed);
+        } catch (Exception ex) {
+            return ProArcResponse.asError(ex);
+        }
+    }
+
+    @POST
+    @Path("cesnet/check")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<ExportResult> checkCesnet(
+            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token) {
+        try {
+            return super.checkCesnet(token);
+        } catch (Exception ex) { return ProArcResponse.asError(ex); }
+    }
+
+    @GET
+    @Path("cesnet/token")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Override
+    public ProArcResponse<cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.Status> cesnetTokenStatus() {
+        try { return super.cesnetTokenStatus(); }
+        catch (Exception ex) { return ProArcResponse.asError(ex); }
+    }
+
+    @POST
+    @Path("cesnet/resume")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Override
+    public ProArcResponse<cz.cas.lib.proarc.common.process.external.cesnet.CesnetQueue.Result> resumeCesnet(
+            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token) {
+        try { return super.resumeCesnet(token); }
+        catch (Exception ex) { return ProArcResponse.asError(ex); }
+    }
+
+    @POST
+    @Path("cesnet/token")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Override
+    public ProArcResponse<cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.Status> validateCesnetToken(
+            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token) {
+        try { return super.validateCesnetToken(token); }
+        catch (Exception ex) { return ProArcResponse.asError(ex); }
+    }
+
+    @DELETE
+    @Path("cesnet/token")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Override
+    public ProArcResponse<cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.Status> forgetCesnetToken() {
+        try { return super.forgetCesnetToken(); }
+        catch (Exception ex) { return ProArcResponse.asError(ex); }
+    }
+
+    @POST
     @Path(ExportResourceApi.DATASTREAM_PATH)
     @Produces({MediaType.APPLICATION_JSON})
     public ProArcResponse<ExportResult> datastream(
@@ -209,14 +287,15 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_LTP_CESNET) boolean ltpCesnet,
-            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @FormParam(ExportResourceApi.UPDATE_CATALOG) @DefaultValue("false") boolean updateCatalog,
             @FormParam(ExportResourceApi.POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.LICENSE_PARAM) String license,
             @FormParam(ExportResourceApi.COLLECTION_PARAM) List<String> collections,
             @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
-            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly,
+            @DefaultValue("false") @FormParam(ExportResourceApi.CONFIRM_CESNET_UPLOAD) boolean confirmCesnetUpload,
+            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String ltpCesnetToken
     ) {
         if (pids.isEmpty()) {
             return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.NDK_PID_PARAM));
@@ -228,14 +307,15 @@ public class ExportResource extends ExportResourceV1 {
                     ignoreMissingUrnNbn,
                     isBagit,
                     ltpCesnet,
-                    token,
                     krameriusInstanceId,
                     updateCatalog,
                     policy,
                     license,
                     collections,
                     priority,
-                    isNightOnly);
+                    isNightOnly,
+                    confirmCesnetUpload,
+                    ltpCesnetToken);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);
@@ -293,13 +373,16 @@ public class ExportResource extends ExportResourceV1 {
             @FormParam(ExportResourceApi.ARCHIVE_EXTENDED_PACKAGE_PARAM) @DefaultValue("false") boolean extendedArchivePackage,
             @FormParam(ExportResourceApi.ARCHIVE_DELETE_RAW_SCANS) @DefaultValue("false") boolean deleteRawScans,
             @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
-            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly,
+            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_LTP_CESNET) boolean ltpCesnet,
+            @DefaultValue("false") @FormParam(ExportResourceApi.CONFIRM_CESNET_UPLOAD) boolean confirmCesnetUpload,
+            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String ltpCesnetToken
     ) {
         if (pids.isEmpty()) {
             return ProArcResponse.asError(returnLocalizedMessage(ERR_MISSING_PARAMETER, ExportResourceApi.ARCHIVE_PID_PARAM));
         }
         try {
-            return super.newArchive(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, noTifAvailableMessage, additionalInfoMessage, extendedArchivePackage, deleteRawScans, priority, isNightOnly);
+            return super.newArchive(pids, typeOfPackage, ignoreMissingUrnNbn, isBagit, noTifAvailableMessage, additionalInfoMessage, extendedArchivePackage, deleteRawScans, priority, isNightOnly, ltpCesnet, confirmCesnetUpload, ltpCesnetToken);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);

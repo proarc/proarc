@@ -240,6 +240,12 @@ public class SolrUtils {
         item.setOrganization(getString(solrDocument, FIELD_ORGANIZATION));
         item.setUser(getString(solrDocument, FIELD_USER));
         item.setStatus(getString(solrDocument, FIELD_STATUS));
+        try {
+            item.setArchivInfo(cz.cas.lib.proarc.common.externalApp.ltp.PreservationIndex.read(
+                    getString(solrDocument, cz.cas.lib.proarc.common.externalApp.ltp.PreservationIndex.RECORDS)));
+        } catch (IOException ex) {
+            throw new IllegalStateException("Invalid LTP records in Solr for " + item.getPid(), ex);
+        }
         item.setNdkExportPath(getString(solrDocument, FIELD_EXPORT_NDK));
         item.setK0(getContainsString(solrDocument, FIELD_EXPORT_NDK, FIELD_EXPORT_KRAMERIUS, FIELD_EXPORT_ARCHIVE, FIELD_EXPORT_CROSSREF));
         item.setK1(getContainsString(solrDocument, FIELD_EXPORT_NDK));

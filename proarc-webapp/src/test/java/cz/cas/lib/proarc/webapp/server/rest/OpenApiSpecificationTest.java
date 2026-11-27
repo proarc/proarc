@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2026 Lukas Sykora
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import java.io.InputStream;
@@ -21,6 +37,96 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class OpenApiSpecificationTest {
 
     private static final Set<String> HTTP_METHODS = Set.of("get", "post", "put", "delete", "patch");
+
+    @Test
+    void archiveExportAcceptsAndDocumentsCesnetUploadConfirmation() throws Exception {
+        JSONObject operation = loadSpec().getJSONObject("paths").getJSONObject("/export/archive")
+                .getJSONObject("post");
+        JSONObject properties = operation.getJSONObject("requestBody").getJSONObject("content")
+                .getJSONObject("*/*").getJSONObject("schema").getJSONObject("properties");
+        assertFalse(properties.getJSONObject("ltpCesnet").getBoolean("default"));
+        assertFalse(properties.getJSONObject("confirmCesnetUpload").getBoolean("default"));
+        assertTrue(operation.getString("description").contains("confirmationRequired=true"));
+        assertTrue(operation.getString("description").contains("before any export batch is scheduled"));
+        assertTrue(operation.getString("description").contains("Consent is persisted"));
+        for (Class<?> resource : List.of(
+                cz.cas.lib.proarc.webapp.server.rest.v1.ExportResourceV1.class,
+                cz.cas.lib.proarc.webapp.server.rest.v2.ExportResource.class)) {
+            var method = java.util.Arrays.stream(resource.getDeclaredMethods())
+                    .filter(candidate -> candidate.getName().equals("newArchive"))
+                    .findFirst().orElseThrow();
+            var confirmation = java.util.Arrays.stream(method.getParameters())
+                    .filter(parameter -> parameter.isAnnotationPresent(jakarta.ws.rs.FormParam.class))
+                    .filter(parameter -> "confirmCesnetUpload".equals(
+                            parameter.getAnnotation(jakarta.ws.rs.FormParam.class).value()))
+                    .findFirst().orElseThrow();
+            assertEquals(boolean.class, confirmation.getType());
+            assertEquals("false", confirmation.getAnnotation(jakarta.ws.rs.DefaultValue.class).value());
+        }
+    }
+
+    @Test
+    void manualCesnetCheckAcceptsOptionalTokenWithoutCatalogPermission() throws Exception {
+        JSONObject operation = loadSpec().getJSONObject("paths").getJSONObject("/export/cesnet/check")
+                .getJSONObject("post");
+        assertTrue(operation.getString("description").contains("Requires allObjectsFunction"));
+        assertTrue(operation.getString("description").contains("importToCatalogFunction is not required"));
+        assertTrue(operation.getString("description").contains("externalProfile.cesnetCheck"));
+        assertTrue(operation.getString("description").contains("externalProfile.cesnetCatalog"));
+        assertTrue(operation.getString("description").contains("Catalog configuration is optional"));
+        assertTrue(operation.getJSONObject("responses").getJSONObject("default").getString("description").contains("exportId"));
+        JSONObject body = operation.getJSONObject("requestBody");
+        assertFalse(body.getBoolean("required"));
+        JSONObject form = body.getJSONObject("content").getJSONObject("application/x-www-form-urlencoded")
+                .getJSONObject("schema");
+        assertFalse(form.has("required"));
+        assertTrue(form.getJSONObject("properties").getJSONObject("ltpCesnetToken").getBoolean("writeOnly"));
+        var method = cz.cas.lib.proarc.webapp.server.rest.v2.ExportResource.class
+                .getMethod("checkCesnet", String.class);
+        assertEquals("cesnet/check", method.getAnnotation(jakarta.ws.rs.Path.class).value());
+        assertEquals("ltpCesnetToken", method.getParameters()[0].getAnnotation(jakarta.ws.rs.FormParam.class).value());
+    }
+
+    @Test
+    void cesnetQueueDocumentsPreparationWithoutTokenAndPrivilegedBulkResume() throws Exception {
+        JSONObject paths = loadSpec().getJSONObject("paths");
+        JSONObject resume = paths.getJSONObject("/export/cesnet/resume").getJSONObject("post");
+        assertEquals("resumeCesnet", resume.getString("operationId"));
+        assertTrue(resume.getString("description").contains("WAITING_CESNET_TOKEN"));
+        assertTrue(resume.getString("description").contains("allObjectsFunction"));
+        assertTrue(resume.getString("description").contains("importToCatalogFunction"));
+        assertTrue(resume.getString("description").contains("original batch owners"));
+        var token = resume.getJSONObject("requestBody").getJSONObject("content")
+                .getJSONObject("application/x-www-form-urlencoded").getJSONObject("schema")
+                .getJSONObject("properties").getJSONObject("ltpCesnetToken");
+        assertTrue(token.getBoolean("writeOnly"));
+        for (String export : List.of("/export/ndk", "/export/archive")) {
+            assertTrue(paths.getJSONObject(export).getJSONObject("post").getString("description")
+                    .contains("without providing a token"));
+        }
+    }
+
+    @Test
+    void separateExportStagesDocumentRetainedArtifactsAndFreshTokenRetry() throws Exception {
+        JSONObject paths = loadSpec().getJSONObject("paths");
+        JSONObject bagit = paths.getJSONObject("/export/bagit").getJSONObject("post");
+        JSONObject cesnet = paths.getJSONObject("/export/cesnet").getJSONObject("post");
+        assertEquals("createBagit", bagit.getString("operationId"));
+        assertEquals("uploadCesnet", cesnet.getString("operationId"));
+        JSONObject form = cesnet.getJSONObject("requestBody").getJSONObject("content")
+                .getJSONObject("application/x-www-form-urlencoded").getJSONObject("schema");
+        assertEquals(Set.of("sourceBatchId"),
+                new HashSet<>(form.getJSONArray("required").toList()));
+        assertTrue(form.getJSONObject("properties").getJSONObject("ltpCesnetToken").getBoolean("writeOnly"));
+        assertFalse(form.getJSONObject("properties").getJSONObject("confirmCesnetUpload").getBoolean("default"));
+        assertTrue(cesnet.getString("description").contains("confirmationRequired=true"));
+        assertTrue(cesnet.getString("description").contains("never a new version"));
+        assertTrue(cesnet.getString("description").contains("not repeated"));
+        assertTrue(bagit.getString("description").contains("externalProfile.bagit"));
+        assertTrue(cesnet.getString("description").contains("externalProfile.cesnet"));
+        assertDefaultJsonResponse(bagit, "#/components/schemas/response");
+        assertDefaultJsonResponse(cesnet, "#/components/schemas/response");
+    }
 
     @Test
     void serverUsageDocumentsRecordFieldsAndNullableMeasurements() throws Exception {
@@ -160,8 +266,8 @@ class OpenApiSpecificationTest {
         assertEquals("../rest/v2", spec.getJSONArray("servers").getJSONObject(0).getString("url"));
 
         JSONObject paths = spec.getJSONObject("paths");
-        assertEquals(181, paths.length());
-        assertEquals(219, countOperations(paths));
+        assertEquals(187, paths.length());
+        assertEquals(227, countOperations(paths));
         assertTrue(paths.has("/authorities"));
         assertTrue(paths.has("/bibliographies/query"));
         assertTrue(paths.has("/device"));
@@ -486,7 +592,7 @@ class OpenApiSpecificationTest {
         JSONObject schemas = loadSpec()
                 .getJSONObject("components")
                 .getJSONObject("schemas");
-        assertEquals(259, schemas.length());
+        assertEquals(261, schemas.length());
 
         JSONObject response = schemas.getJSONObject("response");
         JSONObject properties = response.getJSONObject("properties");
@@ -667,7 +773,7 @@ class OpenApiSpecificationTest {
             assertTrue(pathOperationCount > 0, path);
         }
 
-        assertEquals(219, operationCount);
+        assertEquals(227, operationCount);
         assertTrue(responseCount > operationCount);
     }
 

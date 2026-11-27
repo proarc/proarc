@@ -26,12 +26,15 @@ import cz.cas.lib.proarc.common.dao.BatchParams;
 import cz.cas.lib.proarc.common.dao.BatchUtils;
 import cz.cas.lib.proarc.common.dao.BatchView;
 import cz.cas.lib.proarc.common.dao.BatchViewFilter;
+import cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore;
 import cz.cas.lib.proarc.common.process.BatchManager;
 import cz.cas.lib.proarc.common.process.BatchManager.BatchItemObject;
 import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
 import cz.cas.lib.proarc.common.process.InternalExternalProcess;
 import cz.cas.lib.proarc.common.process.export.ExportProcess;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
+import cz.cas.lib.proarc.common.process.external.bagit.BagitProcess;
+import cz.cas.lib.proarc.common.process.external.cesnet.CesnetProcess;
 import cz.cas.lib.proarc.common.process.imports.ImportDispatcher;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner;
 import cz.cas.lib.proarc.common.process.imports.ImportFileScanner.Folder;
@@ -74,6 +77,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -83,6 +88,7 @@ import java.net.URISyntaxException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -262,7 +268,11 @@ public class ImportResourceV1 {
                         states.add(createProfileStates(profile, subfolder.getStatusDefault(appConfig).name(), true, true, true, false, null, false));
                 }
             }
-            result.add(new ImportFolder(subfolderName, subfolderStatus, parentPath, subfolderPath, states));
+            ImportFolder folder = new ImportFolder(subfolderName, subfolderStatus, parentPath, subfolderPath, states);
+            if (appConfig.isLtpCesnetExportEnabled() && hasPermission(user, PERMISSION_FUNCTION_PREPARE_BATCH)) {
+                folder.setActions(Collections.singletonList(ImportResourceApi.CESNET_ACTION));
+            }
+            result.add(folder);
         }
         return result;
     }
@@ -633,7 +643,14 @@ public class ImportResourceV1 {
             ExportProcess.cancelPlannedBatch(batch, importManager, appConfig, akubraConfiguration);
             BatchView batchView = importManager.viewBatch(batch.getId());
             return new ProArcResponse<BatchView>(batchView);
-        } else if (Batch.State.INTERNAL_PLANNED.equals(batch.getState())) {
+        } else if (Batch.State.EXTERNAL_RUNNING.equals(batch.getState())
+                && batch.hasExternalProfile()) {
+            if (!isBatchOwner(batch)) return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+            InternalExternalProcess.stopExternalBatch(batch, importManager, appConfig, akubraConfiguration);
+            return new ProArcResponse<>(importManager.viewBatch(batch.getId()));
+        } else if (Batch.State.INTERNAL_PLANNED.equals(batch.getState())
+                || ((Batch.State.EXTERNAL_PLANNED.equals(batch.getState()) || Batch.State.WAITING_CESNET_TOKEN.equals(batch.getState()))
+                    && batch.hasExternalProfile())) {
             if (!(isBatchOwner(batch))) {
                 LOG.info("User " + user + " (id:" + user.getId() + ") - cannot stop batch");
                 return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
@@ -1033,6 +1050,65 @@ public class ImportResourceV1 {
         InternalExternalDispatcher.getDefault().addInternalExternalProcess(process);
         DigitalObjectResourceV1.InternalExternalProcessResult result = new DigitalObjectResourceV1.InternalExternalProcessResult(batch.getId(), "Proces naplánován.");
         return new ProArcResponse<DigitalObjectResourceV1.InternalExternalProcessResult>(result);
+    }
+
+    @POST
+    @Path(ImportResourceApi.CESNET_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<ImportCesnetResult> uploadFoldersCesnet(
+            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) List<String> paths,
+            @FormParam("confirmCesnetUpload") @DefaultValue("false") boolean confirmed,
+            @FormParam("ltpCesnetToken") String token,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
+            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") boolean nightOnly
+    ) throws IOException {
+        checkPermission(user, PERMISSION_FUNCTION_PREPARE_BATCH);
+        if (!appConfig.isLtpCesnetExportEnabled()) {
+            throw RestException.plainText(Status.FORBIDDEN, "Nahrávání do CESNETu není povoleno.");
+        }
+        if (paths == null || paths.isEmpty()) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Vyberte složky importu.");
+        }
+        if (token != null && !token.isBlank()) {
+            CesnetTokenStore.getInstance().validate(appConfig, user.getId(), token);
+        }
+        var planner = new BagitProcess(appConfig, importManager, user);
+        List<ImportCesnetResult> results = new ArrayList<>();
+        for (String path : new LinkedHashSet<>(paths)) {
+            ImportCesnetResult result = new ImportCesnetResult();
+            result.folderPath = path;
+            Batch batch = null;
+            try {
+                batch = planner.planImportFolder(path, confirmed, nightOnly, priority);
+                result.batchId = batch.getId();
+                InternalExternalDispatcher.getDefault().addInternalExternalProcess(InternalExternalProcess.prepare(
+                        appConfig, akubraConfiguration, batch, importManager, user, session.asFedoraLog(), session.getLocale(httpHeaders)));
+            } catch (CesnetProcess.ConfirmationRequiredException ex) {
+                result.confirmationRequired = true;
+                result.warnings = ex.getWarnings();
+            } catch (Exception ex) {
+                result.error = ex.getMessage();
+                if (batch != null) {
+                    BatchUtils.finishedExternalWithError(importManager, batch, batch.getFolder(), ex);
+                }
+            }
+            results.add(result);
+        }
+        return new ProArcResponse<>(results);
+    }
+
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class ImportCesnetResult {
+        @JsonProperty
+        public String folderPath;
+        @JsonProperty
+        public Integer batchId;
+        @JsonProperty
+        public String error;
+        @JsonProperty
+        public boolean confirmationRequired;
+        @JsonProperty
+        public List<CesnetProcess.UploadWarning> warnings;
     }
 
     public static class MetaCheckUrlResult {

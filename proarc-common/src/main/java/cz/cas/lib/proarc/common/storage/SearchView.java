@@ -25,6 +25,10 @@ import java.util.Map;
 
 public abstract class SearchView {
 
+    public void setPreservationFilter(String providerState, String packageId) {
+        if (providerState != null || packageId != null) throw new UnsupportedOperationException("LTP search requires Solr");
+    }
+
     public Map<String, Long> countObjectsByModel(String organization, boolean active) throws IOException {
         throw new IOException("Method is not implemented");
     }

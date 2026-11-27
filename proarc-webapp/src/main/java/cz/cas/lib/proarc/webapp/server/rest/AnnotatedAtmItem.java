@@ -16,6 +16,7 @@
  */
 package cz.cas.lib.proarc.webapp.server.rest;
 
+import cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import cz.cas.lib.proarc.common.storage.AtmEditor.AtmItem;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
@@ -143,6 +144,11 @@ public abstract class AnnotatedAtmItem extends AtmItem {
     @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_DONATOR)
     @Override
     public abstract String getDonator();
+
+    @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_ARCHIV_INFO)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_ARCHIV_INFO)
+    @Override
+    public abstract ArchivInfo getArchivInfo();
 
     @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_ARCHIVAL_COPIES)
     @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_ARCHIVAL_COPIES)

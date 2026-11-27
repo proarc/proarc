@@ -27,10 +27,17 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.util.NamedList;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SolrExportStatisticsTest {
     @Mocked SolrClient client;
@@ -166,7 +173,7 @@ class SolrExportStatisticsTest {
                 String exclusion = Arrays.stream(query.getFilterQueries())
                         .filter(fq -> fq.startsWith("-model:")).findFirst().orElseThrow();
                 for (String model : cz.cas.lib.proarc.common.process.AuditLog.ARTICLE_MODELS) {
-                    assertTrue(exclusion.contains(org.apache.solr.client.solrj.util.ClientUtils.escapeQueryChars(model)));
+                    assertTrue(exclusion.contains(ClientUtils.escapeQueryChars(model)));
                 }
             }
         }};
@@ -192,7 +199,7 @@ class SolrExportStatisticsTest {
         var stats = new SolrExportStatistics(client);
         assertThrows(IllegalArgumentException.class, () -> stats.articles(filters("model", false), -1, 50));
         assertThrows(IllegalArgumentException.class, () -> stats.articles(filters("model", false), 0, 501));
-        var header = new org.apache.solr.common.util.NamedList<Object>(); header.add("partialResults", true);
+        var header = new NamedList<Object>(); header.add("partialResults", true);
         new Expectations() {{ client.query((SolrQuery) any); result = response; response.getResponseHeader(); result = header; }};
         assertThrows(IOException.class, () -> stats.articles(filters("model", false), 0, 50));
     }
@@ -325,7 +332,7 @@ class SolrExportStatisticsTest {
 
     @Test
     void rejectsPartialSolrResults() throws Exception {
-        org.apache.solr.common.util.NamedList<Object> header = new org.apache.solr.common.util.NamedList<>();
+        NamedList<Object> header = new org.apache.solr.common.util.NamedList<>();
         header.add("partialResults", true);
         new Expectations() {{
             client.query((SolrQuery) any); result = response;

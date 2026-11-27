@@ -19,6 +19,7 @@ package cz.cas.lib.proarc.common.storage;
 import com.yourmediashelf.fedora.foxml.DigitalObject;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
+import cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo;
 import cz.cas.lib.proarc.common.process.export.mets.MetsContext;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsUtils;
@@ -248,6 +249,7 @@ public final class AtmEditor {
         atm.lockedBy = relationEditor.getLockedBy();
         atm.lockedDate = relationEditor.getLockedDate();
         atm.donator = relationEditor.getDonator();
+        atm.archivInfo = relationEditor.getArchivInfo();
         atm.archivalCopies = relationEditor.getArchivalCopiesPath();
         return atm;
     }
@@ -341,6 +343,10 @@ public final class AtmEditor {
         private String lockedBy;
         private Date lockedDate;
         private String donator;
+        private ArchivInfo archivInfo;
+
+        public ArchivInfo getArchivInfo() { return archivInfo; }
+
         private String archivalCopies;
 
         public AtmItem() {

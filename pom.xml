@@ -44,7 +44,7 @@
 
     <properties>
         <!-- Change the application version here for all modules. -->
-        <revision>5.1.6</revision>
+        <revision>5.1.7</revision>
 
         <proarc.version>${revision}</proarc.version>
         <proarc.wiki>https://github.com/proarc/proarc/wiki</proarc.wiki>

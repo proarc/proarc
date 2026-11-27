@@ -97,6 +97,12 @@ public class JobHandler {
                 }
             }
         }
+        Configuration ltp = appConfig.getLtpCesnetConfiguration();
+        if (ltp.getBoolean("check.enabled", true)
+                && java.util.Arrays.stream(jobsConfig.getStringArray(JOBS_LIST))
+                        .noneMatch(id -> "PreservationCheckJob".equals(jobsConfig.getString(id + ".type")))) {
+            new PreservationCheckJob().initJob(scheduler, "ltpCesnetCheck", ltp.subset("check"));
+        }
     }
 
     private JobHandler() throws SchedulerException {
@@ -138,6 +144,7 @@ public class JobHandler {
         List<ProArcJob> jobs = new ArrayList<>();
 
         jobs.add(new BatchImportJob());
+        jobs.add(new PreservationCheckJob());
 
         return jobs;
     }

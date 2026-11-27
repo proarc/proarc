@@ -30,10 +30,14 @@ import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusCollection;
 import cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions;
 import cz.cas.lib.proarc.common.object.model.MetaModelRepository;
 import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
+import cz.cas.lib.proarc.common.process.InternalExternalProcess;
 import cz.cas.lib.proarc.common.process.export.AcceptedExports;
 import cz.cas.lib.proarc.common.process.export.ExportDispatcher;
 import cz.cas.lib.proarc.common.process.export.ExportException;
 import cz.cas.lib.proarc.common.process.export.ExportProcess;
+import cz.cas.lib.proarc.common.process.external.bagit.BagitProcess;
+import cz.cas.lib.proarc.common.process.external.cesnet.CesnetProcess;
 import cz.cas.lib.proarc.common.process.export.ExportUtils;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException;
 import cz.cas.lib.proarc.common.process.export.mets.MetsExportException.MetsExportExceptionElement;
@@ -149,7 +153,7 @@ public class ExportResourceV1 {
             throw RestException.plainBadRequest(DigitalObjectResourceApi.DIGITALOBJECT_MODEL, modelId);
         }
 
-        AcceptedExports ae = new AcceptedExports(modelId);
+        AcceptedExports ae = new AcceptedExports(modelId, appConfig.isLtpCesnetExportEnabled());
         List<String> validExportItems = ae.getList();
 
         return new ProArcResponse<List<String>>(validExportItems);
@@ -159,6 +163,83 @@ public class ExportResourceV1 {
         Locale locale = session.getLocale(httpHeaders);
         ServerMessages msgs = ServerMessages.get(locale);
         return msgs.getFormattedMessage(key, arguments);
+    }
+
+    public ProArcResponse<ExportResult> createBagit(Integer sourceBatchId) throws IOException {
+        if (sourceBatchId == null || sourceBatchId < 1) throw new IOException("Missing sourceBatchId");
+        Batch batch = new BagitProcess(appConfig, batchManager, user).plan(batchManager.get(sourceBatchId));
+        return enqueueStage(batch);
+    }
+
+    public ProArcResponse<ExportResult> uploadCesnet(Integer sourceBatchId, String token) throws IOException {
+        return uploadCesnet(sourceBatchId, token, false);
+    }
+
+    public ProArcResponse<ExportResult> uploadCesnet(Integer sourceBatchId, String token, boolean confirmed) throws IOException {
+        if (sourceBatchId == null || sourceBatchId < 1) throw new IOException("Missing sourceBatchId");
+        Batch batch;
+        try {
+            batch = new CesnetProcess(appConfig, batchManager, user).plan(batchManager.get(sourceBatchId), token, confirmed);
+        } catch (cz.cas.lib.proarc.common.process.external.cesnet.CesnetProcess.ConfirmationRequiredException ex) {
+            return new ProArcResponse<>(ExportResult.confirmationRequired(ex.getWarnings()));
+        }
+        return enqueueStage(batch);
+    }
+
+    public ProArcResponse<ExportResult> checkCesnet() throws IOException {
+        return checkCesnet(null);
+    }
+
+    public ProArcResponse<ExportResult> checkCesnet(String token) throws IOException {
+        if (!user.hasAllObjectsFunction()) {
+            throw RestException.plainText(Status.FORBIDDEN, "Access denied");
+        }
+        Batch batch = new cz.cas.lib.proarc.common.process.external.cesnet.CesnetCheckProcess(
+                appConfig, akubraConfiguration, batchManager, user).plan();
+        try {
+            if (token != null && !token.isBlank()) {
+                cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.getInstance().validate(appConfig, user.getId(), token);
+            }
+            return enqueueStage(batch);
+        } catch (IOException ex) {
+            cz.cas.lib.proarc.common.dao.BatchUtils.finishedExternalWithError(batchManager, batch, batch.getFolder(), ex);
+            return new ProArcResponse<>(new ExportResult(batch.getId(), "CESNET check failed; see process log."));
+        }
+    }
+
+    public ProArcResponse<cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.Status> cesnetTokenStatus() throws IOException {
+        return new ProArcResponse<>(cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.getInstance()
+                .status(appConfig, user.getId()));
+    }
+
+    public ProArcResponse<cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.Status> validateCesnetToken(String token) throws IOException {
+        return new ProArcResponse<>(cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.getInstance()
+                .validate(appConfig, user.getId(), token));
+    }
+
+    public ProArcResponse<cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.Status> forgetCesnetToken() throws IOException {
+        cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.getInstance().forget(appConfig, user.getId());
+        return cesnetTokenStatus();
+    }
+
+    private ProArcResponse<ExportResult> enqueueStage(Batch batch) throws IOException {
+        return enqueueStage(batch, user);
+    }
+
+    private ProArcResponse<ExportResult> enqueueStage(Batch batch, UserProfile owner) throws IOException {
+        if (owner == null) throw new IOException("Batch owner no longer exists");
+        InternalExternalDispatcher.getDefault().addInternalExternalProcess(InternalExternalProcess.prepare(appConfig, akubraConfiguration,
+                batch, batchManager, owner, session.asFedoraLog(), session.getLocale(httpHeaders)));
+        return new ProArcResponse<>(new ExportResult(batch.getId(), "Stage scheduled."));
+    }
+
+    public ProArcResponse<cz.cas.lib.proarc.common.process.external.cesnet.CesnetQueue.Result> resumeCesnet(String token) throws IOException {
+        if (!cz.cas.lib.proarc.common.process.external.cesnet.CesnetQueue.mayResume(user)) {
+            throw RestException.plainText(Status.FORBIDDEN, "Access denied");
+        }
+        var queue = new cz.cas.lib.proarc.common.process.external.cesnet.CesnetQueue(appConfig, batchManager, user);
+        return new ProArcResponse<>(queue.resume(user, token, batch -> enqueueStage(batch,
+                cz.cas.lib.proarc.common.user.UserUtil.getDefaultManger().find(batch.getUserId()))));
     }
 
     @GET
@@ -234,11 +315,18 @@ public class ExportResourceV1 {
             throw RestException.plainText(Status.BAD_REQUEST, ServerMessages.get(locale).getFormattedMessage("Resource_Missing_Value", ExportResourceApi.BATCH_ID));
         }
         Batch batch = this.batchManager.get(batchId);
+        if (batch != null && batch.hasExternalProfile() && !user.getId().equals(batch.getUserId())) {
+            throw RestException.plainText(Status.FORBIDDEN, "Access denied");
+        }
+        if (batch != null && Batch.EXTERNAL_CESNET.equals(batch.getProfileId())) {
+            throw RestException.plainText(Status.BAD_REQUEST, "Retry CESNET upload via export/cesnet with sourceBatchId=" + batchId);
+        }
         if (batch == null) {
             ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("Resource_Unsupported_Value", batchId)));
             return new ProArcResponse<>(result);
         } else {
             if (!(Batch.State.EXPORT_FAILED.equals(batch.getState()) || Batch.State.EXPORT_WARNING.equals(batch.getState())
+                    || (Batch.EXTERNAL_BAGIT.equals(batch.getProfileId()) && Batch.State.EXTERNAL_FAILED.equals(batch.getState()))
                     || Batch.State.STOPPED.equals(batch.getState()))) {
                 ExportResult result = new ExportResult(new ExportError(String.valueOf(batchId), ServerMessages.get(locale).getFormattedMessage("ExportResouce_ReexportNotSupported_WrongState", batch.getState())));
                 return new ProArcResponse<>(result);
@@ -250,11 +338,19 @@ public class ExportResourceV1 {
                     return new ProArcResponse<>(result);
                 }
 
-                batch.setState(Batch.State.EXPORT_PLANNED);
+                if (Boolean.TRUE.equals(params.isLtpCesnet())) {
+                    if (!user.getId().equals(batch.getUserId())) {
+                        throw RestException.plainText(Status.FORBIDDEN, "Access denied");
+                    }
+                }
+                batch.setState(batch.hasExternalProfile() ? Batch.State.EXTERNAL_PLANNED : Batch.State.EXPORT_PLANNED);
                 batch.setLog(null);
                 batch.setUpdated(new Timestamp(System.currentTimeMillis()));
                 batch = batchManager.update(batch);
 
+                if (batch.hasExternalProfile()) {
+                    return enqueueStage(batch);
+                }
                 ExportProcess process = ExportProcess.prepare(appConfig, akubraConfiguration, batch, batchManager, user, session.asFedoraLog(), session.getLocale(httpHeaders));
                 ExportDispatcher.getDefault().addExport(process);
                 ExportResult result = new ExportResult(batch.getId(), "Proces naplánován.");
@@ -358,17 +454,26 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.IGNORE_MISSING_URNNBN) boolean ignoreMissingUrnNbn,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_BAGIT) boolean isBagit,
             @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_LTP_CESNET) boolean ltpCesnet,
-            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String token,
             @FormParam(ExportResourceApi.KRAMERIUS_INSTANCE) String krameriusInstanceId,
             @FormParam(ExportResourceApi.UPDATE_CATALOG) @DefaultValue("false") boolean updateCatalog,
             @FormParam(ExportResourceApi.POLICY_PARAM) String policy,
             @FormParam(ExportResourceApi.LICENSE_PARAM) String license,
             @FormParam(ExportResourceApi.COLLECTION_PARAM) List<String> collections,
             @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
-            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly,
+            @FormParam(ExportResourceApi.CONFIRM_CESNET_UPLOAD) @DefaultValue("false") boolean confirmCesnetUpload,
+            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String ltpCesnetToken
             ) throws Exception {
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.DESA_PID_PARAM);
+        }
+        if (ltpCesnet && ltpCesnetToken != null && !ltpCesnetToken.isBlank()) cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.getInstance()
+                .validate(appConfig, user.getId(), ltpCesnetToken);
+        if (ltpCesnet && !confirmCesnetUpload) {
+            var warnings = cesnetUploadWarnings(pids);
+            if (!warnings.isEmpty()) {
+                return new ProArcResponse<>(ExportResult.confirmationRequired(warnings));
+            }
         }
         try {
             if (appConfig.isUrnNbnRequired()) {
@@ -387,7 +492,8 @@ public class ExportResourceV1 {
         validateCollections(instance, selectedCollections, false);
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
-            BatchParams params = new BatchParams(Collections.singletonList(pid), typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, token, krameriusInstanceId, policy, license);
+            BatchParams params = new BatchParams(Collections.singletonList(pid), typeOfPackage, ignoreMissingUrnNbn, isBagit, ltpCesnet, krameriusInstanceId, policy, license);
+            params.setConfirmCesnetUpload(confirmCesnetUpload);
             params.setCollections(selectedCollections);
             params.setUpdateCatalog(updateCatalog && user.hasImportToCatalogFunction());
             Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_NDK, isNightOnly, priority, params);
@@ -398,6 +504,25 @@ public class ExportResourceV1 {
         }
         ExportResult result = new ExportResult(batchIds, "Proces naplánován.");
         return new ProArcResponse<ExportResult>(result);
+    }
+
+    private List<CesnetProcess.UploadWarning> cesnetUploadWarnings(List<String> pids) throws Exception {
+        var service = cz.cas.lib.proarc.common.externalApp.ltp.PreservationService.cesnet(appConfig);
+        var export = new cz.cas.lib.proarc.common.process.export.mets.NdkExport(appConfig, akubraConfiguration);
+        Set<String> packages = new java.util.LinkedHashSet<>(pids);
+        for (String pid : pids) {
+            // Match the actual export units when a title or volume contains several packages.
+            var context = export.buildContext(pid, null);
+            packages.addAll(cz.cas.lib.proarc.common.process.export.mets.MetsUtils.findPSPPIDs(pid, context, true));
+        }
+        var warnings = new ArrayList<CesnetProcess.UploadWarning>();
+        for (String pid : packages) {
+            var record = service.archivInfo(pid);
+            if (record != null) {
+                warnings.add(CesnetProcess.warning(pid, record));
+            }
+        }
+        return warnings;
     }
 
     private List<String> normalizeCollections(List<String> collections) {
@@ -512,11 +637,24 @@ public class ExportResourceV1 {
             @FormParam(ExportResourceApi.ARCHIVE_EXTENDED_PACKAGE_PARAM) @DefaultValue("false") boolean extendedArchivePackage,
             @FormParam(ExportResourceApi.ARCHIVE_DELETE_RAW_SCANS) @DefaultValue("false") boolean deleteRawScans,
             @FormParam(ExportResourceApi.BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
-            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly
+            @FormParam(ExportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") Boolean isNightOnly,
+            @DefaultValue("false") @FormParam(ExportResourceApi.EXPORT_LTP_CESNET) boolean ltpCesnet,
+            @DefaultValue("false") @FormParam(ExportResourceApi.CONFIRM_CESNET_UPLOAD) boolean confirmCesnetUpload,
+            @FormParam(ExportResourceApi.EXPORT_LTP_CESNET_TOKEN) String ltpCesnetToken
             ) throws Exception {
 
         if (pids.isEmpty()) {
             throw RestException.plainText(Status.BAD_REQUEST, "Missing " + ExportResourceApi.ARCHIVE_PID_PARAM);
+        }
+
+        if (ltpCesnet && ltpCesnetToken != null && !ltpCesnetToken.isBlank()) cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore.getInstance()
+                .validate(appConfig, user.getId(), ltpCesnetToken);
+
+        if (ltpCesnet && !confirmCesnetUpload) {
+            var warnings = cesnetUploadWarnings(pids);
+            if (!warnings.isEmpty()) {
+                return new ProArcResponse<>(ExportResult.confirmationRequired(warnings));
+            }
         }
 
         try {
@@ -533,7 +671,8 @@ public class ExportResourceV1 {
 
         List<Integer> batchIds = new ArrayList<>();
         for (String pid : pids) {
-            BatchParams params = new BatchParams(Collections.singletonList(pid), typeOfPackage, ignoreMissingUrnNbn, isBagit, noTifAvailableMessage, additionalInfoMessage, extendedArchivePackage);
+            BatchParams params = new BatchParams(Collections.singletonList(pid), typeOfPackage, ignoreMissingUrnNbn, isBagit, noTifAvailableMessage, additionalInfoMessage, extendedArchivePackage, ltpCesnet);
+            params.setConfirmCesnetUpload(confirmCesnetUpload);
             params.setDeleteRawScans(deleteRawScans);
             Batch batch = BatchUtils.addNewExportBatch(this.batchManager, pid, user, Batch.EXPORT_ARCHIVE, isNightOnly, priority, params);
 
@@ -693,6 +832,12 @@ public class ExportResourceV1 {
     @XmlAccessorType(XmlAccessType.FIELD)
     public static class ExportResult {
 
+        @JsonProperty("confirmationRequired")
+        private Boolean confirmationRequired;
+
+        @JsonProperty("warnings")
+        private List<cz.cas.lib.proarc.common.process.external.cesnet.CesnetProcess.UploadWarning> warnings;
+
         @XmlElement(name = ExportResourceApi.RESULT_ID)
         @JsonProperty(ExportResourceApi.RESULT_ID)
         private Integer exportId;
@@ -721,6 +866,14 @@ public class ExportResourceV1 {
         private Boolean ignoreMissingUrnNbn;
 
         public ExportResult() {
+        }
+
+        public static ExportResult confirmationRequired(
+                List<cz.cas.lib.proarc.common.process.external.cesnet.CesnetProcess.UploadWarning> warnings) {
+            ExportResult result = new ExportResult();
+            result.confirmationRequired = true;
+            result.warnings = List.copyOf(warnings);
+            return result;
         }
 
         public ExportResult(URI targetPath) {

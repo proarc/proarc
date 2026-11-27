@@ -17,6 +17,7 @@
 package cz.cas.lib.proarc.webapp.server.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import cz.cas.lib.proarc.common.externalApp.ltp.ArchivInfo;
 import cz.cas.lib.proarc.common.storage.SearchViewItem;
 import cz.cas.lib.proarc.webapp.shared.rest.DigitalObjectResourceApi;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -33,6 +34,11 @@ import jakarta.xml.bind.annotation.XmlTransient;
  */
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class AnnotatedSearchViewItem extends SearchViewItem {
+
+    @XmlElement(name = DigitalObjectResourceApi.ATM_ITEM_ARCHIV_INFO)
+    @JsonProperty(DigitalObjectResourceApi.ATM_ITEM_ARCHIV_INFO)
+    @Override
+    public abstract ArchivInfo getArchivInfo();
 
     @XmlElement(name = DigitalObjectResourceApi.MEMBERS_ITEM_CREATED)
     @JsonProperty(DigitalObjectResourceApi.MEMBERS_ITEM_CREATED)

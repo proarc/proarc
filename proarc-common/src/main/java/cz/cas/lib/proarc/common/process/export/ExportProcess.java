@@ -28,10 +28,13 @@ import cz.cas.lib.proarc.common.object.DigitalObjectHandler;
 import cz.cas.lib.proarc.common.object.DigitalObjectManager;
 import cz.cas.lib.proarc.common.process.AuditLog;
 import cz.cas.lib.proarc.common.process.BatchManager;
+import cz.cas.lib.proarc.common.process.InternalExternalDispatcher;
+import cz.cas.lib.proarc.common.process.InternalExternalProcess;
+import cz.cas.lib.proarc.common.process.external.bagit.BagitProcess;
+import cz.cas.lib.proarc.common.process.external.cesnet.CesnetProcess;
 import cz.cas.lib.proarc.common.process.WorkWindow;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveOldPrintProducer;
 import cz.cas.lib.proarc.common.process.export.archive.ArchiveProducer;
-import cz.cas.lib.proarc.common.process.export.bagit.BagitExport;
 import cz.cas.lib.proarc.common.process.export.cejsh.CejshConfig;
 import cz.cas.lib.proarc.common.process.export.cejsh.CejshExport;
 import cz.cas.lib.proarc.common.process.export.cejsh.CejshStatusHandler;
@@ -97,7 +100,6 @@ import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PR
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_FINISHED;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KUtils.KRAMERIUS_PROCESS_WARNING;
 import static cz.cas.lib.proarc.common.externalApp.kramerius.KrameriusOptions.KRAMERIUS_INSTANCE_LOCAL;
-import static cz.cas.lib.proarc.common.process.export.bagit.BagitExport.findNdkExportFolder;
 
 /**
  * Export process
@@ -162,7 +164,7 @@ public final class ExportProcess implements Runnable {
      * @return the import batch
      */
     public Batch start() {
-        Batch batch = BatchManager.getInstance().get(exportOptions.getBatch().getId());
+        Batch batch = batchManager.get(exportOptions.getBatch().getId());
         if (batch == null) {
             throw new IllegalStateException("Batch is null!");
         }
@@ -176,7 +178,7 @@ public final class ExportProcess implements Runnable {
         }
         try (AuditLog audit = AuditLog.begin()) {
             batch = BatchUtils.startWaitingExportBatch(batchManager, batch);
-            Batch result = switch (profileId) {
+            Batch result = params.getBagitSourceFolder() != null ? batch : switch (profileId) {
                 case Batch.EXPORT_KRAMERIUS -> krameriusExport(batch, params);
                 case Batch.EXPORT_DATASTREAM -> datastreamExport(batch, params);
                 case Batch.EXPORT_NDK -> ndkExport(batch, params);
@@ -186,6 +188,28 @@ public final class ExportProcess implements Runnable {
                 case Batch.EXPORT_KWIS -> kwisExport(batch, params);
                 default -> finishedExportWithError(batchManager, batch, batch.getFolder(), new Exception("Unknown export profile."));
             };
+            if (result != null && result.getState() == Batch.State.EXPORTING && BagitProcess.isRequested(result)) {
+                result = new BagitProcess(config, batchManager, user).runInExport(result);
+            }
+            if (result != null && (result.getState() == Batch.State.EXPORT_DONE
+                    || result.getState() == Batch.State.EXPORT_WARNING)) {
+                try {
+                    Batch next = new CesnetProcess(config, batchManager, user).planAfterBagit(result);
+                    if (next != null) {
+                        if (next.getState() == Batch.State.EXTERNAL_PLANNED) {
+                            InternalExternalDispatcher.getDefault().addInternalExternalProcess(InternalExternalProcess.prepare(config, akubraConfiguration,
+                                    next, batchManager, user, exportOptions.getLog(), exportOptions.getLocale()));
+                        }
+                        result.setLog((result.getLog() == null ? "" : result.getLog() + "\n")
+                                + "Navazující proces: " + next.getProfileId() + ", dávka " + next.getId()
+                                + (next.getState() == Batch.State.EXTERNAL_FAILED ? "; " + next.getLog() : ""));
+                        batchManager.update(result);
+                    }
+                } catch (Exception ex) {
+                    result = BatchUtils.finishedExportWithWarning(batchManager, result, result.getFolder(),
+                            "Export včetně BagIt byl dokončen; nahrávání do CESNETu se nepodařilo naplánovat: " + ex.getMessage());
+                }
+            }
             if (result != null && (result.getState() == Batch.State.EXPORT_DONE
                     || result.getState() == Batch.State.EXPORT_WARNING)) {
                 try {
@@ -245,7 +269,9 @@ public final class ExportProcess implements Runnable {
 
         LOG.log(Level.INFO, batch.toString(), "has been stopped!");
         String targetPath = batch.getFolder();
-        if (targetPath != null && !targetPath.startsWith("uuid")) {
+        if (!batch.hasExternalProfile() && (batch.getParamsAsObject() == null
+                || batch.getParamsAsObject().getBagitSourceFolder() == null)
+                && targetPath != null && !targetPath.startsWith("uuid")) {
             File targetFolder = new File(targetPath);
             if (targetFolder.exists()) {
                 MetsUtils.deleteFolder(targetFolder);
@@ -263,6 +289,23 @@ public final class ExportProcess implements Runnable {
         batch.setState(Batch.State.STOPPED);
         batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         importManager.update(batch);
+    }
+
+    private Batch finishExport(Batch batch, String path) {
+        return finishExport(batch, path, null);
+    }
+
+    private Batch finishExport(Batch batch, String path, String message) {
+        if (BagitProcess.isRequested(batch)) {
+            // Keep the export running until its packaging step has completed.
+            BatchParams params = batch.getParamsAsObject();
+            params.setBagitSourceFolder(path);
+            batch.setParamsFromObject(params);
+            batch.setFolder(path);
+            batch.setState(Batch.State.EXPORTING);
+            return batchManager.update(batch);
+        }
+        return BatchUtils.finishedExportSuccessfully(batchManager, batch, path, message);
     }
 
     private Batch kwisExport(Batch batch, BatchParams params) {
@@ -291,7 +334,7 @@ public final class ExportProcess implements Runnable {
 
             try {
                 export.run();
-                return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, exportFolder.getAbsolutePath());
+                return finishExport(batch, exportFolder.getAbsolutePath());
             } catch (Exception ex) {
                 String exportPath = MetsUtils.renameFolder(new File(outputPath), exportFolder, null);
                 return finishedExportWithError(this.batchManager, batch, exportPath, ex);
@@ -473,6 +516,9 @@ public final class ExportProcess implements Runnable {
                 return finishedExportWithError(this.batchManager, batch, exportPath, ex);
             }
 
+            params.setRawScanFolders(rawScanCleanup.getCopiedFolders());
+            batch.setParamsFromObject(params);
+            batchManager.update(batch);
             ExportUtils.writeExportResult(targetFolder, export.getResultLog());
             for (NdkExport.Result r : ndkResults) {
                 try {
@@ -495,39 +541,8 @@ public final class ExportProcess implements Runnable {
             } catch (Exception ex) {
                 return finishedExportWithError(batchManager, batch, batch.getFolder(), ex);
             }
-            if (params.isBagit()) {
-                for (File targetFile : targetFolder.listFiles()) {
-                    if (targetFile.isDirectory()) {
-                        BagitExport bagitExport = new BagitExport(config, targetFile);
-                        bagitExport.prepare();
-                        bagitExport.bagit();
-                        bagitExport.zip();
-                        bagitExport.moveToBagitFolder();
-                        bagitExport.createMd5File();
-                        bagitExport.moveToSpecifiedDirectories();
-                        bagitExport.deleteExportFolder();
-                    }
-                }
-                File bagitFolder = new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName());
-                if (bagitFolder.exists()) {
-                    MetsUtils.deleteFolder(bagitFolder);
-                    if (bagitFolder.exists()) {
-                        throw new IOException("Impossible to delete previous export " + bagitFolder.getAbsolutePath());
-                    }
-                }
-                Files.move(targetFolder.toPath(), bagitFolder.toPath());
-                targetFolder = bagitFolder;
-                if (deleteRawScans) {
-                    try {
-                        rawScanCleanup.deleteCopiedFolders();
-                    } catch (IOException ex) {
-                        LOG.log(Level.WARNING, "BAGIT export succeeded, but raw scan cleanup failed", ex);
-                        return BatchUtils.finishedExportWithWarning(this.batchManager, batch,
-                                targetFolder.getAbsolutePath(), "BAGIT export dokoncen, ale mazani surovych skenu selhalo: " + ex.getMessage());
-                    }
-                }
-            }
-            return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, targetFolder.getAbsolutePath());
+
+            return finishExport(batch, targetFolder.getAbsolutePath());
         } catch (Exception ex) {
             return finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
         } catch (Throwable t) {
@@ -648,7 +663,7 @@ public final class ExportProcess implements Runnable {
                 return finishedExportWithError(this.batchManager, batch, exportPath, status.getReslog().getExports());
             } else {
                 MetsUtils.setPermission(targetFolder);
-                return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, status.getTargetFolder().getAbsolutePath());
+                return finishExport(batch, status.getTargetFolder().getAbsolutePath());
             }
         } catch (Exception ex) {
             return finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
@@ -680,7 +695,7 @@ public final class ExportProcess implements Runnable {
                 return finishedExportWithError(this.batchManager, batch, exportPath, status.getReslog().getExports());
             } else {
                 MetsUtils.setPermission(targetFolder);
-                return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, status.getTargetFolder().getAbsolutePath());
+                return finishExport(batch, status.getTargetFolder().getAbsolutePath());
             }
         } catch (Exception ex) {
             return finishedExportWithError(this.batchManager, batch, batch.getFolder(), ex);
@@ -761,36 +776,7 @@ public final class ExportProcess implements Runnable {
             if (!ndkResults.isEmpty()) {
                 if (params.getKrameriusInstanceId() == null || params.getKrameriusInstanceId().isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(params.getKrameriusInstanceId())) {
                     LOG.info("Export " + batch.getId() + " done.");
-                    if (params.isBagit() || params.isLtpCesnet()) {
-                        LOG.info("Export " + batch.getId() + " - doing bagit.");
-                        File targetFolder = findNdkExportFolder(batch.getFolder());
-                        if (targetFolder != null) {
-                            for (File targetFile : targetFolder.listFiles()) {
-                                if (targetFile.isDirectory()) {
-                                    BagitExport bagitExport = new BagitExport(config, targetFile);
-                                    bagitExport.prepare();
-                                    bagitExport.bagit();
-                                    bagitExport.zip();
-                                    bagitExport.moveToBagitFolder();
-                                    bagitExport.createMd5File();
-                                    bagitExport.moveToSpecifiedDirectories();
-                                    bagitExport.deleteExportFolder();
-                                    if (params.isLtpCesnet() && !params.getLtpCesnetToken().isEmpty()) {
-                                        LOG.info("Bagit " + batch.getId() + " finished - uploading to ltp cesnet");
-                                        bagitExport.uploadToLtpCesnet(params.getLtpCesnetToken(), params.getPids().get(0));
-                                    }
-                                }
-                            }
-                            File bagitFolder = new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName());
-                            if (bagitFolder.exists()) {
-                                MetsUtils.deleteFolder(bagitFolder);
-                                if (bagitFolder.exists()) {
-                                    throw new IOException("Impossible to delete previous export " + bagitFolder.getAbsolutePath());
-                                }
-                            }
-                            targetFolder.renameTo(bagitFolder);
-                        }
-                    }
+
                     for (NdkExport.Result r : ndkResults) {
                         try {
                             setWorkflowExport("task.exportNdkPsp", "param.exportNdkPsp.numberOfPackages", r.getPageIndexCount(), params, getRoot(r.getPid(), exportFolder));
@@ -798,7 +784,7 @@ public final class ExportProcess implements Runnable {
                             return BatchUtils.finishedExportWithWarning(batchManager, batch, batch.getFolder(), "Vyexportovano ale nepodarilo se propojit s RDflow.");
                         }
                     }
-                    return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, ndkResults.get(0).getTargetFolder().getAbsolutePath());
+                    return finishExport(batch, ndkResults.get(0).getTargetFolder().getAbsolutePath());
                 } else {
                     String outcome = KUtils.combineOutcomes(ndkResults.stream()
                             .map(NdkExport.Result::getKrameriusImportState).toList());
@@ -815,7 +801,7 @@ public final class ExportProcess implements Runnable {
                     } else if (KRAMERIUS_PROCESS_WARNING.equals(outcome)) {
                         return BatchUtils.finishedExportWithWarning(this.batchManager, batch, batch.getFolder(), messages);
                     }
-                    return BatchUtils.finishedExportSuccessfully(this.batchManager, batch, batch.getFolder(), messages);
+                    return finishExport(batch, batch.getFolder(), messages);
                 }
             } else {
                 LOG.info("Export " + batch.getId() + " undone.");
@@ -864,7 +850,7 @@ public final class ExportProcess implements Runnable {
             File target = export.export(exportFolder, params.getHierarchy(), params.getPids(), params.getDsIds(), batch);
 //            URI targetPath = user.getUserHomeUri().relativize(target.toURI());
             MetsUtils.setPermission(target);
-            return BatchUtils.finishedExportSuccessfully(batchManager, batch, target.getAbsolutePath());
+            return finishExport(batch, target.getAbsolutePath());
         } catch (Exception e) {
             return finishedExportWithError(batchManager, batch, batch.getFolder(), e);
         }
@@ -903,30 +889,9 @@ public final class ExportProcess implements Runnable {
                 MetsUtils.setPermission(exportFolder);
 //                URI targetPath = user.getUserHomeUri().relativize(k4Result.getFile().toURI());
                 if (params.getKrameriusInstanceId() == null || params.getKrameriusInstanceId().isEmpty() || KRAMERIUS_INSTANCE_LOCAL.equals(params.getKrameriusInstanceId())) {
-                    if (params.isBagit()) {
-                        File targetFolder = k4Result.getFile();
-                        if (targetFolder.isDirectory()) {
-                            BagitExport bagitExport = new BagitExport(config, targetFolder);
-                            bagitExport.prepareFoxml();
-                            bagitExport.bagit();
-                            bagitExport.zip();
-                            bagitExport.moveToBagitFolder();
-                            bagitExport.createMd5File();
-                            bagitExport.moveToSpecifiedFoxmlDirectories();
-                            bagitExport.deleteExportFolder();
-                            bagitExport.deleteTargetFolderContent(targetFolder);
-                        }
-                        File bagitFolder = new File(targetFolder.getParentFile(), "bagit_" + targetFolder.getName());
-                        if (bagitFolder.exists()) {
-                            MetsUtils.deleteFolder(bagitFolder);
-                            if (bagitFolder.exists()) {
-                                throw new IOException("Impossible to delete previous export " + bagitFolder.getAbsolutePath());
-                            }
-                        }
-                        targetFolder.renameTo(bagitFolder);
-                    }
-                    batch = BatchUtils.finishedExportSuccessfully(this.batchManager, batch, k4Result.getFile().getAbsolutePath());
-//                    return BatchUtils.finishedExportSuccessfully(batchManager, batch, k4Result.getFile().getAbsolutePath());
+
+                    batch = finishExport(batch, k4Result.getFile().getAbsolutePath());
+//                    return finishExport(batch, k4Result.getFile().getAbsolutePath());
                 } else {
                     if (k4Result.isCatalogImportConfirmed()) {
                         CatalogHandoff handoff = scheduleCatalogUpdates(batch, params);
@@ -938,7 +903,7 @@ public final class ExportProcess implements Runnable {
                     } else if (k4Result.getKrameriusImportState() != null && KRAMERIUS_PROCESS_WARNING.equals(k4Result.getKrameriusImportState())) {
                         batch = BatchUtils.finishedExportWithWarning(this.batchManager, batch, k4Result.getFile().getAbsolutePath(), k4Result.getMessage());
                     } else if (k4Result.getKrameriusImportState() != null && KRAMERIUS_PROCESS_FINISHED.equals(k4Result.getKrameriusImportState())) {
-                        batch = BatchUtils.finishedExportSuccessfully(this.batchManager, batch, k4Result.getFile().getAbsolutePath(), k4Result.getMessage());
+                        batch = finishExport(batch, k4Result.getFile().getAbsolutePath(), k4Result.getMessage());
                     }
                 }
                 for (String pid : params.getPids()) {

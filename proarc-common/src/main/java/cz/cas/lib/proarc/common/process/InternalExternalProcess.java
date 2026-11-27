@@ -25,6 +25,10 @@ import cz.cas.lib.proarc.common.process.export.ExportDispatcher;
 import cz.cas.lib.proarc.common.process.external.PdfaProcess;
 import cz.cas.lib.proarc.common.process.external.PeroProcess;
 import cz.cas.lib.proarc.common.process.external.ThumbnailPdfProcess;
+import cz.cas.lib.proarc.common.process.external.bagit.BagitProcess;
+import cz.cas.lib.proarc.common.process.external.bagit.MissingSourceDirectoryException;
+import cz.cas.lib.proarc.common.process.external.cesnet.CesnetCheckProcess;
+import cz.cas.lib.proarc.common.process.external.cesnet.CesnetProcess;
 import cz.cas.lib.proarc.common.process.internal.CatalogUpdateProcess;
 import cz.cas.lib.proarc.common.process.internal.DeleteProcess;
 import cz.cas.lib.proarc.common.process.internal.LoggingMetadataBackfillProcess;
@@ -102,6 +106,11 @@ public final class InternalExternalProcess implements Runnable {
 
         Batch batch = getBatch();
 
+        if (batch.hasExternalProfile()) {
+            batch = batchManager.get(batch.getId());
+            if (batch == null || batch.getState() != Batch.State.EXTERNAL_PLANNED) return;
+        }
+
         // Jsme v pracovní době a proces je odložený
         if (WorkWindow.isWorkingTime() && !WorkWindow.isNotAllowed(batch)) {
 
@@ -126,10 +135,17 @@ public final class InternalExternalProcess implements Runnable {
         if (batch == null) {
             throw new IllegalStateException("Batch is null!");
         }
+        if (batch.hasExternalProfile()) {
+            batch = batchManager.get(batch.getId());
+            if (batch == null) throw new IllegalStateException("Batch is null!");
+            if (batch.getState() != Batch.State.EXTERNAL_PLANNED) return batch;
+        }
         String profileId = batch.getProfileId();
         BatchParams params = batch.getParamsAsObject();
         if (params == null) {
             switch (profileId) {
+                case Batch.EXTERNAL_BAGIT:
+                case Batch.EXTERNAL_CESNET:
                 case Batch.EXTERNAL_PERO:
                 case Batch.EXTERNAL_PDFA:
                 case Batch.EXTERNAL_THUMBNAIL:
@@ -146,6 +162,20 @@ public final class InternalExternalProcess implements Runnable {
         }
         try {
             switch (profileId) {
+                case Batch.EXTERNAL_BAGIT:
+                    batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
+                    return bagitProcess(batch, params);
+                case Batch.EXTERNAL_CESNET:
+                    batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
+                    return cesnetProcess(batch, params);
+                case Batch.EXTERNAL_CESNET_CHECK:
+                    batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
+                    return new CesnetCheckProcess(config, akubraConfiguration, batchManager, user, params.getPids()).run(batch,
+                            next -> InternalExternalDispatcher.getDefault().addInternalExternalProcess(prepare(config,
+                                    akubraConfiguration, next, batchManager, user, options.getLog(), options.getLocale())));
+                case Batch.EXTERNAL_CESNET_CATALOG:
+                    batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
+                    return new CesnetCheckProcess(config, akubraConfiguration, batchManager, user).updateCatalog(batch);
                 case Batch.EXTERNAL_PERO:
                     batch = BatchUtils.startWaitingExternalBatch(batchManager, batch);
                     return peroProcess(batch, params);
@@ -176,6 +206,17 @@ public final class InternalExternalProcess implements Runnable {
                     return finishedInternalWithError(batchManager, batch, batch.getFolder(), new Exception("Unknown profile."));
             }
         } catch (Throwable t) {
+            if (batch.hasExternalProfile()) {
+                Batch latest = batchManager.get(batch.getId());
+                if (latest != null && latest.getState() == Batch.State.STOPPED) return latest;
+            }
+            if (profileId.startsWith("externalProfile.")) {
+                if (t instanceof MissingSourceDirectoryException) {
+                    return finishedExternalWithError(batchManager, batch, batch.getFolder(), t.getMessage());
+                }
+                return finishedExternalWithError(batchManager, batch, batch.getFolder(),
+                        t instanceof Exception ? (Exception) t : new Exception(t));
+            }
             return BatchUtils.finishedInternalWithError(batchManager, batch, batch.getFolder(), t);
         }
     }
@@ -194,6 +235,38 @@ public final class InternalExternalProcess implements Runnable {
         } catch (Exception ex) {
             return finishedExternalWithError(this.batchManager, batch, batch.getFolder(), ex);
         }
+    }
+
+    private Batch bagitProcess(Batch batch, BatchParams params) throws Exception {
+        BagitProcess process = new BagitProcess(config, batchManager, user);
+        return scheduleCesnetUpload(process.run(batch, params));
+    }
+
+    private Batch cesnetProcess(Batch batch, BatchParams params) throws Exception {
+        return new CesnetProcess(config, batchManager, user).run(batch, params);
+    }
+
+    private Batch scheduleCesnetUpload(Batch result) {
+        if (result.getState() == Batch.State.EXTERNAL_DONE) {
+            try {
+                Batch next = new CesnetProcess(config, batchManager, user).planAfterBagit(result);
+                if (next != null) {
+                    if (next.getState() == Batch.State.EXTERNAL_PLANNED) {
+                        InternalExternalDispatcher.getDefault().addInternalExternalProcess(prepare(config, akubraConfiguration,
+                                next, batchManager, user, options.getLog(), options.getLocale()));
+                    }
+                    result.setLog((result.getLog() == null ? "" : result.getLog() + "\n")
+                            + "Navazující proces: " + next.getProfileId() + ", dávka " + next.getId()
+                            + (next.getState() == Batch.State.EXTERNAL_FAILED ? "; " + next.getLog() : ""));
+                    batchManager.update(result);
+                }
+            } catch (Exception ex) {
+                result.setLog((result.getLog() == null ? "" : result.getLog() + "\n")
+                        + "Proces byl dokončen; nahrávání do CESNETu se nepodařilo naplánovat: " + ex.getMessage());
+                batchManager.update(result);
+            }
+        }
+        return result;
     }
 
     private Batch pdfaProcess(Batch batch, BatchParams params) {
@@ -307,13 +380,17 @@ public final class InternalExternalProcess implements Runnable {
     }
 
     public static void resumeAll(BatchManager ibm, InternalExternalDispatcher dispatcher, AppConfiguration config, AkubraConfiguration akubraConfiguration) {
-        List<Batch> batches2schedule = ibm.findWaitingInternalBatches();
+        List<Batch> batches2schedule = ibm.findWaitingInternalExternalBatches();
         for (Batch batch : batches2schedule) {
             try {
                 InternalExternalProcess resume = InternalExternalProcess.resume(batch, ibm, config, akubraConfiguration);
                 dispatcher.addInternalExternalProcess(resume);
             } catch (Exception ex) {
-                BatchUtils.finishedExportWithError(ibm, batch, batch.getFolder(), ex);
+                if (batch.hasExternalProfile()) {
+                    BatchUtils.finishedExternalWithError(ibm, batch, batch.getFolder(), ex);
+                } else {
+                    BatchUtils.finishedInternalWithError(ibm, batch, batch.getFolder(), ex);
+                }
             }
         }
     }
@@ -330,6 +407,15 @@ public final class InternalExternalProcess implements Runnable {
         batch.setState(Batch.State.STOPPED);
         batch.setUpdated(new Timestamp(System.currentTimeMillis()));
         importManager.update(batch);
+    }
+
+    public static void stopExternalBatch(Batch batch, BatchManager manager, AppConfiguration config, AkubraConfiguration akubra) {
+        if (!batch.hasExternalProfile()) throw new IllegalArgumentException("Not an external process");
+        cancelPlannedBatch(batch, manager, config, akubra);
+        InternalExternalDispatcher dispatcher = InternalExternalDispatcher.getDefault();
+        dispatcher.stopNow();
+        dispatcher.restart();
+        resumeAll(manager, dispatcher, config, akubra);
     }
 
     public static final class InternalExternalOptions {

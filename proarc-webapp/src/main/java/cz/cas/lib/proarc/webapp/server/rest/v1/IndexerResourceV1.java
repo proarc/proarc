@@ -307,6 +307,7 @@ public class IndexerResourceV1 {
                 if (proArcObject.getPid().startsWith("uuid")) {
                     if (rebuildIndex) {
                         try {
+                            proArcObject = storage.find(digitalObject.getPID());
                             feeder.insertDescriptionDocument(digitalObject, proArcObject, false);
                             this.filesCount++;
                             this.objectCount++;
@@ -315,22 +316,8 @@ public class IndexerResourceV1 {
                                 feeder.commit();
                             }
                         } catch (Exception exception) {
-                            if ("URI is not hierarchical".equals(exception.getMessage())) {
-                                try {
-                                    proArcObject = storage.find(digitalObject.getPID());
-                                    filesCount++;
-                                    this.objectCount++;
-                                    feeder.insertDescriptionDocument(digitalObject, proArcObject, false);
-                                    if (filesCount % 50 == 0) {
-                                        LOG.info("Proccessed " + filesCount + " objects");
-                                        feeder.commit();
-                                    }
-                                } catch (Exception ex) {
-                                    LOG.warning(proArcObject.getPid() + " - " + ((LocalStorage.LocalObject) proArcObject).getFoxml().getPath());
-                                }
-                            } else {
-                                LOG.warning(proArcObject.getPid() + " - " + ((LocalStorage.LocalObject) proArcObject).getFoxml().getPath());
-                            }
+                            LOG.log(Level.WARNING, "Cannot index object " + digitalObject.getPID()
+                                    + " from " + file.getAbsolutePath(), exception);
                         }
                     }
                 } else if (proArcObject.getPid().startsWith("device")) {

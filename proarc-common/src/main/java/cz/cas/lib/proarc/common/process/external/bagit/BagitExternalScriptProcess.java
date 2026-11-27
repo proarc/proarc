@@ -1,4 +1,4 @@
-package cz.cas.lib.proarc.common.process.export.bagit;
+package cz.cas.lib.proarc.common.process.external.bagit;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.apache.commons.configuration2.Configuration;
 
-public class BagitExternalProcess {
+public class BagitExternalScriptProcess {
 
-    private static final Logger LOG = Logger.getLogger(BagitExternalProcess.class.getName());
+    private static final Logger LOG = Logger.getLogger(BagitExternalScriptProcess.class.getName());
 
     private File exportFolder;
     private File script;
@@ -22,7 +22,7 @@ public class BagitExternalProcess {
     private String output;
 //    private int exitCode;
 
-    public BagitExternalProcess(Configuration conf, File script, File exportFolder) {
+    public BagitExternalScriptProcess(Configuration conf, File script, File exportFolder) {
         this.conf = conf;
         this.script = script;
         this.exportFolder = exportFolder;
@@ -31,13 +31,13 @@ public class BagitExternalProcess {
 
     public void run() throws IOException {
         if (exportFolder == null) {
-            throw new IllegalStateException("Unknown export folder :" + exportFolder);
+            throw new IllegalStateException("Neznámá složka exportu: " + exportFolder);
         }
         if (!exportFolder.exists()) {
-            throw new IllegalStateException(exportFolder.getAbsolutePath() + "does not exists.");
+            throw new IllegalStateException(exportFolder.getAbsolutePath() + " neexistuje.");
         }
-        BagitProcess bagitProcess = new BagitProcess(conf, exportFolder);
-        List<String> bagitCommand = bagitProcess.buildCmdLine(conf);
+        BagitExternalProcess bagitExternalProcess = new BagitExternalProcess(conf, exportFolder);
+        List<String> bagitCommand = bagitExternalProcess.buildCmdLine(conf);
         String[] bagitCmd = new String[bagitCommand.size()];
         bagitCommand.toArray(bagitCmd);
 

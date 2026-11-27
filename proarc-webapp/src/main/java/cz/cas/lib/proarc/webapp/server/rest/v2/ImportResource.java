@@ -82,6 +82,23 @@ public class ImportResource extends ImportResourceV1 {
         super(securityCtx, httpHeaders, uriInfo, httpRequest);
     }
 
+    @POST
+    @Path(ImportResourceApi.CESNET_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Override
+    public ProArcResponse<ImportCesnetResult> uploadFoldersCesnet(
+            @FormParam(ImportResourceApi.IMPORT_BATCH_FOLDER) List<String> paths,
+            @FormParam("confirmCesnetUpload") @DefaultValue("false") boolean confirmed,
+            @FormParam("ltpCesnetToken") String token,
+            @FormParam(ImportResourceApi.IMPORT_BATCH_PRIORITY) @DefaultValue(Batch.PRIORITY_MEDIUM) String priority,
+            @FormParam(ImportResourceApi.BATCH_NIGHT_ONLY) @DefaultValue("false") boolean nightOnly) {
+        try {
+            return super.uploadFoldersCesnet(paths, confirmed, token, priority, nightOnly);
+        } catch (Exception ex) {
+            return ProArcResponse.asError(ex);
+        }
+    }
+
     @Path(ImportResourceApi.FOLDER_PATH)
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})

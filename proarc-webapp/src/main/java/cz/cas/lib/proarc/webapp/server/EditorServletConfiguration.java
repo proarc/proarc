@@ -18,6 +18,7 @@ package cz.cas.lib.proarc.webapp.server;
 
 import cz.cas.lib.proarc.authentication.ProArcIsLoggedServlet;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
+import cz.cas.lib.proarc.common.externalApp.ltpCesnet.CesnetTokenStore;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -48,6 +49,7 @@ public final class EditorServletConfiguration implements ServletContextListener,
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         LOG.fine("contextInitialized");
+        CesnetTokenStore.getInstance().startCleanup();
 
         Map<String, String> env = new HashMap<String, String>();
         readServletParameter(AppConfiguration.PROPERTY_APP_HOME, sce.getServletContext(), env);
@@ -57,6 +59,7 @@ public final class EditorServletConfiguration implements ServletContextListener,
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
+        CesnetTokenStore.getInstance().shutdown();
         asyncInitializer.destroy();
         asyncInitializer = null;
         LOG.fine("contextDestroyed");

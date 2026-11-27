@@ -30,15 +30,17 @@ import java.util.logging.Logger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -144,7 +146,8 @@ public class VerbisUpdateCatalog extends UpdateCatalog {
 
         String encode = Base64.getEncoder().encodeToString((client_id + ":" + client_secret).getBytes(StandardCharsets.UTF_8));
 
-        HttpClient httpClient = HttpClients.createDefault();
+        try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(
+                RequestConfig.custom().setConnectTimeout(30000).setSocketTimeout(60000).build()).build()) {
         HttpPost httpPost = new HttpPost(catalogConfig.getCatalogAuthorizationUrl());
         httpPost.setHeader(new BasicHeader("Content-Type", "application/x-www-form-urlencoded"));
         httpPost.setHeader(new BasicHeader("Authorization", String.format("Basic %s", encode)));
@@ -176,17 +179,29 @@ public class VerbisUpdateCatalog extends UpdateCatalog {
         } else {
             throw new IOException("Connecing to Catalog ended with code " + response.getStatusLine().getStatusCode());
         }
+        }
     }
 
     private boolean updateRecord(CatalogConfiguration bCatalog, String catalogToken, String field001, String uuid) throws IOException {
+        return updateRecord(bCatalog, catalogToken, field001, uuid, false);
+    }
+
+    /** Same MARC structure as proarcId, but a separately matched field identified by ltpId. */
+    public boolean processLtp(CatalogConfiguration catalog, String field001, String packageId) throws IOException {
+        if (!allowUpdateRecord(catalog)) throw new IOException("Catalog does not support LTP record modification");
+        return updateRecord(catalog, getCatalogToken(catalog), field001, packageId, true);
+    }
+
+    private boolean updateRecord(CatalogConfiguration bCatalog, String catalogToken, String field001, String uuid, boolean ltp) throws IOException {
         validateValues(catalogToken, field001, uuid);
 
-        HttpClient httpClient = HttpClients.createDefault();
+        try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(
+                RequestConfig.custom().setConnectTimeout(30000).setSocketTimeout(60000).build()).build()) {
         HttpPost httpPost = new HttpPost(bCatalog.getCatalogUpdateUrl());
         httpPost.setHeader(new BasicHeader("Authorization", String.format("Bearer %s", catalogToken)));
         httpPost.setHeader(new BasicHeader("Content-Type", "application/json; charset=UTF-8"));
 
-        String json = createUpdateRecordJson(bCatalog, field001, uuid);
+        String json = ltp ? createLtpUpdateRecordJson(bCatalog, field001, uuid) : createUpdateRecordJson(bCatalog, field001, uuid);
 
         httpPost.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
 
@@ -198,37 +213,31 @@ public class VerbisUpdateCatalog extends UpdateCatalog {
             LOG.severe(EntityUtils.toString(response.getEntity()));
             throw new IOException("Connecing to Catalog ended with code " + response.getStatusLine().getStatusCode());
         }
+        }
     }
 
-    protected static String createUpdateRecordJson(CatalogConfiguration bCatalog, String field001, String uuid) {
-        String json = "{" +
-                "    \"reusing\": [{\"id\": \"f1:" + field001 + "\"}]," +
-                "    \"value\": [" +
-                "        {\n" +
-                "                \"reusing\": [{" +
-                "                       \"type\": \"D." + bCatalog.getUpdateField() + "\"," +
-                "                       \"havingField\": {\"type\": \"D." + bCatalog.getUpdateField() + "." + bCatalog.getUpdateSubfieldApp() + "\", \"value\": \"proarcId\"}" +
-                "                }]," +
-                "            \"set\": {" +
-                "                \"type\": \"D." + bCatalog.getUpdateField() + "\"," +
-                "                \"value\": [" +
-                "                    {" +
-                "                        \"reusing\": [{\"type\": \"D." + bCatalog.getUpdateField() + "." + bCatalog.getUpdateSubfieldApp() + "\"}]," +
-                "                        \"set\": {\"type\": \"D." + bCatalog.getUpdateField() + "." + bCatalog.getUpdateSubfieldApp() + "\", \"value\": \"proarcId\"}" +
-                "                    }," +
-                "                    {" +
-                "                        \"reusing\": [{\"type\": \"D." + bCatalog.getUpdateField() + "." + bCatalog.getUpdateSubfieldObject() + "\"}]," +
-                "                        \"set\": {\"type\": \"D." + bCatalog.getUpdateField() + "." + bCatalog.getUpdateSubfieldObject() + "\", \"value\": \"" + uuid + "\"}" +
-                "                    }," +
-                "                    {" +
-                "                        \"reusing\": [{\"type\": \"D." + bCatalog.getUpdateField() + "." + bCatalog.getUpdateSubfieldDigitalized() + "\"}]," +
-                "                        \"set\": {\"type\": \"D." + bCatalog.getUpdateField() + "." + bCatalog.getUpdateSubfieldDigitalized() + "\", \"value\": \"zdigitalizováno\"}" +
-                "                    }" +
-                "                ]" +
-                "            }" +
-                "        }" +
-                "    ]" +
-                "}";
-        return json.replaceAll("\\s+", " ");
+    protected static String createUpdateRecordJson(CatalogConfiguration catalog, String field001, String uuid) {
+        return createRecordJson(catalog, field001, uuid, "proarcId", "zdigitalizováno");
+    }
+    protected static String createLtpUpdateRecordJson(CatalogConfiguration catalog, String field001, String packageId) {
+        return createRecordJson(catalog, field001, packageId, "ltpId", "uloženo v LTP");
+    }
+
+    private static String createRecordJson(CatalogConfiguration catalog, String field001, String packageId, String marker, String description) {
+        // Reusing the ltpId field makes a repeated write after a lost response idempotent.
+        String field = "D." + catalog.getUpdateField();
+        String app = field + "." + catalog.getUpdateSubfieldApp();
+        String object = field + "." + catalog.getUpdateSubfieldObject();
+        String status = field + "." + catalog.getUpdateSubfieldDigitalized();
+        JSONArray subfields = new JSONArray();
+        for (String[] item : new String[][]{{app, marker}, {object, packageId}, {status, description}}) {
+            subfields.put(new JSONObject().put("reusing", new JSONArray().put(new JSONObject().put("type", item[0])))
+                    .put("set", new JSONObject().put("type", item[0]).put("value", item[1])));
+        }
+        return new JSONObject().put("reusing", new JSONArray().put(new JSONObject().put("id", "f1:" + field001)))
+                .put("value", new JSONArray().put(new JSONObject()
+                        .put("reusing", new JSONArray().put(new JSONObject().put("type", field)
+                                .put("havingField", new JSONObject().put("type", app).put("value", marker))))
+                        .put("set", new JSONObject().put("type", field).put("value", subfields)))).toString();
     }
 }

@@ -59,9 +59,11 @@ public interface BatchDao extends Dao {
     List<Batch> findUploadingBatches();
 
 
-    List<Batch> findWaitingInternalBatches();
+    List<Batch> findWaitingInternalExternalBatches();
 
-    List<Batch> findIntenalRunningBatches();
+    List<Batch> findWaitingCesnetBatches();
+
+    List<Batch> findIntenalExternalRunningBatches();
 
     List<Batch> findBatch(String pid, String processProfile, State state);
 

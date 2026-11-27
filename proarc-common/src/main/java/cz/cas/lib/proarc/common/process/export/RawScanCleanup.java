@@ -15,6 +15,10 @@ final class RawScanCleanup {
         copiedFolders.add(source);
     }
 
+    java.util.List<String> getCopiedFolders() {
+        return copiedFolders.stream().map(path -> path.toAbsolutePath().toString()).toList();
+    }
+
     void deleteCopiedFolders() throws IOException {
         for (Path source : copiedFolders) {
             FileUtils.deleteDirectory(source.toFile());

@@ -265,10 +265,14 @@ public class BatchUtils {
         }
     }
 
-    public static void finishedInternalRunningBatch(BatchManager ibm, AppConfiguration config) {
-        List<Batch> batches2finished = ibm.findInternalRunningBatches();
+    public static void finishedInternalExternalRunningBatch(BatchManager ibm, AppConfiguration config) {
+        List<Batch> batches2finished = ibm.findInternalExternalRunningBatches();
         for (Batch batch : batches2finished) {
-            finishedInternalWithError(ibm, batch, batch.getFolder(), Batch.State.INTERNAL_FAILED, new Exception("Application has been stopped."));
+            if (batch.hasExternalProfile()) {
+                finishedExternalWithError(ibm, batch, batch.getFolder(), new Exception("Application has been stopped."));
+            } else {
+                finishedInternalWithError(ibm, batch, batch.getFolder(), Batch.State.INTERNAL_FAILED, new Exception("Application has been stopped."));
+            }
         }
     }
 }
