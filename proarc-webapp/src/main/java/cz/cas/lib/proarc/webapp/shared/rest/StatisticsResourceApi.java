@@ -20,6 +20,8 @@ package cz.cas.lib.proarc.webapp.shared.rest;
 public final class StatisticsResourceApi {
     public static final String PATH = "statistics";
     public static final String MODELS_PATH = "models";
+    public static final String SERVER_USAGE_PATH = "server-usage";
+    public static final String SERVER_USAGE_HISTORY_PATH = "server-usage/history";
     public static final String PRODUCTIVITY_PATH = "productivity";
     public static final String PRODUCTIVITY_OPTIONS_PATH = "productivity/options";
     public static final String EXPORTS_PATH = "exports";

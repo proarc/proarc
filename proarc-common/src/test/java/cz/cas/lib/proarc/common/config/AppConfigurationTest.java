@@ -129,6 +129,17 @@ public class AppConfigurationTest {
     }
 
     @Test
+    public void serverUsagePathsUseConfigHomeAndAllowOverrides() throws Exception {
+        AppConfiguration config = factory.create(createEnvironment());
+        assertEquals(new File(confHome, "server-usage-actual.json"), config.getServerUsageActualFile());
+        assertEquals(new File(confHome, "server-usage-historical.json"), config.getServerUsageHistoricalFile());
+        config.getConfiguration().setProperty("statistics.serverUsage.actualFile", "metrics/current.json");
+        config.getConfiguration().setProperty("statistics.serverUsage.historicalFile", tempDir.resolve("history.json").toString());
+        assertEquals(new File(confHome, "metrics/current.json"), config.getServerUsageActualFile());
+        assertEquals(tempDir.resolve("history.json").toFile(), config.getServerUsageHistoricalFile());
+    }
+
+    @Test
     public void testGetAllUserHome() throws Exception {
         AppConfiguration config = factory.create(createEnvironment());
         assertNotNull(config);

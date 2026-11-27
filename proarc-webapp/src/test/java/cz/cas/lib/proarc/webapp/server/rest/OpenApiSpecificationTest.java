@@ -129,6 +129,45 @@ class OpenApiSpecificationTest {
     }
 
     @Test
+    void serverUsageDocumentsRecordFieldsAndNullableMeasurements() throws Exception {
+        JSONObject spec = loadSpec();
+        JSONObject schemas = spec.getJSONObject("components").getJSONObject("schemas");
+        Map<String, Class<?>> records = Map.of(
+                "ServerUsageDisk", cz.cas.lib.proarc.common.info.ServerUsage.Disk.class,
+                "ServerUsageSample", cz.cas.lib.proarc.common.info.ServerUsage.Sample.class,
+                "ServerUsageCurrent", cz.cas.lib.proarc.common.info.ServerUsage.Current.class,
+                "ServerUsageHistory", cz.cas.lib.proarc.common.info.ServerUsage.History.class,
+                "StorageUsageSnapshot", cz.cas.lib.proarc.common.info.StorageUsage.Snapshot.class);
+        for (var entry : records.entrySet()) {
+            Set<String> fields = java.util.Arrays.stream(entry.getValue().getRecordComponents())
+                    .map(java.lang.reflect.RecordComponent::getName).collect(java.util.stream.Collectors.toSet());
+            assertEquals(fields, schemas.getJSONObject(entry.getKey()).getJSONObject("properties").keySet());
+        }
+        for (String suffix : List.of("", "/history")) {
+            String result = suffix.isEmpty() ? "ServerUsageCurrent" : "ServerUsageHistory";
+            JSONObject operation = spec.getJSONObject("paths").getJSONObject("/statistics/server-usage" + suffix)
+                    .getJSONObject("get");
+            assertEquals(suffix.isEmpty() ? "getServerUsage" : "getServerUsageHistory", operation.getString("operationId"));
+            assertDefaultJsonResponse(operation, "#/components/schemas/" + result + "Response");
+            assertEquals("#/components/schemas/" + result, schemas.getJSONObject(result + "Response")
+                    .getJSONObject("properties").getJSONObject("response").getJSONObject("properties")
+                    .getJSONObject("data").getJSONObject("items").getString("$ref"));
+            JSONObject error = schemas.getJSONObject(result).getJSONObject("properties").getJSONObject("error");
+            assertTrue(error.getBoolean("nullable"));
+            assertEquals(new JSONArray().put("missing").put("invalid").put(JSONObject.NULL).toString(),
+                    error.getJSONArray("enum").toString());
+        }
+        JSONObject disk = schemas.getJSONObject("ServerUsageDisk").getJSONObject("properties");
+        for (String field : List.of("totalBytes", "usedBytes", "freeBytes")) {
+            assertEquals("int64", disk.getJSONObject(field).getString("format"));
+            assertTrue(disk.getJSONObject(field).getBoolean("nullable"));
+        }
+        assertFalse(disk.getJSONObject("freeBytes").has("minimum"));
+        assertTrue(schemas.getJSONObject("ServerUsageCurrent").getJSONObject("properties")
+                .getJSONObject("actual").getBoolean("nullable"));
+    }
+
+    @Test
     void statisticsParametersMatchResourceDefaultsAndPagination() throws Exception {
         JSONObject paths = loadSpec().getJSONObject("paths");
         for (var method : cz.cas.lib.proarc.webapp.server.rest.v1.StatisticsResourceV1.class.getMethods()) {

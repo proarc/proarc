@@ -1,0 +1,14 @@
+{
+  "disks": [
+    {
+      "id": "system",
+      "name": "Systémový disk",
+      "path": "/"
+    },
+    {
+      "id": "archive",
+      "name": "Archiv ProArc",
+      "path": "/mnt/proarc"
+    }
+  ]
+}

@@ -58,6 +58,70 @@ public class Mods38ConverterTest {
     }
 
     @Test
+    public void convertsImportedModsUsingMetadataVersion() throws Exception {
+        for (String version : new String[] {null, "", " "}) {
+            ModsDefinition mods = mods(version, null);
+            ModsUtils.completeImportedVersion(mods, " 3.6 ");
+
+            assertEquals("3.6", mods.getVersion());
+            assertEquals(Status.CONVERTED,
+                    Mods38Converter.convertAndValidate(mods, "model:ndkmonographvolume"));
+            assertEquals("3.8", mods.getVersion());
+            assertEquals("Publisher", mods.getOriginInfo().get(0).getAgent().get(0)
+                    .getNamePart().get(0).getValue());
+        }
+    }
+
+    @Test
+    public void defaultsImportedModsToLegacyVersion() throws Exception {
+        for (String metadataVersion : new String[] {null, "", " "}) {
+            ModsDefinition mods = mods(null, null);
+            ModsUtils.completeImportedVersion(mods, metadataVersion);
+
+            assertEquals("3.4", mods.getVersion());
+            assertEquals(Status.CONVERTED,
+                    Mods38Converter.convertAndValidate(mods, "model:ndkmonographvolume"));
+        }
+    }
+
+    @Test
+    public void preservesExplicitImportedVersion() throws Exception {
+        ModsDefinition mods = mods("3.8", null);
+        ModsUtils.completeImportedVersion(mods, "3.6");
+
+        assertEquals(Status.ALREADY_CONVERTED,
+                Mods38Converter.convertAndValidate(mods, "model:ndkmonographvolume"));
+        assertEquals(1, mods.getOriginInfo().get(0).getPublisher().size());
+        assertTrue(mods.getOriginInfo().get(0).getAgent().isEmpty());
+    }
+
+    @Test
+    public void rejectsUnsupportedImportedVersions() {
+        ModsDefinition explicit = mods("3.7", null);
+        ModsUtils.completeImportedVersion(explicit, "3.6");
+        assertThrows(ConversionException.class,
+                () -> Mods38Converter.convertAndValidate(explicit, "model:ndkpage"));
+
+        ModsDefinition inherited = mods(null, null);
+        ModsUtils.completeImportedVersion(inherited, "3.7");
+        assertThrows(ConversionException.class,
+                () -> Mods38Converter.convertAndValidate(inherited, "model:ndkpage"));
+    }
+
+    @Test
+    public void validatesImportedModsAfterLegacyFallback() {
+        ModsDefinition mods = mods(null, null);
+        NameDefinition invalidAgent = new NameDefinition();
+        invalidAgent.setType("invalid");
+        mods.getOriginInfo().get(0).getAgent().add(invalidAgent);
+        ModsUtils.completeImportedVersion(mods, null);
+
+        ConversionException ex = assertThrows(ConversionException.class,
+                () -> Mods38Converter.convertAndValidate(mods, "model:ndkpage"));
+        assertTrue(ex.getMessage().startsWith("MODS 3.8 validation failed:"));
+    }
+
+    @Test
     public void rejectsUnsupportedVersion() {
         ModsDefinition mods = mods("3.7", null);
         assertThrows(ConversionException.class,

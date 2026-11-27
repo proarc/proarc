@@ -574,6 +574,7 @@ public class PackageReader {
             editor.write(new DublinCoreRecord(dc, 0, lObj.getPid()), null);
         } else if (MdType.MODS.name().equals(dsId)) {
             ModsDefinition mods = ModsUtils.unmarshal(new DOMSource(node), ModsDefinition.class);
+            ModsUtils.completeImportedVersion(mods, mdWrap.getMDTYPEVERSION());
             ModsStreamEditor editor = new ModsStreamEditor(lObj);
             editor.write(mods, 0, null);
         } else {

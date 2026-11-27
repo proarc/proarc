@@ -218,6 +218,18 @@ public final class ModsUtils {
         }
     }
 
+    /**
+     * Completes a missing MODS version during METS import. The record's own
+     * version takes precedence over mdWrap@MDTYPEVERSION. Legacy packages with
+     * neither value are treated as MODS 3.4; conversion still validates them.
+     */
+    public static void completeImportedVersion(ModsDefinition mods, String metadataVersion) {
+        if (mods.getVersion() == null || mods.getVersion().trim().isEmpty()) {
+            mods.setVersion(metadataVersion == null || metadataVersion.trim().isEmpty()
+                    ? "3.4" : metadataVersion.trim());
+        }
+    }
+
     public static ModsDefinition unmarshalModsType(Source source) {
         try {
             Object unmarshaled = defaultUnmarshaller().unmarshal(source);

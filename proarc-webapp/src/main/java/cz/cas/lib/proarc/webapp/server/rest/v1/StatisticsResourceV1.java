@@ -19,6 +19,8 @@ package cz.cas.lib.proarc.webapp.server.rest.v1;
 import cz.cas.lib.proarc.common.config.AppConfiguration;
 import cz.cas.lib.proarc.common.config.AppConfigurationException;
 import cz.cas.lib.proarc.common.config.AppConfigurationFactory;
+import cz.cas.lib.proarc.common.info.ServerUsage;
+import cz.cas.lib.proarc.common.info.StorageUsage;
 import cz.cas.lib.proarc.common.storage.SearchView;
 import cz.cas.lib.proarc.common.storage.Storage;
 import cz.cas.lib.proarc.common.storage.akubra.AkubraConfiguration;
@@ -68,6 +70,21 @@ public class StatisticsResourceV1 {
                 ? AkubraConfigurationFactory.getInstance().defaultInstance(appConfig.getConfigHome()) : null;
         this.session = SessionContext.from(httpServletRequest);
         this.user = session.getUser();
+    }
+
+    @GET
+    @Path(StatisticsResourceApi.SERVER_USAGE_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<ServerUsage.Current> getServerUsage() {
+        return new ProArcResponse<>(ServerUsage.current(appConfig.getServerUsageActualFile().toPath(),
+                StorageUsage.getInstance().getSnapshot()));
+    }
+
+    @GET
+    @Path(StatisticsResourceApi.SERVER_USAGE_HISTORY_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public ProArcResponse<ServerUsage.History> getServerUsageHistory() {
+        return new ProArcResponse<>(ServerUsage.history(appConfig.getServerUsageHistoricalFile().toPath()));
     }
 
     /** Aggregated counts with optional filtering to the current user's organization. */

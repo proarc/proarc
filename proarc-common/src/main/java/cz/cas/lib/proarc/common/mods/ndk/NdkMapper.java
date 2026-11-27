@@ -297,13 +297,13 @@ public abstract class NdkMapper {
                 put(NdkEbornPlugin.MODEL_EPERIODICAL, "model:electronic_periodical");
 
                 put(NdkPlugin.MODEL_PERIODICALISSUE, "model:periodicalitem");
-                put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, "model:periodicitem");
+                put(NdkEbornPlugin.MODEL_EPERIODICALISSUE, "model:periodicalitem");
 
                 put(NdkPlugin.MODEL_PERIODICALSUPPLEMENT, "model:supplement");
                 put(NdkEbornPlugin.MODEL_EPERIODICALSUPPLEMENT, "model:supplement");
 
                 put(NdkPlugin.MODEL_PERIODICALVOLUME, "model:periodicalvolume");
-                put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, "model:periodicvolume");
+                put(NdkEbornPlugin.MODEL_EPERIODICALVOLUME, "model:periodicalvolume");
 
                 put(NdkPlugin.MODEL_PICTURE, "model:internalpart");
 

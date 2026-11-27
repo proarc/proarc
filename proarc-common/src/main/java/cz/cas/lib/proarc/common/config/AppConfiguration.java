@@ -274,6 +274,20 @@ public final class AppConfiguration {
         return configHome;
     }
 
+    public File getServerUsageActualFile() {
+        return getServerUsageFile("statistics.serverUsage.actualFile", "server-usage-actual.json");
+    }
+
+    public File getServerUsageHistoricalFile() {
+        return getServerUsageFile("statistics.serverUsage.historicalFile", "server-usage-historical.json");
+    }
+
+    /** Absolute paths are allowed; relative paths are resolved against PROARC_HOME. */
+    private File getServerUsageFile(String property, String defaultName) {
+        File file = new File(config.getString(property, defaultName));
+        return file.isAbsolute() ? file : new File(configHome, file.getPath());
+    }
+
     public Profiles getProfiles() {
         return profiles;
     }
