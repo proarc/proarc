@@ -202,6 +202,11 @@ public abstract class AnnotatedUser extends UserProfile {
     @Override
     public abstract Boolean getAllObjectsFunction();
 
+    @XmlElement(name = UserResourceApi.FUNCTION_CHECK_BATCH)
+    @JsonProperty(UserResourceApi.FUNCTION_CHECK_BATCH)
+    @Override
+    public abstract Boolean getCheckBatchFunction();
+
     @XmlElement(name = UserResourceApi.FUNCTION_PREPARE_BATCH)
     @JsonProperty(UserResourceApi.FUNCTION_PREPARE_BATCH)
     @Override

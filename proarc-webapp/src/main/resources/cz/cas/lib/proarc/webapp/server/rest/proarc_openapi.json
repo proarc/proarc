@@ -7677,6 +7677,10 @@
                   "prepareBatchFunction": {
                     "type": "boolean"
                   },
+                  "checkBatchFunction": {
+                    "type": "boolean",
+                    "default": false
+                  },
                   "sysAdminFunction": {
                     "type": "boolean"
                   }
@@ -7784,6 +7788,10 @@
                   },
                   "prepareBatchFunction": {
                     "type": "boolean"
+                  },
+                  "checkBatchFunction": {
+                    "type": "boolean",
+                    "default": false
                   },
                   "sysAdminFunction": {
                     "type": "boolean"
@@ -13559,6 +13567,10 @@
           },
           "prepareBatchFunction": {
             "type": "boolean"
+          },
+          "checkBatchFunction": {
+            "type": "boolean",
+            "default": false
           },
           "sysAdminFunction": {
             "type": "boolean"
