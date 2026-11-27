@@ -10112,7 +10112,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowJobResponse"
                 }
               }
             }
@@ -10367,7 +10367,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowJobResponse"
                 }
               }
             }
@@ -10381,7 +10381,7 @@
         "operationId": "addJob",
         "requestBody": {
           "content": {
-            "*/*": {
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
                 "properties": {
@@ -10423,7 +10423,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowJobResponse"
                 }
               }
             }
@@ -10437,7 +10437,7 @@
         "operationId": "updateJob",
         "requestBody": {
           "content": {
-            "*/*": {
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
                 "properties": {
@@ -10495,7 +10495,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowJobResponse"
                 }
               }
             }
@@ -10511,7 +10511,7 @@
         "operationId": "updateJobs",
         "requestBody": {
           "content": {
-            "*/*": {
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
                 "properties": {
@@ -10559,7 +10559,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowJobResponse"
                 }
               }
             }
@@ -10597,7 +10597,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowTaskResponse"
                 }
               }
             }
@@ -10676,7 +10676,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowMaterialResponse"
                 }
               }
             }
@@ -10712,7 +10712,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowMaterialResponse"
                 }
               }
             }
@@ -10764,7 +10764,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowMetadataResponse"
                 }
               }
             }
@@ -10778,7 +10778,7 @@
         "operationId": "updateDescriptionMetadata_1",
         "requestBody": {
           "content": {
-            "*/*": {
+            "application/x-www-form-urlencoded": {
               "schema": {
                 "type": "object",
                 "properties": {
@@ -10828,7 +10828,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowMetadataResponse"
                 }
               }
             }
@@ -10873,7 +10873,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StringRecord"
+                  "$ref": "#/components/schemas/WorkflowStringRecordResponse"
                 }
               }
             }
@@ -10911,7 +10911,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowParameterResponse"
                 }
               }
             }
@@ -10956,7 +10956,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowProfileResponse"
                 }
               }
             }
@@ -11119,7 +11119,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowTaskResponse"
                 }
               }
             }
@@ -11163,7 +11163,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowTaskResponse"
                 }
               }
             }
@@ -11199,7 +11199,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/response"
+                  "$ref": "#/components/schemas/WorkflowTaskResponse"
                 }
               }
             }
@@ -16919,21 +16919,12 @@
             "type": "integer",
             "format": "int32"
           },
-          "krameriusInstanceId": {
-            "type": "string"
-          },
           "timestamp": {
             "type": "integer",
             "format": "int64"
           },
-          "editor": {
-            "type": "string"
-          },
           "model": {
             "type": "string"
-          },
-          "data": {
-            "type": "object"
           },
           "content": {
             "type": "string"
@@ -16941,15 +16932,21 @@
           "ignoreValidation": {
             "type": "boolean"
           },
-          "parentHandler": {
-            "$ref": "#/components/schemas/DigitalObjectHandler"
-          },
           "standard": {
             "type": "string"
           },
           "worfklowJobId": {
             "type": "integer",
             "format": "int64"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "editorId": {
+            "type": "string"
+          },
+          "jsonData": {
+            "type": "object"
           }
         }
       },
@@ -17375,9 +17372,6 @@
             "type": "integer",
             "format": "int32"
           },
-          "krameriusInstanceId": {
-            "type": "string"
-          },
           "model": {
             "type": "string"
           },
@@ -17394,6 +17388,9 @@
           "status": {
             "type": "integer",
             "format": "int32"
+          },
+          "instance": {
+            "type": "string"
           }
         }
       },
@@ -18840,6 +18837,22 @@
           },
           "deviceLabel": {
             "type": "string"
+          },
+          "closed": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "finished": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "stateAsString": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "FINISHED",
+              "CANCELED"
+            ]
           }
         }
       },
@@ -18908,6 +18921,10 @@
           "timestamp": {
             "type": "integer",
             "format": "int64"
+          },
+          "closed": {
+            "type": "boolean",
+            "readOnly": true
           }
         }
       },
@@ -19104,6 +19121,41 @@
           },
           "value": {
             "type": "string"
+          },
+          "taskProfileName": {
+            "type": "string"
+          },
+          "valueTypeAsString": {
+            "type": "string",
+            "enum": [
+              "STRING",
+              "NUMBER",
+              "DATETIME"
+            ]
+          },
+          "valueString": {
+            "type": "string"
+          },
+          "valueNumber": {
+            "type": "number"
+          },
+          "valueDateTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "valueAsObject": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "profile": {
+            "type": "object",
+            "description": "Workflow parameter profile definition."
           }
         }
       },
@@ -19208,6 +19260,10 @@
             "additionalProperties": {
               "type": "object"
             }
+          },
+          "closed": {
+            "type": "boolean",
+            "readOnly": true
           }
         }
       },
@@ -20532,6 +20588,320 @@
           },
           "error": {
             "type": "string"
+          }
+        }
+      },
+      "WorkflowJobResponse": {
+        "type": "object",
+        "description": "ProArc JSON response envelope. The response.data array contains JobView records on success; workflow failures use a negative response.status and return error text in response.dataAsError and response.errorMessage.",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/JobView"
+                }
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "WorkflowTaskResponse": {
+        "type": "object",
+        "description": "ProArc JSON response envelope. The response.data array contains TaskView records on success; workflow failures use a negative response.status and return error text in response.dataAsError and response.errorMessage.",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TaskView"
+                }
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "WorkflowMaterialResponse": {
+        "type": "object",
+        "description": "ProArc JSON response envelope. The response.data array contains MaterialView records on success; workflow failures use a negative response.status and return error text in response.dataAsError and response.errorMessage.",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/MaterialView"
+                }
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "WorkflowMetadataResponse": {
+        "type": "object",
+        "description": "ProArc JSON response envelope. The response.data array contains DescriptionMetadataObject records on success; workflow failures use a negative response.status and return error text in response.dataAsError and response.errorMessage.",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/DescriptionMetadataObject"
+                }
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "WorkflowStringRecordResponse": {
+        "type": "object",
+        "properties": {
+          "record": {
+            "$ref": "#/components/schemas/StringRecord"
+          }
+        }
+      },
+      "WorkflowParameterResponse": {
+        "type": "object",
+        "description": "ProArc JSON response envelope. The response.data array contains TaskParameterView records on success; workflow failures use a negative response.status and return error text in response.dataAsError and response.errorMessage.",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TaskParameterView"
+                }
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "WorkflowProfileResponse": {
+        "type": "object",
+        "description": "ProArc JSON response envelope. The response.data array contains JobDefinitionView records on success; workflow failures use a negative response.status and return error text in response.dataAsError and response.errorMessage.",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "startRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "endRow": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "totalRows": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/JobDefinitionView"
+                }
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "errorStackTrace": {
+                "type": "string"
+              },
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorMessage"
+                  }
+                }
+              },
+              "dataAsError": {
+                "type": "string"
+              }
+            }
           }
         }
       }

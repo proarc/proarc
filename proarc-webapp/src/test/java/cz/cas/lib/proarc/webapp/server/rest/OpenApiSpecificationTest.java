@@ -584,7 +584,7 @@ class OpenApiSpecificationTest {
         assertEquals("deleteObject", workflow.getJSONObject("delete").getString("operationId"));
         assertEquals("addJob", workflow.getJSONObject("post").getString("operationId"));
         assertEquals("updateJob", workflow.getJSONObject("put").getString("operationId"));
-        assertDefaultJsonResponse(workflow.getJSONObject("get"), "#/components/schemas/response");
+        assertDefaultJsonResponse(workflow.getJSONObject("get"), "#/components/schemas/WorkflowJobResponse");
     }
 
     @Test
@@ -592,7 +592,7 @@ class OpenApiSpecificationTest {
         JSONObject schemas = loadSpec()
                 .getJSONObject("components")
                 .getJSONObject("schemas");
-        assertEquals(261, schemas.length());
+        assertEquals(268, schemas.length());
 
         JSONObject response = schemas.getJSONObject("response");
         JSONObject properties = response.getJSONObject("properties");
