@@ -41,7 +41,7 @@ import org.apache.empire.db.exceptions.QueryFailedException;
 import org.apache.empire.db.postgresql.DBDatabaseDriverPostgreSQL;
 
 /**
- * Database schema version 20. It adds scheduled batch.
+ * Database schema version 23. It adds permission to review import batches.
  *
  * <p><b>Warning:</b> declare sequence names the same way like PostgreSql
  * ({@code {tablename}_{column_name}_seq}).
@@ -53,7 +53,7 @@ public class ProarcDatabase extends DBDatabase {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = Logger.getLogger(ProarcDatabase.class.getName());
     /** the schema version */
-    public static final int VERSION = 22;
+    public static final int VERSION = 23;
 
     public final ProarcVersionTable tableProarcVersion = new ProarcVersionTable(this);
     public final BatchTable tableBatch = new BatchTable(this);
@@ -278,6 +278,7 @@ public class ProarcDatabase extends DBDatabase {
         public final DBTableColumn deleteActionFunction;
         public final DBTableColumn allObjectsFunction;
         public final DBTableColumn prepareBatchFunction;
+        public final DBTableColumn checkBatchFunction;
         public final DBTableColumn sysAdminFunction;
 
         public UserTable(DBDatabase db) {
@@ -322,6 +323,7 @@ public class ProarcDatabase extends DBDatabase {
             deleteActionFunction = addColumn("DELETE_ACTION_FUNCTION", DataType.BOOL, 0, false);
             allObjectsFunction = addColumn("ALL_OBJECTS_FUNCTION", DataType.BOOL, 0, false);
             prepareBatchFunction = addColumn("PREPARE_BATCH_FUNCTION", DataType.BOOL, 0, false);
+            checkBatchFunction = addColumn("CHECK_BATCH_FUNCTION", DataType.BOOL, 0, false, Boolean.FALSE);
             sysAdminFunction = addColumn("SYS_ADMIN_FUNCTION", DataType.BOOL, 0, false);
             setPrimaryKey(id);
             addIndex(String.format("%s_%s_IDX", getName(), username.getName()), true, new DBColumn[]{username});
@@ -689,7 +691,7 @@ public class ProarcDatabase extends DBDatabase {
             int schemaVersion = schemaExists(this, conn);
             if (schemaVersion > 0) {
                 LOG.log(Level.INFO, "Upgrading ProArc schema from version " + schemaVersion + ".");
-                schemaVersion = ProarcDatabaseV21.upgradeToVersion22(
+                schemaVersion = ProarcDatabaseV22.upgradeToVersion23(
                         schemaVersion, this, conn, conf);
                 if (schemaVersion != VERSION) {
                     throw new SQLException("Invalid schema version " + schemaVersion);

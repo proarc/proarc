@@ -152,6 +152,13 @@ public class EmpireUserDaoTest {
         assertEquals(create.getUserHome(), result.getUserHome());
         assertEquals(create.getUserName(), result.getUserName());
         assertEquals(create.getUserPasswordDigest(), result.getUserPasswordDigest());
+        assertEquals(Boolean.FALSE, result.getCheckBatchFunction());
+        result.setCheckBatchFunction(true);
+        dao.update(result);
+        assertEquals(Boolean.TRUE, dao.find(result.getId()).getCheckBatchFunction());
+        result.setCheckBatchFunction(false);
+        dao.update(result);
+        assertEquals(Boolean.FALSE, dao.find(result.getId()).getCheckBatchFunction());
     }
 
     @Test

@@ -26,6 +26,7 @@ public class RestConsts {
     public static final String PERMISSION_FUNCTION_DELETE_ACTION = "deleteActionFunction";
     public static final String PERMISSION_FUNCTION_ALL_OBJECTS = "allObjectsFunction";
     public static final String PERMISSION_FUNCTION_PREPARE_BATCH = "prepareBatchFunction";
+    public static final String PERMISSION_FUNCTION_CHECK_BATCH = "checkBatchFunction";
     public static final String PERMISSION_FUNCTION_SYS_ADMIN = "sysAdminFunction";
 
     public static final String FIELD_MODELOBJECT = "MetaModelRecord";

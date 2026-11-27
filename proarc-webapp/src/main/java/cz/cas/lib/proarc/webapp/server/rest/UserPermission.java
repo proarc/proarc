@@ -17,6 +17,7 @@ import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTIO
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_IMPORT_TO_PROD;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_LOCK_OBJECT;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_PREPARE_BATCH;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_CHECK_BATCH;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_SOLR;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_SYS_ADMIN;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_UNLOCK_OBJECT;
@@ -35,6 +36,13 @@ public class UserPermission {
 
     public static boolean hasPermission(UserProfile user, String... attributes) {
         return hasAttribute(user, attributes);
+    }
+
+    /** Access to an import batch, preserving batches shared by their preparer. */
+    public static boolean canAccessImportBatch(UserProfile user, UserProfile owner) {
+        return user != null && (user.hasCheckBatchFunction()
+                || (owner != null && ((user.getId() != null && user.getId().equals(owner.getId()))
+                || owner.hasPrepareBatchFunction())));
     }
 
     private static boolean hasAttribute(UserProfile user, String[] attributes) {
@@ -91,6 +99,9 @@ public class UserPermission {
                 return true;
             }
             if (PERMISSION_FUNCTION_ALL_OBJECTS.equals(attribute) && Boolean.TRUE.equals(user.hasAllObjectsFunction())) {
+                return true;
+            }
+            if (PERMISSION_FUNCTION_CHECK_BATCH.equals(attribute) && user.hasCheckBatchFunction()) {
                 return true;
             }
             if (PERMISSION_FUNCTION_PREPARE_BATCH.equals(attribute) && Boolean.TRUE.equals(user.hasPrepareBatchFunction())) {

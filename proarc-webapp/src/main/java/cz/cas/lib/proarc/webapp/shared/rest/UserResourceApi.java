@@ -66,6 +66,7 @@ public final class UserResourceApi {
     public static final String FUNCTION_DELETE_ACTION = "deleteActionFunction";
     public static final String FUNCTION_ALL_OBJECTS = "allObjectsFunction";
     public static final String FUNCTION_PREPARE_BATCH = "prepareBatchFunction";
+    public static final String FUNCTION_CHECK_BATCH = "checkBatchFunction";
     public static final String FUNCTION_SYS_ADMIN = "sysAdminFunction";
     public static final String USER_START_ROW_PARAM = "_startRow";
     public static final String USER_SETTING = "userSetting";

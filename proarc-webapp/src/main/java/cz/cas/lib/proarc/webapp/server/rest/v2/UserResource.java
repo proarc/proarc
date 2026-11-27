@@ -126,6 +126,7 @@ public class UserResource extends UserResourceV1 {
             @FormParam(UserResourceApi.FUNCTION_DELETE_ACTION) Boolean deleteActionFunction,
             @FormParam(UserResourceApi.FUNCTION_ALL_OBJECTS) Boolean allObjectsFunction,
             @FormParam(UserResourceApi.FUNCTION_PREPARE_BATCH) Boolean prepareBatchFunction,
+            @FormParam(UserResourceApi.FUNCTION_CHECK_BATCH) Boolean checkBatchFunction,
             @FormParam(UserResourceApi.FUNCTION_SYS_ADMIN) Boolean sysAdminFunction
     ) {
         if (!hasPermission(user, PERMISSION_FUNCTION_CREATE_USER)) {
@@ -141,7 +142,7 @@ public class UserResource extends UserResourceV1 {
         }
         try {
             return super.add(userName, passwd, surname, forename, email, organization, changeModelFunction,
-                    updateModelFunction, lockObjectFuction, unlockObjectFuction, importToProdFunction, czidloFunction, wfDeleteJobFunction, importToCatalogFunction, changeObjectsOwnerFunction, changePagesFunction, deviceFunction, wfCreateJobFunction, createUserFunction, updateUserFunction, deleteUserFunction, solrFunction, deleteActionFunction, allObjectsFunction, prepareBatchFunction, sysAdminFunction);
+                    updateModelFunction, lockObjectFuction, unlockObjectFuction, importToProdFunction, czidloFunction, wfDeleteJobFunction, importToCatalogFunction, changeObjectsOwnerFunction, changePagesFunction, deviceFunction, wfCreateJobFunction, createUserFunction, updateUserFunction, deleteUserFunction, solrFunction, deleteActionFunction, allObjectsFunction, prepareBatchFunction, checkBatchFunction, sysAdminFunction);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);
@@ -176,12 +177,13 @@ public class UserResource extends UserResourceV1 {
             @FormParam(UserResourceApi.FUNCTION_DELETE_ACTION) Boolean deleteActionFunction,
             @FormParam(UserResourceApi.FUNCTION_ALL_OBJECTS) Boolean allObjectsFunction,
             @FormParam(UserResourceApi.FUNCTION_PREPARE_BATCH) Boolean prepareBatchFunction,
+            @FormParam(UserResourceApi.FUNCTION_CHECK_BATCH) Boolean checkBatchFunction,
             @FormParam(UserResourceApi.FUNCTION_SYS_ADMIN) Boolean sysAdminFunction
     ) {
         try {
             return super.update(userId, passwd, surname, forename, email, organization, changeModelFunction,
                     updateModelFunction, lockObjectFuction, unlockObjectFuction, importToProdFunction, czidloFunction, wfDeleteJobFunction, importToCatalogFunction,
-                    changeObjectsOwnerFunction, changePagesFunction, deviceFunction, wfCreateJobFunction, createUserFunction, updateUserFunction, deleteUserFunction, solrFunction, deleteActionFunction, allObjectsFunction, prepareBatchFunction, sysAdminFunction);
+                    changeObjectsOwnerFunction, changePagesFunction, deviceFunction, wfCreateJobFunction, createUserFunction, updateUserFunction, deleteUserFunction, solrFunction, deleteActionFunction, allObjectsFunction, prepareBatchFunction, checkBatchFunction, sysAdminFunction);
         } catch (Throwable t) {
             LOG.log(Level.SEVERE, t.getMessage(), t);
             return ProArcResponse.asError(t);
