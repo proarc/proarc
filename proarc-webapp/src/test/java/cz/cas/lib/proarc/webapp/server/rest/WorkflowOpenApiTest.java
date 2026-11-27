@@ -159,7 +159,31 @@ class WorkflowOpenApiTest {
     void responseSchemasMatchSerializedSuccessErrorAndPlainMetadata() throws Exception {
         JobView job = new JobView();
         job.setTimestamp(new Timestamp(123456789L));
+        job.setTaskName("task.scan");
+        job.setTaskLabel("Scanning");
+        job.setTaskHint("Scan the document");
+        job.setTaskDate(new Timestamp(123456789L));
+        job.setTaskUser("1");
+        job.setTaskUsername("scanner");
+        job.setNextTaskId("task.control");
+        job.setNextTaskLabel("Quality control");
+        job.setNextTaskHint("Check the scans");
         JSONObject success = new JSONObject(mapper.writeValueAsString(new ProArcResponse<>(job)));
+        JSONObject jobJson = success.getJSONObject("response").getJSONArray("data").getJSONObject(0);
+        assertEquals("task.scan", jobJson.getString("taskDoneId"));
+        assertEquals("Scanning", jobJson.getString("taskDoneLabel"));
+        assertEquals(jobJson.getString("taskName"), jobJson.getString("taskDoneId"));
+        assertEquals(jobJson.getString("taskLabel"), jobJson.getString("taskDoneLabel"));
+        assertEquals("task.control", jobJson.getString("nextTaskId"));
+        assertEquals("Quality control", jobJson.getString("nextTaskLabel"));
+        assertEquals("Check the scans", jobJson.getString("nextTaskHint"));
+        assertEquals("Scan the document", jobJson.getString("taskDoneHint"));
+        assertEquals(jobJson.getString("taskHint"), jobJson.getString("taskDoneHint"));
+        assertEquals(jobJson.getString("taskDate"), jobJson.getString("taskDoneDate"));
+        assertEquals("1", jobJson.getString("taskDoneUserId"));
+        assertEquals(jobJson.getString("taskUser"), jobJson.getString("taskDoneUserId"));
+        assertEquals("scanner", jobJson.getString("taskDoneUsername"));
+        assertEquals(jobJson.getString("taskUsername"), jobJson.getString("taskDoneUsername"));
         JSONObject failure = new JSONObject(mapper.writeValueAsString(ProArcResponse.asError("Workflow failed")));
         JSONObject schemas = loadSpec().getJSONObject("components").getJSONObject("schemas");
         JSONObject properties = schemas.getJSONObject("WorkflowJobResponse").getJSONObject("properties")

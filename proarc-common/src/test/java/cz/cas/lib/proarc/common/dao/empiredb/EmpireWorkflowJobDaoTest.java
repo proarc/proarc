@@ -20,6 +20,7 @@ import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.Job.State;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
+import cz.cas.lib.proarc.common.workflow.model.Task;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -143,6 +144,85 @@ public class EmpireWorkflowJobDaoTest {
         assertEquals(BigDecimal.ONE, job0.getId());
         assertEquals("job.ndk", job0.getProfileName());
         assertNull(job0.getUserName());
+        assertNull(job0.getTaskDoneId());
+        assertNull(job0.getNextTaskId());
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {
+        "STARTED, 30, READY, 1, task.first",
+        "READY, 1, STARTED, 30, task.second",
+        "READY, 30, READY, 1, task.second",
+        "STARTED, 30, STARTED, 1, task.second",
+        "READY, 1, READY, 1, task.first",
+        "WAITING, 0, CANCELED, 1, NULL",
+        "FINISHED, 0, WAITING, 1, NULL",
+        "READY, NULL, READY, 1, task.second",
+        "READY, NULL, READY, NULL, task.first"
+    }, nullValues = "NULL")
+    public void testNextTaskSelection(Task.State firstState, Integer firstOrder,
+            Task.State secondState, Integer secondOrder, String expected) throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(getClass(), "user.xml"),
+                support.loadFlatXmlDataStream(getClass(), "wf_job.xml"));
+        support.cleanInsert(support.getConnection(tx), db);
+        addTask(BigDecimal.ONE, "task.first", firstState, firstOrder);
+        addTask(BigDecimal.ONE, "task.second", secondState, secondOrder);
+        tx.commit();
+
+        JobFilter filter = new JobFilter();
+        filter.setId(BigDecimal.ONE);
+        List<JobView> jobs = dao.view(filter);
+        assertEquals(1, jobs.size());
+        assertEquals(expected, jobs.get(0).getNextTaskId());
+    }
+
+    @Test
+    public void testTaskSummaryIsPerJobAndKeepsCompletedTask() throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(getClass(), "user.xml"),
+                support.loadFlatXmlDataStream(getClass(), "wf_job.xml"));
+        support.cleanInsert(support.getConnection(tx), db);
+        addTask(BigDecimal.ONE, "task.finished.first", Task.State.FINISHED, 2);
+        addTask(BigDecimal.ONE, "task.finished.last", Task.State.FINISHED, 1);
+        addTask(BigDecimal.ONE, "task.ready", Task.State.READY, 3);
+        addTask(BigDecimal.valueOf(2), "task.otherJob", Task.State.STARTED, 0);
+        tx.commit();
+
+        JobFilter filter = new JobFilter();
+        filter.setSortBy("id");
+        List<JobView> jobs = dao.view(filter);
+        assertEquals(2, jobs.size());
+        JobView first = jobs.stream().filter(job -> job.getId().equals(BigDecimal.ONE)).findFirst().orElseThrow();
+        JobView second = jobs.stream().filter(job -> job.getId().equals(BigDecimal.valueOf(2))).findFirst().orElseThrow();
+        assertEquals("task.finished.last", first.getTaskDoneId());
+        assertEquals(first.getTaskName(), first.getTaskDoneId());
+        assertEquals("task.ready", first.getNextTaskId());
+        assertEquals("task.otherJob", second.getNextTaskId());
+        assertNull(second.getTaskDoneId());
+
+        JobFilter page = new JobFilter();
+        page.setSortBy("id");
+        page.setMaxCount(1);
+        page.setOffset(1);
+        List<JobView> pagedJobs = dao.view(page);
+        assertEquals(1, pagedJobs.size());
+        JobView expected = jobs.get(1);
+        assertEquals(expected.getId(), pagedJobs.get(0).getId());
+        assertEquals(expected.getNextTaskId(), pagedJobs.get(0).getNextTaskId());
+    }
+
+    private void addTask(BigDecimal jobId, String profileName, Task.State state, Integer order) throws Exception {
+        EmpireWorkflowTaskDao tasks = daos.createWorkflowTaskDao();
+        tasks.setTransaction(tx);
+        Task task = tasks.create();
+        task.setJobId(jobId);
+        task.setTypeRef(profileName);
+        task.setState(state);
+        task.setOrder(order);
+        task.setPriority(1);
+        task.setCreated(dbTimestamp);
+        tasks.update(task);
     }
 
     @ParameterizedTest

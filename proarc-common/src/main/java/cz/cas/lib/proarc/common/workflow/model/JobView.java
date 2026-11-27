@@ -82,6 +82,15 @@ public class JobView extends Job {
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_LABEL)
     @JsonProperty(WorkflowModelConsts.JOB_TASK_LABEL)
     private String taskLabel;
+    @XmlElement(name = WorkflowModelConsts.JOB_NEXT_TASK_ID)
+    @JsonProperty(WorkflowModelConsts.JOB_NEXT_TASK_ID)
+    private String nextTaskId;
+    @XmlElement(name = WorkflowModelConsts.JOB_NEXT_TASK_LABEL)
+    @JsonProperty(WorkflowModelConsts.JOB_NEXT_TASK_LABEL)
+    private String nextTaskLabel;
+    @XmlElement(name = WorkflowModelConsts.JOB_NEXT_TASK_HINT)
+    @JsonProperty(WorkflowModelConsts.JOB_NEXT_TASK_HINT)
+    private String nextTaskHint;
     @XmlElement(name = WorkflowModelConsts.JOB_TASK_CHANGE_DATE)
     @JsonProperty(WorkflowModelConsts.JOB_TASK_CHANGE_DATE)
     private Timestamp taskDate;
@@ -248,6 +257,67 @@ public class JobView extends Job {
 
     public void setTaskLabel(String taskLabel) {
         this.taskLabel = taskLabel;
+    }
+
+    /** The profile identifier of the completed task, matching the legacy taskName. */
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_DONE_ID)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_DONE_ID)
+    public String getTaskDoneId() {
+        return getTaskName();
+    }
+
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_DONE_LABEL)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_DONE_LABEL)
+    public String getTaskDoneLabel() {
+        return getTaskLabel();
+    }
+
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_DONE_HINT)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_DONE_HINT)
+    public String getTaskDoneHint() {
+        return getTaskDoneId() == null ? null : getTaskHint();
+    }
+
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_DONE_DATE)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_DONE_DATE)
+    public Timestamp getTaskDoneDate() {
+        return getTaskDate();
+    }
+
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_DONE_USER_ID)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_DONE_USER_ID)
+    public String getTaskDoneUserId() {
+        return getTaskUser();
+    }
+
+    @XmlElement(name = WorkflowModelConsts.JOB_TASK_DONE_USERNAME)
+    @JsonProperty(WorkflowModelConsts.JOB_TASK_DONE_USERNAME)
+    public String getTaskDoneUsername() {
+        return getTaskUsername();
+    }
+
+    public String getNextTaskId() {
+        return nextTaskId;
+    }
+
+    public void setNextTaskId(String nextTaskId) {
+        this.nextTaskId = nextTaskId;
+    }
+
+    public String getNextTaskLabel() {
+        return nextTaskLabel;
+    }
+
+    public void setNextTaskLabel(String nextTaskLabel) {
+        this.nextTaskLabel = nextTaskLabel;
+    }
+
+    public String getNextTaskHint() {
+        return nextTaskHint;
+    }
+
+    public void setNextTaskHint(String nextTaskHint) {
+        this.nextTaskHint = nextTaskHint;
     }
 
     public Timestamp getTaskDate() {

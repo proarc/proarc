@@ -18853,6 +18853,52 @@
               "FINISHED",
               "CANCELED"
             ]
+          },
+          "taskDoneId": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Profile identifier (for example task.scan) of the FINISHED task with the highest database ID. Alias of taskName; omitted when no task is finished."
+          },
+          "taskDoneLabel": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Localized label of taskDoneId. Alias of taskLabel; omitted when no task is finished."
+          },
+          "nextTaskId": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Profile identifier (for example task.scan) of the task currently on turn: STARTED takes precedence over READY, then lowest workflow order (missing order last), then lowest database ID. WAITING, FINISHED and CANCELED tasks are excluded. Omitted when no eligible task exists."
+          },
+          "nextTaskLabel": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Localized label of nextTaskId, falling back to the profile identifier when no title is available. Omitted when no eligible task exists."
+          },
+          "taskDoneHint": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Localized hint of the completed task, matching taskHint. Omitted when no task is finished or no hint is available."
+          },
+          "taskDoneDate": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "description": "Timestamp of the completed task. Alias of taskDate; omitted when no task is finished."
+          },
+          "taskDoneUserId": {
+            "type": "string",
+            "readOnly": true,
+            "description": "User identifier of the completed task. Alias of taskUser; omitted when unavailable."
+          },
+          "taskDoneUsername": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Username of the completed task. Alias of taskUsername; omitted when unavailable."
+          },
+          "nextTaskHint": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Localized hint of nextTaskId, resolved in the same way as taskHint. Omitted when no eligible task exists or the profile has no hint."
           }
         }
       },

@@ -22,6 +22,8 @@
         <setMaterial materialRef='material.folder' way='INPUT'/>
         <title lang='cs'>Úkol 1</title>
         <title lang='en'>Task 1</title>
+        <hint lang='cs'>Nápověda úkolu 1</hint>
+        <hint lang='en'>Task 1 hint</hint>
     </task>
     <task name='task.id2'>
         <setMaterial materialRef='material.folder' way='OUTPUT'/>

@@ -22,6 +22,7 @@ import cz.cas.lib.proarc.common.dao.empiredb.ProarcDatabase.WorkflowJobTable;
 import cz.cas.lib.proarc.common.workflow.model.Job;
 import cz.cas.lib.proarc.common.workflow.model.JobFilter;
 import cz.cas.lib.proarc.common.workflow.model.JobView;
+import cz.cas.lib.proarc.common.workflow.model.Task;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -30,8 +31,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import org.apache.empire.db.DBColumnExpr;
 import org.apache.empire.db.DBCommand;
 import org.apache.empire.db.DBJoinType;
@@ -222,22 +226,58 @@ public class EmpireWorkflowJobDao extends EmpireDao implements WorkflowJobDao {
 
         addOrderBy(cmd, filter.getSortBy(), tableJob.timestamp, true);
 
+        ArrayList<JobView> viewItems = new ArrayList<JobView>(filter.getMaxCount());
         DBReader reader = new DBReader();
         try {
             reader.open(cmd, getConnection());
             if (!reader.skipRows(filter.getOffset())) {
                 return Collections.emptyList();
             }
-            ArrayList<JobView> viewItems = new ArrayList<JobView>(filter.getMaxCount());
             for (Iterator<DBRecordData> it = reader.iterator(filter.getMaxCount()); it.hasNext();) {
                 DBRecordData rec = it.next();
                 JobView view = new JobView();
                 rec.setBeanProperties(view);
                 viewItems.add(view);
             }
-            return viewItems;
         } finally {
             reader.close();
+        }
+        populateNextTasks(viewItems);
+        return viewItems;
+    }
+
+    /** Resolve the next task for the entire result page in one query. */
+    private void populateNextTasks(List<JobView> jobs) {
+        if (jobs.isEmpty()) {
+            return;
+        }
+        ProarcDatabase.WorkflowTaskTable tasks = db.tableWorkflowTask;
+        DBCommand cmd = db.createCommand();
+        cmd.select(tasks.id, tasks.jobId, tasks.typeRef, tasks.state, tasks.order);
+        cmd.where(tasks.jobId.in(jobs.stream().map(JobView::getId).toList()));
+        cmd.where(tasks.state.in(Task.State.STARTED.name(), Task.State.READY.name()));
+        Comparator<Task> order = Comparator
+                .comparingInt((Task task) -> task.getState() == Task.State.STARTED ? 0 : 1)
+                .thenComparing(Task::getOrder, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(Task::getId);
+        Map<BigDecimal, Task> nextTasks = new HashMap<>();
+        DBReader reader = new DBReader();
+        try {
+            reader.open(cmd, getConnection());
+            for (Iterator<DBRecordData> it = reader.iterator(Integer.MAX_VALUE); it.hasNext();) {
+                Task task = new Task();
+                it.next().setBeanProperties(task);
+                nextTasks.merge(task.getJobId(), task,
+                        (first, second) -> order.compare(first, second) <= 0 ? first : second);
+            }
+        } finally {
+            reader.close();
+        }
+        for (JobView job : jobs) {
+            Task next = nextTasks.get(job.getId());
+            if (next != null) {
+                job.setNextTaskId(next.getTypeRef());
+            }
         }
     }
 

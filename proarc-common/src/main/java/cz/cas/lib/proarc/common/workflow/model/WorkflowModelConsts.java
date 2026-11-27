@@ -40,6 +40,15 @@ public final class WorkflowModelConsts {
     public static final String JOB_MODIFIED = "modified";
     public static final String JOB_TASK_NAME = "taskName";
     public static final String JOB_TASK_LABEL = "taskLabel";
+    public static final String JOB_TASK_DONE_ID = "taskDoneId";
+    public static final String JOB_TASK_DONE_LABEL = "taskDoneLabel";
+    public static final String JOB_TASK_DONE_HINT = "taskDoneHint";
+    public static final String JOB_TASK_DONE_DATE = "taskDoneDate";
+    public static final String JOB_TASK_DONE_USER_ID = "taskDoneUserId";
+    public static final String JOB_TASK_DONE_USERNAME = "taskDoneUsername";
+    public static final String JOB_NEXT_TASK_ID = "nextTaskId";
+    public static final String JOB_NEXT_TASK_LABEL = "nextTaskLabel";
+    public static final String JOB_NEXT_TASK_HINT = "nextTaskHint";
     public static final String JOB_TASK_HINT = "taskHint";
     public static final String JOB_TASK_CHANGE_DATE = "taskDate";
     public static final String JOB_TASK_CHANGE_USER = "taskUser";

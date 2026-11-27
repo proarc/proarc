@@ -153,6 +153,83 @@ public class WorkflowManagerTest {
     }
 
     @Test
+    public void testJobTaskSummaryLabels() throws Exception {
+        IDataSet db = database(
+                support.loadFlatXmlDataStream(EmpireWorkflowJobDaoTest.class, "user.xml"),
+                support.loadFlatXmlDataStream(EmpireWorkflowJobDaoTest.class, "wf_job.xml"),
+                support.loadFlatXmlDataStream(EmpireWorkflowJobDaoTest.class, "wf_task.xml"));
+        final IDatabaseConnection dbcon = support.getConnection();
+        support.cleanInsert(dbcon, db);
+        dbcon.getConnection().commit();
+        dbcon.close();
+
+        WorkflowManager wm = initWorkflowManager("WorkflowManagerAddProfile.xml");
+        JobFilter filter = new JobFilter();
+        filter.setId(BigDecimal.ONE);
+        filter.setLocale(Locale.forLanguageTag("cs"));
+        JobView job = wm.findJob(filter).get(0);
+        assertNull(job.getTaskDoneId());
+        assertNull(job.getTaskDoneLabel());
+        assertNull(job.getTaskDoneHint());
+        assertNull(job.getTaskDoneDate());
+        assertNull(job.getTaskDoneUserId());
+        assertNull(job.getTaskDoneUsername());
+        assertEquals("task.id1", job.getNextTaskId());
+        assertEquals("Úkol 1", job.getNextTaskLabel());
+        assertEquals("Nápověda úkolu 1", job.getNextTaskHint());
+
+        filter.setLocale(Locale.ENGLISH);
+        job = wm.findJob(filter).get(0);
+        assertEquals("Task 1", job.getNextTaskLabel());
+        assertEquals("Task 1 hint", job.getNextTaskHint());
+
+        var tx = daos.createTransaction();
+        try {
+            var tasks = daos.createWorkflowTaskDao();
+            tasks.setTransaction(tx);
+            Task task = tasks.find(BigDecimal.ONE);
+            task.setState(State.FINISHED);
+            tasks.update(task);
+            tx.commit();
+        } finally {
+            tx.close();
+        }
+        job = wm.findJob(filter).get(0);
+        assertEquals("task.id1", job.getTaskDoneId());
+        assertEquals("Task 1", job.getTaskDoneLabel());
+        assertEquals(job.getTaskName(), job.getTaskDoneId());
+        assertEquals(job.getTaskLabel(), job.getTaskDoneLabel());
+        assertEquals("Task 1 hint", job.getTaskDoneHint());
+        assertEquals(job.getTaskHint(), job.getTaskDoneHint());
+        assertNotNull(job.getTaskDoneDate());
+        assertEquals(job.getTaskDate(), job.getTaskDoneDate());
+        assertEquals("1", job.getTaskDoneUserId());
+        assertEquals(job.getTaskUser(), job.getTaskDoneUserId());
+        assertNotNull(job.getTaskDoneUsername());
+        assertEquals(job.getTaskUsername(), job.getTaskDoneUsername());
+        assertNull(job.getNextTaskId());
+        assertNull(job.getNextTaskLabel());
+        assertNull(job.getNextTaskHint());
+
+        tx = daos.createTransaction();
+        try {
+            var tasks = daos.createWorkflowTaskDao();
+            tasks.setTransaction(tx);
+            Task task = tasks.find(BigDecimal.ONE);
+            task.setState(State.READY);
+            task.setTypeRef("task.unknown");
+            tasks.update(task);
+            tx.commit();
+        } finally {
+            tx.close();
+        }
+        job = wm.findJob(filter).get(0);
+        assertEquals("task.unknown", job.getNextTaskId());
+        assertEquals("task.unknown", job.getNextTaskLabel());
+        assertEquals("Unknown task XML ID: task.unknown", job.getNextTaskHint());
+    }
+
+    @Test
     public void testAddJob() throws Exception {
         IDataSet db = database(
                 support.loadFlatXmlDataStream(EmpireWorkflowJobDaoTest.class, "user.xml"),

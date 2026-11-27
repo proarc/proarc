@@ -168,6 +168,13 @@ public class WorkflowManager {
                     job.setTaskLabel(job.getTaskName());
                     job.setTaskHint("Unknown task XML ID: " + job.getTaskName());
                 }
+                if (job.getNextTaskId() != null) {
+                    TaskDefinition nextTaskProfile = wp.getTaskProfile(wd, job.getNextTaskId());
+                    job.setNextTaskLabel(nextTaskProfile == null ? job.getNextTaskId()
+                            : nextTaskProfile.getTitle(lang, nextTaskProfile.getName()));
+                    job.setNextTaskHint(nextTaskProfile == null ? "Unknown task XML ID: " + job.getNextTaskId()
+                            : nextTaskProfile.getHint(lang, null));
+                }
                 job.setDevice(getDevice(jobDao.getDevice(job.getId())));
             }
             if (filter.getDeviceId() != null) {
