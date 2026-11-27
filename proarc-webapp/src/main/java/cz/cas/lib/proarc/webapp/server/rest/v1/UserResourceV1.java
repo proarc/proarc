@@ -299,6 +299,7 @@ public class UserResourceV1 {
             @FormParam(UserResourceApi.FUNCTION_DELETE_ACTION) Boolean deleteActionFunction,
             @FormParam(UserResourceApi.FUNCTION_ALL_OBJECTS) Boolean allObjectsFunction,
             @FormParam(UserResourceApi.FUNCTION_PREPARE_BATCH) Boolean prepareBatchFunction,
+            @FormParam(UserResourceApi.FUNCTION_CHECK_BATCH) Boolean checkBatchFunction,
             @FormParam(UserResourceApi.FUNCTION_SYS_ADMIN) Boolean sysAdminFunction
             ) {
         Locale locale = session.getLocale(httpHeaders);
@@ -340,6 +341,7 @@ public class UserResourceV1 {
         newProfile.setDeleteActionFunction(deleteActionFunction);
         newProfile.setAllObjectsFunction(allObjectsFunction);
         newProfile.setPrepareBatchFunction(prepareBatchFunction);
+        newProfile.setCheckBatchFunction(checkBatchFunction);
         newProfile.setSysAdminFunction(sysAdminFunction);
         try {
             newProfile = userManager.add(newProfile, Collections.<Group>emptyList(),
@@ -386,6 +388,7 @@ public class UserResourceV1 {
             @FormParam(UserResourceApi.FUNCTION_DELETE_ACTION) Boolean deleteActionFunction,
             @FormParam(UserResourceApi.FUNCTION_ALL_OBJECTS) Boolean allObjectsFunction,
             @FormParam(UserResourceApi.FUNCTION_PREPARE_BATCH) Boolean prepareBatchFunction,
+            @FormParam(UserResourceApi.FUNCTION_CHECK_BATCH) Boolean checkBatchFunction,
             @FormParam(UserResourceApi.FUNCTION_SYS_ADMIN) Boolean sysAdminFunction
             ) {
 
@@ -429,6 +432,7 @@ public class UserResourceV1 {
             update.setDeleteActionFunction(deleteActionFunction);
             update.setAllObjectsFunction(allObjectsFunction);
             update.setPrepareBatchFunction(prepareBatchFunction);
+            update.setCheckBatchFunction(checkBatchFunction);
             update.setSysAdminFunction(sysAdminFunction);
             if (surname == null || surname.isEmpty()) {
                 return ProArcResponse.<UserProfile>asError()

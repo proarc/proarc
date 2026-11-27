@@ -80,7 +80,7 @@ public class ProarcDatabaseV21 extends DBDatabase {
     public final DBRelation relationWorkflowMaterialInTask_TaskId_Fk;
 
     public static int upgradeToVersion22(
-            int currentSchemaVersion, ProarcDatabase schema,
+            int currentSchemaVersion,
             Connection conn, EmpireConfiguration conf) throws SQLException {
 
         if (currentSchemaVersion < VERSION) {
@@ -93,7 +93,7 @@ public class ProarcDatabaseV21 extends DBDatabase {
         } else if (currentSchemaVersion != VERSION) {
             throw new SQLException("Cannot upgrade from schema version " + currentSchemaVersion);
         }
-//        ProarcDatabaseVXX schema = new ProarcDatabaseVXX();
+        ProarcDatabaseV22 schema = new ProarcDatabaseV22();
         try {
             schema.open(conf.getDriver(), conn);
             upgradeDdl(schema, conn);
@@ -107,7 +107,7 @@ public class ProarcDatabaseV21 extends DBDatabase {
         }
     }
 
-    private static void upgradeDdl(ProarcDatabase schema, Connection conn) throws SQLException {
+    private static void upgradeDdl(ProarcDatabaseV22 schema, Connection conn) throws SQLException {
         try {
             conn.setAutoCommit(true);
             DBDatabaseDriver driver = schema.getDriver();

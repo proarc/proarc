@@ -101,9 +101,11 @@ import static cz.cas.lib.proarc.common.process.imports.ImportProcess.TMP_DIR_NAM
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_BATCH_CANNOT_BE_STOPED;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.ERR_NO_PERMISSION;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_PREPARE_BATCH;
+import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_CHECK_BATCH;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.PERMISSION_FUNCTION_SYS_ADMIN;
 import static cz.cas.lib.proarc.webapp.server.rest.RestConsts.URL_API_VERSION_1;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.checkPermission;
+import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.canAccessImportBatch;
 import static cz.cas.lib.proarc.webapp.server.rest.UserPermission.hasPermission;
 
 /**
@@ -620,7 +622,7 @@ public class ImportResourceV1 {
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
         if (Batch.State.LOADING.equals(batch.getState()) || Batch.State.IMPORT_PLANNED.equals(batch.getState())) {
-            if (!(hasPermission(user, PERMISSION_FUNCTION_PREPARE_BATCH) || isBatchOwner(batch))) {
+            if (!(isBatchOwner(batch) || hasPermission(user, PERMISSION_FUNCTION_PREPARE_BATCH, PERMISSION_FUNCTION_CHECK_BATCH))) {
                 LOG.info("User " + user + " (id:" + user.getId() + ") - permission prepareBatchFunction.");
                 return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
@@ -677,7 +679,7 @@ public class ImportResourceV1 {
             throw RestException.plainNotFound(
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
-        if (!(isBatchOwner(batch) || hasPermission(user, PERMISSION_FUNCTION_PREPARE_BATCH) || hasPermission(user, PERMISSION_FUNCTION_SYS_ADMIN))) {
+        if (!(isBatchOwner(batch) || hasPermission(user, PERMISSION_FUNCTION_PREPARE_BATCH, PERMISSION_FUNCTION_SYS_ADMIN, PERMISSION_FUNCTION_CHECK_BATCH))) {
             return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
         }
         if (!ConfigurationProfile.METACHECK_IMPORT.equals(batch.getProfileId())) {
@@ -742,6 +744,11 @@ public class ImportResourceV1 {
         return user.getId().equals(batch.getUserId());
     }
 
+    private boolean canAccessBatch(Batch batch) {
+        UserProfile owner = batch.getUserId() == null ? null : UserUtil.getDefaultManger().find(batch.getUserId());
+        return canAccessImportBatch(user, owner);
+    }
+
     private boolean isBatchOrganization(Batch batch) {
         UserProfile owner = UserUtil.getDefaultManger().find(batch.getUserId());
         return user.getOrganization().equals(owner.getOrganization());
@@ -765,6 +772,9 @@ public class ImportResourceV1 {
             throw RestException.plainNotFound(
                     ImportResourceApi.IMPORT_BATCH_ID, String.valueOf(batchId));
         }
+        if (!canAccessBatch(batch)) {
+            return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+        }
         if (state == Batch.State.INGESTING) {
             // ingest or reingest for INGESTING_FAILED
             batch.getFolder();
@@ -782,19 +792,6 @@ public class ImportResourceV1 {
                 throw new IllegalStateException("Unsupported type of storage: " + appConfig.getTypeOfStorage());
             }
         } else if (state == Batch.State.LOADING_FAILED || state == Batch.State.STOPPED || state == Batch.State.LOADING_CONFLICT) {
-            Integer userId = batch.getUserId();
-            if (userId != null) {
-                if (userId != user.getId()) {
-                    UserManager userManager = UserUtil.getDefaultManger();
-                    UserProfile userProfile = userManager.find(userId);
-                    if (userProfile == null) {
-                        return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
-                    }
-                    if (userProfile != null && !userProfile.hasPrepareBatchFunction()) {
-                        return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
-                    }
-                }
-            }
             Batch.State realState = batch.getState();
             batch.setProfileId(profileId);
             importManager.update(batch);
@@ -855,18 +852,8 @@ public class ImportResourceV1 {
                 return ProArcResponse.asError(message);
             }
 
-            Integer userId = batch.getUserId();
-            if (userId != null) {
-                if (userId != user.getId()) {
-                    UserManager userManager = UserUtil.getDefaultManger();
-                    UserProfile userProfile = userManager.find(userId);
-                    if (userProfile == null) {
-                        return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
-                    }
-                    if (userProfile != null && !userProfile.hasPrepareBatchFunction()) {
-                        return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
-                    }
-                }
+            if (!canAccessBatch(batch)) {
+                return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
             }
 
             try {
@@ -934,6 +921,9 @@ public class ImportResourceV1 {
         if (batchId != null && pids != null && !pids.isEmpty()) {
             Batch batch = importManager.get(batchId);
             if (batch != null) {
+                if (!canAccessBatch(batch)) {
+                    return ProArcResponse.asError(returnLocalizedMessage(ERR_NO_PERMISSION));
+                }
                 checkBatchState(batch);
                 changed = importManager.excludeBatchObject(batch, pids);
             }

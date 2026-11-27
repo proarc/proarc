@@ -125,6 +125,42 @@ public class ProarcDatabaseTest {
     }
 
     @Test
+    public void testUpgradeFromVersion22DisablesReviewPermission() throws Exception {
+        ProarcDatabaseV22 oldSchema = new ProarcDatabaseV22();
+        dropSchema(schema);
+        oldSchema.init(emireCfg);
+        try (Connection conn = emireCfg.getConnection();
+                java.sql.Statement statement = conn.createStatement()) {
+            statement.executeUpdate("INSERT INTO PROARC_USERS (USERNAME, SURNAME, HOME, PREPARE_BATCH_FUNCTION, SYS_ADMIN_FUNCTION) "
+                    + "VALUES ('admin', 'Admin', 'admin', TRUE, TRUE)");
+            conn.commit();
+        }
+
+        schema.init(emireCfg);
+        // A second initialization must not rerun the migration.
+        schema.init(emireCfg);
+        try (Connection conn = emireCfg.getConnection();
+                java.sql.Statement statement = conn.createStatement()) {
+            assertEquals(23, ProarcDatabase.schemaExists(schema, conn));
+            try (java.sql.ResultSet result = statement.executeQuery(
+                    "SELECT CHECK_BATCH_FUNCTION, PREPARE_BATCH_FUNCTION, SYS_ADMIN_FUNCTION FROM PROARC_USERS")) {
+                assertTrue(result.next());
+                assertFalse(result.getBoolean(1));
+                assertFalse(result.wasNull());
+                assertTrue(result.getBoolean(2));
+                assertTrue(result.getBoolean(3));
+            }
+            statement.executeUpdate("INSERT INTO PROARC_USERS (USERNAME, SURNAME, HOME) VALUES ('new', 'New', 'new')");
+            try (java.sql.ResultSet result = statement.executeQuery(
+                    "SELECT CHECK_BATCH_FUNCTION FROM PROARC_USERS WHERE USERNAME = 'new'")) {
+                assertTrue(result.next());
+                assertFalse(result.getBoolean(1));
+                assertFalse(result.wasNull());
+            }
+        }
+    }
+
+    @Test
     public void testSchemaExists() throws Exception {
         schema.init(emireCfg);
         Connection c = emireCfg.getConnection();

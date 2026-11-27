@@ -67,6 +67,7 @@ public class UserProfile {
     private Boolean deleteActionFunction;
     private Boolean allObjectsFunction; // vidi vsechny objekty v obrazovce hledat (bez ohledu na organizaci)
     private Boolean prepareBatchFunction;
+    private Boolean checkBatchFunction = Boolean.FALSE;
     private Boolean sysAdminFunction;
     private Date created;
     private Date lastLogin;
@@ -485,6 +486,18 @@ public class UserProfile {
 
     public void setAllObjectsFunction(Boolean allObjectsFunction) {
         this.allObjectsFunction = allObjectsFunction;
+    }
+
+    public Boolean getCheckBatchFunction() {
+        return checkBatchFunction;
+    }
+
+    public Boolean hasCheckBatchFunction() {
+        return Boolean.TRUE.equals(checkBatchFunction);
+    }
+
+    public void setCheckBatchFunction(Boolean checkBatchFunction) {
+        this.checkBatchFunction = Boolean.TRUE.equals(checkBatchFunction);
     }
 
     public Boolean getPrepareBatchFunction() {
